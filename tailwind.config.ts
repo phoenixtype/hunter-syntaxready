@@ -18,9 +18,9 @@ export default {
         '3xl': '1920px',
       },
       fontFamily: {
-        'sans': ['Archivo', 'system-ui', 'sans-serif'],
-        'serif': ['Playfair Display', 'Georgia', 'serif'],
-        'display': ['Clash Display', 'system-ui', 'sans-serif'],
+        sans: ["Inter", "system-ui", "sans-serif"],
+        serif: ["Playfair Display", "Georgia", "serif"],
+        display: ["Inter", "system-ui", "sans-serif"],
       },
       gridTemplateColumns: {
         '16': 'repeat(16, minmax(0, 1fr))',
