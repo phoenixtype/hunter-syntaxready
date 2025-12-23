@@ -9,6 +9,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  demoLogin: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,7 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp = async (email: string, password: string, fullName: string) => {
     const redirectUrl = `${window.location.origin}/`;
-    
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -64,10 +65,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
+  };
+
+  const demoLogin = async () => {
+    // Mock user for testing/demo purposes
+    const mockUser = {
+      id: "demo-user-id",
+      email: "demo@hunter.ai",
+      app_metadata: {},
+      user_metadata: { full_name: "Demo Hunter" },
+      aud: "authenticated",
+      created_at: new Date().toISOString()
+    } as User;
+
+    setUser(mockUser);
+    setLoading(false);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut, demoLogin }}>
       {children}
     </AuthContext.Provider>
   );

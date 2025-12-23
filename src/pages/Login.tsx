@@ -10,12 +10,19 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, demoLogin } = useAuth();
   const navigate = useNavigate();
+
+  const signInWithDemo = async () => {
+    setIsLoading(true);
+    await demoLogin();
+    toast.success("Welcome Demo User!");
+    navigate("/dashboard");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       toast.error("Please fill in all fields");
       return;
@@ -68,7 +75,7 @@ const Login = () => {
                 disabled={isLoading}
               />
             </div>
-            <Button 
+            <Button
               type="submit"
               className="w-full h-12 text-base font-medium transition-transform hover:scale-[1.02] active:scale-[0.98]"
               disabled={isLoading}
@@ -82,6 +89,25 @@ const Login = () => {
                 "Sign In"
               )}
             </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-muted/50" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+              </div>
+            </div>
+
+            <Button
+              variant="outline"
+              type="button"
+              className="w-full h-12 hover:bg-muted/50"
+              onClick={signInWithDemo}
+              disabled={isLoading}
+            >
+              Login with Demo Account
+            </Button>
           </form>
 
           <p className="text-center text-sm text-muted-foreground">
@@ -92,7 +118,7 @@ const Login = () => {
           </p>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 
