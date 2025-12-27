@@ -41,6 +41,8 @@ import { Progress } from "@/components/ui/progress";
 import JobFeed from "@/components/JobFeed";
 import JobCrawler from "@/components/JobCrawler";
 import ATSAudit from "@/components/ATSAudit";
+import DashboardSkeleton from "@/components/DashboardSkeleton";
+import ThemeToggle from "@/components/ThemeToggle";
 
 import PostInterviewModal from "@/components/PostInterviewModal";
 import PricingModal from "@/components/PricingModal";
@@ -130,11 +132,7 @@ const Dashboard = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (!user) {
@@ -160,6 +158,7 @@ const Dashboard = () => {
               Home
             </Button>
             <div className="h-6 w-px bg-border/50"></div>
+            <ThemeToggle />
             <div className="flex items-center gap-2">
               <Avatar className="w-8 h-8 border border-white/10">
                 <AvatarImage src={user?.user_metadata?.avatar_url} />
