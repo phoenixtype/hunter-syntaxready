@@ -31,7 +31,8 @@ const Onboarding = () => {
             min_salary_usd: salary[0],
             locations: locations.split(',').map(s => s.trim()).filter(Boolean),
             remote_policy: remotePolicy,
-            aggressiveness: aggressiveness[0]
+            aggressiveness: aggressiveness[0],
+            safe_mode: true
         };
 
         await savePreferences(user.id, prefs);
