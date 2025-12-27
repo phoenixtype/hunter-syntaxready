@@ -1,17 +1,17 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { JobOpportunity, searchJobs } from "@/lib/crawler_engine";
+import { JobOpportunity, searchJobs, triggerJobCrawl, getJobCount } from "@/lib/crawler_engine";
 import { CandidateProfile } from "@/lib/resume_engine";
 import { calculateMatch, MatchResult } from "@/lib/matching_engine";
 import { generateTailoredContent, TailoredContent } from "@/lib/writer_engine";
 import { simulateApplication, ApplicationState, ComplianceError } from "@/lib/application_engine";
 import { recordFeedback, getOptimizedWeights, MatchingWeights } from "@/lib/learning_engine";
-import { ExternalLink, Sparkles, RefreshCw, Terminal, PenTool, Send, Check, GraduationCap, X } from "lucide-react";
+import { ExternalLink, Sparkles, RefreshCw, Terminal, PenTool, Send, Check, GraduationCap, X, Loader2, Globe, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import InterviewPrepModal from "./InterviewPrep";
+import { useAuth } from "@/hooks/useAuth";
 
 interface JobFeedProps {
     profile: CandidateProfile | null;
@@ -22,20 +22,27 @@ interface EnrichedJob extends JobOpportunity {
 }
 
 const JobFeed = ({ profile }: JobFeedProps) => {
+    const { user } = useAuth();
     const [jobs, setJobs] = useState<EnrichedJob[]>([]);
     const [loading, setLoading] = useState(false);
+    const [crawling, setCrawling] = useState(false);
+    const [jobCount, setJobCount] = useState<number>(0);
     const [activeApplication, setActiveApplication] = useState<ApplicationState | null>(null);
     const [stakeholders, setStakeholders] = useState<Record<string, any[]>>({});
     const [prepJob, setPrepJob] = useState<JobOpportunity | null>(null);
 
     const handleApply = async (job: JobOpportunity) => {
-        toast.info(`Initialing Auto-Apply for ${job.company}...`);
+        toast.info(`Initiating Auto-Apply for ${job.company}...`);
 
         await recordFeedback({
             jobId: job.id,
             action: 'APPLY',
             timestamp: Date.now(),
-            jobMetadata: { skills: [], company: job.company, source: job.source } // Simplified metadata for mock
+            jobMetadata: { 
+                skills: job.tech_stack || [], 
+                company: job.company, 
+                source: job.source 
+            }
         });
 
         try {
@@ -45,7 +52,7 @@ const JobFeed = ({ profile }: JobFeedProps) => {
                     toast.success(`Application sent to ${job.company}!`);
                     setTimeout(() => setActiveApplication(null), 3000);
                 }
-            });
+            }, user?.id, true); // Pass userId and safeMode
         } catch (error) {
             if (error instanceof ComplianceError) {
                 toast.warning("Application Blocked by Compliance Agent", {
@@ -54,8 +61,10 @@ const JobFeed = ({ profile }: JobFeedProps) => {
                 });
                 setActiveApplication(null);
             } else {
+                console.error("Application error:", error);
                 toast.error("Application failed due to technical error.");
             }
+            setActiveApplication(null);
         }
     };
 
@@ -99,8 +108,10 @@ const JobFeed = ({ profile }: JobFeedProps) => {
     const fetchJobs = async () => {
         setLoading(true);
         try {
-            const rawJobs = await searchJobs("software engineer");
+            const rawJobs = await searchJobs();
             const weights = getOptimizedWeights();
+            const count = await getJobCount();
+            setJobCount(count);
 
             // If we have a profile, calculate matches
             let enrichedJobs = rawJobs;
@@ -118,11 +129,37 @@ const JobFeed = ({ profile }: JobFeedProps) => {
             }
 
             setJobs(enrichedJobs);
-            toast.success(`Discovered ${enrichedJobs.length} new opportunities.`);
+            if (enrichedJobs.length > 0) {
+                toast.success(`Loaded ${enrichedJobs.length} opportunities.`);
+            }
         } catch (e) {
+            console.error("Failed to fetch jobs:", e);
             toast.error("Failed to fetch jobs.");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleCrawl = async () => {
+        setCrawling(true);
+        toast.info("Starting job crawl with Firecrawl + AI...");
+        
+        try {
+            const result = await triggerJobCrawl();
+            
+            if (result.success) {
+                toast.success(`Crawl complete! Found ${result.inserted || 0} new jobs`);
+                // Refresh the job list
+                await fetchJobs();
+            } else {
+                toast.error("Crawl failed", { description: result.error });
+            }
+        } catch (err) {
+            toast.error("Crawl error", { 
+                description: err instanceof Error ? err.message : "Unknown error" 
+            });
+        } finally {
+            setCrawling(false);
         }
     };
 
@@ -137,18 +174,39 @@ const JobFeed = ({ profile }: JobFeedProps) => {
                     <Terminal className="w-5 h-5 text-primary" />
                     <h2 className="font-semibold tracking-tight">Hunter Feed_</h2>
                     <Badge variant="outline" className="text-xs font-mono font-normal bg-background/50">
-                        LIVE
+                        {jobCount > 0 ? `${jobCount} indexed` : 'LIVE'}
                     </Badge>
                 </div>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={fetchJobs}
-                    disabled={loading}
-                    className={loading ? "animate-spin" : ""}
-                >
-                    <RefreshCw className="w-4 h-4" />
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCrawl}
+                        disabled={crawling || loading}
+                        className="text-xs"
+                    >
+                        {crawling ? (
+                            <>
+                                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                Crawling...
+                            </>
+                        ) : (
+                            <>
+                                <Globe className="w-3 h-3 mr-1" />
+                                Crawl Jobs
+                            </>
+                        )}
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={fetchJobs}
+                        disabled={loading || crawling}
+                        className={loading ? "animate-spin" : ""}
+                    >
+                        <RefreshCw className="w-4 h-4" />
+                    </Button>
+                </div>
             </div>
 
             <ScrollArea className="flex-1 p-0">

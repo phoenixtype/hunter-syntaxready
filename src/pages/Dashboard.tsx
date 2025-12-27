@@ -39,6 +39,7 @@ import { getPreferences, UserPreferences } from "@/lib/user_preferences";
 import { calculateVisibilityScore, VisibilityScore } from "@/lib/visibility_engine";
 import { Progress } from "@/components/ui/progress";
 import JobFeed from "@/components/JobFeed";
+import JobCrawler from "@/components/JobCrawler";
 import ATSAudit from "@/components/ATSAudit";
 
 import PostInterviewModal from "@/components/PostInterviewModal";
@@ -275,6 +276,9 @@ const Dashboard = () => {
                   )}
                 </CardContent>
               </Card>
+
+              {/* Job Crawler Widget */}
+              <JobCrawler />
 
               {/* Resume Section */}
               <div className="glass-card rounded-2xl p-8 space-y-6">
