@@ -5,22 +5,24 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { 
-  Search, 
-  RefreshCw, 
   Loader2, 
   CheckCircle2, 
   AlertCircle,
   Globe,
-  Zap
+  Zap,
+  LogIn
 } from "lucide-react";
 import { toast } from "sonner";
 import { triggerJobCrawl, getJobCount } from "@/lib/crawler_engine";
+import { useAuth } from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
 
 interface JobCrawlerProps {
   onCrawlComplete?: () => void;
 }
 
 const JobCrawler = ({ onCrawlComplete }: JobCrawlerProps) => {
+  const { user, loading: authLoading } = useAuth();
   const [crawling, setCrawling] = useState(false);
   const [keywords, setKeywords] = useState("software engineer, full stack, frontend");
   const [sources, setSources] = useState("Y Combinator jobs, LinkedIn software engineer");
@@ -30,6 +32,8 @@ const JobCrawler = ({ onCrawlComplete }: JobCrawlerProps) => {
     error?: string;
   } | null>(null);
   const [jobCount, setJobCount] = useState<number | null>(null);
+  
+  const isAuthenticated = !!user;
 
   const handleCrawl = async () => {
     setCrawling(true);
@@ -124,25 +128,42 @@ const JobCrawler = ({ onCrawlComplete }: JobCrawlerProps) => {
           />
         </div>
 
-        {/* Crawl Button */}
-        <Button 
-          onClick={handleCrawl} 
-          disabled={crawling}
-          className="w-full"
-          size="lg"
-        >
-          {crawling ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Crawling...
-            </>
-          ) : (
-            <>
-              <Zap className="w-4 h-4 mr-2" />
-              Start Crawl
-            </>
-          )}
-        </Button>
+        {/* Crawl Button or Login Prompt */}
+        {!isAuthenticated && !authLoading ? (
+          <div className="space-y-3">
+            <div className="p-4 rounded-lg bg-muted/50 border border-border">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <LogIn className="w-4 h-4" />
+                <span className="text-sm">Sign in to crawl jobs</span>
+              </div>
+            </div>
+            <Button asChild className="w-full" size="lg">
+              <Link to="/login">
+                <LogIn className="w-4 h-4 mr-2" />
+                Sign In to Continue
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <Button 
+            onClick={handleCrawl} 
+            disabled={crawling || authLoading}
+            className="w-full"
+            size="lg"
+          >
+            {crawling ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Crawling...
+              </>
+            ) : (
+              <>
+                <Zap className="w-4 h-4 mr-2" />
+                Start Crawl
+              </>
+            )}
+          </Button>
+        )}
 
         {/* Progress indicator during crawl */}
         {crawling && (
