@@ -41,6 +41,11 @@ export const triggerJobCrawl = async (
   }
 };
 
+// Escape SQL ILIKE special characters to prevent pattern injection
+function escapeLikePattern(input: string): string {
+  return input.replace(/[%_\\]/g, '\\$&');
+}
+
 // Search jobs from database
 export const searchJobs = async (query?: string): Promise<JobOpportunity[]> => {
   try {
@@ -51,10 +56,12 @@ export const searchJobs = async (query?: string): Promise<JobOpportunity[]> => {
       .order('created_at', { ascending: false })
       .limit(50);
 
-    // If query provided, do text search
+    // If query provided, do text search with sanitized input
     if (query && query.trim()) {
+      // Limit query length and sanitize special characters
+      const sanitizedQuery = escapeLikePattern(query.trim().slice(0, 100));
       queryBuilder = queryBuilder.or(
-        `title.ilike.%${query}%,company.ilike.%${query}%,description.ilike.%${query}%`
+        `title.ilike.%${sanitizedQuery}%,company.ilike.%${sanitizedQuery}%,description.ilike.%${sanitizedQuery}%`
       );
     }
 

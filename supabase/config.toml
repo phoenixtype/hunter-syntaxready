@@ -1,13 +1,13 @@
 project_id = "ffjsgjsiemtxqbhimvhb"
 
 [functions.crawl-jobs]
-verify_jwt = false
+verify_jwt = true
 
 [functions.parse-resume]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-content]
-verify_jwt = false
+verify_jwt = true
 
 [functions.interview-coach]
-verify_jwt = false
+verify_jwt = true
