@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      job_listings: {
+        Row: {
+          company: string
+          created_at: string
+          credibility_score: number | null
+          description: string | null
+          freshness_score: number | null
+          id: string
+          job_hash: string
+          location: string | null
+          posted_at: string | null
+          raw_data: Json | null
+          salary_range: string | null
+          source: string
+          tech_stack: string[] | null
+          title: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          company: string
+          created_at?: string
+          credibility_score?: number | null
+          description?: string | null
+          freshness_score?: number | null
+          id?: string
+          job_hash: string
+          location?: string | null
+          posted_at?: string | null
+          raw_data?: Json | null
+          salary_range?: string | null
+          source?: string
+          tech_stack?: string[] | null
+          title: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          company?: string
+          created_at?: string
+          credibility_score?: number | null
+          description?: string | null
+          freshness_score?: number | null
+          id?: string
+          job_hash?: string
+          location?: string | null
+          posted_at?: string | null
+          raw_data?: Json | null
+          salary_range?: string | null
+          source?: string
+          tech_stack?: string[] | null
+          title?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
