@@ -1,1 +1,4 @@
 project_id = "ffjsgjsiemtxqbhimvhb"
+
+[functions.crawl-jobs]
+verify_jwt = false
