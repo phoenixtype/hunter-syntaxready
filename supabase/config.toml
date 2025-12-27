@@ -2,3 +2,12 @@ project_id = "ffjsgjsiemtxqbhimvhb"
 
 [functions.crawl-jobs]
 verify_jwt = false
+
+[functions.parse-resume]
+verify_jwt = false
+
+[functions.generate-content]
+verify_jwt = false
+
+[functions.interview-coach]
+verify_jwt = false

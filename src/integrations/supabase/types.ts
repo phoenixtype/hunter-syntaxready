@@ -14,6 +14,179 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_activity_logs: {
+        Row: {
+          action: string
+          agent: string
+          created_at: string
+          details: string | null
+          id: string
+          log_type: string | null
+          metadata: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          agent: string
+          created_at?: string
+          details?: string | null
+          id?: string
+          log_type?: string | null
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          agent?: string
+          created_at?: string
+          details?: string | null
+          id?: string
+          log_type?: string | null
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      application_history: {
+        Row: {
+          applied_at: string
+          company: string
+          id: string
+          job_id: string | null
+          job_title: string
+          job_url: string | null
+          metadata: Json | null
+          notes: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          applied_at?: string
+          company: string
+          id?: string
+          job_id?: string | null
+          job_title: string
+          job_url?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          applied_at?: string
+          company?: string
+          id?: string
+          job_id?: string | null
+          job_title?: string
+          job_url?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_history_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_profiles: {
+        Row: {
+          created_at: string
+          education: Json
+          experience_atoms: Json
+          id: string
+          identity: Json
+          raw_resume_text: string | null
+          resume_file_url: string | null
+          skills: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          education?: Json
+          experience_atoms?: Json
+          id?: string
+          identity?: Json
+          raw_resume_text?: string | null
+          resume_file_url?: string | null
+          skills?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          education?: Json
+          experience_atoms?: Json
+          id?: string
+          identity?: Json
+          raw_resume_text?: string | null
+          resume_file_url?: string | null
+          skills?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      compliance_metrics: {
+        Row: {
+          action_count: number | null
+          action_type: string
+          created_at: string
+          hour_bucket: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          action_count?: number | null
+          action_type: string
+          created_at?: string
+          hour_bucket: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          action_count?: number | null
+          action_type?: string
+          created_at?: string
+          hour_bucket?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      feedback_actions: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          job_id: string
+          job_metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          job_id: string
+          job_metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          job_id?: string
+          job_metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       job_listings: {
         Row: {
           company: string
@@ -71,6 +244,42 @@ export type Database = {
         }
         Relationships: []
       }
+      learning_weights: {
+        Row: {
+          banned_companies: string[] | null
+          created_at: string
+          culture_weight: number | null
+          freshness_weight: number | null
+          id: string
+          preferred_skills: string[] | null
+          skill_weight: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          banned_companies?: string[] | null
+          created_at?: string
+          culture_weight?: number | null
+          freshness_weight?: number | null
+          id?: string
+          preferred_skills?: string[] | null
+          skill_weight?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          banned_companies?: string[] | null
+          created_at?: string
+          culture_weight?: number | null
+          freshness_weight?: number | null
+          id?: string
+          preferred_skills?: string[] | null
+          skill_weight?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -95,6 +304,45 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          aggressiveness: number | null
+          created_at: string
+          id: string
+          locations: string[] | null
+          min_salary_usd: number | null
+          remote_policy: string | null
+          safe_mode: boolean | null
+          target_roles: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          aggressiveness?: number | null
+          created_at?: string
+          id?: string
+          locations?: string[] | null
+          min_salary_usd?: number | null
+          remote_policy?: string | null
+          safe_mode?: boolean | null
+          target_roles?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          aggressiveness?: number | null
+          created_at?: string
+          id?: string
+          locations?: string[] | null
+          min_salary_usd?: number | null
+          remote_policy?: string | null
+          safe_mode?: boolean | null
+          target_roles?: string[] | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

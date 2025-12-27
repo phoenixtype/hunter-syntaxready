@@ -1,9 +1,10 @@
-
+import { supabase } from "@/integrations/supabase/client";
 import { JobOpportunity } from "./crawler_engine";
+import { CandidateProfile } from "./resume_engine";
 
 export interface InterviewerProfile {
     role: string;
-    name_archetype: string; // e.g., "The Technical Founder", "The Engineering Manager"
+    name_archetype: string;
     focus_area: string;
     tip: string;
 }
@@ -31,11 +32,69 @@ export interface InterviewPrepMaterial {
     evaluation_criteria: EvaluationCriterion[];
 }
 
-export const generateInterviewPrep = async (job: JobOpportunity): Promise<InterviewPrepMaterial> => {
-    // Simulate RAG retrieval - "Consulting the Oracle..."
-    await new Promise(resolve => setTimeout(resolve, 2000));
+export interface InterviewMessage {
+    role: 'user' | 'assistant';
+    content: string;
+}
 
-    // Dynamic mock generation based on job context (simple heuristic mock)
+export interface InterviewSession {
+    messages: InterviewMessage[];
+    mode: 'technical' | 'behavioral' | 'negotiation';
+    job?: JobOpportunity;
+    profile?: CandidateProfile;
+}
+
+// Start an interview coaching session
+export const startInterviewSession = async (
+    mode: 'technical' | 'behavioral' | 'negotiation',
+    profile?: CandidateProfile,
+    job?: JobOpportunity
+): Promise<{ message: string; mode: string }> => {
+    const { data, error } = await supabase.functions.invoke('interview-coach', {
+        body: { mode, profile, job, messages: [] }
+    });
+
+    if (error) {
+        console.error('Interview session error:', error);
+        throw new Error(error.message || 'Failed to start interview session');
+    }
+
+    return {
+        message: data?.message || 'Hello! Let\'s start your interview practice.',
+        mode: data?.mode || mode
+    };
+};
+
+// Continue interview conversation
+export const sendInterviewMessage = async (
+    userMessage: string,
+    session: InterviewSession
+): Promise<string> => {
+    const messages = [
+        ...session.messages,
+        { role: 'user' as const, content: userMessage }
+    ];
+
+    const { data, error } = await supabase.functions.invoke('interview-coach', {
+        body: {
+            messages,
+            mode: session.mode,
+            profile: session.profile,
+            job: session.job
+        }
+    });
+
+    if (error) {
+        console.error('Interview message error:', error);
+        throw new Error(error.message || 'Failed to get interview response');
+    }
+
+    return data?.message || 'I understand. Can you tell me more about that?';
+};
+
+// Generate interview prep materials (legacy function for compatibility)
+export const generateInterviewPrep = async (job: JobOpportunity): Promise<InterviewPrepMaterial> => {
+    // For backwards compatibility, return structured prep material
     const isStartup = job.company.includes("Startup") || job.title.includes("Founding");
     
     return {
