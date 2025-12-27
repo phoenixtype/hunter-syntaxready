@@ -7,6 +7,7 @@ export interface UserPreferences {
   locations: string[];
   remote_policy: 'remote' | 'hybrid' | 'onsite' | 'any';
   aggressiveness: number; // 1-10 scale
+  safe_mode: boolean;
 }
 
 const DEFAULT_PREFERENCES: UserPreferences = {
@@ -14,13 +15,14 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   min_salary_usd: 100000,
   locations: [],
   remote_policy: 'any',
-  aggressiveness: 5
+  aggressiveness: 5,
+  safe_mode: true
 };
 
 export const getPreferences = async (userId: string): Promise<UserPreferences | null> => {
   try {
-    const { data, error } = await supabase
-      .from('user_preferences')
+    const { data, error } = await (supabase
+      .from('user_preferences' as any) as any)
       .select('*')
       .eq('user_id', userId)
       .single();
@@ -42,8 +44,8 @@ export const getPreferences = async (userId: string): Promise<UserPreferences | 
 export const savePreferences = async (userId: string, prefs: UserPreferences): Promise<void> => {
   try {
     // Attempt Supabase save
-    const { error } = await supabase
-      .from('user_preferences')
+    const { error } = await (supabase
+      .from('user_preferences' as any) as any)
       .upsert({ user_id: userId, ...prefs });
 
     if (error) {
