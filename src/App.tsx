@@ -14,6 +14,7 @@ import Dashboard from "./pages/Dashboard";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import ForgotPassword from "./pages/ForgotPassword";
+import EmailVerification from "./pages/EmailVerification";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/verify-email" element={<EmailVerification />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
