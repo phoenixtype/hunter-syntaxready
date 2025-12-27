@@ -20,7 +20,6 @@ function generateJobHash(company: string, title: string): string {
 
 // Calculate freshness score based on posting time
 function calculateFreshnessScore(postedAt: string): number {
-  const now = new Date();
   const hoursMatch = postedAt.match(/(\d+)\s*hour/i);
   const daysMatch = postedAt.match(/(\d+)\s*day/i);
   const weeksMatch = postedAt.match(/(\d+)\s*week/i);
@@ -41,12 +40,39 @@ serve(async (req) => {
   }
 
   try {
+    // Verify authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    // Verify user token
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+    
+    const { data: { user }, error: authError } = await authClient.auth.getUser();
+    if (authError || !user) {
+      console.error('Auth error:', authError);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Authenticated user:', user.id);
+
     const { sources, keywords } = await req.json();
     
     const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
     if (!firecrawlApiKey) {
       console.error('FIRECRAWL_API_KEY not configured');
@@ -64,7 +90,8 @@ serve(async (req) => {
       );
     }
 
-    const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
+    // Use service role for database operations
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     // Default search sources and keywords
     const searchSources = sources || ['Y Combinator jobs', 'LinkedIn software engineer'];

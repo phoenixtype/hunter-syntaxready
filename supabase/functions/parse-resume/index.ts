@@ -12,7 +12,36 @@ serve(async (req) => {
   }
 
   try {
-    const { resumeText, userId } = await req.json();
+    // Verify authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    // Verify user token
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+    
+    const { data: { user }, error: authError } = await authClient.auth.getUser();
+    if (authError || !user) {
+      console.error('Auth error:', authError);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Authenticated user:', user.id);
+
+    const { resumeText } = await req.json();
 
     if (!resumeText) {
       return new Response(
@@ -22,8 +51,6 @@ serve(async (req) => {
     }
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
     if (!lovableApiKey) {
       console.error('LOVABLE_API_KEY not configured');
@@ -168,26 +195,24 @@ Extract keywords that would match job descriptions (technologies, methodologies,
 
     console.log('Successfully parsed resume:', profile.identity?.name);
 
-    // Save to database if userId provided
-    if (userId && supabaseUrl && supabaseServiceKey) {
-      const supabase = createClient(supabaseUrl, supabaseServiceKey);
-      
-      const { error: upsertError } = await supabase
-        .from('candidate_profiles')
-        .upsert({
-          user_id: userId,
-          identity: profile.identity,
-          skills: profile.skills,
-          experience_atoms: profile.experience_atoms,
-          education: profile.education,
-          raw_resume_text: resumeText.substring(0, 50000)
-        }, { onConflict: 'user_id' });
+    // Save to database using the authenticated user's ID
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    const { error: upsertError } = await supabase
+      .from('candidate_profiles')
+      .upsert({
+        user_id: user.id,
+        identity: profile.identity,
+        skills: profile.skills,
+        experience_atoms: profile.experience_atoms,
+        education: profile.education,
+        raw_resume_text: resumeText.substring(0, 50000)
+      }, { onConflict: 'user_id' });
 
-      if (upsertError) {
-        console.error('Failed to save profile:', upsertError);
-      } else {
-        console.log('Profile saved to database');
-      }
+    if (upsertError) {
+      console.error('Failed to save profile:', upsertError);
+    } else {
+      console.log('Profile saved to database');
     }
 
     return new Response(
