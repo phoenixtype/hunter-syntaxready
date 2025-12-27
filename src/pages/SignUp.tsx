@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
@@ -10,6 +11,7 @@ const SignUp = () => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
@@ -47,6 +49,12 @@ const SignUp = () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background transition-colors duration-500">
       <div className="w-full max-w-md animate-fadeInUp">
+        {/* Back to Home */}
+        <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
+          <ArrowLeft className="w-4 h-4" />
+          Back to Home
+        </Link>
+
         <div className="glass-card rounded-2xl p-8 md:p-12 space-y-8">
           <div className="space-y-2 text-center">
             <h1 className="text-3xl font-semibold tracking-tight">Create an account</h1>
@@ -55,9 +63,13 @@ const SignUp = () => {
 
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-2">
+              <Label htmlFor="fullName" className="text-sm font-medium">
+                Full Name
+              </Label>
               <Input
+                id="fullName"
                 type="text"
-                placeholder="Full Name"
+                placeholder="John Doe"
                 className="bg-transparent border-muted h-12"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
@@ -65,7 +77,11 @@ const SignUp = () => {
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-medium">
+                Email Address
+              </Label>
               <Input
+                id="email"
                 type="email"
                 placeholder="name@example.com"
                 className="bg-transparent border-muted h-12"
@@ -75,14 +91,29 @@ const SignUp = () => {
               />
             </div>
             <div className="space-y-2">
-              <Input
-                type="password"
-                placeholder="Password"
-                className="bg-transparent border-muted h-12"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
-              />
+              <Label htmlFor="password" className="text-sm font-medium">
+                Password
+              </Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Minimum 6 characters"
+                  className="bg-transparent border-muted h-12 pr-10"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground">Must be at least 6 characters</p>
             </div>
             <Button 
               type="submit"
