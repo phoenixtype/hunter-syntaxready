@@ -51,9 +51,11 @@ const Index = () => {
                 Start Hunting <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </Link>
-            <Button variant="outline" size="lg" className="rounded-full h-12 px-8 text-base bg-transparent border-primary/10 hover:bg-secondary/50">
-              View Demo
-            </Button>
+            <Link to="/login?demo=true">
+              <Button variant="outline" size="lg" className="rounded-full h-12 px-8 text-base bg-transparent border-primary/20 hover:bg-secondary/50">
+                View Demo
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -94,10 +96,10 @@ const Index = () => {
       {/* Footer */}
       <footer className="py-12 border-t border-border/50">
         <div className="container max-w-5xl mx-auto px-6 flex justify-between items-center text-sm text-muted-foreground">
-          <p>© 2024 Hunter AI. All rights reserved.</p>
+          <p>© 2025 Hunter AI. All rights reserved.</p>
           <div className="flex gap-6">
-            <a href="#" className="hover:text-primary transition-colors">Privacy</a>
-            <a href="#" className="hover:text-primary transition-colors">Terms</a>
+            <Link to="/privacy" className="hover:text-primary transition-colors">Privacy</Link>
+            <Link to="/terms" className="hover:text-primary transition-colors">Terms</Link>
           </div>
         </div>
       </footer>

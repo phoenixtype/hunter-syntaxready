@@ -167,7 +167,13 @@ const Dashboard = () => {
                   {user?.email?.substring(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <Button variant="ghost" size="icon" onClick={() => signOut()} className="rounded-full w-8 h-8">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => signOut()} 
+                className="rounded-full w-8 h-8"
+                aria-label="Sign out"
+              >
                 <LogOut className="w-4 h-4 text-muted-foreground" />
               </Button>
             </div>
