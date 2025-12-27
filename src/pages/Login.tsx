@@ -93,17 +93,20 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background transition-colors duration-500">
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-background transition-colors duration-500 safe-area-inset-bottom">
       <div className="w-full max-w-md animate-scale-in">
         {/* Back to Home */}
-        <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
-          <ArrowLeft className="w-4 h-4" />
+        <Link 
+          to="/" 
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 sm:mb-6 transition-colors touch-manipulation py-2"
+        >
+          <ArrowLeft className="w-4 h-4" aria-hidden="true" />
           Back to Home
         </Link>
 
-        <div className="glass-card rounded-2xl p-8 md:p-12 space-y-8">
+        <div className="glass-card rounded-2xl p-6 sm:p-8 md:p-12 space-y-6 sm:space-y-8">
           <div className="space-y-2 text-center">
-            <h1 className="text-3xl font-semibold tracking-tight">Welcome back</h1>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Welcome back</h1>
             <p className="text-muted-foreground text-sm">Enter your credentials to access your agent</p>
           </div>
 
@@ -112,9 +115,10 @@ const Login = () => {
             <Button
               variant="outline"
               type="button"
-              className="w-full h-12 hover:bg-muted/50"
+              className="w-full h-12 sm:h-14 hover:bg-muted/50 touch-manipulation"
               onClick={() => handleSocialLogin('google')}
               disabled={isLoading || socialLoading !== null}
+              aria-label="Continue with Google"
             >
               {socialLoading === 'google' ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -127,9 +131,10 @@ const Login = () => {
             <Button
               variant="outline"
               type="button"
-              className="w-full h-12 hover:bg-muted/50"
+              className="w-full h-12 sm:h-14 hover:bg-muted/50 touch-manipulation"
               onClick={() => handleSocialLogin('github')}
               disabled={isLoading || socialLoading !== null}
+              aria-label="Continue with GitHub"
             >
               {socialLoading === 'github' ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -199,7 +204,7 @@ const Login = () => {
             </div>
             <Button
               type="submit"
-              className="w-full h-12 text-base font-medium transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full h-12 sm:h-14 text-base font-medium transition-transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation"
               disabled={isLoading || socialLoading !== null}
             >
               {isLoading ? (
@@ -225,9 +230,10 @@ const Login = () => {
           <Button
             variant="outline"
             type="button"
-            className="w-full h-12 hover:bg-muted/50"
+            className="w-full h-12 sm:h-14 hover:bg-muted/50 touch-manipulation"
             onClick={signInWithDemo}
             disabled={isLoading || socialLoading !== null}
+            aria-label="Login with demo account"
           >
             Login with Demo Account
           </Button>
