@@ -146,10 +146,10 @@ export const getCandidateProfile = async (userId: string): Promise<CandidateProf
     }
 
     return {
-      identity: data.identity as CandidateProfile['identity'],
-      skills: data.skills as Skill[],
-      experience_atoms: data.experience_atoms as ExperienceAtom[],
-      education: data.education as Education[]
+      identity: data.identity as unknown as CandidateProfile['identity'],
+      skills: data.skills as unknown as Skill[],
+      experience_atoms: data.experience_atoms as unknown as ExperienceAtom[],
+      education: data.education as unknown as Education[]
     };
   } catch (err) {
     console.error('Error fetching profile:', err);
@@ -159,14 +159,14 @@ export const getCandidateProfile = async (userId: string): Promise<CandidateProf
 
 // Save candidate profile to database
 export const saveCandidateProfile = async (userId: string, profile: CandidateProfile): Promise<void> => {
-  const { error } = await supabase
-    .from('candidate_profiles')
+  const { error } = await (supabase
+    .from('candidate_profiles') as any)
     .upsert({
       user_id: userId,
-      identity: profile.identity,
-      skills: profile.skills,
-      experience_atoms: profile.experience_atoms,
-      education: profile.education
+      identity: profile.identity as unknown,
+      skills: profile.skills as unknown,
+      experience_atoms: profile.experience_atoms as unknown,
+      education: profile.education as unknown
     }, { onConflict: 'user_id' });
 
   if (error) {
