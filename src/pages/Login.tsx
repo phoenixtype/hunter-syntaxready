@@ -40,9 +40,16 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<string | null>(null);
-  const { signIn, signInWithProvider, demoLogin } = useAuth();
+  const { user, loading, signIn, signInWithProvider, demoLogin } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, loading, navigate]);
 
   // Auto-trigger demo login if ?demo=true
   useEffect(() => {
