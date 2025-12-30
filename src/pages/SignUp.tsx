@@ -53,10 +53,12 @@ const SignUp = () => {
 
       if (data?.session) {
         toast.success("Account created! Logging you in...");
-        navigate("/dashboard", { replace: true });
+        navigate("/onboarding", { replace: true });
       } else {
-    toast.success("Account created! Check your email to confirm your account.");
-    navigate("/verify-email");
+        // Store email for resend functionality
+        sessionStorage.setItem('pendingVerificationEmail', validatedEmail);
+        toast.success("Account created! Check your email to confirm.");
+        navigate("/verify-email");
       }
     } catch (error) {
       toast.error("An unexpected error occurred");

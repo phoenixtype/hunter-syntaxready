@@ -1,14 +1,26 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { CheckCircle2, XCircle, Loader2, ArrowRight, Mail } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, ArrowRight, Mail, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const EmailVerification = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'pending'>('loading');
   const [errorMessage, setErrorMessage] = useState("");
+  const [resending, setResending] = useState(false);
+  const [lastEmail, setLastEmail] = useState<string | null>(null);
+
+  // If user is already authenticated, redirect immediately
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate('/onboarding', { replace: true });
+    }
+  }, [user, authLoading, navigate]);
 
   useEffect(() => {
     const handleEmailVerification = async () => {
@@ -16,12 +28,12 @@ const EmailVerification = () => {
       const token_hash = searchParams.get('token_hash');
       const type = searchParams.get('type');
       
-      // Handle both 'email' and 'signup' types for email confirmation
-      if (token_hash && (type === 'email' || type === 'signup')) {
+      // Handle verification token types
+      if (token_hash && (type === 'email' || type === 'signup' || type === 'magiclink')) {
         try {
-          const { error } = await supabase.auth.verifyOtp({
+          const { data, error } = await supabase.auth.verifyOtp({
             token_hash,
-            type: type === 'signup' ? 'signup' : 'email',
+            type: type as 'email' | 'signup' | 'magiclink',
           });
           
           if (error) {
@@ -29,21 +41,66 @@ const EmailVerification = () => {
             setErrorMessage(error.message);
           } else {
             setStatus('success');
-            // Redirect to onboarding after 3 seconds (new users need to complete setup)
-            setTimeout(() => navigate('/onboarding'), 3000);
+            toast.success("Email verified successfully!");
+            // Immediate redirect after successful verification
+            setTimeout(() => navigate('/onboarding', { replace: true }), 1500);
           }
         } catch (err) {
           setStatus('error');
           setErrorMessage('An unexpected error occurred');
         }
       } else {
-        // No token - show pending verification message
+        // Check for stored email from signup
+        const storedEmail = sessionStorage.getItem('pendingVerificationEmail');
+        if (storedEmail) {
+          setLastEmail(storedEmail);
+        }
         setStatus('pending');
       }
     };
 
-    handleEmailVerification();
-  }, [searchParams, navigate]);
+    // Only run verification if not already authenticated
+    if (!authLoading && !user) {
+      handleEmailVerification();
+    }
+  }, [searchParams, navigate, authLoading, user]);
+
+  const handleResendEmail = async () => {
+    if (!lastEmail) {
+      toast.error("Please sign up again to receive a new verification email.");
+      return;
+    }
+
+    setResending(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: lastEmail,
+        options: {
+          emailRedirectTo: `${window.location.origin}/verify-email`,
+        },
+      });
+
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Verification email sent! Check your inbox.");
+      }
+    } catch (err) {
+      toast.error("Failed to resend email. Please try again.");
+    } finally {
+      setResending(false);
+    }
+  };
+
+  // Show loading while checking auth state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background transition-colors duration-500">
@@ -51,7 +108,7 @@ const EmailVerification = () => {
         <div className="glass-card rounded-2xl p-8 md:p-12 space-y-6 text-center">
           {status === 'loading' && (
             <>
-              <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+              <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
                 <Loader2 className="w-8 h-8 text-primary animate-spin" />
               </div>
               <div className="space-y-2">
@@ -64,19 +121,18 @@ const EmailVerification = () => {
           {status === 'success' && (
             <>
               <div className="w-16 h-16 mx-auto rounded-full bg-green-500/10 flex items-center justify-center">
-                <CheckCircle2 className="w-8 h-8 text-green-500" />
+                <CheckCircle2 className="w-8 h-8 text-green-500 animate-bounce" />
               </div>
               <div className="space-y-2">
                 <h1 className="text-2xl font-semibold tracking-tight">Email Verified!</h1>
                 <p className="text-muted-foreground text-sm">
-                  Your email has been successfully verified. Redirecting you to complete your profile...
+                  Taking you to complete your profile...
                 </p>
               </div>
-              <Link to="/dashboard">
-                <Button className="w-full h-12">
-                  Go to Dashboard <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
+              <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Redirecting...</span>
+              </div>
             </>
           )}
 
@@ -114,21 +170,39 @@ const EmailVerification = () => {
               <div className="space-y-2">
                 <h1 className="text-2xl font-semibold tracking-tight">Check Your Email</h1>
                 <p className="text-muted-foreground text-sm">
-                  We've sent you a verification link. Please check your inbox and click the link to verify your account.
+                  We've sent you a verification link. Click the link in your email to continue.
                 </p>
               </div>
-              <div className="p-4 rounded-lg bg-muted/50 text-sm text-muted-foreground">
-                <p>Didn't receive the email? Check your spam folder or try signing up again.</p>
-              </div>
-              <div className="space-y-3">
-                <Link to="/signup">
-                  <Button variant="outline" className="w-full h-12">
-                    Back to Sign Up
+              
+              <div className="p-4 rounded-lg bg-muted/50 text-sm text-muted-foreground space-y-2">
+                <p>Didn't receive the email? Check your spam folder.</p>
+                {lastEmail && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleResendEmail}
+                    disabled={resending}
+                    className="text-primary hover:text-primary/80"
+                  >
+                    {resending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Resend verification email
+                      </>
+                    )}
                   </Button>
-                </Link>
+                )}
+              </div>
+
+              <div className="space-y-3">
                 <Link to="/login">
                   <Button className="w-full h-12">
-                    Already Verified? Sign In
+                    Already Verified? Sign In <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </Link>
               </div>
