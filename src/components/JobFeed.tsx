@@ -149,8 +149,27 @@ const JobFeed = ({ profile }: JobFeedProps) => {
             
             if (result.success) {
                 toast.success(`Crawl complete! Found ${result.inserted || 0} new jobs`);
-                // Refresh the job list
-                await fetchJobs();
+                // Refresh the job list - use inline logic to avoid duplicate function
+                setLoading(true);
+                const rawJobs = await searchJobs();
+                const weights = getOptimizedWeights();
+                const count = await getJobCount();
+                setJobCount(count);
+
+                let enrichedJobs = rawJobs;
+                if (profile) {
+                    const matches = await Promise.all(
+                        rawJobs.map(async (job) => {
+                            const match = await calculateMatch(profile, job, weights);
+                            return { ...job, match };
+                        })
+                    );
+                    enrichedJobs = matches
+                        .filter(j => j.match.overall_score > 0)
+                        .sort((a, b) => b.match.overall_score - a.match.overall_score);
+                }
+                setJobs(enrichedJobs);
+                setLoading(false);
             } else {
                 toast.error("Crawl failed", { description: result.error });
             }
@@ -163,8 +182,91 @@ const JobFeed = ({ profile }: JobFeedProps) => {
         }
     };
 
+    const handleRefresh = async () => {
+        setLoading(true);
+        try {
+            const rawJobs = await searchJobs();
+            const weights = getOptimizedWeights();
+            const count = await getJobCount();
+            setJobCount(count);
+
+            let enrichedJobs = rawJobs;
+            if (profile) {
+                const matches = await Promise.all(
+                    rawJobs.map(async (job) => {
+                        const match = await calculateMatch(profile, job, weights);
+                        return { ...job, match };
+                    })
+                );
+                enrichedJobs = matches
+                    .filter(j => j.match.overall_score > 0)
+                    .sort((a, b) => b.match.overall_score - a.match.overall_score);
+            }
+
+            setJobs(enrichedJobs);
+            if (enrichedJobs.length > 0) {
+                toast.success(`Loaded ${enrichedJobs.length} opportunities.`);
+            }
+        } catch (e) {
+            console.error("Failed to fetch jobs:", e);
+            toast.error("Failed to fetch jobs.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        fetchJobs();
+        let isMounted = true;
+        
+        const loadJobs = async () => {
+            setLoading(true);
+            try {
+                const rawJobs = await searchJobs();
+                if (!isMounted) return;
+                
+                const weights = getOptimizedWeights();
+                const count = await getJobCount();
+                if (!isMounted) return;
+                
+                setJobCount(count);
+
+                // If we have a profile, calculate matches
+                let enrichedJobs = rawJobs;
+                if (profile) {
+                    const matches = await Promise.all(
+                        rawJobs.map(async (job) => {
+                            const match = await calculateMatch(profile, job, weights);
+                            return { ...job, match };
+                        })
+                    );
+                    // Filter out 0 scores (banned)
+                    enrichedJobs = matches
+                        .filter(j => j.match.overall_score > 0)
+                        .sort((a, b) => b.match.overall_score - a.match.overall_score);
+                }
+
+                if (!isMounted) return;
+                setJobs(enrichedJobs);
+                if (enrichedJobs.length > 0) {
+                    toast.success(`Loaded ${enrichedJobs.length} opportunities.`);
+                }
+            } catch (e) {
+                console.error("Failed to fetch jobs:", e);
+                if (isMounted) {
+                    toast.error("Failed to fetch jobs.");
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        };
+        
+        loadJobs();
+        
+        return () => {
+            isMounted = false;
+        };
     }, [profile]); // Re-run when profile changes
 
     return (
@@ -200,9 +302,10 @@ const JobFeed = ({ profile }: JobFeedProps) => {
                     <Button
                         variant="ghost"
                         size="icon"
-                        onClick={fetchJobs}
+                        onClick={handleRefresh}
                         disabled={loading || crawling}
                         className={loading ? "animate-spin" : ""}
+                        aria-label="Refresh job list"
                     >
                         <RefreshCw className="w-4 h-4" />
                     </Button>

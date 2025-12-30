@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -76,9 +76,9 @@ const JobCrawler = ({ onCrawlComplete }: JobCrawlerProps) => {
   };
 
   // Fetch initial job count
-  useState(() => {
+  useEffect(() => {
     getJobCount().then(setJobCount);
-  });
+  }, []);
 
   return (
     <Card className="glass-card border-primary/20">

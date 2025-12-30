@@ -19,6 +19,12 @@ const DEFAULT_PREFERENCES: UserPreferences = {
 };
 
 export const getPreferences = async (userId: string): Promise<UserPreferences | null> => {
+  // Validate userId to prevent injection
+  if (!userId || typeof userId !== 'string' || userId.length > 128) {
+    console.error("Invalid userId provided");
+    return null;
+  }
+  
   try {
     const { data, error } = await supabase
       .from('user_preferences')
@@ -28,9 +34,8 @@ export const getPreferences = async (userId: string): Promise<UserPreferences | 
 
     if (error) {
       console.warn("Error fetching preferences:", error.message);
-      // Fallback to local storage
-      const local = localStorage.getItem(`hunter_prefs_${userId}`);
-      return local ? JSON.parse(local) : null;
+      // Don't fall back to localStorage for security - could be tampered with
+      return null;
     }
 
     if (!data) {
@@ -38,44 +43,60 @@ export const getPreferences = async (userId: string): Promise<UserPreferences | 
     }
 
     return {
-      target_roles: data.target_roles || [],
-      min_salary_usd: data.min_salary_usd || DEFAULT_PREFERENCES.min_salary_usd,
-      locations: data.locations || [],
-      remote_policy: data.remote_policy as UserPreferences['remote_policy'] || 'any',
-      aggressiveness: data.aggressiveness || DEFAULT_PREFERENCES.aggressiveness,
-      safe_mode: data.safe_mode ?? true
+      target_roles: Array.isArray(data.target_roles) ? data.target_roles.slice(0, 20) : [],
+      min_salary_usd: typeof data.min_salary_usd === 'number' ? Math.max(0, Math.min(data.min_salary_usd, 10000000)) : DEFAULT_PREFERENCES.min_salary_usd,
+      locations: Array.isArray(data.locations) ? data.locations.slice(0, 20) : [],
+      remote_policy: ['remote', 'hybrid', 'onsite', 'any'].includes(data.remote_policy) 
+        ? data.remote_policy as UserPreferences['remote_policy'] 
+        : 'any',
+      aggressiveness: typeof data.aggressiveness === 'number' ? Math.max(1, Math.min(data.aggressiveness, 10)) : DEFAULT_PREFERENCES.aggressiveness,
+      safe_mode: typeof data.safe_mode === 'boolean' ? data.safe_mode : true
     };
   } catch (e) {
     console.error("Error in getPreferences:", e);
-    const local = localStorage.getItem(`hunter_prefs_${userId}`);
-    return local ? JSON.parse(local) : null;
+    return null;
   }
 };
 
 export const savePreferences = async (userId: string, prefs: UserPreferences): Promise<void> => {
+  // Validate userId
+  if (!userId || typeof userId !== 'string' || userId.length > 128) {
+    throw new Error("Invalid userId");
+  }
+  
+  // Sanitize and validate preferences before saving
+  const sanitizedPrefs = {
+    user_id: userId,
+    target_roles: Array.isArray(prefs.target_roles) 
+      ? prefs.target_roles.slice(0, 20).map(r => String(r).slice(0, 100)) 
+      : [],
+    min_salary_usd: typeof prefs.min_salary_usd === 'number' 
+      ? Math.max(0, Math.min(prefs.min_salary_usd, 10000000)) 
+      : DEFAULT_PREFERENCES.min_salary_usd,
+    locations: Array.isArray(prefs.locations) 
+      ? prefs.locations.slice(0, 20).map(l => String(l).slice(0, 100)) 
+      : [],
+    remote_policy: ['remote', 'hybrid', 'onsite', 'any'].includes(prefs.remote_policy) 
+      ? prefs.remote_policy 
+      : 'any',
+    aggressiveness: typeof prefs.aggressiveness === 'number' 
+      ? Math.max(1, Math.min(prefs.aggressiveness, 10)) 
+      : DEFAULT_PREFERENCES.aggressiveness,
+    safe_mode: typeof prefs.safe_mode === 'boolean' ? prefs.safe_mode : true
+  };
+  
   try {
     const { error } = await supabase
       .from('user_preferences')
-      .upsert({
-        user_id: userId,
-        target_roles: prefs.target_roles,
-        min_salary_usd: prefs.min_salary_usd,
-        locations: prefs.locations,
-        remote_policy: prefs.remote_policy,
-        aggressiveness: prefs.aggressiveness,
-        safe_mode: prefs.safe_mode
-      }, { onConflict: 'user_id' });
+      .upsert(sanitizedPrefs, { onConflict: 'user_id' });
 
     if (error) {
-      console.warn("Error saving preferences:", error.message);
-      localStorage.setItem(`hunter_prefs_${userId}`, JSON.stringify(prefs));
-    } else {
-      // Also save to local storage as backup
-      localStorage.setItem(`hunter_prefs_${userId}`, JSON.stringify(prefs));
+      console.error("Error saving preferences:", error.message);
+      throw error;
     }
   } catch (e) {
     console.error("Error saving preferences:", e);
-    localStorage.setItem(`hunter_prefs_${userId}`, JSON.stringify(prefs));
+    throw e;
   }
 };
 

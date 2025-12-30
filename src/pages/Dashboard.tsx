@@ -85,16 +85,21 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
+    // Wait for auth to finish loading
+    if (loading) return;
+    
     if (!user) {
-      if (!loading) {
-        navigate("/login");
-      }
+      navigate("/login");
       return;
     }
+
+    let isMounted = true;
 
     const fetchData = async () => {
       try {
         const prefs = await getPreferences(user.id);
+        if (!isMounted) return;
+        
         setPreferences(prefs);
         if (!prefs) {
           toast.info("Please complete your agent configuration.");
@@ -102,21 +107,32 @@ const Dashboard = () => {
           return;
         }
 
-        const score = await calculateVisibilityScore();
+        const [score, sub] = await Promise.all([
+          calculateVisibilityScore(),
+          getSubscription()
+        ]);
+        
+        if (!isMounted) return;
         setVisibility(score);
-
-        const sub = await getSubscription();
         setSubscription(sub);
 
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
-        toast.error("Failed to load dashboard data.");
+        if (isMounted) {
+          toast.error("Failed to load dashboard data.");
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchData();
+    
+    return () => {
+      isMounted = false;
+    };
   }, [user, navigate, loading]);
 
   const handleOpenInterviewTools = () => {
