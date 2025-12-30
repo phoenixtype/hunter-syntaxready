@@ -6,6 +6,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { loginFormSchema, validateWithSchema } from "@/lib/validation";
 
 const GoogleIcon = () => (
   <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -77,8 +78,10 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email || !password) {
-      toast.error("Please fill in all fields");
+    // Validate input with zod schema
+    const validation = validateWithSchema(loginFormSchema, { email, password });
+    if (!validation.success) {
+      toast.error((validation as { success: false; error: string }).error);
       return;
     }
 

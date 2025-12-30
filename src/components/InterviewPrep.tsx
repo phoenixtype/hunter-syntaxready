@@ -27,13 +27,23 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
 
     useEffect(() => {
         if (isOpen && job && !material) {
+            let isMounted = true;
             setLoading(true);
             generateInterviewPrep(job)
-                .then(data => setMaterial(data))
-                .catch(() => toast.error("Failed to generate prep material"))
-                .finally(() => setLoading(false));
+                .then(data => {
+                    if (isMounted) setMaterial(data);
+                })
+                .catch(() => {
+                    if (isMounted) toast.error("Failed to generate prep material");
+                })
+                .finally(() => {
+                    if (isMounted) setLoading(false);
+                });
+            return () => {
+                isMounted = false;
+            };
         }
-    }, [isOpen, job]);
+    }, [isOpen, job, material]);
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
