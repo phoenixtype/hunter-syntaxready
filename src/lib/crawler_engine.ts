@@ -21,6 +21,14 @@ export const triggerJobCrawl = async (
   keywords?: string[]
 ): Promise<{ success: boolean; inserted?: number; error?: string }> => {
   try {
+    // Get current session to ensure we have auth token
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !session) {
+      console.error('No active session for crawl:', sessionError);
+      return { success: false, error: 'Please sign in to crawl jobs' };
+    }
+
     const { data, error } = await supabase.functions.invoke('crawl-jobs', {
       body: { sources, keywords }
     });
