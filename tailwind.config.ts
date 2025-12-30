@@ -13,6 +13,32 @@ export default {
       },
     },
     extend: {
+      fontSize: {
+        xs: ['12px', { lineHeight: '1.5' }],
+        sm: ['14px', { lineHeight: '1.5' }],
+        base: ['16px', { lineHeight: '1.6' }],  // Increased from 14px for better readability
+        lg: ['18px', { lineHeight: '1.6' }],
+        xl: ['20px', { lineHeight: '1.5' }],
+        '2xl': ['24px', { lineHeight: '1.4' }],
+        '3xl': ['30px', { lineHeight: '1.3' }],
+        '4xl': ['36px', { lineHeight: '1.2' }],
+        '5xl': ['48px', { lineHeight: '1.1' }],
+        '6xl': ['60px', { lineHeight: '1' }],
+      },
+      spacing: {
+        '18': '4.5rem',
+        '88': '22rem',
+        '112': '28rem',
+        '128': '32rem',
+      },
+      minHeight: {
+        '44': '44px',  // WCAG minimum touch target
+        '48': '48px',  // Comfortable touch target
+      },
+      minWidth: {
+        '44': '44px',
+        '48': '48px',
+      },
       screens: {
         'lgPlus': '1180px',
         '3xl': '1920px',

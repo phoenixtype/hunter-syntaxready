@@ -9,7 +9,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-500 selection:bg-primary selection:text-primary-foreground font-sans">
       <SkipLink />
-      
+
       {/* Navigation - Responsive with hamburger menu */}
       <nav className="fixed top-0 w-full z-50 glass border-b border-white/10" role="navigation" aria-label="Main navigation">
         <div className="container max-w-5xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
@@ -17,12 +17,12 @@ const Index = () => {
             <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-bold text-lg sm:text-xl">h.</div>
             <span className="text-lg sm:text-xl font-bold tracking-tighter">hunter.</span>
           </Link>
-          
+
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-4 lg:gap-6">
             <ThemeToggle />
-            <Link 
-              to="/login" 
+            <Link
+              to="/login"
               className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors px-3 py-2"
             >
               Log in
@@ -33,7 +33,7 @@ const Index = () => {
               </Button>
             </Link>
           </div>
-          
+
           {/* Mobile Navigation */}
           <div className="flex md:hidden items-center gap-2">
             <ThemeToggle />
@@ -47,7 +47,7 @@ const Index = () => {
         <section className="relative pt-24 sm:pt-32 pb-16 md:pt-48 md:pb-32 overflow-hidden">
           <div className="container max-w-5xl mx-auto px-4 sm:px-6 relative z-10 text-center">
             {/* Beta Badge */}
-            <div 
+            <div
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/50 border border-secondary text-secondary-foreground/80 text-xs font-medium mb-6 sm:mb-8 animate-fade-in"
               role="status"
               aria-label="Beta status"
@@ -60,33 +60,33 @@ const Index = () => {
             </div>
 
             {/* Headline - Responsive typography */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-4 sm:mb-6 animate-fadeInUp" style={{ animationDelay: "0.1s" }}>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 sm:mb-8 animate-fadeInUp leading-tight" style={{ animationDelay: "0.1s" }}>
               Your Career, <br className="hidden sm:block" />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/50">
                 Autopilot.
               </span>
             </h1>
 
-            {/* Subheadline */}
-            <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-xl sm:max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed animate-fadeInUp px-2" style={{ animationDelay: "0.2s" }}>
+            {/* Subheadline - Improved readability */}
+            <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-xl sm:max-w-2xl mx-auto mb-10 sm:mb-12 leading-relaxed animate-fadeInUp px-2" style={{ animationDelay: "0.2s" }}>
               The agentic AI system that autonomously manages job discovery, applications, and interview prep.
             </p>
 
-            {/* CTA Buttons - Stack on mobile, side-by-side on larger screens */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 animate-fadeInUp px-4" style={{ animationDelay: "0.3s" }}>
+            {/* CTA Buttons - Larger touch targets */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fadeInUp px-4" style={{ animationDelay: "0.3s" }}>
               <Link to="/signup" className="w-full sm:w-auto">
-                <Button 
-                  size="lg" 
-                  className="rounded-full h-12 sm:h-14 w-full sm:w-auto px-6 sm:px-8 text-base font-semibold touch-manipulation active:scale-[0.98] transition-transform"
+                <Button
+                  size="lg"
+                  className="rounded-full min-h-48 w-full sm:w-auto px-8 text-lg font-semibold touch-manipulation active:scale-[0.98] transition-transform shadow-lg hover:shadow-xl"
                 >
-                  Start Hunting <ArrowRight className="ml-2 w-4 h-4" aria-hidden="true" />
+                  Start Hunting <ArrowRight className="ml-2 w-5 h-5" aria-hidden="true" />
                 </Button>
               </Link>
               <Link to="/login?demo=true" className="w-full sm:w-auto">
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  className="rounded-full h-12 sm:h-14 w-full sm:w-auto px-6 sm:px-8 text-base bg-transparent border-primary/20 hover:bg-secondary/50 touch-manipulation active:scale-[0.98] transition-transform"
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="rounded-full min-h-48 w-full sm:w-auto px-8 text-lg bg-transparent border-primary/20 hover:bg-secondary/50 touch-manipulation active:scale-[0.98] transition-transform"
                 >
                   View Demo
                 </Button>
@@ -95,7 +95,7 @@ const Index = () => {
           </div>
 
           {/* Abstract Background Element */}
-          <div 
+          <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] sm:w-[600px] md:w-[800px] h-[400px] sm:h-[600px] md:h-[800px] bg-gradient-to-tr from-primary/5 to-transparent rounded-full blur-3xl -z-10 opacity-60"
             aria-hidden="true"
           ></div>
@@ -120,18 +120,18 @@ const Index = () => {
                   desc: "Deep intelligence on interviewers and role-specific prep.",
                 }
               ].map((feature, i) => (
-                <article 
-                  key={i} 
+                <article
+                  key={i}
                   className="space-y-3 sm:space-y-4 p-4 sm:p-0 rounded-xl sm:rounded-none bg-background/50 sm:bg-transparent"
                 >
-                  <div 
+                  <div
                     className="w-12 h-12 rounded-2xl bg-background flex items-center justify-center border border-border/50 shadow-sm"
                     aria-hidden="true"
                   >
                     <CheckCircle2 className="w-6 h-6 text-primary" />
                   </div>
-                  <h3 className="text-lg sm:text-xl font-semibold tracking-tight">{feature.title}</h3>
-                  <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">{feature.desc}</p>
+                  <h3 className="text-xl sm:text-2xl font-semibold tracking-tight">{feature.title}</h3>
+                  <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">{feature.desc}</p>
                 </article>
               ))}
             </div>
