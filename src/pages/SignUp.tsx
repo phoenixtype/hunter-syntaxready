@@ -55,8 +55,8 @@ const SignUp = () => {
         toast.success("Account created! Logging you in...");
         navigate("/dashboard", { replace: true });
       } else {
-        toast.success("Account created! Check your email to confirm your account.");
-        navigate("/login");
+    toast.success("Account created! Check your email to confirm your account.");
+    navigate("/verify-email");
       }
     } catch (error) {
       toast.error("An unexpected error occurred");
