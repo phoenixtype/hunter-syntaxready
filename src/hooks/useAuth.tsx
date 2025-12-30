@@ -2,11 +2,16 @@ import { useState, useEffect, createContext, useContext, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+interface SignUpResult {
+  error: Error | null;
+  data: { user: User | null; session: Session | null } | null;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, fullName: string) => Promise<SignUpResult>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   demoLogin: () => Promise<void>;
@@ -37,7 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (email: string, password: string, fullName: string): Promise<SignUpResult> => {
     const redirectUrl = `${window.location.origin}/verify-email`;
 
     const { data, error } = await supabase.auth.signUp({
@@ -50,7 +55,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         },
       },
     });
-    return { data, error };
+    return { 
+      error, 
+      data: data ? { user: data.user, session: data.session } : null 
+    };
   };
 
   const signIn = async (email: string, password: string) => {

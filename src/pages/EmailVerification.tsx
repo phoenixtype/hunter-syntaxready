@@ -16,11 +16,12 @@ const EmailVerification = () => {
       const token_hash = searchParams.get('token_hash');
       const type = searchParams.get('type');
       
-      if (token_hash && type === 'email') {
+      // Handle both 'email' and 'signup' types for email confirmation
+      if (token_hash && (type === 'email' || type === 'signup')) {
         try {
           const { error } = await supabase.auth.verifyOtp({
             token_hash,
-            type: 'email',
+            type: type === 'signup' ? 'signup' : 'email',
           });
           
           if (error) {
@@ -28,8 +29,8 @@ const EmailVerification = () => {
             setErrorMessage(error.message);
           } else {
             setStatus('success');
-            // Redirect to dashboard after 3 seconds
-            setTimeout(() => navigate('/dashboard'), 3000);
+            // Redirect to onboarding after 3 seconds (new users need to complete setup)
+            setTimeout(() => navigate('/onboarding'), 3000);
           }
         } catch (err) {
           setStatus('error');
@@ -68,7 +69,7 @@ const EmailVerification = () => {
               <div className="space-y-2">
                 <h1 className="text-2xl font-semibold tracking-tight">Email Verified!</h1>
                 <p className="text-muted-foreground text-sm">
-                  Your email has been successfully verified. Redirecting you to the dashboard...
+                  Your email has been successfully verified. Redirecting you to complete your profile...
                 </p>
               </div>
               <Link to="/dashboard">
