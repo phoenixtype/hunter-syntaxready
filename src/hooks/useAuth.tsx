@@ -1,5 +1,5 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
-import { User, Session, Provider } from '@supabase/supabase-js';
+import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
@@ -8,7 +8,6 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signInWithProvider: (provider: Provider) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   demoLogin: () => Promise<void>;
 }
@@ -21,7 +20,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -30,7 +28,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -64,16 +61,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error };
   };
 
-  const signInWithProvider = async (provider: Provider) => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/dashboard`,
-      },
-    });
-    return { error };
-  };
-
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -81,7 +68,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const demoLogin = async () => {
-    // Mock user for testing/demo purposes
     const mockUser = {
       id: "demo-user-id",
       email: "demo@hunter.ai",
@@ -96,7 +82,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signInWithProvider, signOut, demoLogin }}>
+    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut, demoLogin }}>
       {children}
     </AuthContext.Provider>
   );
