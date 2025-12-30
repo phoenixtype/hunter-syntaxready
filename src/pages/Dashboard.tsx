@@ -52,12 +52,12 @@ import { getSubscription, SubscriptionTier, checkAccess, Feature } from "@/lib/s
 import { AgentActivityLog } from "@/components/AgentActivityLog";
 
 const Dashboard = () => {
-  const { user, signOut } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<CandidateProfile | null>(null);
   const [uploading, setUploading] = useState(false);
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
   const [visibility, setVisibility] = useState<VisibilityScore | null>(null);
   const [showPostInterview, setShowPostInterview] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
@@ -84,18 +84,21 @@ const Dashboard = () => {
     navigate("/");
   };
 
+  // Redirect to login if not authenticated (after auth finishes loading)
   useEffect(() => {
-    // Wait for auth to finish loading
-    if (loading) return;
-    
-    if (!user) {
-      navigate("/login");
-      return;
+    if (!authLoading && !user) {
+      navigate("/login", { replace: true });
     }
+  }, [authLoading, user, navigate]);
+
+  // Fetch dashboard data once user is authenticated
+  useEffect(() => {
+    if (authLoading || !user) return;
 
     let isMounted = true;
 
     const fetchData = async () => {
+      setDataLoading(true);
       try {
         const prefs = await getPreferences(user.id);
         if (!isMounted) return;
@@ -123,7 +126,7 @@ const Dashboard = () => {
         }
       } finally {
         if (isMounted) {
-          setLoading(false);
+          setDataLoading(false);
         }
       }
     };
@@ -133,7 +136,7 @@ const Dashboard = () => {
     return () => {
       isMounted = false;
     };
-  }, [user, navigate, loading]);
+  }, [user, authLoading, navigate]);
 
   const handleOpenInterviewTools = () => {
     if (checkAccess('negotiation_coach')) {
@@ -143,12 +146,19 @@ const Dashboard = () => {
     }
   };
 
-  if (loading) {
+  // Show skeleton while auth is loading
+  if (authLoading) {
     return <DashboardSkeleton />;
   }
 
+  // Don't render anything if not authenticated (redirect will happen)
   if (!user) {
     return null;
+  }
+
+  // Show skeleton while data is loading
+  if (dataLoading) {
+    return <DashboardSkeleton />;
   }
 
   return (
@@ -406,136 +416,47 @@ const Dashboard = () => {
                     </label>
                   </div>
                 ) : (
-                  <div className="space-y-4 sm:space-y-6 animate-scale-in">
-                    <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-secondary/30 rounded-lg">
-                      <FileText className="w-6 sm:w-8 h-6 sm:h-8 text-primary flex-shrink-0" aria-hidden="true" />
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-sm sm:text-base truncate">{profile.identity.name}</p>
-                        <p className="text-xs text-muted-foreground">Parsed Profile Ready</p>
+                  <div className="space-y-4 animate-fadeIn">
+                    <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <FileText className="w-6 h-6 text-primary" />
+                        <div>
+                          <p className="font-medium">{profile.identity.name}</p>
+                          <p className="text-xs text-muted-foreground">Resume Processed</p>
+                        </div>
                       </div>
-                      <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" aria-label="Profile parsed successfully" />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setProfile(null)}
+                        className="touch-manipulation"
+                      >
+                        Replace
+                      </Button>
                     </div>
-
-                    <div className="space-y-3 sm:space-y-4">
-                      <h3 className="text-xs sm:text-sm font-medium uppercase tracking-wider text-muted-foreground">Identified Skills</h3>
-                      <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                        {profile.skills.map((skill) => (
-                          <div key={skill.name} className="px-2 sm:px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium">
-                            {skill.name} <span className="opacity-50">{(skill.proficiency * 100).toFixed(0)}%</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="space-y-3 sm:space-y-4">
-                      <h3 className="text-xs sm:text-sm font-medium uppercase tracking-wider text-muted-foreground">Experience Atoms</h3>
-                      <div className="space-y-2 sm:space-y-3">
-                        {profile.experience_atoms.map((atom) => (
-                          <div key={atom.id} className="p-2 sm:p-3 rounded-lg bg-background/50 border border-border text-sm">
-                            <div className="flex flex-col sm:flex-row sm:justify-between mb-1 gap-1">
-                              <span className="font-medium text-xs sm:text-sm">{atom.role} @ {atom.company}</span>
-                              <span className="text-muted-foreground text-xs">{atom.duration}</span>
-                            </div>
-                            <p className="text-muted-foreground/80 text-xs sm:text-sm line-clamp-2">{atom.content}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="pt-2">
-                      <ATSAudit profile={profile} />
-                    </div>
+                    
+                    <ATSAudit profile={profile} />
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Main Content / Job Feed - Full width on mobile, 3/4 on desktop */}
-            <div className="lg:col-span-3 space-y-4 sm:space-y-6 order-1 lg:order-2">
-
-              {/* Trust Agent / Activity Log */}
-              {profile && <AgentActivityLog />}
-
-              {!profile ? (
-                <div className="space-y-6">
-                  {/* Hero Welcome Card */}
-                  <Card className="glass-card border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-background relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" aria-hidden="true"></div>
-                    <CardContent className="p-8 sm:p-12 relative z-10">
-                      <div className="max-w-2xl">
-                        <h2 className="text-2xl sm:text-3xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                          Welcome to Hunter AI
-                        </h2>
-                        <p className="text-base sm:text-lg text-muted-foreground mb-8">
-                          Your autonomous job search agent is ready. Upload your resume to unlock intelligent job matching, automated applications, and AI-powered career tools.
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-4">
-                          <Button
-                            size="lg"
-                            className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all"
-                            onClick={() => document.querySelector<HTMLInputElement>('input[type="file"]')?.click()}
-                          >
-                            <Upload className="w-5 h-5 mr-2" />
-                            Upload Resume to Start
-                          </Button>
-                          <Button
-                            size="lg"
-                            variant="outline"
-                            onClick={() => navigate('/onboarding')}
-                          >
-                            Configure Preferences
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Feature Highlights */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card className="glass-card border-border/50 hover:border-primary/30 transition-all hover:scale-[1.02]">
-                      <CardHeader>
-                        <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center mb-4">
-                          <Search className="w-6 h-6 text-blue-500" />
-                        </div>
-                        <CardTitle className="text-lg">Smart Job Discovery</CardTitle>
-                        <CardDescription>AI-powered crawler finds opportunities across the web</CardDescription>
-                      </CardHeader>
-                    </Card>
-
-                    <Card className="glass-card border-border/50 hover:border-primary/30 transition-all hover:scale-[1.02]">
-                      <CardHeader>
-                        <div className="w-12 h-12 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-4">
-                          <Briefcase className="w-6 h-6 text-emerald-500" />
-                        </div>
-                        <CardTitle className="text-lg">Auto-Apply</CardTitle>
-                        <CardDescription>Automated applications with tailored resumes</CardDescription>
-                      </CardHeader>
-                    </Card>
-
-                    <Card className="glass-card border-border/50 hover:border-primary/30 transition-all hover:scale-[1.02]">
-                      <CardHeader>
-                        <div className="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center mb-4">
-                          <TrendingUp className="w-6 h-6 text-purple-500" />
-                        </div>
-                        <CardTitle className="text-lg">Interview Prep</CardTitle>
-                        <CardDescription>AI coach for negotiations and practice</CardDescription>
-                      </CardHeader>
-                    </Card>
-                  </div>
-                </div>
-              ) : (
-                <JobFeed profile={profile} />
-              )}
+            {/* Main Content - 3/4 on desktop */}
+            <div className="lg:col-span-3 space-y-6 sm:space-y-8 order-1 lg:order-2">
+              <JobFeed profile={profile} />
+              <AgentActivityLog />
             </div>
           </div>
         </div>
       </main>
 
+      {/* Modals */}
       <PostInterviewModal
         isOpen={showPostInterview}
         onClose={() => setShowPostInterview(false)}
-        companyName="TechFlow AI"
+        companyName="Target Company"
       />
+
       <PricingModal
         isOpen={showPricing}
         onClose={() => setShowPricing(false)}
