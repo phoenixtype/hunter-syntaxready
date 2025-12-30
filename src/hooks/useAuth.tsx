@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signUp = async (email: string, password: string, fullName: string) => {
     const redirectUrl = `${window.location.origin}/verify-email`;
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         },
       },
     });
-    return { error };
+    return { data, error };
   };
 
   const signIn = async (email: string, password: string) => {
@@ -77,8 +77,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       created_at: new Date().toISOString()
     } as User;
 
+    const mockSession = {
+      access_token: "demo-token",
+      refresh_token: "demo-refresh",
+      expires_in: 3600,
+      token_type: "bearer",
+      user: mockUser
+    } as Session;
+
     setUser(mockUser);
-    setLoading(false);
+    setSession(mockSession);
   };
 
   return (

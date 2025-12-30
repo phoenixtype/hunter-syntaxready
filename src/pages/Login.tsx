@@ -24,16 +24,24 @@ const Login = () => {
   }, [user, loading, navigate]);
 
   useEffect(() => {
-    if (searchParams.get('demo') === 'true') {
+    const isDemoMode = searchParams.get('demo') === 'true';
+    if (isDemoMode && !user && !isLoading) {
       signInWithDemo();
     }
-  }, [searchParams]);
+  }, []); // Only run once on mount
 
   const signInWithDemo = async () => {
+    if (isLoading) return; // Prevent multiple calls
+
     setIsLoading(true);
-    await demoLogin();
-    toast.success("Welcome Demo User!");
-    navigate("/dashboard");
+    try {
+      await demoLogin();
+      toast.success("Welcome Demo User!");
+      navigate("/dashboard", { replace: true });
+    } catch (error) {
+      toast.error("Demo login failed");
+      setIsLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,27 +54,34 @@ const Login = () => {
     }
 
     setIsLoading(true);
-    const { error } = await signIn(email, password);
-    setIsLoading(false);
+    try {
+      const { error } = await signIn(email, password);
 
-    if (error) {
-      if (error.message.includes("Invalid login credentials")) {
-        toast.error("Invalid email or password");
-      } else {
-        toast.error(error.message);
+      if (error) {
+        if (error.message.includes("Invalid login credentials")) {
+          toast.error("Invalid email or password");
+        } else if (error.message.includes("Email not confirmed")) {
+          toast.error("Please confirm your email before logging in");
+        } else {
+          toast.error(error.message);
+        }
+        return;
       }
-      return;
-    }
 
-    toast.success("Welcome back!");
-    navigate("/dashboard");
+      toast.success("Welcome back!");
+      navigate("/dashboard", { replace: true });
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-background transition-colors duration-500 safe-area-inset-bottom">
       <div className="w-full max-w-md animate-scale-in">
-        <Link 
-          to="/" 
+        <Link
+          to="/"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 sm:mb-6 transition-colors touch-manipulation py-2"
         >
           <ArrowLeft className="w-4 h-4" aria-hidden="true" />
@@ -100,8 +115,8 @@ const Login = () => {
                 <Label htmlFor="password" className="text-sm font-medium">
                   Password
                 </Label>
-                <Link 
-                  to="/forgot-password" 
+                <Link
+                  to="/forgot-password"
                   className="text-xs text-muted-foreground hover:text-primary transition-colors"
                 >
                   Forgot password?

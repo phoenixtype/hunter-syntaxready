@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,12 +14,19 @@ const SignUp = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { signUp } = useAuth();
+  const { user, loading, signUp } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const validation = validateWithSchema(signUpFormSchema, { fullName, email, password });
     if (!validation.success) {
       toast.error((validation as { success: false; error: string }).error);
@@ -30,20 +37,32 @@ const SignUp = () => {
     const { fullName: validatedName, email: validatedEmail, password: validatedPassword } = validData;
 
     setIsLoading(true);
-    const { error } = await signUp(validatedEmail, validatedPassword, validatedName);
-    setIsLoading(false);
+    try {
+      const { data, error } = await signUp(validatedEmail, validatedPassword, validatedName);
 
-    if (error) {
-      if (error.message.includes("already registered")) {
-        toast.error("This email is already registered. Please sign in instead.");
-      } else {
-        toast.error(error.message);
+      if (error) {
+        if (error.message.includes("already registered") || error.message.includes("already been registered")) {
+          toast.error("This email is already registered. Please sign in instead.");
+        } else if (error.message.includes("Password")) {
+          toast.error("Password must be at least 6 characters");
+        } else {
+          toast.error(error.message);
+        }
+        return;
       }
-      return;
-    }
 
-    toast.success("Account created! Check your email to confirm your account.");
-    navigate("/login");
+      if (data?.session) {
+        toast.success("Account created! Logging you in...");
+        navigate("/dashboard", { replace: true });
+      } else {
+        toast.success("Account created! Check your email to confirm your account.");
+        navigate("/login");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -114,7 +133,7 @@ const SignUp = () => {
               </div>
               <p className="text-xs text-muted-foreground">Must be at least 6 characters</p>
             </div>
-            <Button 
+            <Button
               type="submit"
               className="w-full h-12 text-base font-medium transition-transform hover:scale-[1.02] active:scale-[0.98]"
               disabled={isLoading}
