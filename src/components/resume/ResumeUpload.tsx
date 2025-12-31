@@ -54,12 +54,34 @@ export const ResumeUpload = ({ onUploadComplete }: ResumeUploadProps) => {
             }, 1000);
 
         } catch (error) {
-            console.error('Upload error:', error);
+            console.error('Upload details:', error);
             setUploadStep('idle');
             setIsUploading(false);
             setProgress(0);
-            toast.error('Failed to process resume', {
-                description: error instanceof Error ? error.message : 'Unknown error occurred'
+
+            let errorMessage = 'Failed to process resume';
+            let errorDesc = 'Unknown error occurred';
+
+            if (error instanceof Error) {
+                errorMessage = error.message;
+
+                // Analyze common Supabase errors
+                if (errorMessage.includes('Bucket not found')) {
+                    errorDesc = 'Storage bucket "resumes" does not exist. Please run the setup SQL.';
+                } else if (errorMessage.includes('Invalid JWT') || errorMessage.includes('401')) {
+                    errorDesc = 'Session expired. Please sign out and sign in again.';
+                } else if (errorMessage.includes('non 2xx status code')) {
+                    errorDesc = 'Server error. Check Edge Function logs.';
+                }
+            }
+
+            toast.error('Resume Analysis Failed', {
+                description: errorDesc,
+                duration: 5000,
+                action: {
+                    label: 'View Logs',
+                    onClick: () => console.error(error)
+                }
             });
         }
     }, [user, onUploadComplete]);
