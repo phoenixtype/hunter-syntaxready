@@ -9,10 +9,45 @@ const corsHeaders = {
 // SECURITY: Generic error messages to avoid information disclosure
 const GENERIC_SERVICE_ERROR = 'Service temporarily unavailable';
 const GENERIC_AUTH_ERROR = 'Authentication required';
+const GENERIC_RATE_LIMIT_ERROR = 'Too many requests. Please try again later.';
+
+// Rate limit configuration: 20 requests per minute (conversational)
+const RATE_LIMIT_MAX_REQUESTS = 20;
+const RATE_LIMIT_WINDOW_SECONDS = 60;
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
+}
+
+/**
+ * SECURITY: Server-side rate limiting using Supabase
+ */
+async function checkRateLimit(
+  supabase: any,
+  userId: string,
+  functionName: string,
+  maxRequests: number,
+  windowSeconds: number
+): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.rpc('check_rate_limit', {
+      p_user_id: userId,
+      p_function_name: functionName,
+      p_max_requests: maxRequests,
+      p_window_seconds: windowSeconds
+    });
+
+    if (error) {
+      console.error('[RATE_LIMIT] Check failed, allowing request');
+      return true;
+    }
+
+    return data === true;
+  } catch (err) {
+    console.error('[RATE_LIMIT] Exception during check');
+    return true;
+  }
 }
 
 serve(async (req) => {
@@ -32,9 +67,10 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
     // SECURITY: Validate config server-side only
-    if (!supabaseUrl || !supabaseAnonKey) {
+    if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
       console.error('[SECURITY] Missing required configuration');
       return new Response(
         JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
@@ -53,6 +89,33 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ success: false, error: GENERIC_AUTH_ERROR }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Use service role for rate limiting
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // SECURITY: Server-side rate limiting - check BEFORE any business logic
+    const isAllowed = await checkRateLimit(
+      supabase,
+      user.id,
+      'interview-coach',
+      RATE_LIMIT_MAX_REQUESTS,
+      RATE_LIMIT_WINDOW_SECONDS
+    );
+
+    if (!isAllowed) {
+      console.log('[RATE_LIMIT] User rate limited:', user.id);
+      return new Response(
+        JSON.stringify({ success: false, error: GENERIC_RATE_LIMIT_ERROR }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'Retry-After': String(RATE_LIMIT_WINDOW_SECONDS)
+          } 
+        }
       );
     }
 
@@ -142,7 +205,7 @@ Description: ${job.description}`;
       
       if (llmResponse.status === 429) {
         return new Response(
-          JSON.stringify({ success: false, error: 'Rate limit exceeded, please try again later' }),
+          JSON.stringify({ success: false, error: GENERIC_RATE_LIMIT_ERROR }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
