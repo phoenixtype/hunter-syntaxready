@@ -6,6 +6,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// SECURITY: Generic error messages to avoid information disclosure
+const GENERIC_SERVICE_ERROR = 'Service temporarily unavailable';
+const GENERIC_AUTH_ERROR = 'Authentication required';
+const GENERIC_SESSION_ERROR = 'Session expired or invalid';
+
 // Generate a hash for deduplication
 function generateJobHash(company: string, title: string): string {
   const str = `${company.toLowerCase().trim()}-${title.toLowerCase().trim()}`;
@@ -40,16 +45,25 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+    // SECURITY: Validate required environment variables server-side only
+    if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
+      console.error('[SECURITY] Missing required Supabase configuration');
+      return new Response(
+        JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
+        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Get authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      console.error('No authorization header provided');
+      console.error('[AUTH] No authorization header provided');
       return new Response(
-        JSON.stringify({ success: false, error: 'Authorization required' }),
+        JSON.stringify({ success: false, error: GENERIC_AUTH_ERROR }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -63,33 +77,27 @@ Deno.serve(async (req) => {
     // Verify the user's token
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
     if (authError || !user) {
-      console.error('Auth verification failed:', authError?.message);
+      console.error('[AUTH] Token verification failed');
       return new Response(
-        JSON.stringify({ success: false, error: 'Invalid or expired session' }),
+        JSON.stringify({ success: false, error: GENERIC_SESSION_ERROR }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Authenticated user:', user.id, user.email);
+    // SECURITY: Log user ID only, not email or other PII
+    console.log('[AUTH] Authenticated user:', user.id);
 
     const { sources, keywords } = await req.json();
     
     const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
 
-    if (!firecrawlApiKey) {
-      console.error('FIRECRAWL_API_KEY not configured');
+    // SECURITY: Don't reveal which specific service is missing
+    if (!firecrawlApiKey || !lovableApiKey) {
+      console.error('[CONFIG] Missing required API keys');
       return new Response(
-        JSON.stringify({ success: false, error: 'Firecrawl connector not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (!lovableApiKey) {
-      console.error('LOVABLE_API_KEY not configured');
-      return new Response(
-        JSON.stringify({ success: false, error: 'AI gateway not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
+        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -100,14 +108,14 @@ Deno.serve(async (req) => {
     const searchSources = sources || ['Y Combinator jobs', 'LinkedIn software engineer'];
     const searchKeywords = keywords || ['software engineer', 'full stack', 'frontend', 'backend'];
     
-    console.log('Starting job crawl with sources:', searchSources);
+    console.log('[CRAWL] Starting job crawl, sources:', searchSources.length);
     
     const allJobs: any[] = [];
     
     // Search for jobs using Firecrawl
     for (const source of searchSources) {
       try {
-        console.log(`Searching: ${source}`);
+        console.log(`[CRAWL] Searching source...`);
         
         const searchResponse = await fetch('https://api.firecrawl.dev/v1/search', {
           method: 'POST',
@@ -125,12 +133,12 @@ Deno.serve(async (req) => {
         });
 
         if (!searchResponse.ok) {
-          console.error(`Firecrawl search failed for ${source}:`, await searchResponse.text());
+          console.error('[CRAWL] Search failed for source');
           continue;
         }
 
         const searchData = await searchResponse.json();
-        console.log(`Found ${searchData.data?.length || 0} results for ${source}`);
+        console.log(`[CRAWL] Found ${searchData.data?.length || 0} results`);
         
         if (searchData.data && searchData.data.length > 0) {
           for (const result of searchData.data) {
@@ -144,11 +152,11 @@ Deno.serve(async (req) => {
           }
         }
       } catch (err) {
-        console.error(`Error searching ${source}:`, err);
+        console.error('[CRAWL] Error searching source');
       }
     }
 
-    console.log(`Total raw results: ${allJobs.length}`);
+    console.log(`[CRAWL] Total raw results: ${allJobs.length}`);
     
     if (allJobs.length === 0) {
       return new Response(
@@ -158,12 +166,10 @@ Deno.serve(async (req) => {
     }
 
     // Use LLM to normalize job data
-    console.log(`Normalizing up to 10 jobs from ${allJobs.length} raw results...`);
+    console.log(`[CRAWL] Normalizing jobs...`);
     
     const normalizeJob = async (rawJob: any) => {
       try {
-        console.log(`Normalizing job from: ${rawJob.url}`);
-        
         const llmResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -171,7 +177,7 @@ Deno.serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.0-flash-exp', // Using a more standard experimental or flash model
+            model: 'google/gemini-2.0-flash-exp',
             messages: [
               {
                 role: 'system',
@@ -221,8 +227,7 @@ Deno.serve(async (req) => {
         });
 
         if (!llmResponse.ok) {
-          const errorText = await llmResponse.text();
-          console.error(`LLM parsing failed for ${rawJob.url}:`, errorText);
+          console.error('[NORMALIZE] LLM parsing failed');
           return null;
         }
 
@@ -255,7 +260,7 @@ Deno.serve(async (req) => {
         }
         return null;
       } catch (err) {
-        console.error(`Error normalizing job ${rawJob.url}:`, err);
+        console.error('[NORMALIZE] Error normalizing job');
         return null;
       }
     };
@@ -265,7 +270,7 @@ Deno.serve(async (req) => {
     const normalizedResults = await Promise.all(normalizationPromises);
     const normalizedJobs = normalizedResults.filter(Boolean);
 
-    console.log(`Successfully normalized ${normalizedJobs.length} jobs`);
+    console.log(`[CRAWL] Successfully normalized ${normalizedJobs.length} jobs`);
 
     // Insert jobs into database with deduplication
     let inserted = 0;
@@ -284,17 +289,17 @@ Deno.serve(async (req) => {
           if (error.code === '23505') { // Unique violation
             duplicates++;
           } else {
-            console.error('Insert error:', error);
+            console.error('[DB] Insert error');
           }
         } else {
           inserted++;
         }
       } catch (err) {
-        console.error('Database error:', err);
+        console.error('[DB] Database error');
       }
     }
 
-    console.log(`Inserted ${inserted} new jobs, ${duplicates} duplicates skipped`);
+    console.log(`[CRAWL] Inserted ${inserted} new, ${duplicates} duplicates`);
 
     return new Response(
       JSON.stringify({ 
@@ -308,10 +313,10 @@ Deno.serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Crawl error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    // SECURITY: Never expose internal error messages to clients
+    console.error('[ERROR] Crawl error occurred');
     return new Response(
-      JSON.stringify({ success: false, error: errorMessage }),
+      JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

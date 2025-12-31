@@ -6,6 +6,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// SECURITY: Generic error messages to avoid information disclosure
+const GENERIC_SERVICE_ERROR = 'Service temporarily unavailable';
+const GENERIC_AUTH_ERROR = 'Authentication required';
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -16,14 +20,23 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Unauthorized' }),
+        JSON.stringify({ success: false, error: GENERIC_AUTH_ERROR }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+    // SECURITY: Validate config server-side only
+    if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
+      console.error('[SECURITY] Missing required configuration');
+      return new Response(
+        JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
+        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Verify user token
     const authClient = createClient(supabaseUrl, supabaseAnonKey, {
@@ -32,14 +45,15 @@ serve(async (req) => {
     
     const { data: { user }, error: authError } = await authClient.auth.getUser();
     if (authError || !user) {
-      console.error('Auth error:', authError);
+      console.error('[AUTH] Token verification failed');
       return new Response(
-        JSON.stringify({ success: false, error: 'Invalid authentication' }),
+        JSON.stringify({ success: false, error: GENERIC_AUTH_ERROR }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Authenticated user:', user.id);
+    // SECURITY: Log only user ID, not email
+    console.log('[AUTH] Authenticated user:', user.id);
 
     const { resumeText } = await req.json();
 
@@ -52,15 +66,16 @@ serve(async (req) => {
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
 
+    // SECURITY: Don't reveal which service is missing
     if (!lovableApiKey) {
-      console.error('LOVABLE_API_KEY not configured');
+      console.error('[CONFIG] Missing required API key');
       return new Response(
-        JSON.stringify({ success: false, error: 'AI gateway not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
+        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Parsing resume with AI...');
+    console.log('[PARSE] Parsing resume...');
 
     // Use tool calling to extract structured data
     const llmResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -158,8 +173,7 @@ Extract keywords that would match job descriptions (technologies, methodologies,
     });
 
     if (!llmResponse.ok) {
-      const errorText = await llmResponse.text();
-      console.error('LLM parsing failed:', errorText);
+      console.error('[PARSE] AI parsing failed');
       
       if (llmResponse.status === 429) {
         return new Response(
@@ -169,7 +183,7 @@ Extract keywords that would match job descriptions (technologies, methodologies,
       }
       
       return new Response(
-        JSON.stringify({ success: false, error: 'AI parsing failed' }),
+        JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -178,7 +192,7 @@ Extract keywords that would match job descriptions (technologies, methodologies,
     const toolCall = llmData.choices?.[0]?.message?.tool_calls?.[0];
 
     if (!toolCall?.function?.arguments) {
-      console.error('No tool call response from LLM');
+      console.error('[PARSE] No valid response from AI');
       return new Response(
         JSON.stringify({ success: false, error: 'Failed to parse resume structure' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -193,7 +207,8 @@ Extract keywords that would match job descriptions (technologies, methodologies,
       id: exp.id || `exp-${idx + 1}`
     }));
 
-    console.log('Successfully parsed resume:', profile.identity?.name);
+    // SECURITY: Log success without PII
+    console.log('[PARSE] Successfully parsed resume');
 
     // Save to database using the authenticated user's ID
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -210,9 +225,9 @@ Extract keywords that would match job descriptions (technologies, methodologies,
       }, { onConflict: 'user_id' });
 
     if (upsertError) {
-      console.error('Failed to save profile:', upsertError);
+      console.error('[DB] Failed to save profile');
     } else {
-      console.log('Profile saved to database');
+      console.log('[DB] Profile saved');
     }
 
     return new Response(
@@ -221,10 +236,10 @@ Extract keywords that would match job descriptions (technologies, methodologies,
     );
 
   } catch (error) {
-    console.error('Parse resume error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    // SECURITY: Never expose internal errors
+    console.error('[ERROR] Parse resume error occurred');
     return new Response(
-      JSON.stringify({ success: false, error: errorMessage }),
+      JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

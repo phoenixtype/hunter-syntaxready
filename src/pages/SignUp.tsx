@@ -41,12 +41,12 @@ const SignUp = () => {
       const { data, error } = await signUp(validatedEmail, validatedPassword, validatedName);
 
       if (error) {
-        if (error.message.includes("already registered") || error.message.includes("already been registered")) {
-          toast.error("This email is already registered. Please sign in instead.");
-        } else if (error.message.includes("Password")) {
+        // SECURITY: Use generic error messages to prevent email enumeration
+        // Don't reveal whether an email is already registered
+        if (error.message.includes("Password")) {
           toast.error("Password must be at least 6 characters");
         } else {
-          toast.error(error.message);
+          toast.error("Unable to create account. Please check your details and try again.");
         }
         return;
       }

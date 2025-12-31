@@ -11,10 +11,10 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  isDemo: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<SignUpResult>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
-  demoLogin: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -75,30 +75,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setSession(null);
   };
 
-  const demoLogin = async () => {
-    const mockUser = {
-      id: "demo-user-id",
-      email: "demo@hunter.ai",
-      app_metadata: {},
-      user_metadata: { full_name: "Demo Hunter" },
-      aud: "authenticated",
-      created_at: new Date().toISOString()
-    } as User;
-
-    const mockSession = {
-      access_token: "demo-token",
-      refresh_token: "demo-refresh",
-      expires_in: 3600,
-      token_type: "bearer",
-      user: mockUser
-    } as Session;
-
-    setUser(mockUser);
-    setSession(mockSession);
-  };
-
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut, demoLogin }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      loading, 
+      isDemo: false, // Demo mode completely removed for security
+      signUp, 
+      signIn, 
+      signOut 
+    }}>
       {children}
     </AuthContext.Provider>
   );
