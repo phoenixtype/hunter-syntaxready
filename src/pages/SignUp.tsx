@@ -6,7 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { signUpFormSchema, validateWithSchema } from "@/lib/validation";
+import { signUpFormSchema, validateWithSchema, getPasswordStrength } from "@/lib/validation";
 
 const SignUp = () => {
   const [fullName, setFullName] = useState("");
@@ -118,7 +118,7 @@ const SignUp = () => {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Minimum 6 characters"
+                  placeholder="Create a strong password"
                   className="bg-transparent border-muted h-12 pr-10"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -133,7 +133,31 @@ const SignUp = () => {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              <p className="text-xs text-muted-foreground">Must be at least 6 characters</p>
+              {/* Password strength indicator */}
+              {password.length > 0 && (
+                <div className="space-y-1">
+                  <div className="flex gap-1 h-1">
+                    {[0, 1, 2, 3, 4].map((index) => (
+                      <div
+                        key={index}
+                        className={`flex-1 rounded-full transition-colors ${
+                          index <= getPasswordStrength(password).score
+                            ? getPasswordStrength(password).color
+                            : 'bg-muted'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p className={`text-xs ${
+                    getPasswordStrength(password).score >= 3 ? 'text-green-600' : 'text-muted-foreground'
+                  }`}>
+                    Password strength: {getPasswordStrength(password).label}
+                  </p>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                8+ characters with uppercase, lowercase, numbers, and symbols
+              </p>
             </div>
             <Button
               type="submit"
