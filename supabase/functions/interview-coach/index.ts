@@ -102,7 +102,7 @@ serve(async (req) => {
       console.error('[SECURITY] Missing required configuration');
       return new Response(
         JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -159,7 +159,7 @@ serve(async (req) => {
       console.error('[CONFIG] Missing required API key');
       return new Response(
         JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -240,7 +240,7 @@ Description: ${job.description}`;
       
       return new Response(
         JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -250,7 +250,7 @@ Description: ${job.description}`;
     if (!content) {
       return new Response(
         JSON.stringify({ success: false, error: 'No response generated' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -268,7 +268,7 @@ Description: ${job.description}`;
     console.error('[ERROR] Interview coach error occurred');
     return new Response(
       JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

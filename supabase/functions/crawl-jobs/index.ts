@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
       console.error('[SECURITY] Missing required Supabase configuration');
       return new Response(
         JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -194,7 +194,7 @@ Deno.serve(async (req) => {
       console.error('[CONFIG] Missing required API keys');
       return new Response(
         JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
@@ -411,7 +411,7 @@ Deno.serve(async (req) => {
     console.error('[ERROR] Crawl error occurred');
     return new Response(
       JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

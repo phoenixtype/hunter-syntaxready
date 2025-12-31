@@ -97,7 +97,7 @@ serve(async (req) => {
       console.error('[SECURITY] Missing required configuration');
       return new Response(
         JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -161,7 +161,7 @@ serve(async (req) => {
       console.error('[CONFIG] Missing required API key');
       return new Response(
         JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -274,7 +274,7 @@ Extract keywords that would match job descriptions (technologies, methodologies,
       
       return new Response(
         JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -285,7 +285,7 @@ Extract keywords that would match job descriptions (technologies, methodologies,
       console.error('[PARSE] No valid response from AI');
       return new Response(
         JSON.stringify({ success: false, error: 'Failed to parse resume structure' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -328,7 +328,7 @@ Extract keywords that would match job descriptions (technologies, methodologies,
     console.error('[ERROR] Parse resume error occurred');
     return new Response(
       JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
