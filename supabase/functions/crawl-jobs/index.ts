@@ -10,6 +10,11 @@ const corsHeaders = {
 const GENERIC_SERVICE_ERROR = 'Service temporarily unavailable';
 const GENERIC_AUTH_ERROR = 'Authentication required';
 const GENERIC_SESSION_ERROR = 'Session expired or invalid';
+const GENERIC_RATE_LIMIT_ERROR = 'Too many requests. Please try again later.';
+
+// Rate limit configuration: 2 requests per minute (expensive Firecrawl + AI operations)
+const RATE_LIMIT_MAX_REQUESTS = 2;
+const RATE_LIMIT_WINDOW_SECONDS = 60;
 
 // Generate a hash for deduplication
 function generateJobHash(company: string, title: string): string {
@@ -37,6 +42,39 @@ function calculateFreshnessScore(postedAt: string): number {
   
   // Score decreases over time, 1.0 for brand new, ~0.5 for 1 week old
   return Math.max(0.1, 1 - (hoursAgo / 336));
+}
+
+/**
+ * SECURITY: Server-side rate limiting using Supabase
+ * Checks and increments rate limit counter atomically
+ * @returns true if request is allowed, false if rate limited
+ */
+async function checkRateLimit(
+  supabase: any,
+  userId: string,
+  functionName: string,
+  maxRequests: number,
+  windowSeconds: number
+): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.rpc('check_rate_limit', {
+      p_user_id: userId,
+      p_function_name: functionName,
+      p_max_requests: maxRequests,
+      p_window_seconds: windowSeconds
+    });
+
+    if (error) {
+      // SECURITY: Log error but don't block on rate limit check failure
+      console.error('[RATE_LIMIT] Check failed, allowing request');
+      return true;
+    }
+
+    return data === true;
+  } catch (err) {
+    console.error('[RATE_LIMIT] Exception during check');
+    return true; // Fail open to avoid blocking legitimate users
+  }
 }
 
 Deno.serve(async (req) => {
@@ -84,6 +122,33 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Use service role for rate limiting and database operations
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // SECURITY: Server-side rate limiting - check BEFORE any business logic
+    const isAllowed = await checkRateLimit(
+      supabase,
+      user.id,
+      'crawl-jobs',
+      RATE_LIMIT_MAX_REQUESTS,
+      RATE_LIMIT_WINDOW_SECONDS
+    );
+
+    if (!isAllowed) {
+      console.log('[RATE_LIMIT] User rate limited:', user.id);
+      return new Response(
+        JSON.stringify({ success: false, error: GENERIC_RATE_LIMIT_ERROR }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'Retry-After': String(RATE_LIMIT_WINDOW_SECONDS)
+          } 
+        }
+      );
+    }
+
     // SECURITY: Log user ID only, not email or other PII
     console.log('[AUTH] Authenticated user:', user.id);
 
@@ -100,9 +165,6 @@ Deno.serve(async (req) => {
         { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    // Use service role for database operations
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     // Default search sources and keywords
     const searchSources = sources || ['Y Combinator jobs', 'LinkedIn software engineer'];
