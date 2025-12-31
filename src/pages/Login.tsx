@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -13,36 +13,14 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { user, loading, signIn, demoLogin } = useAuth();
+  const { user, loading, signIn } = useAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     if (!loading && user) {
       navigate("/dashboard", { replace: true });
     }
   }, [user, loading, navigate]);
-
-  useEffect(() => {
-    const isDemoMode = searchParams.get('demo') === 'true';
-    if (isDemoMode && !user && !isLoading) {
-      signInWithDemo();
-    }
-  }, []); // Only run once on mount
-
-  const signInWithDemo = async () => {
-    if (isLoading) return; // Prevent multiple calls
-
-    setIsLoading(true);
-    try {
-      await demoLogin();
-      toast.success("Welcome Demo User!");
-      navigate("/dashboard", { replace: true });
-    } catch (error) {
-      toast.error("Demo login failed");
-      setIsLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,20 +36,17 @@ const Login = () => {
       const { error } = await signIn(email, password);
 
       if (error) {
-        if (error.message.includes("Invalid login credentials")) {
-          toast.error("Invalid email or password");
-        } else if (error.message.includes("Email not confirmed")) {
-          toast.error("Please confirm your email before logging in");
-        } else {
-          toast.error(error.message);
-        }
+        // SECURITY: Use generic error message to prevent email enumeration
+        // Don't reveal whether the email exists or if password is wrong
+        toast.error("Invalid credentials. Please check your email and password.");
         return;
       }
 
       toast.success("Welcome back!");
       navigate("/dashboard", { replace: true });
     } catch (error) {
-      toast.error("An unexpected error occurred");
+      // SECURITY: Generic error for unexpected failures
+      toast.error("Unable to sign in. Please try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -157,26 +132,6 @@ const Login = () => {
               )}
             </Button>
           </form>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-muted/50" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or try the demo</span>
-            </div>
-          </div>
-
-          <Button
-            variant="outline"
-            type="button"
-            className="w-full h-12 sm:h-14 hover:bg-muted/50 touch-manipulation"
-            onClick={signInWithDemo}
-            disabled={isLoading}
-            aria-label="Login with demo account"
-          >
-            Login with Demo Account
-          </Button>
 
           <p className="text-center text-sm text-muted-foreground">
             Don't have an account?{" "}

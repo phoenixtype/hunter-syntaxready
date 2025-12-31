@@ -6,6 +6,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// SECURITY: Generic error messages to avoid information disclosure
+const GENERIC_SERVICE_ERROR = 'Service temporarily unavailable';
+const GENERIC_AUTH_ERROR = 'Authentication required';
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -16,13 +20,22 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Unauthorized' }),
+        JSON.stringify({ success: false, error: GENERIC_AUTH_ERROR }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+
+    // SECURITY: Validate config server-side only
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('[SECURITY] Missing required configuration');
+      return new Response(
+        JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
+        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Verify user token
     const authClient = createClient(supabaseUrl, supabaseAnonKey, {
@@ -31,14 +44,15 @@ serve(async (req) => {
     
     const { data: { user }, error: authError } = await authClient.auth.getUser();
     if (authError || !user) {
-      console.error('Auth error:', authError);
+      console.error('[AUTH] Token verification failed');
       return new Response(
-        JSON.stringify({ success: false, error: 'Invalid authentication' }),
+        JSON.stringify({ success: false, error: GENERIC_AUTH_ERROR }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Authenticated user:', user.id);
+    // SECURITY: Log only user ID
+    console.log('[AUTH] Authenticated user:', user.id);
 
     const { profile, job, type } = await req.json();
 
@@ -51,16 +65,17 @@ serve(async (req) => {
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
 
+    // SECURITY: Don't reveal which service is missing
     if (!lovableApiKey) {
-      console.error('LOVABLE_API_KEY not configured');
+      console.error('[CONFIG] Missing required API key');
       return new Response(
-        JSON.stringify({ success: false, error: 'AI gateway not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
+        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const requestType = type || 'cover_letter';
-    console.log(`Generating ${requestType} for ${job.company} - ${job.title}`);
+    console.log(`[GENERATE] Generating ${requestType}`);
 
     let systemPrompt = '';
     let userPrompt = '';
@@ -143,8 +158,7 @@ Provide comprehensive interview preparation.`;
     });
 
     if (!llmResponse.ok) {
-      const errorText = await llmResponse.text();
-      console.error('LLM generation failed:', errorText);
+      console.error('[GENERATE] AI generation failed');
       
       if (llmResponse.status === 429) {
         return new Response(
@@ -154,7 +168,7 @@ Provide comprehensive interview preparation.`;
       }
       
       return new Response(
-        JSON.stringify({ success: false, error: 'AI generation failed' }),
+        JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -169,7 +183,7 @@ Provide comprehensive interview preparation.`;
       );
     }
 
-    console.log(`Successfully generated ${requestType}`);
+    console.log(`[GENERATE] Successfully generated ${requestType}`);
 
     return new Response(
       JSON.stringify({ 
@@ -181,10 +195,10 @@ Provide comprehensive interview preparation.`;
     );
 
   } catch (error) {
-    console.error('Generate content error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    // SECURITY: Never expose internal errors
+    console.error('[ERROR] Generate content error occurred');
     return new Response(
-      JSON.stringify({ success: false, error: errorMessage }),
+      JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
