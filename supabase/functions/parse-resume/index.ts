@@ -145,7 +145,7 @@ serve(async (req) => {
     // SECURITY: Log only user ID, not email
     console.log('[AUTH] Authenticated user:', user.id);
 
-    const { resumeText } = await req.json();
+    const { resumeText, resumeUrl } = await req.json();
 
     if (!resumeText) {
       return new Response(
@@ -153,7 +153,7 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
+    
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
 
     // SECURITY: Don't reveal which service is missing
@@ -309,7 +309,8 @@ Extract keywords that would match job descriptions (technologies, methodologies,
         skills: profile.skills,
         experience_atoms: profile.experience_atoms,
         education: profile.education,
-        raw_resume_text: resumeText.substring(0, 50000)
+        raw_resume_text: resumeText.substring(0, 50000),
+        resume_file_url: resumeUrl || null
       }, { onConflict: 'user_id' });
 
     if (upsertError) {

@@ -31,22 +31,37 @@ export interface CandidateProfile {
   skills: Skill[];
   experience_atoms: ExperienceAtom[];
   education: Education[];
+  resume_file_url?: string;
 }
 
 // Parse resume using AI
 export const parseResume = async (file: File, userId?: string): Promise<CandidateProfile> => {
   console.log("Parsing resume:", file.name);
   
-  // Extract text from PDF using FileReader
+  // 1. Extract text from PDF using FileReader (Client-side fallback)
   const text = await extractTextFromFile(file);
   
   if (!text || text.trim().length < 50) {
     throw new Error("Could not extract text from resume. Please ensure it's a readable PDF.");
   }
 
-  // Call the AI parsing edge function
+  // 2. Upload original file to Supabase Storage
+  // We'll proceed even if upload fails, but warn about it
+  let resumeUrl: string | null = null;
+  try {
+    resumeUrl = await uploadResumeFile(file);
+  } catch (uploadErr) {
+    console.warn('Failed to upload resume file to storage:', uploadErr);
+    // Continue with parsing even if storage fails
+  }
+
+  // 3. Call the AI parsing edge function
   const { data, error } = await supabase.functions.invoke('parse-resume', {
-    body: { resumeText: text, userId }
+    body: { 
+      resumeText: text, 
+      userId,
+      resumeUrl // Pass the storage URL to the function
+    }
   });
 
   if (error) {
@@ -60,6 +75,31 @@ export const parseResume = async (file: File, userId?: string): Promise<Candidat
 
   return data.profile as CandidateProfile;
 };
+
+// Upload resume file to Supabase Storage
+async function uploadResumeFile(file: File): Promise<string> {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+  
+  // Use 'resumes' bucket
+  const { data, error } = await supabase.storage
+    .from('resumes')
+    .upload(fileName, file, {
+      cacheControl: '3600',
+      upsert: false
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  // Get public URL
+  const { data: { publicUrl } } = supabase.storage
+    .from('resumes')
+    .getPublicUrl(fileName);
+
+  return publicUrl;
+}
 
 // Extract text from file (basic implementation for PDF text extraction)
 async function extractTextFromFile(file: File): Promise<string> {
@@ -146,10 +186,11 @@ export const getCandidateProfile = async (userId: string): Promise<CandidateProf
     }
 
     return {
-      identity: data.identity as unknown as CandidateProfile['identity'],
-      skills: data.skills as unknown as Skill[],
-      experience_atoms: data.experience_atoms as unknown as ExperienceAtom[],
-      education: data.education as unknown as Education[]
+      identity: (data.identity as unknown as CandidateProfile['identity']) || { name: 'Unknown Candidate', email: '', links: [] },
+      skills: (data.skills as unknown as Skill[]) || [],
+      experience_atoms: (data.experience_atoms as unknown as ExperienceAtom[]) || [],
+      education: (data.education as unknown as Education[]) || [],
+      resume_file_url: data.resume_file_url || undefined
     };
   } catch (err) {
     console.error('Error fetching profile:', err);

@@ -45,7 +45,9 @@ import DashboardSkeleton from "@/components/DashboardSkeleton";
 import ThemeToggle from "@/components/ThemeToggle";
 import MobileNav from "@/components/MobileNav";
 import SkipLink from "@/components/SkipLink";
-
+import { ResumeUpload } from "@/components/resume/ResumeUpload";
+import { ResumePreview } from "@/components/resume/ResumePreview";
+import { useResume } from "@/hooks/useResume";
 import PostInterviewModal from "@/components/PostInterviewModal";
 import PricingModal from "@/components/PricingModal";
 import { getSubscription, SubscriptionTier, checkAccess, Feature } from "@/lib/subscription";
@@ -54,8 +56,7 @@ import { AgentActivityLog } from "@/components/AgentActivityLog";
 const Dashboard = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<CandidateProfile | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const { profile, loading: resumeLoading, refreshProfile, setProfile } = useResume();
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
   const [visibility, setVisibility] = useState<VisibilityScore | null>(null);
@@ -64,32 +65,11 @@ const Dashboard = () => {
   const [subscription, setSubscription] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setUploading(true);
-      toast.info("Parsing resume...");
-      setTimeout(async () => {
-        const parsed = await parseResume(file);
-        setProfile(parsed);
-        setUploading(false);
-        toast.success("Resume parsed successfully");
-      }, 2000);
-    }
-  };
-
   const handleSignOut = async () => {
     await signOut();
     toast.success("Signed out successfully");
     navigate("/");
   };
-
-  // Redirect to login if not authenticated (after auth finishes loading)
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate("/login", { replace: true });
-    }
-  }, [authLoading, user, navigate]);
 
   // Fetch dashboard data once user is authenticated
   useEffect(() => {
@@ -102,7 +82,7 @@ const Dashboard = () => {
       try {
         const prefs = await getPreferences(user.id);
         if (!isMounted) return;
-        
+
         setPreferences(prefs);
         if (!prefs) {
           toast.info("Please complete your agent configuration.");
@@ -114,7 +94,7 @@ const Dashboard = () => {
           calculateVisibilityScore(),
           getSubscription()
         ]);
-        
+
         if (!isMounted) return;
         setVisibility(score);
         setSubscription(sub);
@@ -132,7 +112,7 @@ const Dashboard = () => {
     };
 
     fetchData();
-    
+
     return () => {
       isMounted = false;
     };
@@ -398,44 +378,33 @@ const Dashboard = () => {
                   <p className="text-xs sm:text-sm text-muted-foreground">Upload your base resume to generate your Agent Profile.</p>
                 </div>
 
-                {!profile ? (
-                  <div
-                    className={`border-2 border-dashed border-muted-foreground/25 rounded-xl p-6 sm:p-8 lg:p-12 text-center transition-all hover:bg-muted/50 active:bg-muted/70 cursor-pointer touch-manipulation ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
-                  >
-                    <label className="cursor-pointer block">
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept=".pdf,.docx"
-                        onChange={handleFileUpload}
-                        aria-label="Upload resume file"
-                      />
-                      <Upload className="w-8 sm:w-10 h-8 sm:h-10 mx-auto text-muted-foreground mb-4" aria-hidden="true" />
-                      <p className="text-sm font-medium">Drop your resume here or tap to upload</p>
-                      <p className="text-xs text-muted-foreground mt-2">PDF or DOCX (Max 5MB)</p>
-                    </label>
-                  </div>
+                {resumeLoading ? (
+                  <DashboardSkeleton />
+                ) : !profile ? (
+                  <ResumeUpload onUploadComplete={setProfile} />
                 ) : (
                   <div className="space-y-4 animate-fadeIn">
                     <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
                       <div className="flex items-center gap-3">
-                        <FileText className="w-6 h-6 text-primary" />
+                        <div className="p-2 bg-primary/10 rounded-full">
+                          <FileText className="w-5 h-5 text-primary" />
+                        </div>
                         <div>
-                          <p className="font-medium">{profile.identity.name}</p>
-                          <p className="text-xs text-muted-foreground">Resume Processed</p>
+                          <p className="font-medium">Active Profile: {profile.identity.name}</p>
+                          <p className="text-xs text-muted-foreground">Last updated: Today</p>
                         </div>
                       </div>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setProfile(null)}
-                        className="touch-manipulation"
+                        className="touch-manipulation text-muted-foreground hover:text-destructive"
                       >
-                        Replace
+                        Replace Resume
                       </Button>
                     </div>
-                    
-                    <ATSAudit profile={profile} />
+
+                    <ResumePreview profile={profile} />
                   </div>
                 )}
               </div>
