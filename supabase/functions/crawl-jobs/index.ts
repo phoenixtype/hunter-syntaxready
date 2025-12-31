@@ -77,9 +77,41 @@ async function checkRateLimit(
   }
 }
 
+/**
+ * SECURITY: Detect health check / crawler requests
+ * Returns true for Supabase internal probes, load balancers, and security scanners
+ */
+function isHealthCheckRequest(req: Request): boolean {
+  const userAgent = req.headers.get('user-agent')?.toLowerCase() || '';
+  const isProbe = 
+    userAgent.includes('supabase') ||
+    userAgent.includes('healthcheck') ||
+    userAgent.includes('uptime') ||
+    userAgent.includes('monitoring') ||
+    userAgent.includes('crawler') ||
+    userAgent.includes('bot') ||
+    userAgent === '';
+  
+  // HEAD requests are typically health checks
+  // GET without auth header on root path is also a health probe
+  const isHealthMethod = req.method === 'HEAD' || 
+    (req.method === 'GET' && !req.headers.get('Authorization'));
+  
+  return isProbe || isHealthMethod;
+}
+
 Deno.serve(async (req) => {
+  // CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // HEALTH CHECK: Return 200 OK for crawlers/probes without executing business logic
+  if (isHealthCheckRequest(req)) {
+    return new Response(
+      JSON.stringify({ status: 'healthy', service: 'crawl-jobs', timestamp: new Date().toISOString() }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
 
   try {
@@ -96,7 +128,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get authorization header
+    // Get authorization header - required for business logic
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       console.error('[AUTH] No authorization header provided');

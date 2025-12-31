@@ -50,9 +50,37 @@ async function checkRateLimit(
   }
 }
 
+/**
+ * SECURITY: Detect health check / crawler requests
+ */
+function isHealthCheckRequest(req: Request): boolean {
+  const userAgent = req.headers.get('user-agent')?.toLowerCase() || '';
+  const isProbe = 
+    userAgent.includes('supabase') ||
+    userAgent.includes('healthcheck') ||
+    userAgent.includes('uptime') ||
+    userAgent.includes('monitoring') ||
+    userAgent.includes('crawler') ||
+    userAgent.includes('bot') ||
+    userAgent === '';
+  
+  const isHealthMethod = req.method === 'HEAD' || 
+    (req.method === 'GET' && !req.headers.get('Authorization'));
+  
+  return isProbe || isHealthMethod;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // HEALTH CHECK: Return 200 OK for crawlers/probes
+  if (isHealthCheckRequest(req)) {
+    return new Response(
+      JSON.stringify({ status: 'healthy', service: 'interview-coach', timestamp: new Date().toISOString() }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
 
   try {
