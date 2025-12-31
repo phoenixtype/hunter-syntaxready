@@ -155,9 +155,9 @@ serve(async (req) => {
     }
 
     // Use LLM to normalize job data
-    const normalizedJobs: any[] = [];
+    console.log(`Normalizing up to 10 jobs from ${allJobs.length} raw results...`);
     
-    for (const rawJob of allJobs.slice(0, 10)) { // Limit to 10 to save API calls
+    const normalizeJob = async (rawJob: any) => {
       try {
         console.log(`Normalizing job from: ${rawJob.url}`);
         
@@ -168,7 +168,7 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.5-flash',
+            model: 'google/gemini-2.0-flash-exp', // Using a more standard experimental or flash model
             messages: [
               {
                 role: 'system',
@@ -218,8 +218,9 @@ serve(async (req) => {
         });
 
         if (!llmResponse.ok) {
-          console.error('LLM parsing failed:', await llmResponse.text());
-          continue;
+          const errorText = await llmResponse.text();
+          console.error(`LLM parsing failed for ${rawJob.url}:`, errorText);
+          return null;
         }
 
         const llmData = await llmResponse.json();
@@ -228,13 +229,13 @@ serve(async (req) => {
         if (toolCall?.function?.arguments) {
           const parsed = JSON.parse(toolCall.function.arguments);
           
-          if (parsed.valid !== false && parsed.title && parsed.company) {
-            const jobHash = generateJobHash(parsed.company, parsed.title);
+          if (parsed.valid !== false && (parsed.title || parsed.company)) {
+            const jobHash = generateJobHash(parsed.company || 'Unknown', parsed.title || 'Unknown');
             const freshnessScore = calculateFreshnessScore(parsed.posted_at || '1 week ago');
             
-            normalizedJobs.push({
-              title: parsed.title,
-              company: parsed.company,
+            return {
+              title: parsed.title || rawJob.title || 'Unknown Title',
+              company: parsed.company || 'Unknown Company',
               location: parsed.location || 'Remote',
               salary_range: parsed.salary_range || 'Not specified',
               description: parsed.description || '',
@@ -246,15 +247,22 @@ serve(async (req) => {
               tech_stack: parsed.tech_stack || [],
               job_hash: jobHash,
               raw_data: rawJob
-            });
+            };
           }
         }
+        return null;
       } catch (err) {
-        console.error('Error normalizing job:', err);
+        console.error(`Error normalizing job ${rawJob.url}:`, err);
+        return null;
       }
-    }
+    };
 
-    console.log(`Normalized ${normalizedJobs.length} jobs`);
+    // Parallelize normalization with a limit or all at once if small
+    const normalizationPromises = allJobs.slice(0, 10).map(normalizeJob);
+    const normalizedResults = await Promise.all(normalizationPromises);
+    const normalizedJobs = normalizedResults.filter(Boolean);
+
+    console.log(`Successfully normalized ${normalizedJobs.length} jobs`);
 
     // Insert jobs into database with deduplication
     let inserted = 0;
