@@ -108,7 +108,10 @@ async function extractTextFromFile(file: File): Promise<string> {
   
   // Set worker to the CDN to avoid build configuration headaches with Vite
   // We use the version matching the installed package roughly, or generic latest for stability in this demo
-  pdfJS.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfJS.version}/pdf.worker.min.mjs`;
+  // Set worker to the CDN to avoid build configuration headaches with Vite
+  // Hardcoding to a known stable version matching npm to ensure compatibility
+  // pdfjs-dist v5.4.530
+  pdfJS.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs`;
 
   if (file.type === 'application/pdf') {
     return new Promise((resolve, reject) => {
