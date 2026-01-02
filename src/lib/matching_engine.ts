@@ -74,9 +74,9 @@ export const calculateMatch = async (
 
   // 4. Generate Reasoning
   if (skillScore > 80) {
-    reasoning.push("High skill overlap. Your tech stack aligns perfectly.");
+    reasoning.push("High skill overlap. Your skill set aligns perfectly.");
   } else if (skillScore < 50) {
-    reasoning.push("Missing key technical requirements.");
+    reasoning.push("Missing key requirement matches.");
   }
   
   if (job.source === 'Perplexity' || job.source === 'Firecrawl') {

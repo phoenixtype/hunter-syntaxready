@@ -163,16 +163,122 @@ serve(async (req) => {
       );
     }
 
+    // Handle "Briefing Generation" mode (Structured Output)
+    if (mode === 'generate_briefing') {
+        const briefingPrompt = `You are an elite interview coach. Generate a strategic interview preparation dossier for:
+        Role: ${job?.title}
+        Company: ${job?.company}
+        Description: ${job?.description?.substring(0, 1000)}
+
+        Return a JSON object with:
+        1. Company Profile (infer from name/industry knowledge)
+        2. 5 Specific Technical Questions based on the stack
+        3. 4 Behavioral Questions (culture fit)
+        4. 3 "Red Flags" to watch out for
+        5. 2 Interviewer Personas they might meet
+        6. Evaluation Criteria (what they grade on)
+        `;
+
+        const llmResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${lovableApiKey}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                model: 'google/gemini-2.5-flash',
+                messages: [{ role: 'user', content: briefingPrompt }],
+                tools: [{
+                    type: 'function',
+                    function: {
+                        name: 'generate_dossier',
+                        description: 'Generate interview preparation dossier',
+                        parameters: {
+                            type: 'object',
+                            properties: {
+                                company_profile: {
+                                    type: 'object',
+                                    properties: {
+                                        mission: { type: 'string' },
+                                        industry: { type: 'string' },
+                                        stage: { type: 'string' },
+                                        recent_news: { type: 'array', items: { type: 'string' } }
+                                    },
+                                    required: ['mission', 'industry']
+                                },
+                                technical_questions: { type: 'array', items: { type: 'string' } },
+                                behavioral_questions: { type: 'array', items: { type: 'string' } },
+                                red_flags_to_watch: { type: 'array', items: { type: 'string' } },
+                                interviewer_insights: {
+                                    type: 'array',
+                                    items: {
+                                        type: 'object',
+                                        properties: {
+                                            role: { type: 'string' },
+                                            name_archetype: { type: 'string' },
+                                            focus_area: { type: 'string' },
+                                            tip: { type: 'string' }
+                                        }
+                                    }
+                                },
+                                evaluation_criteria: {
+                                    type: 'array',
+                                    items: {
+                                        type: 'object',
+                                        properties: {
+                                            dimension: { type: 'string' },
+                                            weight: { type: 'string' },
+                                            description: { type: 'string' }
+                                        }
+                                    }
+                                }
+                            },
+                            required: ['company_profile', 'technical_questions', 'red_flags_to_watch']
+                        }
+                    }
+                }],
+                tool_choice: { type: 'function', function: { name: 'generate_dossier' } }
+            }),
+        });
+
+        if (!llmResponse.ok) {
+            console.error('[INTERVIEW] Briefing generation failed');
+            return new Response(
+                JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
+                { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+        }
+
+        const llmData = await llmResponse.json();
+        const toolCall = llmData.choices?.[0]?.message?.tool_calls?.[0];
+        const dossier = toolCall?.function?.arguments ? JSON.parse(toolCall.function.arguments) : null;
+
+        // Augment default values if AI missed some fields
+        const safeDossier = {
+            company_values: ["Innovation", "Impact", "Ownership"], // Default, AI usually misses this specific field in simple prompt
+            ...dossier
+        };
+
+        return new Response(
+            JSON.stringify(safeDossier), // Return raw JSON directly as expected by frontend
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+    }
+
     const interviewMode = mode || 'behavioral';
     
     let systemPrompt = `You are an expert interview coach simulating a real job interview. `;
     
     if (interviewMode === 'technical') {
-      systemPrompt += `You are conducting a technical interview. Ask probing follow-up questions about system design, coding practices, and technical decision-making. Be supportive but challenging.`;
+      systemPrompt += `You are conducting a technical/competency interview tailored to the role of ${job?.title || 'the candidate'}. 
+      If this is a Software Engineering role, ask about system design and coding. 
+      If this is a Sales role, ask about quota attainment and pipeline management.
+      If this is a specialized role (e.g. Nursing, Law, Accounting), ask about specific regulations, tools, or domain knowledge (GAAP, Clinical Protocols, etc.).
+      Be supportive but challenging. Test their "Hard Skills".`;
     } else if (interviewMode === 'behavioral') {
-      systemPrompt += `You are conducting a behavioral interview using the STAR method. Ask follow-up questions to get specific examples, metrics, and outcomes. Help the candidate improve their answers.`;
+      systemPrompt += `You are conducting a behavioral interview using the STAR method. Ask follow-up questions to get specific examples, metrics, and outcomes.`;
     } else if (interviewMode === 'negotiation') {
-      systemPrompt += `You are helping the candidate practice salary negotiation. Play the role of a hiring manager. Provide realistic pushback and teach negotiation techniques. The candidate should aim high but be prepared to justify their ask.`;
+      systemPrompt += `You are helping the candidate practice salary negotiation. Play the role of a hiring manager. Provide realistic pushback.`;
     }
 
     if (profile) {
@@ -199,7 +305,8 @@ Description: ${job.description}`;
     if (!messages || messages.length === 0) {
       let starterMessage = '';
       if (interviewMode === 'technical') {
-        starterMessage = `Hello! I'm excited to speak with you today about the ${job?.title || 'engineering'} role. Let's start with a technical question: Can you walk me through the architecture of a complex system you've built recently? What were the key technical decisions and trade-offs?`;
+        const roleType = job?.title || 'this role';
+        starterMessage = `Hello! I'm excited to speak with you today about the ${roleType}. Let's dive into your technical expertise. Can you describe a complex problem you solved in your domain, and exactly how you approached the solution?`;
       } else if (interviewMode === 'behavioral') {
         starterMessage = `Hi there! Thanks for joining me today. I'd love to learn more about your experience. Let's start with a classic: Tell me about a time when you faced a significant challenge at work. What was the situation, and how did you handle it?`;
       } else if (interviewMode === 'negotiation') {

@@ -1,50 +1,55 @@
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { MoreHorizontal, DollarSign, Calendar, CheckCircle2, Clock, XCircle } from "lucide-react";
-
-// Mock data for now - in production this would come from a database
-const mockApplications = [
-    {
-        id: 1,
-        company: "TechCorp Inc.",
-        role: "Senior Fullstack Engineer",
-        status: "Interviewing",
-        date: "2 Days ago",
-        salary: "$140k - $160k",
-        nextStep: "System Design Round"
-    },
-    {
-        id: 2,
-        company: "StartupAI",
-        role: "Founding Engineer",
-        status: "Applied",
-        date: "Today",
-        salary: "$120k - $180k",
-        nextStep: "Awaiting Review"
-    },
-    {
-        id: 3,
-        company: "Legacy Systems",
-        role: "Lead Developer",
-        status: "Offer",
-        date: "1 Week ago",
-        salary: "$155k",
-        nextStep: "Negotiation"
-    }
-];
+import { MoreHorizontal, DollarSign, Calendar, Loader2 } from "lucide-react";
+import { getApplicationHistory } from "@/lib/application_engine";
+import { useAuth } from "@/hooks/useAuth";
+import { formatDistanceToNow } from "date-fns";
 
 const getStatusColor = (status: string) => {
-    switch (status) {
-        case 'Interviewing': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
-        case 'Offer': return 'bg-green-500/10 text-green-500 border-green-500/20';
-        case 'Rejected': return 'bg-red-500/10 text-red-500 border-red-500/20';
+    switch (status.toLowerCase()) {
+        case 'interviewing': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+        case 'offer': return 'bg-green-500/10 text-green-500 border-green-500/20';
+        case 'rejected': case 'failed': return 'bg-red-500/10 text-red-500 border-red-500/20';
+        case 'applied': return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
         default: return 'bg-secondary text-muted-foreground';
     }
 };
 
 export const ApplicationsView = () => {
+    const { session } = useAuth();
+    const [applications, setApplications] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchHistory = async () => {
+            if (session?.user?.id) {
+                try {
+                    const history = await getApplicationHistory(session.user.id);
+                    setApplications(history);
+                } catch (e) {
+                    console.error("Failed to load applications", e);
+                } finally {
+                    setLoading(false);
+                }
+            } else {
+                setLoading(false);
+            }
+        };
+
+        fetchHistory();
+    }, [session?.user?.id]);
+
+    if (loading) {
+        return (
+            <div className="flex justify-center p-8">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+        );
+    }
+
     return (
         <Card className="glass-card">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -65,31 +70,32 @@ export const ApplicationsView = () => {
                                 <TableHead>Company & Role</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Compensation</TableHead>
-                                <TableHead>Next Step</TableHead>
+                                <TableHead>Applied</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {mockApplications.map((app) => (
+                            {applications.map((app) => (
                                 <TableRow key={app.id} className="hover:bg-secondary/10">
                                     <TableCell>
                                         <div className="font-medium">{app.company}</div>
-                                        <div className="text-xs text-muted-foreground">{app.role}</div>
+                                        <div className="text-xs text-muted-foreground">{app.job_title}</div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant="outline" className={`${getStatusColor(app.status)} font-normal`}>
+                                        <Badge variant="outline" className={`${getStatusColor(app.status)} font-normal capitalize`}>
                                             {app.status}
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex items-center text-sm font-mono text-muted-foreground">
                                             <DollarSign className="w-3 h-3 mr-1" />
-                                            {app.salary}
+                                            {app.metadata?.salary_range || 'Not specified'}
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="text-sm">{app.nextStep}</div>
-                                        <div className="text-[10px] text-muted-foreground">{app.date}</div>
+                                        <div className="text-sm">
+                                            {app.applied_at ? formatDistanceToNow(new Date(app.applied_at), { addSuffix: true }) : 'Recently'}
+                                        </div>
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -98,7 +104,7 @@ export const ApplicationsView = () => {
                                     </TableCell>
                                 </TableRow>
                             ))}
-                            {mockApplications.length === 0 && (
+                            {applications.length === 0 && (
                                 <TableRow>
                                     <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                                         No active applications. Start hunting!

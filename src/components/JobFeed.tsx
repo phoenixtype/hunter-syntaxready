@@ -142,10 +142,23 @@ const JobFeed = ({ profile }: JobFeedProps) => {
 
     const handleCrawl = async () => {
         setCrawling(true);
-        toast.info("Starting job crawl with Firecrawl + AI...");
+
+        // Personalized Crawl Logic
+        let keywords: string[] = ['hiring now'];
+        if (profile) {
+            const topSkills = profile.skills.slice(0, 3).map(s => s.name);
+            const latestRole = profile.experience_atoms?.[0]?.role; // e.g. "Marketing Manager"
+
+            keywords = [];
+            if (latestRole) keywords.push(latestRole);
+            if (topSkills.length > 0) keywords.push(...topSkills);
+        }
+
+        const description = keywords.length > 0 ? `Targeting: ${keywords.slice(0, 2).join(', ')}...` : "Starting global hunt...";
+        toast.info(description);
 
         try {
-            const result = await triggerJobCrawl();
+            const result = await triggerJobCrawl(undefined, keywords);
 
             if (result.success) {
                 toast.success(`Crawl complete! Found ${result.inserted || 0} new jobs`);
@@ -396,22 +409,30 @@ const JobFeed = ({ profile }: JobFeedProps) => {
                                         <h4 className="text-[10px] uppercase font-bold text-muted-foreground mb-2 flex items-center gap-1">
                                             <span className="w-2 h-2 rounded-full bg-blue-500"></span> Hiring Team
                                         </h4>
-                                        <div className="flex flex-col gap-2">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                             {stakeholders[job.id].map((person: any, i: number) => (
-                                                <div key={i} className="flex items-center justify-between text-xs">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center font-semibold text-[10px]">
-                                                            {person.name.charAt(0)}
+                                                <a
+                                                    key={i}
+                                                    href={person.profile_url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group/person"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary text-xs">
+                                                            {person.avatar_url?.includes('http') ? (
+                                                                <img src={person.avatar_url} alt="icon" className="w-full h-full object-cover rounded-full opacity-80" />
+                                                            ) : (
+                                                                <Users className="w-4 h-4" />
+                                                            )}
                                                         </div>
-                                                        <div>
-                                                            <p className="font-medium">{person.name}</p>
-                                                            <p className="text-muted-foreground text-[10px]">{person.role}</p>
+                                                        <div className="min-w-0">
+                                                            <p className="text-xs font-medium truncate text-foreground group-hover/person:text-primary transition-colors">{person.name}</p>
+                                                            <p className="text-[10px] text-muted-foreground truncate max-w-[120px]">{person.role}</p>
                                                         </div>
                                                     </div>
-                                                    <Badge variant="outline" className="text-[10px] h-5 font-normal">
-                                                        {person.connection_degree}
-                                                    </Badge>
-                                                </div>
+                                                    <ExternalLink className="w-3 h-3 text-muted-foreground group-hover/person:text-primary" />
+                                                </a>
                                             ))}
                                         </div>
                                     </div>

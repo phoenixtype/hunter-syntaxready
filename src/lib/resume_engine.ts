@@ -101,74 +101,66 @@ async function uploadResumeFile(file: File): Promise<string> {
   return publicUrl;
 }
 
-// Extract text from file (basic implementation for PDF text extraction)
+// Extract text from file using PDF.js for robust parsing
 async function extractTextFromFile(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    
-    reader.onload = async (e) => {
-      try {
-        const arrayBuffer = e.target?.result as ArrayBuffer;
-        
-        // For PDFs, we'll send the raw content and let the server handle it
-        // In a production app, you'd use pdf.js here
-        // For now, we'll try to extract any text we can find
-        
-        const uint8Array = new Uint8Array(arrayBuffer);
-        let text = '';
-        
-        // Try to decode as UTF-8 text (works for text-based PDFs)
+  // Dynamic import to avoid SSR issues if this were Next.js, but good practice here too
+  const pdfJS = await import('pdfjs-dist');
+  
+  // Set worker to the CDN to avoid build configuration headaches with Vite
+  // We use the version matching the installed package roughly, or generic latest for stability in this demo
+  pdfJS.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfJS.version}/pdf.worker.min.mjs`;
+
+  if (file.type === 'application/pdf') {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = async (e) => {
         try {
-          const decoder = new TextDecoder('utf-8', { fatal: false });
-          const rawText = decoder.decode(uint8Array);
+          const typedarray = new Uint8Array(e.target?.result as ArrayBuffer);
           
-          // Extract readable text from PDF structure
-          // Look for text between parentheses (PDF text objects)
-          const textMatches = rawText.match(/\(([^)]+)\)/g);
-          if (textMatches) {
-            text = textMatches
-              .map(m => m.slice(1, -1))
-              .filter(t => t.length > 2 && /[a-zA-Z]/.test(t))
+          const loadingTask = pdfJS.getDocument({
+            data: typedarray,
+            cMapUrl: `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfJS.version}/cmaps/`,
+            cMapPacked: true,
+          });
+
+          const pdf = await loadingTask.promise;
+          let fullText = '';
+          
+          // Iterate over all pages
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            
+            // Join items with space, preserving roughly the flow
+            const pageText = textContent.items
+              .map((item: any) => item.str)
               .join(' ');
+              
+            fullText += pageText + '\n\n';
           }
           
-          // Also look for /Contents streams
-          const contentsMatch = rawText.match(/\/Contents[^>]*>>stream([\s\S]*?)endstream/g);
-          if (contentsMatch) {
-            contentsMatch.forEach(match => {
-              const streamText = match.replace(/[^a-zA-Z0-9\s@.,\-()]/g, ' ');
-              text += ' ' + streamText;
-            });
-          }
-          
-          // If still no text, fall back to raw decode
-          if (text.trim().length < 100) {
-            text = rawText.replace(/[^\x20-\x7E\n\r\t]/g, ' ').replace(/\s+/g, ' ');
-          }
-        } catch {
-          // Fallback: just try to get any ASCII text
-          text = Array.from(uint8Array)
-            .filter(b => b >= 32 && b <= 126)
-            .map(b => String.fromCharCode(b))
-            .join('');
+          console.log(`Extracted ${fullText.length} characters via PDF.js`);
+          resolve(fullText.trim());
+
+        } catch (error) {
+          console.error('PDF.js parsing failed:', error);
+          reject(new Error('Failed to parse PDF content. Is the file encrypted?'));
         }
-        
-        // Clean up the extracted text
-        text = text
-          .replace(/\s+/g, ' ')
-          .replace(/[^\w\s@.,\-+()\/&:'"|#$%*!?]/g, '')
-          .trim();
-        
-        console.log(`Extracted ${text.length} characters from resume`);
-        resolve(text);
-      } catch (err) {
-        reject(err);
-      }
-    };
-    
-    reader.onerror = () => reject(new Error('Failed to read file'));
-    reader.readAsArrayBuffer(file);
-  });
+      };
+      
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsArrayBuffer(file);
+    });
+  } else {
+    // Fallback for .txt or other formats (though we mainly restrict to PDF)
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target?.result as string);
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsText(file);
+    });
+  }
 }
 
 // Get saved candidate profile from database

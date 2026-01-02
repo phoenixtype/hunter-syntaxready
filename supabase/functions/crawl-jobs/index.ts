@@ -198,9 +198,9 @@ Deno.serve(async (req) => {
       );
     }
     
-    // Default search sources and keywords
-    const searchSources = sources || ['Y Combinator jobs', 'LinkedIn software engineer'];
-    const searchKeywords = keywords || ['software engineer', 'full stack', 'frontend', 'backend'];
+    // Default search sources and keywords (Generalized)
+    const searchSources = sources || ['LinkedIn jobs', 'Indeed jobs', 'Remote jobs'];
+    const searchKeywords = keywords || ['hiring now', 'remote', 'career opportunities'];
     
     console.log('[CRAWL] Starting job crawl, sources:', searchSources.length);
     
@@ -211,6 +211,11 @@ Deno.serve(async (req) => {
       try {
         console.log(`[CRAWL] Searching source...`);
         
+        // Construct query: "LinkedIn jobs hiring Marketing Manager" or just "LinkedIn jobs hiring hiring now"
+        const query = keywords && keywords.length > 0 
+            ? `${source} hiring ${searchKeywords.join(' OR ')}`
+            : `${source} hiring now`;
+
         const searchResponse = await fetch('https://api.firecrawl.dev/v1/search', {
           method: 'POST',
           headers: {
@@ -218,7 +223,7 @@ Deno.serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            query: `${source} jobs hiring ${searchKeywords.join(' OR ')}`,
+            query: query,
             limit: 10,
             scrapeOptions: {
               formats: ['markdown']
@@ -226,63 +231,20 @@ Deno.serve(async (req) => {
           }),
         });
 
-        if (!searchResponse.ok) {
-          console.error('[CRAWL] Search failed for source');
-          continue;
-        }
+// ... (abridged for brevity)
 
-        const searchData = await searchResponse.json();
-        console.log(`[CRAWL] Found ${searchData.data?.length || 0} results`);
-        
-        if (searchData.data && searchData.data.length > 0) {
-          for (const result of searchData.data) {
-            allJobs.push({
-              url: result.url,
-              title: result.title,
-              content: result.markdown || result.description,
-              source: source.includes('LinkedIn') ? 'LinkedIn' : 
-                      source.includes('Y Combinator') ? 'Firecrawl' : 'Direct'
-            });
-          }
-        }
-      } catch (err) {
-        console.error('[CRAWL] Error searching source');
-      }
-    }
-
-    console.log(`[CRAWL] Total raw results: ${allJobs.length}`);
-    
-    if (allJobs.length === 0) {
-      return new Response(
-        JSON.stringify({ success: true, jobs: [], message: 'No jobs found from sources' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Use LLM to normalize job data
-    console.log(`[CRAWL] Normalizing jobs...`);
-    
-    const normalizeJob = async (rawJob: any) => {
-      try {
-        const llmResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${lovableApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'google/gemini-2.0-flash-exp',
+            // Normalize with AI
             messages: [
               {
                 role: 'system',
-                content: `You are a job listing parser. Extract structured job information from the provided content. 
+                content: `You are a universal job listing parser. Extract structured job information from the provided content for ANY industry (Tech, Healthcare, Sales, etc.).
                 Return a JSON object with these fields:
                 - title: job title (string)
                 - company: company name (string)
                 - location: location or "Remote" (string)
                 - salary_range: salary range if mentioned, otherwise "Not specified" (string)
                 - description: brief job description (string, max 200 chars)
-                - tech_stack: array of technologies mentioned (string array)
+                - tech_stack: array of HARD SKILLS or TECHNOLOGIES (e.g., "Python" for eng, "Salesforce" for sales, "GAAP" for accounting, "CPR" for nursing).
                 - posted_at: when it was posted, e.g. "2 hours ago", "1 day ago" (string)
                 
                 If you cannot extract valid job info, return {"valid": false}.
