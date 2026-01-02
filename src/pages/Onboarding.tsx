@@ -77,9 +77,20 @@ const Onboarding = () => {
                     <div className="space-y-4">
                         <Label className="text-lg font-medium">Upload Resume (PDF)</Label>
                         <ResumeUpload
-                            onUploadComplete={async () => {
-                                // Resume parsed and stored. We could fetch it to pre-fill basic info if needed.
-                                toast.success("Resume linked to your profile.");
+                            onUploadComplete={async (profile) => {
+                                // 1. Auto-fill Roles based on Experience and Skills (Top 5)
+                                // We map experience job titles and top skills
+                                const suggestedRoles = [
+                                    ...profile.experience_atoms.map(exp => exp.role),
+                                    ...profile.skills.slice(0, 3).map(s => s.name)
+                                ].slice(0, 5).join(', ');
+
+                                setRoles(prev => prev ? `${prev}, ${suggestedRoles}` : suggestedRoles);
+
+                                // 2. Toast success
+                                toast.success("Resume analyzed! We've pre-filled your target roles.", {
+                                    description: "Review the settings below and click Initiate Agent."
+                                });
                             }}
                         />
                     </div>
