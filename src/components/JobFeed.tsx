@@ -7,7 +7,7 @@ import { calculateMatch, MatchResult } from "@/lib/matching_engine";
 import { generateTailoredContent, TailoredContent } from "@/lib/writer_engine";
 import { simulateApplication, ApplicationState, ComplianceError } from "@/lib/application_engine";
 import { recordFeedback, getOptimizedWeights, MatchingWeights } from "@/lib/learning_engine";
-import { ExternalLink, Sparkles, RefreshCw, Terminal, PenTool, Send, Check, GraduationCap, X, Loader2, Globe, Zap } from "lucide-react";
+import { ExternalLink, Sparkles, RefreshCw, Terminal, PenTool, Send, Check, GraduationCap, X, Loader2, Globe, Zap, Clock, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import InterviewPrepModal from "./InterviewPrep";
@@ -38,10 +38,10 @@ const JobFeed = ({ profile }: JobFeedProps) => {
             jobId: job.id,
             action: 'APPLY',
             timestamp: Date.now(),
-            jobMetadata: { 
-                skills: job.tech_stack || [], 
-                company: job.company, 
-                source: job.source 
+            jobMetadata: {
+                skills: job.tech_stack || [],
+                company: job.company,
+                source: job.source
             }
         });
 
@@ -143,10 +143,10 @@ const JobFeed = ({ profile }: JobFeedProps) => {
     const handleCrawl = async () => {
         setCrawling(true);
         toast.info("Starting job crawl with Firecrawl + AI...");
-        
+
         try {
             const result = await triggerJobCrawl();
-            
+
             if (result.success) {
                 toast.success(`Crawl complete! Found ${result.inserted || 0} new jobs`);
                 // Refresh the job list - use inline logic to avoid duplicate function
@@ -174,8 +174,8 @@ const JobFeed = ({ profile }: JobFeedProps) => {
                 toast.error("Crawl failed", { description: result.error });
             }
         } catch (err) {
-            toast.error("Crawl error", { 
-                description: err instanceof Error ? err.message : "Unknown error" 
+            toast.error("Crawl error", {
+                description: err instanceof Error ? err.message : "Unknown error"
             });
         } finally {
             setCrawling(false);
@@ -217,17 +217,17 @@ const JobFeed = ({ profile }: JobFeedProps) => {
 
     useEffect(() => {
         let isMounted = true;
-        
+
         const loadJobs = async () => {
             setLoading(true);
             try {
                 const rawJobs = await searchJobs();
                 if (!isMounted) return;
-                
+
                 const weights = getOptimizedWeights();
                 const count = await getJobCount();
                 if (!isMounted) return;
-                
+
                 setJobCount(count);
 
                 // If we have a profile, calculate matches
@@ -241,8 +241,8 @@ const JobFeed = ({ profile }: JobFeedProps) => {
                     );
                     // Filter out 0 scores (banned)
                     enrichedJobs = matches
-                        .filter(j => j.match.overall_score > 0)
-                        .sort((a, b) => b.match.overall_score - a.match.overall_score);
+                        .filter(j => (j.match.overall_score || 0) > 0)
+                        .sort((a, b) => (b.match.overall_score || 0) - (a.match.overall_score || 0));
                 }
 
                 if (!isMounted) return;
@@ -261,9 +261,9 @@ const JobFeed = ({ profile }: JobFeedProps) => {
                 }
             }
         };
-        
+
         loadJobs();
-        
+
         return () => {
             isMounted = false;
         };
@@ -274,8 +274,13 @@ const JobFeed = ({ profile }: JobFeedProps) => {
             <div className="p-6 border-b border-border/50 flex items-center justify-between bg-secondary/10">
                 <div className="flex items-center gap-3">
                     <Terminal className="w-5 h-5 text-primary" />
-                    <h2 className="font-semibold tracking-tight">Hunter Feed_</h2>
-                    <Badge variant="outline" className="text-xs font-mono font-normal bg-background/50">
+                    <div className="flex flex-col">
+                        <h2 className="font-semibold tracking-tight leading-none">Job Feed_</h2>
+                        <span className="text-[10px] text-muted-foreground font-mono mt-1 flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> Auto-Hunt: <span className="text-primary">ON</span> (Every 6h)
+                        </span>
+                    </div>
+                    <Badge variant="outline" className="text-xs font-mono font-normal bg-background/50 ml-2">
                         {jobCount > 0 ? `${jobCount} indexed` : 'LIVE'}
                     </Badge>
                 </div>
@@ -330,7 +335,7 @@ const JobFeed = ({ profile }: JobFeedProps) => {
                    `}>
                                         {job.match.overall_score}%
                                     </div>
-                                    <span className="text-[10px] uppercase font-bold text-muted-foreground mt-1 tracking-wider">Match</span>
+                                    <span className="text-[10px] uppercase font-bold text-muted-foreground mt-1 tracking-wider">ATS Match</span>
                                 </div>
                             )}
 
