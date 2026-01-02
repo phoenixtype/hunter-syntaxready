@@ -231,8 +231,40 @@ Deno.serve(async (req) => {
           }),
         });
 
-// ... (abridged for brevity)
+        if (!searchResponse.ok) {
+          console.error(`[CRAWL] Search failed for ${source}`);
+          continue;
+        }
 
+        const searchData = await searchResponse.json();
+        const results = searchData.data || [];
+        
+        console.log(`[CRAWL] Found ${results.length} results from ${source}`);
+        
+        for (const res of results) {
+          allJobs.push({
+            title: res.title || 'Untitled Job',
+            url: res.url,
+            content: res.markdown || res.content || '',
+            source: source
+          });
+        }
+      } catch (err) {
+        console.error(`[CRAWL] Error fetching from ${source}`);
+      }
+    }
+
+    // Helper to normalize a single job listing
+    const normalizeJob = async (rawJob: any) => {
+      try {
+        const llmResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${lovableApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash',
             // Normalize with AI
             messages: [
               {

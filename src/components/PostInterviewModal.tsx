@@ -14,14 +14,16 @@ import { useState } from "react";
 import { generateThankYouNote, generateNegotiationStrategy, OfferDetails } from "@/lib/post_interview_engine";
 import { toast } from "sonner";
 import { MessageSquare, DollarSign, Send, CheckCircle2 } from "lucide-react";
+import { CandidateProfile } from "@/lib/resume_engine";
 
 interface PostInterviewModalProps {
     isOpen: boolean;
     onClose: () => void;
     companyName: string;
+    profile: CandidateProfile | null;
 }
 
-const PostInterviewModal = ({ isOpen, onClose, companyName }: PostInterviewModalProps) => {
+const PostInterviewModal = ({ isOpen, onClose, companyName, profile }: PostInterviewModalProps) => {
     const [activeTab, setActiveTab] = useState("thankyou");
     const [loading, setLoading] = useState(false);
 
@@ -35,9 +37,13 @@ const PostInterviewModal = ({ isOpen, onClose, companyName }: PostInterviewModal
     const [strategy, setStrategy] = useState<any>(null);
 
     const handleGenerateNote = async () => {
+        if (!profile) {
+            toast.error("Activate agent by uploading resume first.");
+            return;
+        }
         setLoading(true);
         try {
-            const note = await generateThankYouNote(interviewer, companyName, "Candidate", topics.split(','));
+            const note = await generateThankYouNote(interviewer, companyName, "Candidate", topics.split(','), profile);
             setGeneratedNote(note);
             toast.success("Draft generated.");
         } catch (e) {
@@ -48,6 +54,10 @@ const PostInterviewModal = ({ isOpen, onClose, companyName }: PostInterviewModal
     };
 
     const handleGenerateStrategy = async () => {
+        if (!profile) {
+            toast.error("Activate agent by uploading resume first.");
+            return;
+        }
         setLoading(true);
         try {
             const offer: OfferDetails = {
@@ -57,7 +67,7 @@ const PostInterviewModal = ({ isOpen, onClose, companyName }: PostInterviewModal
                 bonus: "10%",
                 benefits: []
             };
-            const strat = await generateNegotiationStrategy(offer);
+            const strat = await generateNegotiationStrategy(offer, profile);
             setStrategy(strat);
             toast.success("Strategy generated.");
         } catch (e) {

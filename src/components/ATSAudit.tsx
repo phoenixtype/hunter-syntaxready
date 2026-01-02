@@ -13,26 +13,28 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CandidateProfile } from "@/lib/resume_engine";
 import { analyzeResumeForJob, ATSResult } from "@/lib/ats_engine";
-import { AlertCircle, CheckCircle, Search, Wand2 } from "lucide-react";
+import { UserPreferences } from "@/lib/user_preferences";
+import { AlertCircle, CheckCircle, Search, Wand2, Calculator } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 interface ATSAuditProps {
     profile: CandidateProfile;
+    preferences: UserPreferences | null;
 }
 
-const ATSAudit = ({ profile }: ATSAuditProps) => {
+const ATSAudit = ({ profile, preferences }: ATSAuditProps) => {
     const [analyzing, setAnalyzing] = useState(false);
     const [result, setResult] = useState<ATSResult | null>(null);
 
     const runAudit = async () => {
         setAnalyzing(true);
         try {
-            // Analyze against a "Generic Full Stack" description for demo purposes
-            // In a real flow, this would be per-job
-            const genericJD = "Senior Full Stack Engineer. Requirements: React, TypeScript, Node.js, AWS, System Design, CI/CD, Agile.";
+            // Generate a targeted JD based on user preferences
+            const roles = preferences?.target_roles?.join(", ") || "Professional";
+            const targetJD = `Job Title: ${roles}. Requirements: High proficiency in core domain skills, strong communication, and proven track record of impact.`;
 
-            const data = await analyzeResumeForJob(profile, genericJD);
+            const data = await analyzeResumeForJob(profile, targetJD);
             setResult(data);
             toast.success("Resume processed by ATS Engine.");
         } catch (e) {

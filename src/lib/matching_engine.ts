@@ -53,9 +53,17 @@ export const calculateMatch = async (
       });
   }
   
-  // Normalize checking against a baseline of expected skills (say 4 for this demo)
-  const expectedSkills = 4; // Arbitrary complexity of job
-  skillScore = Math.min(100, (matches / expectedSkills) * 100);
+  // Determine expected skills baseline dynamically
+  // If job has tech_stack, use that length (min 3), otherwise use heuristic based on JD length
+  const expectedSkills = job.tech_stack && job.tech_stack.length > 0 
+    ? Math.max(3, job.tech_stack.length) 
+    : Math.max(3, Math.floor(job.description.length / 300));
+
+  skillScore = Math.min(100, Math.round((matches / expectedSkills) * 100));
+
+  if (matches > 0) {
+      reasoning.push(`Matched ${Math.floor(matches)} key requirements.`);
+  }
 
   // 2. Culture/Soft Signals
   // Random "AI" noise for variation in this mock, biased towards high for specific companies

@@ -213,24 +213,14 @@ ${job.description}
 
 Provide specific optimization suggestions.`;
     } else if (requestType === 'interview_prep') {
-      systemPrompt = `You are an expert interview coach. Based on the candidate's background and the target job, provide:
-1. Likely technical questions they'll face
-2. Behavioral questions with STAR-method answer frameworks
-3. Questions the candidate should ask
-4. Red flags to watch for
-5. Salary negotiation talking points`;
-
-      userPrompt = `Prepare interview coaching for:
-
-CANDIDATE: ${profile.identity?.name}
-Background: ${profile.experience_atoms?.[0]?.role} at ${profile.experience_atoms?.[0]?.company}
-Skills: ${profile.skills?.slice(0, 5).map((s: any) => s.name).join(', ')}
-
-TARGET ROLE: ${job.title} at ${job.company}
-Description: ${job.description}
-Salary Range: ${job.salary_range}
-
-Provide comprehensive interview preparation.`;
+      systemPrompt = `You are an expert interview coach. Provide comprehensive prep.`;
+      userPrompt = `Prepare interview for ${job.title} at ${job.company}.`;
+    } else if (requestType === 'thank_you_note') {
+      systemPrompt = `You are a career coach. Write a thank-you note.`;
+      userPrompt = `Write thank-you for ${profile.identity?.name} at ${job.company}.`;
+    } else if (requestType === 'offer_evaluation') {
+      systemPrompt = `You are a negotiation expert. Evaluate the offer.`;
+      userPrompt = `Evaluate offer for ${job.title} at ${job.company}.`;
     }
 
     const llmResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {

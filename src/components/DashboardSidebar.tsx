@@ -11,9 +11,12 @@ import { useAuth } from "@/hooks/useAuth";
 import ATSAudit from "@/components/ATSAudit";
 import { Badge } from "@/components/ui/badge";
 
+import { UserPreferences } from "@/lib/user_preferences";
+
 interface DashboardSidebarProps {
     profile: CandidateProfile | null;
     visibility: VisibilityScore | null;
+    preferences: UserPreferences | null;
     onRefreshProfile: () => void;
     onUploadProfile: (p: CandidateProfile) => void;
     onSignOut: () => void;
@@ -22,6 +25,7 @@ interface DashboardSidebarProps {
 export const DashboardSidebar = ({
     profile,
     visibility,
+    preferences,
     onRefreshProfile,
     onUploadProfile,
     onSignOut
@@ -82,7 +86,7 @@ export const DashboardSidebar = ({
                                 >
                                     <RefreshCw className="w-3 h-3 mr-2" /> Update
                                 </Button>
-                                <ATSAudit profile={profile} />
+                                <ATSAudit profile={profile} preferences={preferences} />
                             </div>
                         </div>
                     ) : (

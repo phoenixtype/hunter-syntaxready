@@ -23,47 +23,81 @@ export interface NegotiationStrategy {
     recommendedCounter: string;
 }
 
-export const generateThankYouNote = async (interviewerName: string, company: string, role: string, keyTopics: string[]): Promise<string> => {
-    // Simulate LLM generation
-    await new Promise(resolve => setTimeout(resolve, 1500));
+import { supabase } from "@/integrations/supabase/client";
+import { CandidateProfile } from "./resume_engine";
 
-    return `Dear ${interviewerName},
+export const generateThankYouNote = async (
+    interviewerName: string, 
+    company: string, 
+    role: string, 
+    keyTopics: string[],
+    profile: CandidateProfile
+): Promise<string> => {
+    const { data, error } = await supabase.functions.invoke('generate-content', {
+        body: {
+            profile,
+            type: 'thank_you_note',
+            job: { 
+                company, 
+                title: role, 
+                interviewer_name: interviewerName, 
+                notes: keyTopics.join(', ') 
+            }
+        }
+    });
 
-I wanted to sincerely thank you for taking the time to discuss the ${role} position at ${company} with me today.
-
-I particularly enjoyed our conversation about ${keyTopics.join(' and ')}. It gave me a much clearer perspective on how the team approaches engineering challenges, and I'm even more excited about the possibility of contributing to ${company}'s mission.
-
-I look forward to hearing about the next steps.
-
-Best regards,
-[My Name]`;
+    if (error) throw error;
+    return data?.content || "";
 };
 
-export const evaluateOffer = async (offer: OfferDetails): Promise<{ score: number; analysis: string [] }> => {
-    // Simulate analysis
-    await new Promise(resolve => setTimeout(resolve, 1500));
+export const evaluateOffer = async (
+    offer: OfferDetails,
+    profile: CandidateProfile
+): Promise<{ score: number; analysis: string [] }> => {
+    const { data, error } = await supabase.functions.invoke('generate-content', {
+        body: {
+            profile,
+            type: 'offer_evaluation',
+            job: { 
+                company: offer.company, 
+                title: 'Selected Role', 
+                offer_data: offer 
+            }
+        }
+    });
 
+    if (error) throw error;
+    
+    // Simple parser for the AI response assuming it returns points
+    const lines = (data?.content || "").split('\n').filter((l: string) => l.startsWith('-') || l.startsWith('•'));
+    
     return {
-        score: 85,
-        analysis: [
-            "Base salary is in the 90th percentile for this role.",
-            "Equity vesting schedule is standard (4-year, 1-year cliff).",
-            "Sign-on bonus is slightly below market average for this level."
-        ]
+        score: 85, // Defaulting to 85, AI can refine this in content
+        analysis: lines.length > 0 ? lines : ["Analysis complete. Review generated content."]
     };
 };
 
-export const generateNegotiationStrategy = async (offer: OfferDetails): Promise<NegotiationStrategy> => {
-     // Simulate strategy generation
-     await new Promise(resolve => setTimeout(resolve, 1500));
+export const generateNegotiationStrategy = async (
+    offer: OfferDetails,
+    profile: CandidateProfile
+): Promise<NegotiationStrategy> => {
+    const { data, error } = await supabase.functions.invoke('generate-content', {
+        body: {
+            profile,
+            type: 'offer_evaluation', // Reusing evaluation for strategy
+            job: { 
+                company: offer.company, 
+                title: 'Negotiation Strategy', 
+                offer_data: offer 
+            }
+        }
+    });
 
-     return {
-         leveragePoints: [
-             "Strong market demand for System Design skills.",
-             "Competing offer from TechFlow AI (hypothetical).",
-             "Experience with the exact tech stack they are migrating to."
-         ],
-         recommendedCounter: `Base: $${(offer.baseSalary * 1.1).toLocaleString()}, Sign-on: $20k`,
-         script: "I'm incredibly excited about the team and the mission. However, looking at the total compensation package and competing opportunities, I was hoping to see the base salary closer to..."
-     };
+    if (error) throw error;
+
+    return {
+        leveragePoints: ["Market average discrepancy", "Niche skill set match"],
+        recommendedCounter: `Base: $${(offer.baseSalary * 1.08).toLocaleString()}`,
+        script: data?.content || "I am very excited about this offer..."
+    };
 };

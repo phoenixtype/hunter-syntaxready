@@ -8,11 +8,13 @@ export interface ATSResult {
   recommendations: string[];
 }
 
-// Mock database of keywords often found in tech job descriptions
-const TECH_KEYWORDS = [
-  "React", "TypeScript", "Node.js", "AWS", "Docker", "Kubernetes", "CI/CD",
-  "GraphQL", "PostgreSQL", "System Design", "Microservices", "Agile"
-];
+// Helper to extract keywords from a job description
+const extractKeywords = (text: string): string[] => {
+  const words = text.match(/[A-Z][a-z0-9#+.]+/g) || [];
+  // Filter for unique, reasonably lengthed words that look like skills/tools
+  const uniqueWords = Array.from(new Set(words));
+  return uniqueWords.filter(w => w.length >= 2 && w.length <= 15).slice(0, 15);
+};
 
 export const analyzeResumeForJob = async (
   profile: CandidateProfile, 
@@ -25,16 +27,17 @@ export const analyzeResumeForJob = async (
   const formattingIssues: string[] = [];
   const recommendations: string[] = [];
 
-  // 1. Keyword Analysis (Mock Logic)
-  // In a real system, we'd use NLP to extract keywords from JD and compare with profile atoms
-  // Here we just check against our static list and simulated "missing" ones based on the JD string
+  // 1. Keyword Analysis (Dynamic Extraction)
+  const jobKeywords = extractKeywords(jobDescription);
   
-  TECH_KEYWORDS.forEach(keyword => {
+  jobKeywords.forEach(keyword => {
     // If keyword is in JD but not in Profile Skills
-    const inJD = jobDescription.toLowerCase().includes(keyword.toLowerCase());
-    const inProfile = profile.skills.some(s => s.name.toLowerCase() === keyword.toLowerCase());
+    const inProfile = profile.skills.some(s => 
+      s.name.toLowerCase().includes(keyword.toLowerCase()) || 
+      keyword.toLowerCase().includes(s.name.toLowerCase())
+    );
     
-    if (inJD && !inProfile) {
+    if (!inProfile) {
       missingKeywords.push(keyword);
     }
   });

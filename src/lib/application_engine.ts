@@ -130,3 +130,23 @@ export const updateApplicationStatus = async (
         console.error('Error updating application status:', err);
     }
 };
+
+// Get total application count
+export const getApplicationCount = async (userId: string): Promise<number> => {
+    try {
+        const { count, error } = await supabase
+            .from('application_history')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId);
+
+        if (error) {
+            console.error('Error fetching application count:', error);
+            return 0;
+        }
+
+        return count || 0;
+    } catch (err) {
+        console.error('Error fetching application count:', err);
+        return 0;
+    }
+};

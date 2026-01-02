@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { getPreferences, UserPreferences } from "@/lib/user_preferences";
 import { calculateVisibilityScore, VisibilityScore } from "@/lib/visibility_engine";
+import { getApplicationCount } from "@/lib/application_engine";
 import JobFeed from "@/components/JobFeed";
 import DashboardSkeleton from "@/components/DashboardSkeleton";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -25,6 +26,8 @@ import SkipLink from "@/components/SkipLink";
 import { useResume } from "@/hooks/useResume";
 import { getSubscription, SubscriptionTier, checkAccess } from "@/lib/subscription";
 import { AgentActivityLog } from "@/components/AgentActivityLog";
+import { fetchLogsFromDatabase, setLoggerUserId } from "@/lib/activity_logger";
+import { initializeLearningEngine } from "@/lib/learning_engine";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import PostInterviewModal from "@/components/PostInterviewModal";
 import PricingModal from "@/components/PricingModal";
@@ -39,6 +42,7 @@ const Dashboard = () => {
   const [showPostInterview, setShowPostInterview] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
   const [subscription, setSubscription] = useState<any>(null);
+  const [appCount, setAppCount] = useState(0);
 
   const handleSignOut = async () => {
     await signOut();
@@ -64,14 +68,20 @@ const Dashboard = () => {
           return;
         }
 
-        const [score, sub] = await Promise.all([
-          calculateVisibilityScore(),
-          getSubscription()
+        const [score, sub, count] = await Promise.all([
+          calculateVisibilityScore(profile),
+          getSubscription(),
+          getApplicationCount(user.id),
+          fetchLogsFromDatabase(user.id),
+          initializeLearningEngine(user.id)
         ]);
+
+        setLoggerUserId(user.id);
 
         if (!isMounted) return;
         setVisibility(score);
         setSubscription(sub);
+        setAppCount(count);
 
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
@@ -110,7 +120,7 @@ const Dashboard = () => {
           <div className="flex items-center gap-3">
             {/* PRO BADGE */}
             {subscription?.tier === SubscriptionTier.FREE ? (
-              <Button size="sm" variant="gradient" onClick={() => setShowPricing(true)} className="hidden sm:flex text-xs h-8">
+              <Button size="sm" onClick={() => setShowPricing(true)} className="hidden sm:flex text-xs h-8 bg-gradient-to-r from-primary to-purple-600 hover:opacity-90">
                 Get Pro
               </Button>
             ) : (
@@ -135,6 +145,7 @@ const Dashboard = () => {
         <DashboardSidebar
           profile={profile}
           visibility={visibility}
+          preferences={preferences}
           onRefreshProfile={() => setProfile(null)}
           onUploadProfile={setProfile}
           onSignOut={handleSignOut}
@@ -148,15 +159,15 @@ const Dashboard = () => {
             <StatCard
               icon={<Briefcase className="w-4 h-4 text-blue-500" />}
               label="Active Apps"
-              value="12"
-              trend="+3"
+              value={appCount.toString()}
+              trend={appCount > 0 ? "LIVE" : "START"}
               color="blue"
             />
             <StatCard
               icon={<CheckCircle2 className="w-4 h-4 text-emerald-500" />}
               label="Interviews"
-              value="3"
-              trend="2 soon"
+              value="0"
+              trend="UPCOMING"
               color="emerald"
             />
             <StatCard
@@ -220,6 +231,7 @@ const Dashboard = () => {
         isOpen={showPostInterview}
         onClose={() => setShowPostInterview(false)}
         companyName="Target Company"
+        profile={profile}
       />
       <PricingModal
         isOpen={showPricing}
