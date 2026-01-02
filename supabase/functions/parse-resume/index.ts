@@ -81,7 +81,10 @@ serve(async (req) => {
   try {
     // Verify authentication
     const authHeader = req.headers.get('Authorization');
+    console.log('[DEBUG] Auth Header Present:', !!authHeader);
+    
     if (!authHeader) {
+      console.error('[AUTH] Missing Authorization header');
       return new Response(
         JSON.stringify({ success: false, error: GENERIC_AUTH_ERROR }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -107,10 +110,18 @@ serve(async (req) => {
     });
     
     const { data: { user }, error: authError } = await authClient.auth.getUser();
+    
+    if (authError) {
+        console.error('[AUTH] getUser Error:', authError);
+    }
+    if (!user) {
+        console.error('[AUTH] No user returned from getUser');
+    }
+
     if (authError || !user) {
       console.error('[AUTH] Token verification failed');
       return new Response(
-        JSON.stringify({ success: false, error: GENERIC_AUTH_ERROR }),
+        JSON.stringify({ success: false, error: 'Invalid User Token' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

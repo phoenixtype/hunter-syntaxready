@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { savePreferences, UserPreferences } from "@/lib/user_preferences";
 import { toast } from "sonner";
 import { Loader2, Check } from "lucide-react";
+import { ResumeUpload } from "@/components/resume/ResumeUpload";
 
 const Onboarding = () => {
     const { user, loading: authLoading } = useAuth();
@@ -75,29 +76,12 @@ const Onboarding = () => {
                     {/* Resume Upload */}
                     <div className="space-y-4">
                         <Label className="text-lg font-medium">Upload Resume (PDF)</Label>
-                        <div className="border-2 border-dashed border-muted hover:border-primary/50 transition-colors rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer bg-secondary/10 group">
-                            <input
-                                type="file"
-                                accept=".pdf,.doc,.docx"
-                                className="hidden"
-                                id="resume-upload"
-                                onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                        toast.success(`Resume uploaded: ${file.name}`);
-                                        // Simulator parsing
-                                        setTimeout(() => toast.info("Resume parsed successfully. Skills extracted."), 1000);
-                                    }
-                                }}
-                            />
-                            <label htmlFor="resume-upload" className="cursor-pointer w-full h-full flex flex-col items-center">
-                                <span className="p-4 rounded-full bg-background mb-4 group-hover:scale-110 transition-transform">
-                                    <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                                </span>
-                                <span className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">Click to upload or drag and drop</span>
-                                <span className="text-xs text-muted-foreground/50 mt-1">PDF, DOCX formats supported</span>
-                            </label>
-                        </div>
+                        <ResumeUpload
+                            onUploadComplete={async () => {
+                                // Resume parsed and stored. We could fetch it to pre-fill basic info if needed.
+                                toast.success("Resume linked to your profile.");
+                            }}
+                        />
                     </div>
 
                     {/* Salary */}
