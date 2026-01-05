@@ -1,13 +1,12 @@
 -- ==========================================
--- HUNTER PLATFORM: COMPLETE INFRASTRUCTURE
+-- HUNTER PLATFORM: CORE INFRASTRUCTURE
+-- (Without pg_cron - run this first)
 -- ==========================================
 
--- 1. EXTENSIONS
-CREATE EXTENSION IF NOT EXISTS pg_cron;
+-- 1. EXTENSIONS (Skip pg_cron for now)
 CREATE EXTENSION IF NOT EXISTS pg_net;
 
 -- 2. RATE LIMITING SYSTEM
--- This table tracks request counts for Edge Functions
 CREATE TABLE IF NOT EXISTS public.rate_limits (
     user_id UUID NOT NULL,
     function_name TEXT NOT NULL,
@@ -51,7 +50,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 3. CORE TABLES
 
--- Profiles (Mirrors auth.users)
+-- Profiles
 CREATE TABLE IF NOT EXISTS public.profiles (
     id UUID REFERENCES auth.users ON DELETE CASCADE NOT NULL PRIMARY KEY,
     full_name TEXT,
@@ -90,7 +89,7 @@ CREATE TABLE IF NOT EXISTS public.job_listings (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Candidate Profiles (Parsed Resume Data)
+-- Candidate Profiles
 CREATE TABLE IF NOT EXISTS public.candidate_profiles (
     user_id UUID REFERENCES auth.users ON DELETE CASCADE NOT NULL PRIMARY KEY,
     identity JSONB DEFAULT '{}',
@@ -176,7 +175,7 @@ CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE
 DROP POLICY IF EXISTS "Users can manage their preferences" ON public.user_preferences;
 CREATE POLICY "Users can manage their preferences" ON public.user_preferences FOR ALL USING (auth.uid() = user_id);
 
--- Job Listings Policies (Public read for authenticated)
+-- Job Listings Policies
 DROP POLICY IF EXISTS "Authenticated users can view jobs" ON public.job_listings;
 CREATE POLICY "Authenticated users can view jobs" ON public.job_listings FOR SELECT TO authenticated USING (true);
 
@@ -193,7 +192,6 @@ DROP POLICY IF EXISTS "Users can view their own logs" ON public.agent_activity_l
 CREATE POLICY "Users can view their own logs" ON public.agent_activity_logs FOR SELECT USING (auth.uid() = user_id);
 
 -- 5. AUTH TRIGGERS
--- Auto-sync auth.users to public.profiles and public.user_preferences
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
@@ -233,38 +231,17 @@ INSERT INTO public.user_preferences (user_id)
 SELECT id FROM auth.users
 ON CONFLICT (user_id) DO NOTHING;
 
--- 8. AUTO-HUNT SCHEDULING (CRON)
--- This schedules the job to run every 6 hours
-SELECT cron.schedule(
-  'auto-hunt-crawl',
-  '0 */6 * * *',
-  $$
-  SELECT
-    net.http_post(
-      url:='https://ffjsgjsiemtxqbhimvhb.supabase.co/functions/v1/crawl-jobs',
-      headers:='{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmanNnanNpZW10eHFiaGltdmhiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjQyNzg3MCwiZXhwIjoyMDgyMDAzODcwfQ.j_mb16oHDoiU1GK7JVs5HXStGGxAdiaOgEedXM-_-2s"}'::jsonb,
-      body:='{"sources": ["LinkedIn jobs", "Indeed jobs"], "keywords": ["remote", "hiring now"]}'::jsonb
-    ) as request_id;
-  $$
-);
-
--- 9. PERFORMANCE INDEXES
--- Add indexes for frequently queried columns to improve performance
-
--- Index for job listings search
+-- 8. PERFORMANCE INDEXES
 CREATE INDEX IF NOT EXISTS idx_job_listings_company ON public.job_listings(company);
 CREATE INDEX IF NOT EXISTS idx_job_listings_created_at ON public.job_listings(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_job_listings_tech_stack ON public.job_listings USING GIN(tech_stack);
 
--- Index for application history queries
 CREATE INDEX IF NOT EXISTS idx_application_history_user_id ON public.application_history(user_id);
 CREATE INDEX IF NOT EXISTS idx_application_history_status ON public.application_history(status);
 CREATE INDEX IF NOT EXISTS idx_application_history_applied_at ON public.application_history(applied_at DESC);
 
--- Index for activity logs
 CREATE INDEX IF NOT EXISTS idx_agent_activity_logs_user_id ON public.agent_activity_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_agent_activity_logs_created_at ON public.agent_activity_logs(created_at DESC);
 
--- Index for feedback actions
 CREATE INDEX IF NOT EXISTS idx_feedback_actions_user_id ON public.feedback_actions(user_id);
 CREATE INDEX IF NOT EXISTS idx_feedback_actions_created_at ON public.feedback_actions(created_at DESC);

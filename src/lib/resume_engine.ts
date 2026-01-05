@@ -231,64 +231,116 @@ async function uploadResumeFile(file: File): Promise<string> {
 
 // Extract text from file using PDF.js for robust parsing
 async function extractTextFromFile(file: File): Promise<string> {
-  // Dynamic import to avoid SSR issues if this were Next.js, but good practice here too
-  const pdfJS = await import('pdfjs-dist');
+  console.log('[PDF] Starting extraction for:', file.name, 'Type:', file.type, 'Size:', file.size);
   
-  // Set worker to the CDN to avoid build configuration headaches with Vite
-  // We use the version matching the installed package roughly, or generic latest for stability in this demo
-  // Set worker to the CDN to avoid build configuration headaches with Vite
-  // Hardcoding to a known stable version matching npm to ensure compatibility
-  // pdfjs-dist v5.4.530
-  pdfJS.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs`;
-
   if (file.type === 'application/pdf') {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
+    try {
+      // Dynamic import PDF.js
+      const pdfJS = await import('pdfjs-dist');
       
-      reader.onload = async (e) => {
-        try {
-          const typedarray = new Uint8Array(e.target?.result as ArrayBuffer);
-          
-          const loadingTask = pdfJS.getDocument({
-            data: typedarray,
-            cMapUrl: `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfJS.version}/cmaps/`,
-            cMapPacked: true,
-          });
-
-          const pdf = await loadingTask.promise;
-          let fullText = '';
-          
-          // Iterate over all pages
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
+      console.log('[PDF] PDF.js version:', pdfJS.version);
+      
+      // Set worker - use a stable CDN version that matches our package
+      pdfJS.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+      
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        
+        reader.onload = async (e) => {
+          try {
+            const typedarray = new Uint8Array(e.target?.result as ArrayBuffer);
+            console.log('[PDF] File loaded, size:', typedarray.length, 'bytes');
             
-            // Join items with space, preserving roughly the flow
-            const pageText = textContent.items
-              .map((item: any) => item.str)
-              .join(' ');
-              
-            fullText += pageText + '\n\n';
-          }
-          
-          console.log(`Extracted ${fullText.length} characters via PDF.js`);
-          resolve(fullText.trim());
+            const loadingTask = pdfJS.getDocument({
+              data: typedarray,
+              verbosity: 0, // Reduce console spam
+            });
 
-        } catch (error) {
-          console.error('PDF.js parsing failed:', error);
-          reject(new Error('Failed to parse PDF content. Is the file encrypted?'));
-        }
-      };
-      
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsArrayBuffer(file);
-    });
+            const pdf = await loadingTask.promise;
+            console.log('[PDF] PDF loaded, pages:', pdf.numPages);
+            
+            let fullText = '';
+            
+            // Iterate over all pages
+            for (let i = 1; i <= pdf.numPages; i++) {
+              const page = await pdf.getPage(i);
+              const textContent = await page.getTextContent();
+              
+              // Join items with space, preserving roughly the flow
+              const pageText = textContent.items
+                .map((item: any) => item.str)
+                .join(' ');
+                
+              fullText += pageText + '\n\n';
+              console.log(`[PDF] Extracted page ${i}/${pdf.numPages}, chars so far: ${fullText.length}`);
+            }
+            
+            console.log(`[PDF] ✅ Extracted ${fullText.length} characters total`);
+            resolve(fullText.trim());
+
+          } catch (error) {
+            console.error('[PDF] ❌ Parsing failed:', error);
+            
+            // Provide more specific error messages
+            if (error instanceof Error) {
+              if (error.message.includes('password')) {
+                reject(new ResumeParseError(
+                  'EXTRACTION_FAILED',
+                  'This PDF is password-protected. Please use an unprotected version.',
+                  error.message
+                ));
+              } else if (error.message.includes('Invalid PDF')) {
+                reject(new ResumeParseError(
+                  'EXTRACTION_FAILED',
+                  'This file appears to be corrupted or not a valid PDF.',
+                  error.message
+                ));
+              } else {
+                reject(new ResumeParseError(
+                  'EXTRACTION_FAILED',
+                  'Could not read the PDF. It may be encrypted, corrupted, or contain only images.',
+                  error.message
+                ));
+              }
+            } else {
+              reject(new ResumeParseError(
+                'EXTRACTION_FAILED',
+                'Failed to parse PDF content.',
+                String(error)
+              ));
+            }
+          }
+        };
+        
+        reader.onerror = () => {
+          console.error('[PDF] ❌ FileReader error');
+          reject(new ResumeParseError(
+            'EXTRACTION_FAILED',
+            'Failed to read the file from disk.',
+            'FileReader error'
+          ));
+        };
+        
+        reader.readAsArrayBuffer(file);
+      });
+    } catch (importError) {
+      console.error('[PDF] ❌ Failed to import PDF.js:', importError);
+      throw new ResumeParseError(
+        'EXTRACTION_FAILED',
+        'PDF processing library failed to load. Please try again.',
+        importError instanceof Error ? importError.message : String(importError)
+      );
+    }
   } else {
     // Fallback for .txt or other formats (though we mainly restrict to PDF)
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => resolve(e.target?.result as string);
-      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.onerror = () => reject(new ResumeParseError(
+        'EXTRACTION_FAILED',
+        'Failed to read file',
+        'FileReader error'
+      ));
       reader.readAsText(file);
     });
   }
