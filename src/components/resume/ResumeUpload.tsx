@@ -1,43 +1,75 @@
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, FileText, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Upload, FileText, Loader2, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
-import { parseResume, CandidateProfile } from '@/lib/resume_engine';
+import { parseResume, CandidateProfile, ResumeParseError } from '@/lib/resume_engine';
 import { useAuth } from '@/hooks/useAuth';
+import { useSession } from '@/hooks/useSession';
 
 interface ResumeUploadProps {
     onUploadComplete: (profile: CandidateProfile) => void;
 }
 
+// Helper function to get user-friendly error descriptions
+const getErrorDescription = (errorCode: string): string => {
+    const descriptions: Record<string, string> = {
+        'FILE_TOO_LARGE': 'The file exceeds the 10MB size limit. Try compressing your PDF or removing unnecessary images.',
+        'INVALID_FILE_TYPE': 'Please upload a PDF or DOCX file. Other formats are not supported.',
+        'SESSION_INVALID': 'Your login session has expired. You\'ll need to sign in again to continue.',
+        'AUTH_FAILED': 'We couldn\'t verify your identity. Please sign out and sign back in.',
+        'EXTRACTION_FAILED': 'We couldn\'t read the PDF file. It may be password-protected, corrupted, or contain only images.',
+        'INSUFFICIENT_TEXT': 'The PDF doesn\'t contain enough readable text. Make sure it\'s not a scanned image.',
+        'PARSE_FAILED': 'Our AI couldn\'t understand the resume format. Try using a standard resume template with clear sections.',
+        'RATE_LIMITED': 'You\'ve made too many requests. Please wait 60 seconds before trying again.',
+        'SERVICE_ERROR': 'Our servers are experiencing issues. Please try again in a few moments.',
+        'UNKNOWN': 'An unexpected error occurred. Please try again or contact support if the issue persists.'
+    };
+
+    return descriptions[errorCode] || descriptions['UNKNOWN'];
+};
+
 export const ResumeUpload = ({ onUploadComplete }: ResumeUploadProps) => {
     const { user } = useAuth();
+    const { ensureValidSession } = useSession();
     const [isUploading, setIsUploading] = useState(false);
-    const [uploadStep, setUploadStep] = useState<'idle' | 'extracting' | 'uploading' | 'parsing' | 'complete'>('idle');
+    const [uploadStep, setUploadStep] = useState<'idle' | 'validating' | 'extracting' | 'uploading' | 'parsing' | 'complete' | 'error'>('idle');
     const [progress, setProgress] = useState(0);
+    const [lastFile, setLastFile] = useState<File | null>(null);
+    const [lastError, setLastError] = useState<string | null>(null);
 
-    const onDrop = useCallback(async (acceptedFiles: File[]) => {
-        const file = acceptedFiles[0];
-        if (!file) return;
-
-        if (file.size > 10 * 1024 * 1024) {
-            toast.error('File too large', { description: 'Please upload a file smaller than 10MB' });
-            return;
-        }
-
+    const processFile = useCallback(async (file: File) => {
+        setLastFile(file);
+        setLastError(null);
         setIsUploading(true);
-        setUploadStep('extracting');
-        setProgress(10);
+        setUploadStep('validating');
+        setProgress(5);
 
         try {
-            // simulate progress for better UX
+            // 1. Validate session first
+            toast.info('Validating session...', { duration: 1000 });
+            const sessionValid = await ensureValidSession();
+
+            if (!sessionValid) {
+                throw new ResumeParseError(
+                    'SESSION_INVALID',
+                    'Your session has expired. Please sign out and sign in again.',
+                    'Session validation failed'
+                );
+            }
+
+            setProgress(10);
+            setUploadStep('extracting');
+
+            // 2. Simulate progress for better UX
             const progressInterval = setInterval(() => {
                 setProgress(prev => Math.min(prev + 5, 90));
             }, 500);
 
-            toast.info('Starting resume analysis', { description: 'This may take up to 30 seconds...' });
+            toast.info('Analyzing resume...', { description: 'This may take up to 30 seconds' });
 
+            // 3. Parse resume
             const profile = await parseResume(file, user?.id);
 
             clearInterval(progressInterval);
@@ -51,40 +83,71 @@ export const ResumeUpload = ({ onUploadComplete }: ResumeUploadProps) => {
                 setIsUploading(false);
                 setUploadStep('idle');
                 setProgress(0);
+                setLastFile(null);
             }, 1000);
 
         } catch (error) {
-            console.error('Upload details:', error);
-            setUploadStep('idle');
+            console.error('[UPLOAD] Error:', error);
+            setUploadStep('error');
             setIsUploading(false);
             setProgress(0);
 
-            let errorMessage = 'Failed to process resume';
-            let errorDesc = 'Unknown error occurred';
+            let errorTitle = 'Resume Analysis Failed';
+            let errorDesc = 'An unexpected error occurred';
+            let actionLabel = 'Retry';
 
-            if (error instanceof Error) {
-                errorMessage = error.message;
+            if (error instanceof ResumeParseError) {
+                errorTitle = error.userMessage;
+                errorDesc = getErrorDescription(error.code);
+                setLastError(error.code);
 
-                // Analyze common Supabase errors
-                if (errorMessage.includes('Bucket not found')) {
-                    errorDesc = 'Storage bucket "resumes" does not exist. Please run the setup SQL.';
-                } else if (errorMessage.includes('Invalid JWT') || errorMessage.includes('401')) {
-                    errorDesc = 'Session expired. Please sign out and sign in again.';
-                } else if (errorMessage.includes('non 2xx status code')) {
-                    errorDesc = 'Server error. Check Edge Function logs.';
+                // Different action based on error type
+                if (error.code === 'SESSION_INVALID' || error.code === 'AUTH_FAILED') {
+                    actionLabel = 'Sign Out';
+                } else if (error.code === 'RATE_LIMITED') {
+                    actionLabel = 'OK';
                 }
+            } else if (error instanceof Error) {
+                errorDesc = error.message;
+                setLastError('UNKNOWN');
             }
 
-            toast.error('Resume Analysis Failed', {
+            toast.error(errorTitle, {
                 description: errorDesc,
-                duration: 5000,
-                action: {
-                    label: 'View Logs',
-                    onClick: () => console.error(error)
-                }
+                duration: 7000,
+                action: lastError !== 'RATE_LIMITED' ? {
+                    label: actionLabel,
+                    onClick: () => {
+                        if (lastError === 'SESSION_INVALID' || lastError === 'AUTH_FAILED') {
+                            window.location.href = '/login';
+                        } else {
+                            // Retry
+                            processFile(file);
+                        }
+                    }
+                } : undefined
             });
         }
-    }, [user, onUploadComplete]);
+    }, [user, onUploadComplete, ensureValidSession, lastError]);
+
+    const onDrop = useCallback(async (acceptedFiles: File[]) => {
+        const file = acceptedFiles[0];
+        if (!file) return;
+
+        // Client-side validation
+        if (file.size > 10 * 1024 * 1024) {
+            toast.error('File too large', { description: 'Please upload a file smaller than 10MB' });
+            return;
+        }
+
+        await processFile(file);
+    }, [processFile]);
+
+    const handleRetry = useCallback(() => {
+        if (lastFile) {
+            processFile(lastFile);
+        }
+    }, [lastFile, processFile]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
@@ -98,12 +161,16 @@ export const ResumeUpload = ({ onUploadComplete }: ResumeUploadProps) => {
 
     return (
         <div className="w-full max-w-2xl mx-auto">
-            {isUploading ? (
+            {isUploading || uploadStep === 'error' ? (
                 <div className="p-8 border-2 border-dashed rounded-xl border-primary/20 bg-muted/30 text-center space-y-4 animate-in fade-in zoom-in-95 duration-300">
                     <div className="flex justify-center">
                         {uploadStep === 'complete' ? (
                             <div className="h-12 w-12 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
                                 <CheckCircle2 className="h-6 w-6" />
+                            </div>
+                        ) : uploadStep === 'error' ? (
+                            <div className="h-12 w-12 rounded-full bg-red-500/20 flex items-center justify-center text-red-500">
+                                <AlertCircle className="h-6 w-6" />
                             </div>
                         ) : (
                             <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center text-primary animate-pulse">
@@ -114,18 +181,35 @@ export const ResumeUpload = ({ onUploadComplete }: ResumeUploadProps) => {
 
                     <div className="space-y-2">
                         <h3 className="font-semibold text-lg">
+                            {uploadStep === 'validating' && 'Validating session...'}
                             {uploadStep === 'extracting' && 'Reading document...'}
                             {uploadStep === 'uploading' && 'Securing file...'}
                             {uploadStep === 'parsing' && 'Analyzing with AI...'}
                             {uploadStep === 'complete' && 'Analysis Complete!'}
+                            {uploadStep === 'error' && 'Upload Failed'}
                             {uploadStep === 'idle' && 'Processing...'}
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                            Extracting skills, experience, and qualifications
+                            {uploadStep === 'error'
+                                ? 'See error details above. Click retry to try again.'
+                                : 'Extracting skills, experience, and qualifications'
+                            }
                         </p>
                     </div>
 
-                    <Progress value={progress} className="h-2 w-full max-w-sm mx-auto" />
+                    {uploadStep === 'error' ? (
+                        <Button
+                            onClick={handleRetry}
+                            variant="default"
+                            className="mt-4"
+                            disabled={!lastFile}
+                        >
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                            Retry Upload
+                        </Button>
+                    ) : (
+                        <Progress value={progress} className="h-2 w-full max-w-sm mx-auto" />
+                    )}
                 </div>
             ) : (
                 <div

@@ -248,3 +248,24 @@ SELECT cron.schedule(
     ) as request_id;
   $$
 );
+
+-- 9. PERFORMANCE INDEXES
+-- Add indexes for frequently queried columns to improve performance
+
+-- Index for job listings search
+CREATE INDEX IF NOT EXISTS idx_job_listings_company ON public.job_listings(company);
+CREATE INDEX IF NOT EXISTS idx_job_listings_created_at ON public.job_listings(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_job_listings_tech_stack ON public.job_listings USING GIN(tech_stack);
+
+-- Index for application history queries
+CREATE INDEX IF NOT EXISTS idx_application_history_user_id ON public.application_history(user_id);
+CREATE INDEX IF NOT EXISTS idx_application_history_status ON public.application_history(status);
+CREATE INDEX IF NOT EXISTS idx_application_history_applied_at ON public.application_history(applied_at DESC);
+
+-- Index for activity logs
+CREATE INDEX IF NOT EXISTS idx_agent_activity_logs_user_id ON public.agent_activity_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_agent_activity_logs_created_at ON public.agent_activity_logs(created_at DESC);
+
+-- Index for feedback actions
+CREATE INDEX IF NOT EXISTS idx_feedback_actions_user_id ON public.feedback_actions(user_id);
+CREATE INDEX IF NOT EXISTS idx_feedback_actions_created_at ON public.feedback_actions(created_at DESC);

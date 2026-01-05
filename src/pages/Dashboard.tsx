@@ -242,23 +242,55 @@ const Dashboard = () => {
 };
 
 // MINI COMPONENT FOR STATS
-const StatCard = ({ icon, label, value, trend, color }: any) => (
-  <Card className={`glass-card border-${color}-500/10 bg-${color}-500/5 hover:bg-${color}-500/10 transition-all`}>
-    <CardContent className="p-4">
-      <div className="flex justify-between items-start mb-2">
-        <div className={`p-2 rounded-lg bg-${color}-500/10`}>
-          {icon}
+const StatCard = ({ icon, label, value, trend, color }: any) => {
+  // Map colors to actual Tailwind classes
+  const colorClasses = {
+    blue: {
+      border: 'border-blue-500/10',
+      bg: 'bg-blue-500/5 hover:bg-blue-500/10',
+      iconBg: 'bg-blue-500/10',
+      badge: 'bg-blue-500/10 text-blue-500'
+    },
+    emerald: {
+      border: 'border-emerald-500/10',
+      bg: 'bg-emerald-500/5 hover:bg-emerald-500/10',
+      iconBg: 'bg-emerald-500/10',
+      badge: 'bg-emerald-500/10 text-emerald-500'
+    },
+    purple: {
+      border: 'border-purple-500/10',
+      bg: 'bg-purple-500/5 hover:bg-purple-500/10',
+      iconBg: 'bg-purple-500/10',
+      badge: 'bg-purple-500/10 text-purple-500'
+    },
+    amber: {
+      border: 'border-amber-500/10',
+      bg: 'bg-amber-500/5 hover:bg-amber-500/10',
+      iconBg: 'bg-amber-500/10',
+      badge: 'bg-amber-500/10 text-amber-500'
+    }
+  };
+
+  const classes = colorClasses[color as keyof typeof colorClasses] || colorClasses.blue;
+
+  return (
+    <Card className={`glass-card ${classes.border} ${classes.bg} transition-all`}>
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start mb-2">
+          <div className={`p-2 rounded-lg ${classes.iconBg}`}>
+            {icon}
+          </div>
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${classes.badge}`}>
+            {trend}
+          </span>
         </div>
-        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full bg-${color}-500/10 text-${color}-500`}>
-          {trend}
-        </span>
-      </div>
-      <div className="mt-2">
-        <div className="text-2xl font-bold tracking-tight">{value}</div>
-        <div className="text-xs text-muted-foreground font-medium">{label}</div>
-      </div>
-    </CardContent>
-  </Card>
-);
+        <div className="mt-2">
+          <div className="text-2xl font-bold tracking-tight">{value}</div>
+          <div className="text-xs text-muted-foreground font-medium">{label}</div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 export default Dashboard;

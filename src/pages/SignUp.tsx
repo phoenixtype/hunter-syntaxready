@@ -38,30 +38,44 @@ const SignUp = () => {
 
     setIsLoading(true);
     try {
+      console.log('[SIGNUP] Attempting signup for:', validatedEmail);
       const { data, error } = await signUp(validatedEmail, validatedPassword, validatedName);
 
+      console.log('[SIGNUP] Response:', { hasData: !!data, hasError: !!error, errorMessage: error?.message });
+
       if (error) {
+        console.error('[SIGNUP] Error details:', error);
+
         // SECURITY: Use generic error messages to prevent email enumeration
         // Don't reveal whether an email is already registered
         if (error.message.includes("Password")) {
           toast.error("Password must be at least 6 characters");
+        } else if (error.message.includes("User already registered")) {
+          toast.error("An account with this email already exists. Try signing in instead.");
+        } else if (error.message.includes("Email")) {
+          toast.error("Please enter a valid email address");
         } else {
-          toast.error("Unable to create account. Please check your details and try again.");
+          // Show the actual error in development for debugging
+          console.error('[SIGNUP] Full error:', error);
+          toast.error(`Unable to create account: ${error.message}`);
         }
         return;
       }
 
       if (data?.session) {
+        console.log('[SIGNUP] Session created, redirecting to onboarding');
         toast.success("Account created! Logging you in...");
         navigate("/onboarding", { replace: true });
       } else {
+        console.log('[SIGNUP] No session, email verification required');
         // Store email for resend functionality
         sessionStorage.setItem('pendingVerificationEmail', validatedEmail);
         toast.success("Account created! Check your email to confirm.");
         navigate("/verify-email");
       }
     } catch (error) {
-      toast.error("An unexpected error occurred");
+      console.error('[SIGNUP] Unexpected error:', error);
+      toast.error(`An unexpected error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
@@ -140,17 +154,15 @@ const SignUp = () => {
                     {[0, 1, 2, 3, 4].map((index) => (
                       <div
                         key={index}
-                        className={`flex-1 rounded-full transition-colors ${
-                          index <= getPasswordStrength(password).score
+                        className={`flex-1 rounded-full transition-colors ${index <= getPasswordStrength(password).score
                             ? getPasswordStrength(password).color
                             : 'bg-muted'
-                        }`}
+                          }`}
                       />
                     ))}
                   </div>
-                  <p className={`text-xs ${
-                    getPasswordStrength(password).score >= 3 ? 'text-green-600' : 'text-muted-foreground'
-                  }`}>
+                  <p className={`text-xs ${getPasswordStrength(password).score >= 3 ? 'text-green-600' : 'text-muted-foreground'
+                    }`}>
                     Password strength: {getPasswordStrength(password).label}
                   </p>
                 </div>

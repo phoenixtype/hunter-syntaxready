@@ -77,7 +77,7 @@ const Index = () => {
               <Link to="/signup" className="w-full sm:w-auto">
                 <Button
                   size="lg"
-                  className="rounded-full min-h-48 w-full sm:w-auto px-8 text-lg font-semibold touch-manipulation active:scale-[0.98] transition-transform shadow-lg hover:shadow-xl"
+                  className="rounded-full min-h-[48px] w-full sm:w-auto px-8 text-lg font-semibold touch-manipulation active:scale-[0.98] transition-transform shadow-lg hover:shadow-xl"
                 >
                   Start Hunting <ArrowRight className="ml-2 w-5 h-5" aria-hidden="true" />
                 </Button>
@@ -86,7 +86,7 @@ const Index = () => {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="rounded-full min-h-48 w-full sm:w-auto px-8 text-lg bg-transparent border-primary/20 hover:bg-secondary/50 touch-manipulation active:scale-[0.98] transition-transform"
+                  className="rounded-full min-h-[48px] w-full sm:w-auto px-8 text-lg bg-transparent border-primary/20 hover:bg-secondary/50 touch-manipulation active:scale-[0.98] transition-transform"
                 >
                   View Demo
                 </Button>

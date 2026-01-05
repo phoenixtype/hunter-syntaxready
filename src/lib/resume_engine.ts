@@ -34,46 +34,174 @@ export interface CandidateProfile {
   resume_file_url?: string;
 }
 
+// Custom error class for better error handling
+export class ResumeParseError extends Error {
+  code: string;
+  userMessage: string;
+  technicalDetails?: string;
+
+  constructor(code: string, userMessage: string, technicalDetails?: string) {
+    super(userMessage);
+    this.name = 'ResumeParseError';
+    this.code = code;
+    this.userMessage = userMessage;
+    this.technicalDetails = technicalDetails;
+  }
+}
+
 // Parse resume using AI
 export const parseResume = async (file: File, userId?: string): Promise<CandidateProfile> => {
-  console.log("Parsing resume:", file.name);
+  console.log("[RESUME] Starting parse:", file.name, "Size:", file.size, "Type:", file.type);
   
-  // 1. Extract text from PDF using FileReader (Client-side fallback)
-  const text = await extractTextFromFile(file);
-  
-  if (!text || text.trim().length < 50) {
-    throw new Error("Could not extract text from resume. Please ensure it's a readable PDF.");
+  // 0. Validate file before processing
+  if (file.size > 10 * 1024 * 1024) {
+    throw new ResumeParseError(
+      'FILE_TOO_LARGE',
+      'File size exceeds 10MB limit',
+      `File size: ${file.size} bytes`
+    );
   }
 
-  // 2. Upload original file to Supabase Storage
-  // We'll proceed even if upload fails, but warn about it
+  if (!file.type.includes('pdf') && !file.type.includes('wordprocessingml')) {
+    throw new ResumeParseError(
+      'INVALID_FILE_TYPE',
+      'Only PDF and DOCX files are supported',
+      `File type: ${file.type}`
+    );
+  }
+
+  // 1. Validate session before expensive operations
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  
+  if (sessionError || !session) {
+    console.error('[RESUME] Session validation failed:', sessionError);
+    throw new ResumeParseError(
+      'SESSION_INVALID',
+      'Your session has expired. Please sign out and sign in again.',
+      sessionError?.message
+    );
+  }
+
+  console.log('[RESUME] Session valid, expires at:', new Date(session.expires_at! * 1000).toISOString());
+
+  // 2. Extract text from PDF using FileReader (Client-side fallback)
+  let text: string;
+  try {
+    text = await extractTextFromFile(file);
+  } catch (extractError) {
+    console.error('[RESUME] Text extraction failed:', extractError);
+    throw new ResumeParseError(
+      'EXTRACTION_FAILED',
+      'Could not read the resume file. The PDF may be encrypted or corrupted.',
+      extractError instanceof Error ? extractError.message : String(extractError)
+    );
+  }
+  
+  if (!text || text.trim().length < 50) {
+    throw new ResumeParseError(
+      'INSUFFICIENT_TEXT',
+      'Could not extract enough text from resume. Please ensure it\'s a readable PDF with text content (not just images).',
+      `Extracted ${text?.length || 0} characters`
+    );
+  }
+
+  console.log(`[RESUME] Extracted ${text.length} characters from PDF`);
+
+  // 3. Upload original file to Supabase Storage
   let resumeUrl: string | null = null;
   try {
     resumeUrl = await uploadResumeFile(file);
+    console.log('[RESUME] File uploaded to storage:', resumeUrl);
   } catch (uploadErr) {
-    console.warn('Failed to upload resume file to storage:', uploadErr);
+    console.warn('[RESUME] Storage upload failed (non-critical):', uploadErr);
     // Continue with parsing even if storage fails
   }
 
-  // 3. Call the AI parsing edge function
-  const { data, error } = await supabase.functions.invoke('parse-resume', {
-    body: { 
-      resumeText: text, 
-      userId,
-      resumeUrl // Pass the storage URL to the function
+  // 4. Call the AI parsing edge function with retry logic
+  let lastError: any = null;
+  const maxRetries = 2;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`[RESUME] Calling parse-resume edge function (attempt ${attempt}/${maxRetries})`);
+      
+      const { data, error } = await supabase.functions.invoke('parse-resume', {
+        body: { 
+          resumeText: text, 
+          userId,
+          resumeUrl
+        }
+      });
+
+      if (error) {
+        lastError = error;
+        console.error(`[RESUME] Edge function error (attempt ${attempt}):`, error);
+        
+        // Don't retry on auth errors
+        if (error.message?.includes('401') || error.message?.includes('Invalid User Token')) {
+          throw new ResumeParseError(
+            'AUTH_FAILED',
+            'Authentication failed. Please sign out and sign in again.',
+            error.message
+          );
+        }
+
+        // Don't retry on rate limit errors
+        if (error.message?.includes('429') || error.message?.includes('rate limit')) {
+          throw new ResumeParseError(
+            'RATE_LIMITED',
+            'Too many requests. Please wait a minute and try again.',
+            error.message
+          );
+        }
+
+        // Retry on other errors
+        if (attempt < maxRetries) {
+          console.log(`[RESUME] Retrying in ${attempt * 1000}ms...`);
+          await new Promise(resolve => setTimeout(resolve, attempt * 1000));
+          continue;
+        }
+        
+        throw error;
+      }
+
+      if (!data?.success || !data?.profile) {
+        const errorMsg = data?.error || 'Failed to extract profile from resume';
+        console.error('[RESUME] Parse failed:', errorMsg);
+        throw new ResumeParseError(
+          'PARSE_FAILED',
+          'AI failed to analyze resume structure. Please ensure your resume has clear sections for experience, skills, and education.',
+          errorMsg
+        );
+      }
+
+      console.log('[RESUME] Successfully parsed resume');
+      return data.profile as CandidateProfile;
+
+    } catch (err) {
+      lastError = err;
+      
+      // If it's already a ResumeParseError, don't retry
+      if (err instanceof ResumeParseError) {
+        throw err;
+      }
+      
+      // Retry on network errors
+      if (attempt < maxRetries) {
+        console.log(`[RESUME] Retrying after error in ${attempt * 1000}ms...`);
+        await new Promise(resolve => setTimeout(resolve, attempt * 1000));
+        continue;
+      }
     }
-  });
-
-  if (error) {
-    console.error('Resume parsing error:', error);
-    throw new Error(error.message || 'Failed to parse resume');
   }
 
-  if (!data?.success || !data?.profile) {
-    throw new Error(data?.error || 'Failed to extract profile from resume');
-  }
-
-  return data.profile as CandidateProfile;
+  // All retries failed
+  console.error('[RESUME] All retry attempts failed:', lastError);
+  throw new ResumeParseError(
+    'SERVICE_ERROR',
+    'Resume analysis service is temporarily unavailable. Please try again in a few moments.',
+    lastError?.message || String(lastError)
+  );
 };
 
 // Upload resume file to Supabase Storage
