@@ -50,8 +50,10 @@ export const startInterviewSession = async (
     profile?: CandidateProfile,
     job?: JobOpportunity
 ): Promise<{ message: string; mode: string }> => {
+    const { data: { session } } = await supabase.auth.getSession();
     const { data, error } = await supabase.functions.invoke('interview-coach', {
-        body: { mode, profile, job, messages: [] }
+        body: { mode, profile, job, messages: [] },
+        headers: session ? { Authorization: `Bearer ${session.access_token}` } : {}
     });
 
     if (error) {
@@ -75,13 +77,15 @@ export const sendInterviewMessage = async (
         { role: 'user' as const, content: userMessage }
     ];
 
+    const { data: { session: authSession } } = await supabase.auth.getSession();
     const { data, error } = await supabase.functions.invoke('interview-coach', {
         body: {
             messages,
             mode: session.mode,
             profile: session.profile,
             job: session.job
-        }
+        },
+        headers: authSession ? { Authorization: `Bearer ${authSession.access_token}` } : {}
     });
 
     if (error) {
@@ -95,6 +99,7 @@ export const sendInterviewMessage = async (
 // Generate interview prep materials using AI
 export const generateInterviewPrep = async (job: JobOpportunity): Promise<InterviewPrepMaterial> => {
     // Call the Edge Function to generate real, context-aware prep material
+    const { data: { session } } = await supabase.auth.getSession();
     const { data, error } = await supabase.functions.invoke('interview-coach', {
         body: { 
             mode: 'generate_briefing',
@@ -103,7 +108,8 @@ export const generateInterviewPrep = async (job: JobOpportunity): Promise<Interv
                 company: job.company,
                 description: job.description
             }
-        }
+        },
+        headers: session ? { Authorization: `Bearer ${session.access_token}` } : {}
     });
 
     if (error) {

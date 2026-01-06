@@ -30,7 +30,10 @@ export const triggerJobCrawl = async (
     }
 
     const { data, error } = await supabase.functions.invoke('crawl-jobs', {
-      body: { sources, keywords }
+      body: { sources, keywords },
+      headers: {
+        Authorization: `Bearer ${session.access_token}`
+      }
     });
 
     if (error) {

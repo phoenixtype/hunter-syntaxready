@@ -130,6 +130,9 @@ export const parseResume = async (file: File, userId?: string): Promise<Candidat
           resumeText: text, 
           userId,
           resumeUrl
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
         }
       });
 
@@ -237,11 +240,11 @@ async function extractTextFromFile(file: File): Promise<string> {
     try {
       // Dynamic import PDF.js
       const pdfJS = await import('pdfjs-dist');
-      
       console.log('[PDF] PDF.js version:', pdfJS.version);
       
-      // Set worker - use a stable CDN version that matches our package
-      pdfJS.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+      // Set worker - use CDN version matching our package (5.4.530)
+      // Using unpkg as it's more reliable for exact version matching
+      pdfJS.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@5.4.530/build/pdf.worker.min.mjs`;
       
       return new Promise((resolve, reject) => {
         const reader = new FileReader();

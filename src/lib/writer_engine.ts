@@ -14,9 +14,14 @@ export const generateTailoredContent = async (
 ): Promise<TailoredContent> => {
   console.log(`Generating tailored content for ${job.company} - ${job.title}`);
 
+  // Get session for auth
+  const { data: { session } } = await supabase.auth.getSession();
+  const authHeader = session ? { Authorization: `Bearer ${session.access_token}` } : {};
+
   // Generate cover letter using AI
   const { data: coverLetterData, error: coverLetterError } = await supabase.functions.invoke('generate-content', {
-    body: { profile, job, type: 'cover_letter' }
+    body: { profile, job, type: 'cover_letter' },
+    headers: authHeader
   });
 
   if (coverLetterError) {
@@ -26,7 +31,8 @@ export const generateTailoredContent = async (
 
   // Generate resume optimization suggestions
   const { data: optimizationData, error: optimizationError } = await supabase.functions.invoke('generate-content', {
-    body: { profile, job, type: 'resume_optimization' }
+    body: { profile, job, type: 'resume_optimization' },
+    headers: authHeader
   });
 
   if (optimizationError) {
@@ -83,8 +89,10 @@ export const generateInterviewPrep = async (
   profile: CandidateProfile,
   job: JobOpportunity
 ): Promise<string> => {
+  const { data: { session } } = await supabase.auth.getSession();
   const { data, error } = await supabase.functions.invoke('generate-content', {
-    body: { profile, job, type: 'interview_prep' }
+    body: { profile, job, type: 'interview_prep' },
+    headers: session ? { Authorization: `Bearer ${session.access_token}` } : {}
   });
 
   if (error) {

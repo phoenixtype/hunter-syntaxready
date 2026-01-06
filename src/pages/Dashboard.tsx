@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Briefcase,
@@ -49,6 +49,13 @@ const Dashboard = () => {
     toast.success("Signed out successfully");
     navigate("/");
   };
+
+  // Redirect unauthenticated users to login (useLayoutEffect to avoid React warning)
+  useLayoutEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/login');
+    }
+  }, [user, authLoading, navigate]);
 
   // Fetch dashboard data
   useEffect(() => {
@@ -102,8 +109,8 @@ const Dashboard = () => {
     }
   };
 
-  if (authLoading || (dataLoading && !user)) return <DashboardSkeleton />;
-  if (!user) return null;
+  if (authLoading) return <DashboardSkeleton />;
+  if (!user) return null; // Redirect handled by useLayoutEffect
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary selection:text-primary-foreground">

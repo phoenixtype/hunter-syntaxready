@@ -33,6 +33,7 @@ export const generateThankYouNote = async (
     keyTopics: string[],
     profile: CandidateProfile
 ): Promise<string> => {
+    const { data: { session } } = await supabase.auth.getSession();
     const { data, error } = await supabase.functions.invoke('generate-content', {
         body: {
             profile,
@@ -43,7 +44,8 @@ export const generateThankYouNote = async (
                 interviewer_name: interviewerName, 
                 notes: keyTopics.join(', ') 
             }
-        }
+        },
+        headers: session ? { Authorization: `Bearer ${session.access_token}` } : {}
     });
 
     if (error) throw error;
@@ -54,6 +56,7 @@ export const evaluateOffer = async (
     offer: OfferDetails,
     profile: CandidateProfile
 ): Promise<{ score: number; analysis: string [] }> => {
+    const { data: { session } } = await supabase.auth.getSession();
     const { data, error } = await supabase.functions.invoke('generate-content', {
         body: {
             profile,
@@ -63,7 +66,8 @@ export const evaluateOffer = async (
                 title: 'Selected Role', 
                 offer_data: offer 
             }
-        }
+        },
+        headers: session ? { Authorization: `Bearer ${session.access_token}` } : {}
     });
 
     if (error) throw error;
@@ -81,6 +85,7 @@ export const generateNegotiationStrategy = async (
     offer: OfferDetails,
     profile: CandidateProfile
 ): Promise<NegotiationStrategy> => {
+    const { data: { session } } = await supabase.auth.getSession();
     const { data, error } = await supabase.functions.invoke('generate-content', {
         body: {
             profile,
@@ -90,7 +95,8 @@ export const generateNegotiationStrategy = async (
                 title: 'Negotiation Strategy', 
                 offer_data: offer 
             }
-        }
+        },
+        headers: session ? { Authorization: `Bearer ${session.access_token}` } : {}
     });
 
     if (error) throw error;
