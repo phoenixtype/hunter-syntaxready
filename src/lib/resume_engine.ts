@@ -124,6 +124,8 @@ export const parseResume = async (file: File, userId?: string): Promise<Candidat
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       console.log(`[RESUME] Calling parse-resume edge function (attempt ${attempt}/${maxRetries})`);
+      console.log('[RESUME] Session active:', !!session);
+      console.log('[RESUME] Token available:', !!session?.access_token);
       
       const { data, error } = await supabase.functions.invoke('parse-resume', {
         body: { 
@@ -139,9 +141,12 @@ export const parseResume = async (file: File, userId?: string): Promise<Candidat
       if (error) {
         lastError = error;
         console.error(`[RESUME] Edge function error (attempt ${attempt}):`, error);
+        console.error('[RESUME] Error details:', JSON.stringify(error, null, 2));
         
         // Don't retry on auth errors
-        if (error.message?.includes('401') || error.message?.includes('Invalid User Token')) {
+        if (error.message?.includes('401') || 
+            error.message?.includes('Invalid User Token') ||
+            error.message?.includes('Invalid JWT')) {
           throw new ResumeParseError(
             'AUTH_FAILED',
             'Authentication failed. Please sign out and sign in again.',
