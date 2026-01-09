@@ -19,6 +19,7 @@ const RATE_LIMIT_WINDOW_SECONDS = 60;
  * SECURITY: Server-side rate limiting using Supabase
  */
 async function checkRateLimit(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
   userId: string,
   functionName: string,
@@ -185,7 +186,7 @@ serve(async (req) => {
 CANDIDATE PROFILE:
 Name: ${profile.identity?.name}
 Current/Recent Role: ${profile.experience_atoms?.[0]?.role} at ${profile.experience_atoms?.[0]?.company}
-Key Skills: ${profile.skills?.slice(0, 5).map((s: any) => s.name).join(', ')}
+Key Skills: ${profile.skills?.slice(0, 5).map((s: { name: string }) => s.name).join(', ')}
 Recent Achievement: ${profile.experience_atoms?.[0]?.content}
 
 JOB DETAILS:

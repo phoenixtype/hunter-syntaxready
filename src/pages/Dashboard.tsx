@@ -24,13 +24,21 @@ import ThemeToggle from "@/components/ThemeToggle";
 import MobileNav from "@/components/MobileNav";
 import SkipLink from "@/components/SkipLink";
 import { useResume } from "@/hooks/useResume";
-import { getSubscription, SubscriptionTier, checkAccess } from "@/lib/subscription";
+import { getSubscription, SubscriptionTier, checkAccess, UserSubscription } from "@/lib/subscription";
 import { AgentActivityLog } from "@/components/AgentActivityLog";
 import { fetchLogsFromDatabase, setLoggerUserId } from "@/lib/activity_logger";
 import { initializeLearningEngine } from "@/lib/learning_engine";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import PostInterviewModal from "@/components/PostInterviewModal";
 import PricingModal from "@/components/PricingModal";
+
+interface StatCardProps {
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+  trend: string;
+  color: string;
+}
 
 const Dashboard = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -41,7 +49,7 @@ const Dashboard = () => {
   const [visibility, setVisibility] = useState<VisibilityScore | null>(null);
   const [showPostInterview, setShowPostInterview] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
-  const [subscription, setSubscription] = useState<any>(null);
+  const [subscription, setSubscription] = useState<UserSubscription | null>(null);
   const [appCount, setAppCount] = useState(0);
 
   const handleSignOut = async () => {
@@ -75,12 +83,32 @@ const Dashboard = () => {
           return;
         }
 
+        // Senior Dev Fix: Independent failure handling to prevent dashboard crash
+        // 1. Critical User Data (Subscription & App Count)
+        const subPromise = getSubscription().catch(err => {
+          console.error("Failed to fetch subscription:", err);
+          return null;
+        });
+
+        const countPromise = getApplicationCount(user.id).catch(err => {
+          console.warn("Failed to fetch app count:", err);
+          return 0;
+        });
+
+        // 2. Secondary Data (Visibility, Logs, Learning) - Fail silently usually
+        const scorePromise = calculateVisibilityScore(profile).catch(err => {
+          console.warn("Visibility calculation error:", err);
+          return null;
+        });
+
+        // Side effects - don't block render on these
+        fetchLogsFromDatabase(user.id).catch(e => console.error("Logger init error:", e));
+        initializeLearningEngine(user.id).catch(e => console.error("Learning init error:", e));
+
         const [score, sub, count] = await Promise.all([
-          calculateVisibilityScore(profile),
-          getSubscription(),
-          getApplicationCount(user.id),
-          fetchLogsFromDatabase(user.id),
-          initializeLearningEngine(user.id)
+          scorePromise,
+          subPromise,
+          countPromise
         ]);
 
         setLoggerUserId(user.id);
@@ -99,7 +127,7 @@ const Dashboard = () => {
 
     fetchData();
     return () => { isMounted = false; };
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, navigate, profile]);
 
   const handleOpenInterviewTools = () => {
     if (checkAccess('negotiation_coach')) {
@@ -125,13 +153,13 @@ const Dashboard = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* PRO BADGE */}
-            {subscription?.tier === SubscriptionTier.FREE ? (
+            {/* PRO BADGE - Show if paid tier */}
+            {subscription && subscription.tier !== SubscriptionTier.FREE ? (
+              <Badge variant="outline" className="border-primary/50 text-primary bg-primary/10">PRO ACTIVE</Badge>
+            ) : (
               <Button size="sm" onClick={() => setShowPricing(true)} className="hidden sm:flex text-xs h-8 bg-gradient-to-r from-primary to-purple-600 hover:opacity-90">
                 Get Pro
               </Button>
-            ) : (
-              <Badge variant="outline" className="border-primary/50 text-primary bg-primary/10">PRO ACTIVE</Badge>
             )}
 
             <div className="h-6 w-px bg-border/50 hidden sm:block"></div>
@@ -170,11 +198,20 @@ const Dashboard = () => {
               trend={appCount > 0 ? "LIVE" : "START"}
               color="blue"
             />
-            <StatCard
+            {/* Removed Fake Interview Data for Audit Compliance */}
+            {/* <StatCard
               icon={<CheckCircle2 className="w-4 h-4 text-emerald-500" />}
               label="Interviews"
               value="0"
               trend="UPCOMING"
+              color="emerald"
+            /> */}
+            {/* Real Data: Subscription Tier */}
+            <StatCard
+              icon={<CheckCircle2 className="w-4 h-4 text-emerald-500" />}
+              label="Plan"
+              value={subscription?.tier === SubscriptionTier.PRO ? "PRO" : "FREE"}
+              trend={subscription?.tier === SubscriptionTier.PRO ? "ACTIVE" : "UPGRADE"}
               color="emerald"
             />
             <StatCard
@@ -186,9 +223,9 @@ const Dashboard = () => {
             />
             <StatCard
               icon={<Clock className="w-4 h-4 text-amber-500" />}
-              label="Response Rate"
-              value="25%"
-              trend="Top 10%"
+              label="Avg Response"
+              value="~3 Steps"
+              trend="Typical"
               color="amber"
             />
           </div>
@@ -249,7 +286,7 @@ const Dashboard = () => {
 };
 
 // MINI COMPONENT FOR STATS
-const StatCard = ({ icon, label, value, trend, color }: any) => {
+const StatCard = ({ icon, label, value, trend, color }: StatCardProps) => {
   // Map colors to actual Tailwind classes
   const colorClasses = {
     blue: {

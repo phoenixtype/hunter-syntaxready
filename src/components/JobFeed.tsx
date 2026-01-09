@@ -5,13 +5,14 @@ import { JobOpportunity, searchJobs, triggerJobCrawl, getJobCount } from "@/lib/
 import { CandidateProfile } from "@/lib/resume_engine";
 import { calculateMatch, MatchResult } from "@/lib/matching_engine";
 import { generateTailoredContent, TailoredContent } from "@/lib/writer_engine";
-import { simulateApplication, ApplicationState, ComplianceError } from "@/lib/application_engine";
+import { simulateApplication, ApplicationState, ComplianceError, getApplicationHistory } from "@/lib/application_engine";
 import { recordFeedback, getOptimizedWeights, MatchingWeights } from "@/lib/learning_engine";
 import { ExternalLink, Sparkles, RefreshCw, Terminal, PenTool, Send, Check, GraduationCap, X, Loader2, Globe, Zap, Clock, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import InterviewPrepModal from "./InterviewPrep";
 import { useAuth } from "@/hooks/useAuth";
+import { Stakeholder } from "@/lib/recruiter_engine";
 
 interface JobFeedProps {
     profile: CandidateProfile | null;
@@ -28,10 +29,24 @@ const JobFeed = ({ profile }: JobFeedProps) => {
     const [crawling, setCrawling] = useState(false);
     const [jobCount, setJobCount] = useState<number>(0);
     const [activeApplication, setActiveApplication] = useState<ApplicationState | null>(null);
-    const [stakeholders, setStakeholders] = useState<Record<string, any[]>>({});
+    const [stakeholders, setStakeholders] = useState<Record<string, Stakeholder[]>>({});
     const [prepJob, setPrepJob] = useState<JobOpportunity | null>(null);
+    const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set());
+
+    // Senior Dev Fix: Prevent duplicate applications
+    useEffect(() => {
+        if (!user) return;
+        getApplicationHistory(user.id).then(history => {
+            setAppliedJobIds(new Set(history.map(h => h.job_id)));
+        });
+    }, [user]);
 
     const handleApply = async (job: JobOpportunity) => {
+        if (appliedJobIds.has(job.id)) {
+            toast.error("You have already applied to this position.");
+            return;
+        }
+
         toast.info(`Initiating Auto-Apply for ${job.company}...`);
 
         await recordFeedback({
@@ -50,6 +65,7 @@ const JobFeed = ({ profile }: JobFeedProps) => {
                 setActiveApplication(state);
                 if (state.status === 'applied') {
                     toast.success(`Application sent to ${job.company}!`);
+                    setAppliedJobIds(prev => new Set(prev).add(job.id));
                     setTimeout(() => setActiveApplication(null), 3000);
                 }
             }, user?.id, true); // Pass userId and safeMode
@@ -410,7 +426,7 @@ const JobFeed = ({ profile }: JobFeedProps) => {
                                             <span className="w-2 h-2 rounded-full bg-blue-500"></span> Hiring Team
                                         </h4>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                            {stakeholders[job.id].map((person: any, i: number) => (
+                                            {stakeholders[job.id].map((person, i: number) => (
                                                 <a
                                                     key={i}
                                                     href={person.profile_url}
@@ -458,8 +474,8 @@ const JobFeed = ({ profile }: JobFeedProps) => {
                                 <Button variant="secondary" size="sm" onClick={(e) => { e.stopPropagation(); handleTailor(job); }}>
                                     <PenTool className="w-3 h-3 mr-2" /> Tailor
                                 </Button>
-                                <Button size="sm" onClick={(e) => { e.stopPropagation(); handleApply(job); }}>
-                                    <Send className="w-3 h-3 mr-2" /> Apply
+                                <Button size="sm" onClick={(e) => { e.stopPropagation(); handleApply(job); }} disabled={appliedJobIds.has(job.id)}>
+                                    <Send className="w-3 h-3 mr-2" /> {appliedJobIds.has(job.id) ? "Applied" : "Apply"}
                                 </Button>
                                 <Button variant="ghost" size="sm" className="text-xs" onClick={(e) => { e.stopPropagation(); setPrepJob(job); }}>
                                     <GraduationCap className="w-3 h-3 mr-1" /> Prep

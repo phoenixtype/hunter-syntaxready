@@ -24,6 +24,7 @@ interface ChatMessage {
  * SECURITY: Server-side rate limiting using Supabase
  */
 async function checkRateLimit(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
   userId: string,
   functionName: string,
@@ -285,7 +286,7 @@ serve(async (req) => {
       systemPrompt += `\n\nCandidate Background:
 - Name: ${profile.identity?.name}
 - Current Role: ${profile.experience_atoms?.[0]?.role} at ${profile.experience_atoms?.[0]?.company}
-- Key Skills: ${profile.skills?.slice(0, 5).map((s: any) => s.name).join(', ')}`;
+- Key Skills: ${profile.skills?.slice(0, 5).map((s: { name: string }) => s.name).join(', ')}`;
     }
 
     if (job) {

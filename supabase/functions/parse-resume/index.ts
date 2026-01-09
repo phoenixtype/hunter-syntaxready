@@ -19,6 +19,7 @@ const RATE_LIMIT_WINDOW_SECONDS = 60;
  * SECURITY: Server-side rate limiting using Supabase
  */
 async function checkRateLimit(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
   userId: string,
   functionName: string,
@@ -303,6 +304,7 @@ Extract keywords that would match job descriptions (technologies, methodologies,
     const profile = JSON.parse(toolCall.function.arguments);
     
     // Add IDs to experience atoms if missing
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     profile.experience_atoms = profile.experience_atoms.map((exp: any, idx: number) => ({
       ...exp,
       id: exp.id || `exp-${idx + 1}`

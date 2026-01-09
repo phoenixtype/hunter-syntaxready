@@ -101,7 +101,7 @@ export const fullNameSchema = z
   .trim()
   .min(1, "Full name is required")
   .max(100, "Full name must be less than 100 characters")
-  .regex(/^[a-zA-Z\s\-'\.]+$/, "Full name can only contain letters, spaces, hyphens, apostrophes, and periods");
+  .regex(/^[a-zA-Z\s\-'.]+$/, "Full name can only contain letters, spaces, hyphens, apostrophes, and periods");
 
 // Login form schema (doesn't validate password strength - that happens at signup)
 export const loginFormSchema = z.object({

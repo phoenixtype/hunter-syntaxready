@@ -97,10 +97,22 @@ export const parseResume = async (file: File, userId?: string): Promise<Candidat
     );
   }
   
+  // Senior Dev Fix: Better detection of scanned PDFs
   if (!text || text.trim().length < 50) {
+    const isLargeFile = file.size > 1024 * 1024; // > 1MB
+    
+    // If file is large but text is empty, it's definitely a scan / image-only PDF
+    if (isLargeFile) {
+        throw new ResumeParseError(
+            'SCANNED_PDF_DETECTED',
+            'This appears to be a scanned or image-based PDF. Hunter needs a text-based PDF to analyze your skills.',
+            `File size: ${file.size}, Extracted chars: ${text?.length || 0}`
+        );
+    }
+
     throw new ResumeParseError(
       'INSUFFICIENT_TEXT',
-      'Could not extract enough text from resume. Please ensure it\'s a readable PDF with text content (not just images).',
+      'Could not extract enough text from resume. Please ensure it\'s a standard text-based PDF.',
       `Extracted ${text?.length || 0} characters`
     );
   }
@@ -118,7 +130,7 @@ export const parseResume = async (file: File, userId?: string): Promise<Candidat
   }
 
   // 4. Call the AI parsing edge function with retry logic
-  let lastError: any = null;
+  let lastError: unknown = null;
   const maxRetries = 2;
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -208,7 +220,7 @@ export const parseResume = async (file: File, userId?: string): Promise<Candidat
   throw new ResumeParseError(
     'SERVICE_ERROR',
     'Resume analysis service is temporarily unavailable. Please try again in a few moments.',
-    lastError?.message || String(lastError)
+    lastError instanceof Error ? lastError.message : String(lastError)
   );
 };
 
@@ -276,7 +288,7 @@ async function extractTextFromFile(file: File): Promise<string> {
               
               // Join items with space, preserving roughly the flow
               const pageText = textContent.items
-                .map((item: any) => item.str)
+                .map((item) => 'str' in item ? (item as { str: string }).str : '')
                 .join(' ');
                 
               fullText += pageText + '\n\n';
@@ -384,7 +396,7 @@ export const getCandidateProfile = async (userId: string): Promise<CandidateProf
 // Save candidate profile to database
 export const saveCandidateProfile = async (userId: string, profile: CandidateProfile): Promise<void> => {
   const { error } = await (supabase
-    .from('candidate_profiles') as any)
+    .from('candidate_profiles') as unknown as { upsert: (data: unknown, options?: unknown) => Promise<{ error: unknown }> })
     .upsert({
       user_id: userId,
       identity: profile.identity as unknown,

@@ -173,14 +173,18 @@ export const fetchLogsFromDatabase = async (userId: string, limit: number = 50):
       return [];
     }
 
-    const logs: LogEntry[] = (data || []).map((log: any) => ({
-      id: log.id,
-      timestamp: new Date(log.created_at).getTime(),
-      agent: log.agent,
-      action: log.action,
-      details: log.details || '',
-      type: log.log_type as LogType
-    }));
+    // Use a temporary interface for the raw DB response
+    const logs: LogEntry[] = (data || []).map((log: unknown) => {
+      const l = log as { id: string; created_at: string; agent: string; action: string; details: string; log_type: string };
+      return {
+        id: l.id,
+        timestamp: new Date(l.created_at).getTime(),
+        agent: l.agent,
+        action: l.action,
+        details: l.details || '',
+        type: l.log_type as LogType
+      };
+    });
 
     // Update cache
     activityLogCache = logs;

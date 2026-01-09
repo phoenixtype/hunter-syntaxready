@@ -50,6 +50,7 @@ function calculateFreshnessScore(postedAt: string): number {
  * @returns true if request is allowed, false if rate limited
  */
 async function checkRateLimit(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
   userId: string,
   functionName: string,
@@ -57,7 +58,8 @@ async function checkRateLimit(
   windowSeconds: number
 ): Promise<boolean> {
   try {
-    const { data, error } = await supabase.rpc('check_rate_limit', {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any).rpc('check_rate_limit', {
       p_user_id: userId,
       p_function_name: functionName,
       p_max_requests: maxRequests,
@@ -204,6 +206,7 @@ Deno.serve(async (req) => {
     
     console.log('[CRAWL] Starting job crawl, sources:', searchSources.length);
     
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const allJobs: any[] = [];
     
     // Search for jobs using Firecrawl
@@ -255,6 +258,7 @@ Deno.serve(async (req) => {
     }
 
     // Helper to normalize a single job listing
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const normalizeJob = async (rawJob: any) => {
       try {
         const llmResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {

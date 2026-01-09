@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
-import { generateThankYouNote, generateNegotiationStrategy, OfferDetails } from "@/lib/post_interview_engine";
+import { generateThankYouNote, generateNegotiationStrategy, OfferDetails, NegotiationStrategy } from "@/lib/post_interview_engine";
 import { toast } from "sonner";
 import { MessageSquare, DollarSign, Send, CheckCircle2 } from "lucide-react";
 import { CandidateProfile } from "@/lib/resume_engine";
@@ -34,7 +34,7 @@ const PostInterviewModal = ({ isOpen, onClose, companyName, profile }: PostInter
 
     // Negotiation State
     const [baseSalary, setBaseSalary] = useState("");
-    const [strategy, setStrategy] = useState<any>(null);
+    const [strategy, setStrategy] = useState<NegotiationStrategy | null>(null);
 
     const handleGenerateNote = async () => {
         if (!profile) {

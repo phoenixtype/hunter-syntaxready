@@ -84,20 +84,29 @@ export const searchJobs = async (query?: string): Promise<JobOpportunity[]> => {
     }
 
     // Transform database records to JobOpportunity interface
-    return (data || []).map((job: any) => ({
-      id: job.id,
-      title: job.title,
-      company: job.company,
-      location: job.location || 'Remote',
-      salary_range: job.salary_range || 'Not specified',
-      description: job.description || '',
-      source: job.source as JobOpportunity['source'],
-      freshness_score: Number(job.freshness_score) || 0.5,
-      credibility_score: Number(job.credibility_score) || 0.8,
-      url: job.url,
-      posted_at: job.posted_at || 'Recently',
-      tech_stack: job.tech_stack || []
-    }));
+    return (data || []).map((job: unknown) => {
+        // Define shape of DB record locally
+        const j = job as { 
+          id: string; title: string; company: string; location: string; 
+          salary_range: string; description: string; source: string; 
+          freshness_score: number; credibility_score: number; url: string; 
+          posted_at: string; tech_stack: string[] 
+        };
+        return {
+            id: j.id,
+            title: j.title,
+            company: j.company,
+            location: j.location || 'Unspecified',
+            salary_range: j.salary_range || 'Not specified',
+            description: j.description || '',
+            source: j.source as JobOpportunity['source'],
+            freshness_score: Number(j.freshness_score) || 0.5,
+            credibility_score: Number(j.credibility_score) || 0.8,
+            url: j.url,
+            posted_at: j.posted_at || 'Recently',
+            tech_stack: j.tech_stack || []
+        };
+    });
   } catch (err) {
     console.error('Search error:', err);
     return [];
@@ -122,7 +131,7 @@ export const getJobById = async (id: string): Promise<JobOpportunity | undefined
       id: data.id,
       title: data.title,
       company: data.company,
-      location: data.location || 'Remote',
+      location: data.location || 'Unspecified',
       salary_range: data.salary_range || 'Not specified',
       description: data.description || '',
       source: data.source as JobOpportunity['source'],

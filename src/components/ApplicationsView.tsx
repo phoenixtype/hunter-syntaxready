@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { MoreHorizontal, DollarSign, Calendar, Loader2 } from "lucide-react";
-import { getApplicationHistory } from "@/lib/application_engine";
+import { getApplicationHistory, ApplicationRecord } from "@/lib/application_engine";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
 
@@ -20,7 +20,7 @@ const getStatusColor = (status: string) => {
 
 export const ApplicationsView = () => {
     const { session } = useAuth();
-    const [applications, setApplications] = useState<any[]>([]);
+    const [applications, setApplications] = useState<ApplicationRecord[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {

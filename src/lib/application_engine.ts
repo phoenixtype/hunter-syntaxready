@@ -12,6 +12,23 @@ export interface ApplicationState {
   logs: string[];
 }
 
+export interface ApplicationRecord {
+    id: string;
+    user_id: string;
+    job_id: string;
+    job_title: string;
+    company: string;
+    job_url: string;
+    status: string;
+    applied_at: string;
+    metadata?: {
+        source?: string;
+        salary_range?: string;
+        [key: string]: unknown;
+    };
+    notes?: string;
+}
+
 export class ComplianceError extends Error {
     constructor(message: string) {
         super(message);
@@ -94,7 +111,7 @@ export const simulateApplication = async (
 };
 
 // Get application history
-export const getApplicationHistory = async (userId: string): Promise<any[]> => {
+export const getApplicationHistory = async (userId: string): Promise<ApplicationRecord[]> => {
     try {
         const { data, error } = await supabase
             .from('application_history')
@@ -108,7 +125,7 @@ export const getApplicationHistory = async (userId: string): Promise<any[]> => {
             return [];
         }
 
-        return data || [];
+        return (data as unknown as ApplicationRecord[]) || [];
     } catch (err) {
         console.error('Error fetching application history:', err);
         return [];

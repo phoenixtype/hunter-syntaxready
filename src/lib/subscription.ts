@@ -9,7 +9,7 @@ export enum SubscriptionTier {
 
 export type Feature = 'autopilot' | 'deep_intelligence' | 'unlimited_applications' | 'negotiation_coach';
 
-interface UserSubscription {
+export interface UserSubscription {
     tier: SubscriptionTier;
     features: Feature[];
     usage: {
