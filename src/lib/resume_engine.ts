@@ -250,7 +250,7 @@ async function uploadResumeFile(file: File): Promise<string> {
 }
 
 // Extract text from file using PDF.js for robust parsing
-async function extractTextFromFile(file: File): Promise<string> {
+export async function extractTextFromFile(file: File): Promise<string> {
   console.log('[PDF] Starting extraction for:', file.name, 'Type:', file.type, 'Size:', file.size);
   
   if (file.type === 'application/pdf') {
