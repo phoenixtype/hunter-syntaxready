@@ -422,7 +422,7 @@ export const polishText = async (text: string, type: 'experience' | 'skill'): Pr
     // 2. Fix bullet points
     if (type === 'experience') {
         // Ensure bullet points start on new lines
-        polished = polished.replace(/([•\-\*])\s*/g, '\n• ');
+        polished = polished.replace(/([•\-*])\s*/g, '\n• ');
         // Fix double spaces
         polished = polished.replace(/\s{2,}/g, ' ');
         // Ensure atomic actions are capitalized
