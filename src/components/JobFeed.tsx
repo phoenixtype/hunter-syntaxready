@@ -72,7 +72,7 @@ const JobFeed = ({ profile }: JobFeedProps) => {
                 });
                 setActiveApplication(null);
             } else {
-            } else {
+
                 console.error("Application error:", error);
                 toast.error("Application process interrupted. Please try again.");
             }
