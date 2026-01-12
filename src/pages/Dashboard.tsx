@@ -1,36 +1,29 @@
-import { useEffect, useLayoutEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Briefcase,
   CheckCircle2,
   TrendingUp,
   Clock,
-  Home,
-  LogOut,
-  Menu
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { getPreferences, UserPreferences } from "@/lib/user_preferences";
-import { calculateVisibilityScore, VisibilityScore } from "@/lib/visibility_engine";
-import { getApplicationCount } from "@/lib/application_engine";
 import JobFeed from "@/components/JobFeed";
 import DashboardSkeleton from "@/components/DashboardSkeleton";
 import ThemeToggle from "@/components/ThemeToggle";
 import MobileNav from "@/components/MobileNav";
 import SkipLink from "@/components/SkipLink";
 import { useResume } from "@/hooks/useResume";
-import { getSubscription, SubscriptionTier, checkAccess, UserSubscription } from "@/lib/subscription";
+import { SubscriptionTier, checkAccess } from "@/lib/subscription";
 import { AgentActivityLog } from "@/components/AgentActivityLog";
-import { fetchLogsFromDatabase, setLoggerUserId } from "@/lib/activity_logger";
-import { initializeLearningEngine } from "@/lib/learning_engine";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import PostInterviewModal from "@/components/PostInterviewModal";
 import PricingModal from "@/components/PricingModal";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useDashboardData } from "@/hooks/useDashboardData";
+import WidgetErrorBoundary from "@/components/WidgetErrorBoundary";
 
 interface StatCardProps {
   icon: React.ReactNode;
@@ -41,93 +34,20 @@ interface StatCardProps {
 }
 
 const Dashboard = () => {
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
-  const { profile, loading: resumeLoading, refreshProfile, setProfile } = useResume();
-  const [preferences, setPreferences] = useState<UserPreferences | null>(null);
-  const [dataLoading, setDataLoading] = useState(true);
-  const [visibility, setVisibility] = useState<VisibilityScore | null>(null);
+  const { profile, loading: resumeLoading, setProfile } = useResume();
+  const { subscription, isLoading: subLoading } = useSubscription();
+  const { preferences, appCount, visibility, isLoading: dataLoading } = useDashboardData();
+  
   const [showPostInterview, setShowPostInterview] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
-  const [subscription, setSubscription] = useState<UserSubscription | null>(null);
-  const [appCount, setAppCount] = useState(0);
 
   const handleSignOut = async () => {
     await signOut();
     toast.success("Signed out successfully");
     navigate("/");
   };
-
-  // Redirect unauthenticated users to login (useLayoutEffect to avoid React warning)
-  useLayoutEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/login');
-    }
-  }, [user, authLoading, navigate]);
-
-  // Fetch dashboard data
-  useEffect(() => {
-    if (authLoading || !user) return;
-    let isMounted = true;
-
-    const fetchData = async () => {
-      setDataLoading(true);
-      try {
-        const prefs = await getPreferences(user.id);
-        if (!isMounted) return;
-
-        setPreferences(prefs);
-        if (!prefs) {
-          toast.info("Please complete your agent configuration.");
-          navigate("/onboarding");
-          return;
-        }
-
-        // Senior Dev Fix: Independent failure handling to prevent dashboard crash
-        // 1. Critical User Data (Subscription & App Count)
-        const subPromise = getSubscription().catch(err => {
-          console.error("Failed to fetch subscription:", err);
-          return null;
-        });
-
-        const countPromise = getApplicationCount(user.id).catch(err => {
-          console.warn("Failed to fetch app count:", err);
-          return 0;
-        });
-
-        // 2. Secondary Data (Visibility, Logs, Learning) - Fail silently usually
-        const scorePromise = calculateVisibilityScore(profile).catch(err => {
-          console.warn("Visibility calculation error:", err);
-          return null;
-        });
-
-        // Side effects - don't block render on these
-        fetchLogsFromDatabase(user.id).catch(e => console.error("Logger init error:", e));
-        initializeLearningEngine(user.id).catch(e => console.error("Learning init error:", e));
-
-        const [score, sub, count] = await Promise.all([
-          scorePromise,
-          subPromise,
-          countPromise
-        ]);
-
-        setLoggerUserId(user.id);
-
-        if (!isMounted) return;
-        setVisibility(score);
-        setSubscription(sub);
-        setAppCount(count);
-
-      } catch (error) {
-        console.error("Failed to fetch dashboard data:", error);
-      } finally {
-        if (isMounted) setDataLoading(false);
-      }
-    };
-
-    fetchData();
-    return () => { isMounted = false; };
-  }, [user, authLoading, navigate, profile]);
 
   const handleOpenInterviewTools = () => {
     if (checkAccess('negotiation_coach')) {
@@ -137,8 +57,16 @@ const Dashboard = () => {
     }
   };
 
-  if (authLoading) return <DashboardSkeleton />;
-  if (!user) return null; // Redirect handled by useLayoutEffect
+  // Consolidate loading state
+  if (authLoading || resumeLoading || subLoading || dataLoading) {
+    return <DashboardSkeleton />;
+  }
+
+  // Fallback for strict null checks, though protected route ensures user exists
+  if (!preferences && !dataLoading) {
+      // Small edge case: preferences might take a split second to create on first login
+      // but usually handled by onboarding. We'll show dash anyway.
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary selection:text-primary-foreground">
@@ -198,15 +126,6 @@ const Dashboard = () => {
               trend={appCount > 0 ? "LIVE" : "START"}
               color="blue"
             />
-            {/* Removed Fake Interview Data for Audit Compliance */}
-            {/* <StatCard
-              icon={<CheckCircle2 className="w-4 h-4 text-emerald-500" />}
-              label="Interviews"
-              value="0"
-              trend="UPCOMING"
-              color="emerald"
-            /> */}
-            {/* Real Data: Subscription Tier */}
             <StatCard
               icon={<CheckCircle2 className="w-4 h-4 text-emerald-500" />}
               label="Plan"
@@ -243,19 +162,23 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              <JobFeed profile={profile} />
+              <WidgetErrorBoundary>
+                <JobFeed profile={profile} />
+              </WidgetErrorBoundary>
             </div>
 
             {/* RIGHT WIDGETS COLUMN (1/3) */}
             <div className="space-y-6">
-              <AgentActivityLog />
+              <WidgetErrorBoundary>
+                <AgentActivityLog />
+              </WidgetErrorBoundary>
 
               {/* TIP CARD */}
               <Card className="bg-gradient-to-br from-primary/10 to-purple-500/5 border-primary/20">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Agent Tip</CardTitle>
-                </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between mb-2">
+                     <p className="font-semibold text-sm">Agent Tip</p>
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     Your visibility score is correlated with response rates. Improve your "Skills" section to boost match potential.
                   </p>

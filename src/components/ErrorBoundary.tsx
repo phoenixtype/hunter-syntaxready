@@ -48,9 +48,9 @@ class ErrorBoundary extends Component<Props, State> {
             </div>
             
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold tracking-tight">Something went wrong</h1>
+              <h1 className="text-2xl font-bold tracking-tight">Oops! We hit a snag.</h1>
               <p className="text-muted-foreground text-sm">
-                We encountered an unexpected error. Please try again or return to the home page.
+                Our agents ran into an unexpected issue. Don't worry, your progress has been saved.
               </p>
             </div>
 

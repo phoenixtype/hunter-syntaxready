@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { JobOpportunity, searchJobs, triggerJobCrawl, getJobCount } from "@/lib/crawler_engine";
+import { JobOpportunity } from "@/lib/crawler_engine";
 import { CandidateProfile } from "@/lib/resume_engine";
 import { calculateMatch, MatchResult } from "@/lib/matching_engine";
 import { generateTailoredContent, TailoredContent } from "@/lib/writer_engine";
@@ -18,16 +18,11 @@ interface JobFeedProps {
     profile: CandidateProfile | null;
 }
 
-interface EnrichedJob extends JobOpportunity {
-    match?: MatchResult;
-}
+import { useJobs } from "@/hooks/useJobs";
 
 const JobFeed = ({ profile }: JobFeedProps) => {
     const { user } = useAuth();
-    const [jobs, setJobs] = useState<EnrichedJob[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [crawling, setCrawling] = useState(false);
-    const [jobCount, setJobCount] = useState<number>(0);
+    const { jobs, jobCount, loading, crawling, refreshJobs, crawl } = useJobs(profile);
     const [activeApplication, setActiveApplication] = useState<ApplicationState | null>(null);
     const [stakeholders, setStakeholders] = useState<Record<string, Stakeholder[]>>({});
     const [prepJob, setPrepJob] = useState<JobOpportunity | null>(null);
@@ -77,15 +72,18 @@ const JobFeed = ({ profile }: JobFeedProps) => {
                 });
                 setActiveApplication(null);
             } else {
+            } else {
                 console.error("Application error:", error);
-                toast.error("Application failed due to technical error.");
+                toast.error("Application process interrupted. Please try again.");
             }
             setActiveApplication(null);
         }
     };
 
     const handleDismiss = async (job: JobOpportunity) => {
-        setJobs(current => current.filter(j => j.id !== job.id));
+        // Optimistic update should be handled by cache invalidation in real app, but for now specific hook handling is better
+        // The implementation here matches the original UX visually
+        // ideally we'd call a mutation in useJobs but for now just removing from UI via toast and refresh
         await recordFeedback({
             jobId: job.id,
             action: 'DISMISS',
@@ -93,6 +91,7 @@ const JobFeed = ({ profile }: JobFeedProps) => {
             jobMetadata: { skills: [], company: job.company, source: job.source }
         });
         toast("Job dismissed", { description: "Hunter will show fewer jobs like this." });
+        refreshJobs();
     };
 
     const handleExpandJob = async (jobId: string) => {
@@ -121,182 +120,15 @@ const JobFeed = ({ profile }: JobFeedProps) => {
         }
     };
 
-    const fetchJobs = async () => {
-        setLoading(true);
-        try {
-            const rawJobs = await searchJobs();
-            const weights = getOptimizedWeights();
-            const count = await getJobCount();
-            setJobCount(count);
-
-            // If we have a profile, calculate matches
-            let enrichedJobs = rawJobs;
-            if (profile) {
-                const matches = await Promise.all(
-                    rawJobs.map(async (job) => {
-                        const match = await calculateMatch(profile, job, weights);
-                        return { ...job, match };
-                    })
-                );
-                // Filter out 0 scores (banned)
-                enrichedJobs = matches
-                    .filter(j => j.match.overall_score > 0)
-                    .sort((a, b) => b.match.overall_score - a.match.overall_score);
-            }
-
-            setJobs(enrichedJobs);
-            if (enrichedJobs.length > 0) {
-                toast.success(`Loaded ${enrichedJobs.length} opportunities.`);
-            }
-        } catch (e) {
-            console.error("Failed to fetch jobs:", e);
-            toast.error("Failed to fetch jobs.");
-        } finally {
-            setLoading(false);
-        }
+    const handleCrawl = () => {
+        toast.info(profile ? "Targeting your skills..." : "Starting global hunt...");
+        crawl();
     };
 
-    const handleCrawl = async () => {
-        setCrawling(true);
-
-        // Personalized Crawl Logic
-        let keywords: string[] = ['hiring now'];
-        if (profile) {
-            const topSkills = profile.skills.slice(0, 3).map(s => s.name);
-            const latestRole = profile.experience_atoms?.[0]?.role; // e.g. "Marketing Manager"
-
-            keywords = [];
-            if (latestRole) keywords.push(latestRole);
-            if (topSkills.length > 0) keywords.push(...topSkills);
-        }
-
-        const description = keywords.length > 0 ? `Targeting: ${keywords.slice(0, 2).join(', ')}...` : "Starting global hunt...";
-        toast.info(description);
-
-        try {
-            const result = await triggerJobCrawl(undefined, keywords);
-
-            if (result.success) {
-                toast.success(`Crawl complete! Found ${result.inserted || 0} new jobs`);
-                // Refresh the job list - use inline logic to avoid duplicate function
-                setLoading(true);
-                const rawJobs = await searchJobs();
-                const weights = getOptimizedWeights();
-                const count = await getJobCount();
-                setJobCount(count);
-
-                let enrichedJobs = rawJobs;
-                if (profile) {
-                    const matches = await Promise.all(
-                        rawJobs.map(async (job) => {
-                            const match = await calculateMatch(profile, job, weights);
-                            return { ...job, match };
-                        })
-                    );
-                    enrichedJobs = matches
-                        .filter(j => j.match.overall_score > 0)
-                        .sort((a, b) => b.match.overall_score - a.match.overall_score);
-                }
-                setJobs(enrichedJobs);
-                setLoading(false);
-            } else {
-                toast.error("Crawl failed", { description: result.error });
-            }
-        } catch (err) {
-            toast.error("Crawl error", {
-                description: err instanceof Error ? err.message : "Unknown error"
-            });
-        } finally {
-            setCrawling(false);
-        }
+    const handleRefresh = () => {
+        refreshJobs();
+        toast.info("Refreshing opportunities...");
     };
-
-    const handleRefresh = async () => {
-        setLoading(true);
-        try {
-            const rawJobs = await searchJobs();
-            const weights = getOptimizedWeights();
-            const count = await getJobCount();
-            setJobCount(count);
-
-            let enrichedJobs = rawJobs;
-            if (profile) {
-                const matches = await Promise.all(
-                    rawJobs.map(async (job) => {
-                        const match = await calculateMatch(profile, job, weights);
-                        return { ...job, match };
-                    })
-                );
-                enrichedJobs = matches
-                    .filter(j => j.match.overall_score > 0)
-                    .sort((a, b) => b.match.overall_score - a.match.overall_score);
-            }
-
-            setJobs(enrichedJobs);
-            if (enrichedJobs.length > 0) {
-                toast.success(`Loaded ${enrichedJobs.length} opportunities.`);
-            }
-        } catch (e) {
-            console.error("Failed to fetch jobs:", e);
-            toast.error("Failed to fetch jobs.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        let isMounted = true;
-
-        const loadJobs = async () => {
-            setLoading(true);
-            try {
-                const rawJobs = await searchJobs();
-                if (!isMounted) return;
-
-                const weights = getOptimizedWeights();
-                const count = await getJobCount();
-                if (!isMounted) return;
-
-                setJobCount(count);
-
-                // If we have a profile, calculate matches
-                let enrichedJobs = rawJobs;
-                if (profile) {
-                    const matches = await Promise.all(
-                        rawJobs.map(async (job) => {
-                            const match = await calculateMatch(profile, job, weights);
-                            return { ...job, match };
-                        })
-                    );
-                    // Filter out 0 scores (banned)
-                    enrichedJobs = matches
-                        .filter(j => (j.match.overall_score || 0) > 0)
-                        .sort((a, b) => (b.match.overall_score || 0) - (a.match.overall_score || 0));
-                }
-
-                if (!isMounted) return;
-                setJobs(enrichedJobs);
-                if (enrichedJobs.length > 0) {
-                    toast.success(`Loaded ${enrichedJobs.length} opportunities.`);
-                }
-            } catch (e) {
-                console.error("Failed to fetch jobs:", e);
-                if (isMounted) {
-                    toast.error("Failed to fetch jobs.");
-                }
-            } finally {
-                if (isMounted) {
-                    setLoading(false);
-                }
-            }
-        };
-
-        loadJobs();
-
-        return () => {
-            isMounted = false;
-        };
-    }, [profile]); // Re-run when profile changes
 
     return (
         <div className="glass-card rounded-2xl overflow-hidden flex flex-col h-[600px] animate-fade-in">
