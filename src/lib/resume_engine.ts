@@ -410,3 +410,24 @@ export const saveCandidateProfile = async (userId: string, profile: CandidatePro
     throw error;
   }
 };
+
+// Helper to polish text using AI (Mock for now to save tokens, or use generate-content)
+export const polishText = async (text: string, type: 'experience' | 'skill'): Promise<string> => {
+    // For now, we'll use a heuristic polish to ensure "world class" speed without edge function dependency issues.
+    let polished = text.trim();
+
+    // 1. Fix capitalization
+    polished = polished.charAt(0).toUpperCase() + polished.slice(1);
+
+    // 2. Fix bullet points
+    if (type === 'experience') {
+        // Ensure bullet points start on new lines
+        polished = polished.replace(/([•\-\*])\s*/g, '\n• ');
+        // Fix double spaces
+        polished = polished.replace(/\s{2,}/g, ' ');
+        // Ensure atomic actions are capitalized
+        polished = polished.replace(/\n•\s+([a-z])/g, (match, char) => `\n• ${char.toUpperCase()}`);
+    }
+
+    return polished;
+};
