@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CheckCircle2, XCircle, Loader2, ArrowRight, Mail, RefreshCw } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,6 +15,7 @@ const EmailVerification = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [resending, setResending] = useState(false);
   const [lastEmail, setLastEmail] = useState<string | null>(null);
+  const [manualEmail, setManualEmail] = useState("");
 
   // If user is already authenticated, redirect immediately
   useEffect(() => {
@@ -66,8 +68,10 @@ const EmailVerification = () => {
   }, [searchParams, navigate, authLoading, user]);
 
   const handleResendEmail = async () => {
-    if (!lastEmail) {
-      toast.error("Please sign up again to receive a new verification email.");
+    const emailToResend = lastEmail || manualEmail;
+
+    if (!emailToResend) {
+      toast.error("Please enter your email address.");
       return;
     }
 
@@ -75,7 +79,7 @@ const EmailVerification = () => {
     try {
       const { error } = await supabase.auth.resend({
         type: 'signup',
-        email: lastEmail,
+        email: emailToResend,
         options: {
           emailRedirectTo: `${window.location.origin}/verify-email`,
         },
@@ -84,7 +88,12 @@ const EmailVerification = () => {
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success("Verification email sent! Check your inbox.");
+        toast.success(`Verification email sent to ${emailToResend}! Check your inbox.`);
+        // If successful, save to session storage for convenience
+        if (!lastEmail) {
+            setLastEmail(emailToResend);
+            sessionStorage.setItem('pendingVerificationEmail', emailToResend);
+        }
       }
     } catch (err) {
       toast.error("Failed to resend email. Please try again.");
@@ -176,7 +185,7 @@ const EmailVerification = () => {
               
               <div className="p-4 rounded-lg bg-muted/50 text-sm text-muted-foreground space-y-2">
                 <p>Didn't receive the email? Check your spam folder.</p>
-                {lastEmail && (
+                {lastEmail ? (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -192,10 +201,36 @@ const EmailVerification = () => {
                     ) : (
                       <>
                         <RefreshCw className="w-4 h-4 mr-2" />
-                        Resend verification email
+                        Resend verification email to {lastEmail}
                       </>
                     )}
                   </Button>
+                ) : (
+                  <div className="flex flex-col gap-2 mt-4 max-w-xs mx-auto">
+                    <Input 
+                      type="email" 
+                      placeholder="Enter your email" 
+                      value={manualEmail} 
+                      onChange={(e) => setManualEmail(e.target.value)}
+                      className="h-10 text-sm"
+                    />
+                     <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={handleResendEmail}
+                      disabled={resending || !manualEmail}
+                      className="w-full"
+                    >
+                      {resending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        "Resend verification email"
+                      )}
+                    </Button>
+                  </div>
                 )}
               </div>
 

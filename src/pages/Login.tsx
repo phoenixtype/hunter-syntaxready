@@ -32,6 +32,15 @@ const Login = () => {
       const { error } = await signIn(email, password);
 
       if (error) {
+        // Handle unconfirmed email specifically
+        if (error.message.includes("Email not confirmed")) {
+          // Store email for resend functionality
+          sessionStorage.setItem('pendingVerificationEmail', email);
+          toast.error("Please verify your email address before signing in.");
+          navigate("/verify-email");
+          return;
+        }
+
         // SECURITY: Use generic error message to prevent email enumeration
         // Don't reveal whether the email exists or if password is wrong
         toast.error("Invalid credentials. Please check your email and password.");
