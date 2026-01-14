@@ -19,25 +19,28 @@ export const useJobs = (profile: CandidateProfile | null) => {
     });
 
     // 2. Fetch and Sort/Match Jobs
-    const { data: jobs = [], isLoading: jobsLoading, refetch: refreshJobs } = useQuery({
+    const { data: jobs = [], isLoading: jobsLoading, refetch: refreshJobs } = useQuery<EnrichedJob[]>({
         queryKey: ['jobs', profile], // Refetch if profile changes to re-rank
-        queryFn: async () => {
+        queryFn: async (): Promise<EnrichedJob[]> => {
             const rawJobs = await searchJobs();
             
-            if (!profile) return rawJobs;
+            if (!profile) {
+                // Return raw jobs as EnrichedJob (without match data)
+                return rawJobs.map(job => ({ ...job, match: undefined }));
+            }
 
             const weights = getOptimizedWeights();
             const matches = await Promise.all(
                 rawJobs.map(async (job) => {
                     const match = await calculateMatch(profile, job, weights);
-                    return { ...job, match };
+                    return { ...job, match } as EnrichedJob;
                 })
             );
 
             // Filter out banned matches (score 0) & Sort by score
             return matches
-                .filter(j => j.match.overall_score > 0)
-                .sort((a, b) => b.match.overall_score - a.match.overall_score);
+                .filter(j => j.match && j.match.overall_score > 0)
+                .sort((a, b) => (b.match?.overall_score ?? 0) - (a.match?.overall_score ?? 0));
         },
         staleTime: 1000 * 60 * 5 // 5 minutes
     });

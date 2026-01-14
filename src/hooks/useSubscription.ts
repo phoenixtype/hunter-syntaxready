@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getSubscription, UserSubscription, SubscriptionTier, checkAccess } from "@/lib/subscription";
+import { getSubscription, UserSubscription, SubscriptionTier, checkAccess, Feature } from "@/lib/subscription";
 
 export const useSubscription = () => {
     // Basic subscription query
@@ -11,9 +11,9 @@ export const useSubscription = () => {
     });
 
     // Helper to check feature access easily
-    const canAccess = (feature: string) => {
+    const canAccess = (feature: Feature) => {
         if (!subscription) return false;
-        return checkAccess(feature); // Leverages the existing lib utility but could be moved here if needed
+        return checkAccess(feature);
     };
 
     return {
