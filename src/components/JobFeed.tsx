@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { JobOpportunity } from "@/lib/crawler_engine";
 import { CandidateProfile } from "@/lib/resume_engine";
-import { calculateMatch, MatchResult } from "@/lib/matching_engine";
+import { EnrichedJob } from "@/hooks/useJobs";
 import { generateTailoredContent, TailoredContent } from "@/lib/writer_engine";
 import { simulateApplication, ApplicationState, ComplianceError, getApplicationHistory } from "@/lib/application_engine";
 import { recordFeedback, getOptimizedWeights, MatchingWeights } from "@/lib/learning_engine";
@@ -25,7 +25,7 @@ const JobFeed = ({ profile }: JobFeedProps) => {
     const { jobs, jobCount, loading, crawling, refreshJobs, crawl } = useJobs(profile);
     const [activeApplication, setActiveApplication] = useState<ApplicationState | null>(null);
     const [stakeholders, setStakeholders] = useState<Record<string, Stakeholder[]>>({});
-    const [prepJob, setPrepJob] = useState<JobOpportunity | null>(null);
+    const [prepJob, setPrepJob] = useState<EnrichedJob | null>(null);
     const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set());
 
     // Senior Dev Fix: Prevent duplicate applications
@@ -36,7 +36,7 @@ const JobFeed = ({ profile }: JobFeedProps) => {
         });
     }, [user]);
 
-    const handleApply = async (job: JobOpportunity) => {
+    const handleApply = async (job: EnrichedJob) => {
         if (appliedJobIds.has(job.id)) {
             toast.error("You have already applied to this position.");
             return;
@@ -80,7 +80,7 @@ const JobFeed = ({ profile }: JobFeedProps) => {
         }
     };
 
-    const handleDismiss = async (job: JobOpportunity) => {
+    const handleDismiss = async (job: EnrichedJob) => {
         // Optimistic update should be handled by cache invalidation in real app, but for now specific hook handling is better
         // The implementation here matches the original UX visually
         // ideally we'd call a mutation in useJobs but for now just removing from UI via toast and refresh
@@ -107,7 +107,7 @@ const JobFeed = ({ profile }: JobFeedProps) => {
         }
     };
 
-    const handleTailor = async (job: JobOpportunity) => {
+    const handleTailor = async (job: EnrichedJob) => {
         if (!profile) return;
         toast.info("Writer Agent is rewriting your resume...");
         try {
