@@ -49,8 +49,12 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-background transition-colors duration-500 safe-area-inset-bottom">
-      <div className="w-full max-w-md animate-scale-in">
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-background transition-colors duration-500 safe-area-inset-bottom relative overflow-hidden">
+      {/* Ambient Background Orbs */}
+      <div className="ambient-orb ambient-orb-primary w-[400px] h-[400px] -top-32 -left-32 animate-float-slow -z-10" aria-hidden="true" />
+      <div className="ambient-orb ambient-orb-primary w-[300px] h-[300px] -bottom-20 -right-20 animate-float -z-10" style={{ animationDelay: '1.5s' }} aria-hidden="true" />
+      
+      <div className="w-full max-w-md animate-scale-in relative z-10">
         <Link
           to="/"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 sm:mb-6 transition-colors touch-manipulation py-2"
@@ -59,7 +63,7 @@ const Login = () => {
           Back to Home
         </Link>
 
-        <div className="glass-card rounded-2xl p-6 sm:p-8 md:p-12 space-y-6 sm:space-y-8">
+        <div className="glass-card glass-premium rounded-2xl p-6 sm:p-8 md:p-12 space-y-6 sm:space-y-8">
           <div className="space-y-2 text-center">
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Welcome back</h1>
             <p className="text-muted-foreground text-sm">Enter your credentials to access your agent</p>
@@ -74,7 +78,7 @@ const Login = () => {
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                className="bg-transparent border-muted h-12"
+                className="bg-transparent border-muted h-12 input-glow transition-all duration-300"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
@@ -98,7 +102,7 @@ const Login = () => {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
-                  className="bg-transparent border-muted h-12 pr-10"
+                  className="bg-transparent border-muted h-12 pr-10 input-glow transition-all duration-300"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
@@ -115,7 +119,8 @@ const Login = () => {
             </div>
             <Button
               type="submit"
-              className="w-full h-12 sm:h-14 text-base font-medium transition-transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation"
+              variant="gradient"
+              className="w-full h-12 sm:h-14 text-base font-medium touch-manipulation rounded-xl"
               disabled={isLoading}
             >
               {isLoading ? (

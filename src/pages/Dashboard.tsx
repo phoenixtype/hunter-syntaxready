@@ -1,13 +1,8 @@
-import { useNavigate } from "react-router-dom";
-import {
-  Briefcase,
-  CheckCircle2,
-  TrendingUp,
-  Clock,
-} from "lucide-react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Search, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import JobFeed from "@/components/JobFeed";
@@ -17,21 +12,12 @@ import MobileNav from "@/components/MobileNav";
 import SkipLink from "@/components/SkipLink";
 import { useResume } from "@/hooks/useResume";
 import { SubscriptionTier, checkAccess } from "@/lib/subscription";
-import { AgentActivityLog } from "@/components/AgentActivityLog";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import PostInterviewModal from "@/components/PostInterviewModal";
 import PricingModal from "@/components/PricingModal";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import WidgetErrorBoundary from "@/components/WidgetErrorBoundary";
-
-interface StatCardProps {
-  icon: React.ReactNode;
-  label: string;
-  value: string | number;
-  trend: string;
-  color: string;
-}
 
 const Dashboard = () => {
   const { loading: authLoading, signOut } = useAuth();
@@ -62,38 +48,27 @@ const Dashboard = () => {
     return <DashboardSkeleton />;
   }
 
-  // Fallback for strict null checks, though protected route ensures user exists
-  if (!preferences && !dataLoading) {
-      // Small edge case: preferences might take a split second to create on first login
-      // but usually handled by onboarding. We'll show dash anyway.
-  }
-
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary selection:text-primary-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       <SkipLink />
 
-      {/* HEADER: Condensed & Action Oriented */}
-      <header className="fixed top-0 w-full z-50 glass border-b border-border/40 backdrop-blur-xl bg-background/60">
-        <div className="container max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-xl shadow-lg shadow-primary/20">h.</div>
-            <span className="font-bold tracking-tight text-lg hidden sm:inline">hunter.</span>
-          </div>
+      {/* CLEAN HEADER */}
+      <header className="fixed top-0 w-full z-50 border-b border-border/40 backdrop-blur-xl bg-background/80">
+        <div className="container max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <div className="w-7 h-7 rounded-lg bg-foreground flex items-center justify-center text-background font-bold text-sm">h</div>
+            <span className="font-semibold text-base hidden sm:inline">hunter</span>
+          </Link>
 
-          <div className="flex items-center gap-3">
-            {/* PRO BADGE - Show if paid tier */}
+          <div className="flex items-center gap-2">
             {subscription && subscription.tier !== SubscriptionTier.FREE ? (
-              <Badge variant="outline" className="border-primary/50 text-primary bg-primary/10">PRO ACTIVE</Badge>
+              <Badge variant="secondary" className="text-xs">Pro</Badge>
             ) : (
-              <Button size="sm" onClick={() => setShowPricing(true)} className="hidden sm:flex text-xs h-8 bg-gradient-to-r from-primary to-purple-600 hover:opacity-90">
-                Get Pro
+              <Button size="sm" variant="ghost" onClick={() => setShowPricing(true)} className="text-xs h-8">
+                Upgrade
               </Button>
             )}
-
-            <div className="h-6 w-px bg-border/50 hidden sm:block"></div>
             <ThemeToggle />
-
-            {/* Mobile Menu */}
             <div className="lg:hidden">
               <MobileNav isAuthenticated={true} onSignOut={handleSignOut} />
             </div>
@@ -101,96 +76,59 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* LAYOUT GRID */}
-      <div className="container max-w-7xl mx-auto px-4 pt-24 pb-12 flex gap-8">
+      {/* SIMPLE LAYOUT */}
+      <div className="container max-w-6xl mx-auto px-4 pt-20 pb-12">
+        
+        {/* Welcome Section */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-semibold mb-1">
+            {profile?.identity?.name ? `Welcome back, ${profile.identity.name.split(' ')[0]}` : 'Welcome'}
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            {appCount > 0 
+              ? `You have ${appCount} active application${appCount > 1 ? 's' : ''}`
+              : 'Start your job search below'
+            }
+          </p>
+        </div>
 
-        {/* LEFT SIDEBAR (Desktop Only) */}
-        <DashboardSidebar
-          profile={profile}
-          visibility={visibility}
-          preferences={preferences}
-          onRefreshProfile={() => setProfile(null)}
-          onUploadProfile={setProfile}
-          onSignOut={handleSignOut}
-        />
-
-        {/* MAIN CONTENT AREA */}
-        <main className="flex-1 min-w-0 space-y-8">
-
-          {/* STATS ROW */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <StatCard
-              icon={<Briefcase className="w-4 h-4 text-blue-500" />}
-              label="Active Apps"
-              value={appCount.toString()}
-              trend={appCount > 0 ? "LIVE" : "START"}
-              color="blue"
-            />
-            <StatCard
-              icon={<CheckCircle2 className="w-4 h-4 text-emerald-500" />}
-              label="Plan"
-              value={subscription?.tier === SubscriptionTier.PRO ? "PRO" : "FREE"}
-              trend={subscription?.tier === SubscriptionTier.PRO ? "ACTIVE" : "UPGRADE"}
-              color="emerald"
-            />
-            <StatCard
-              icon={<TrendingUp className="w-4 h-4 text-purple-500" />}
-              label="Match Score"
-              value={visibility?.totalScore || 78}
-              trend="High"
-              color="purple"
-            />
-            <StatCard
-              icon={<Clock className="w-4 h-4 text-amber-500" />}
-              label="Avg Response"
-              value="~3 Steps"
-              trend="Typical"
-              color="amber"
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          
+          {/* Sidebar - Left */}
+          <div className="lg:col-span-1 space-y-4">
+            <DashboardSidebar
+              profile={profile}
+              visibility={visibility}
+              preferences={preferences}
+              onRefreshProfile={() => setProfile(null)}
+              onUploadProfile={setProfile}
+              onSignOut={handleSignOut}
             />
           </div>
 
-          {/* MAIN FEED */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-            {/* FEED COLUMN (2/3) */}
-            <div className="xl:col-span-2 space-y-6">
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="text-2xl font-bold tracking-tight">Mission Control</h2>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={handleOpenInterviewTools}>
-                    Interview Tools
-                  </Button>
-                </div>
+          {/* Main Content - Right */}
+          <div className="lg:col-span-3 space-y-6">
+            
+            {/* Job Feed Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold">Jobs for you</h2>
+                <p className="text-xs text-muted-foreground">Matched based on your profile</p>
               </div>
-
-              <WidgetErrorBoundary>
-                <JobFeed profile={profile} />
-              </WidgetErrorBoundary>
+              <Button size="sm" variant="outline" onClick={handleOpenInterviewTools} className="text-xs">
+                <Sparkles className="w-3 h-3 mr-1.5" />
+                Interview Prep
+              </Button>
             </div>
 
-            {/* RIGHT WIDGETS COLUMN (1/3) */}
-            <div className="space-y-6">
-              <WidgetErrorBoundary>
-                <AgentActivityLog />
-              </WidgetErrorBoundary>
+            {/* Job Feed */}
+            <WidgetErrorBoundary>
+              <JobFeed profile={profile} />
+            </WidgetErrorBoundary>
 
-              {/* TIP CARD */}
-              <Card className="bg-gradient-to-br from-primary/10 to-purple-500/5 border-primary/20">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between mb-2">
-                     <p className="font-semibold text-sm">Agent Tip</p>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Your visibility score is correlated with response rates. Improve your "Skills" section to boost match potential.
-                  </p>
-                  <Button variant="link" size="sm" className="px-0 text-primary text-xs mt-2">
-                    Optimize Profile &rarr;
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
           </div>
-
-        </main>
+        </div>
       </div>
 
       {/* Modals */}
@@ -205,58 +143,6 @@ const Dashboard = () => {
         onClose={() => setShowPricing(false)}
       />
     </div>
-  );
-};
-
-// MINI COMPONENT FOR STATS
-const StatCard = ({ icon, label, value, trend, color }: StatCardProps) => {
-  // Map colors to actual Tailwind classes
-  const colorClasses = {
-    blue: {
-      border: 'border-blue-500/10',
-      bg: 'bg-blue-500/5 hover:bg-blue-500/10',
-      iconBg: 'bg-blue-500/10',
-      badge: 'bg-blue-500/10 text-blue-500'
-    },
-    emerald: {
-      border: 'border-emerald-500/10',
-      bg: 'bg-emerald-500/5 hover:bg-emerald-500/10',
-      iconBg: 'bg-emerald-500/10',
-      badge: 'bg-emerald-500/10 text-emerald-500'
-    },
-    purple: {
-      border: 'border-purple-500/10',
-      bg: 'bg-purple-500/5 hover:bg-purple-500/10',
-      iconBg: 'bg-purple-500/10',
-      badge: 'bg-purple-500/10 text-purple-500'
-    },
-    amber: {
-      border: 'border-amber-500/10',
-      bg: 'bg-amber-500/5 hover:bg-amber-500/10',
-      iconBg: 'bg-amber-500/10',
-      badge: 'bg-amber-500/10 text-amber-500'
-    }
-  };
-
-  const classes = colorClasses[color as keyof typeof colorClasses] || colorClasses.blue;
-
-  return (
-    <Card className={`glass-card ${classes.border} ${classes.bg} transition-all`}>
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-2">
-          <div className={`p-2 rounded-lg ${classes.iconBg}`}>
-            {icon}
-          </div>
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${classes.badge}`}>
-            {trend}
-          </span>
-        </div>
-        <div className="mt-2">
-          <div className="text-2xl font-bold tracking-tight">{value}</div>
-          <div className="text-xs text-muted-foreground font-medium">{label}</div>
-        </div>
-      </CardContent>
-    </Card>
   );
 };
 

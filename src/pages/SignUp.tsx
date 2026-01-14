@@ -78,14 +78,18 @@ const SignUp = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background transition-colors duration-500">
-      <div className="w-full max-w-md animate-fadeInUp">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background transition-colors duration-500 relative overflow-hidden">
+      {/* Ambient Background Orbs */}
+      <div className="ambient-orb ambient-orb-primary w-[450px] h-[450px] -top-40 -right-40 animate-float-slow -z-10" aria-hidden="true" />
+      <div className="ambient-orb ambient-orb-primary w-[350px] h-[350px] -bottom-32 -left-32 animate-float -z-10" style={{ animationDelay: '2s' }} aria-hidden="true" />
+      
+      <div className="w-full max-w-md animate-fadeInUp relative z-10">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Back to Home
         </Link>
 
-        <div className="glass-card rounded-2xl p-8 md:p-12 space-y-8">
+        <div className="glass-card glass-premium rounded-2xl p-8 md:p-12 space-y-8">
           <div className="space-y-2 text-center">
             <h1 className="text-3xl font-semibold tracking-tight">Create an account</h1>
             <p className="text-muted-foreground text-sm">Start your autonomous job search today</p>
@@ -100,7 +104,7 @@ const SignUp = () => {
                 id="fullName"
                 type="text"
                 placeholder="John Doe"
-                className="bg-transparent border-muted h-12"
+                className="bg-transparent border-muted h-12 input-glow transition-all duration-300"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 disabled={isLoading}
@@ -114,7 +118,7 @@ const SignUp = () => {
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                className="bg-transparent border-muted h-12"
+                className="bg-transparent border-muted h-12 input-glow transition-all duration-300"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
@@ -129,7 +133,7 @@ const SignUp = () => {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Create a strong password"
-                  className="bg-transparent border-muted h-12 pr-10"
+                  className="bg-transparent border-muted h-12 pr-10 input-glow transition-all duration-300"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
@@ -169,7 +173,8 @@ const SignUp = () => {
             </div>
             <Button
               type="submit"
-              className="w-full h-12 text-base font-medium transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              variant="gradient"
+              className="w-full h-12 text-base font-medium touch-manipulation rounded-xl"
               disabled={isLoading}
             >
               {isLoading ? (

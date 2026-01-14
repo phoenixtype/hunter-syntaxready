@@ -67,7 +67,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                             <li className="flex items-center gap-2"><Zap className="w-4 h-4 text-yellow-500" /> Visibility Signal Analysis</li>
                         </ul>
                         <Button
-                            className="w-full relative z-10 bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 transition-opacity"
+                            className="w-full relative z-10 bg-primary hover:bg-primary/90 transition-colors"
                             onClick={handleUpgrade}
                             disabled={loading}
                         >

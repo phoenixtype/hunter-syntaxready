@@ -54,7 +54,7 @@ const Onboarding = () => {
             <div className="w-full max-w-2xl space-y-12">
                 <div className="space-y-4">
                     <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-                        Define your hunt.
+                        Define your <span className="gradient-text">hunt.</span>
                     </h1>
                     <p className="text-xl text-muted-foreground">
                         Configure the agent's parameters. Be precise.
@@ -69,7 +69,7 @@ const Onboarding = () => {
                             value={roles}
                             onChange={(e) => setRoles(e.target.value)}
                             placeholder="e.g. Senior Frontend Engineer, Product Architect, CTO"
-                            className="h-16 text-lg bg-transparent border-2 border-muted focus-visible:ring-0 focus-visible:border-primary transition-colors"
+                            className="h-16 text-lg bg-transparent border-2 border-muted focus-visible:ring-0 focus-visible:border-primary transition-all duration-300 input-glow"
                         />
                     </div>
 
@@ -130,9 +130,9 @@ const Onboarding = () => {
                                         key={mode}
                                         type="button"
                                         onClick={() => setRemotePolicy(mode)}
-                                        className={`h-12 border rounded-lg text-sm font-medium transition-all ${remotePolicy === mode
+                                        className={`h-12 border rounded-lg text-sm font-medium transition-all duration-300 ${remotePolicy === mode
                                             ? 'bg-primary text-primary-foreground border-primary'
-                                            : 'border-muted hover:border-primary/50'
+                                            : 'border-muted hover:border-primary/50 hover:bg-secondary/50'
                                             }`}
                                     >
                                         {mode.charAt(0).toUpperCase() + mode.slice(1)}
@@ -165,7 +165,8 @@ const Onboarding = () => {
                     <Button
                         type="submit"
                         size="lg"
-                        className="w-full h-16 text-lg font-bold rounded-full transition-transform hover:scale-[1.01] active:scale-[0.99]"
+                        variant="gradient"
+                        className="w-full h-16 text-lg font-bold rounded-full"
                         disabled={loading}
                     >
                         {loading ? <Loader2 className="animate-spin" /> : "Initiate Agent"}

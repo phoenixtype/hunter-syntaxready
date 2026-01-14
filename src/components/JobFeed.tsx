@@ -131,19 +131,10 @@ const JobFeed = ({ profile }: JobFeedProps) => {
     };
 
     return (
-        <div className="glass-card rounded-2xl overflow-hidden flex flex-col h-[600px] animate-fade-in">
-            <div className="p-6 border-b border-border/50 flex items-center justify-between bg-secondary/10">
-                <div className="flex items-center gap-3">
-                    <Terminal className="w-5 h-5 text-primary" />
-                    <div className="flex flex-col">
-                        <h2 className="font-semibold tracking-tight leading-none">Job Feed_</h2>
-                        <span className="text-[10px] text-muted-foreground font-mono mt-1 flex items-center gap-1">
-                            <Clock className="w-3 h-3" /> Auto-Hunt: <span className="text-primary">ON</span> (Every 6h)
-                        </span>
-                    </div>
-                    <Badge variant="outline" className="text-xs font-mono font-normal bg-background/50 ml-2">
-                        {jobCount > 0 ? `${jobCount} indexed` : 'LIVE'}
-                    </Badge>
+        <div className="bg-card border border-border/50 rounded-xl overflow-hidden flex flex-col h-[600px]">
+            <div className="p-4 border-b border-border/50 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">{jobCount > 0 ? `${jobCount} jobs found` : 'Finding jobs...'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <Button
@@ -151,17 +142,17 @@ const JobFeed = ({ profile }: JobFeedProps) => {
                         size="sm"
                         onClick={handleCrawl}
                         disabled={crawling || loading}
-                        className="text-xs"
+                        className="text-xs h-7"
                     >
                         {crawling ? (
                             <>
                                 <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                                Crawling...
+                                Searching...
                             </>
                         ) : (
                             <>
                                 <Globe className="w-3 h-3 mr-1" />
-                                Crawl Jobs
+                                Find More
                             </>
                         )}
                     </Button>
@@ -170,10 +161,10 @@ const JobFeed = ({ profile }: JobFeedProps) => {
                         size="icon"
                         onClick={handleRefresh}
                         disabled={loading || crawling}
-                        className={loading ? "animate-spin" : ""}
-                        aria-label="Refresh job list"
+                        className={`h-7 w-7 ${loading ? "animate-spin" : ""}`}
+                        aria-label="Refresh"
                     >
-                        <RefreshCw className="w-4 h-4" />
+                        <RefreshCw className="w-3.5 h-3.5" />
                     </Button>
                 </div>
             </div>
@@ -183,20 +174,20 @@ const JobFeed = ({ profile }: JobFeedProps) => {
                     {jobs.map((job) => (
                         <div
                             key={job.id}
-                            className="group p-6 border-b border-border/50 hover:bg-secondary/20 transition-colors cursor-pointer flex flex-col md:flex-row gap-4 md:items-start"
-                        >
-                            {/* Match Score Indicator */}
+                            className="group p-4 border-b border-border/50 hover:bg-secondary/30 transition-colors cursor-pointer flex gap-3">
+
+                            {/* Match Score */}
                             {job.match && (
-                                <div className="flex flex-col items-center justify-center -ml-2 mr-2">
+                                <div className="flex flex-col items-center justify-center mr-3">
                                     <div className={`
-                    w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm border-2
-                    ${job.match.overall_score >= 80 ? 'border-green-500 text-green-500 bg-green-500/10' :
-                                            job.match.overall_score >= 60 ? 'border-yellow-500 text-yellow-500 bg-yellow-500/10' :
-                                                'border-muted text-muted-foreground bg-muted/10'}
-                   `}>
+                                        w-10 h-10 rounded-full flex items-center justify-center font-semibold text-xs border
+                                        ${job.match.overall_score >= 80 ? 'border-green-500/50 text-green-600 dark:text-green-400 bg-green-500/10' :
+                                            job.match.overall_score >= 60 ? 'border-yellow-500/50 text-yellow-600 dark:text-yellow-400 bg-yellow-500/10' :
+                                                'border-border text-muted-foreground bg-muted/50'}
+                                    `}>
                                         {job.match.overall_score}%
                                     </div>
-                                    <span className="text-[10px] uppercase font-bold text-muted-foreground mt-1 tracking-wider">ATS Match</span>
+                                    <span className="text-[9px] text-muted-foreground mt-0.5">match</span>
                                 </div>
                             )}
 
@@ -302,11 +293,11 @@ const JobFeed = ({ profile }: JobFeedProps) => {
                                 )}
                             </div>
 
-                            <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity self-center shrink-0">
-                                <Button variant="secondary" size="sm" onClick={(e) => { e.stopPropagation(); handleTailor(job); }}>
+                            <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 self-center shrink-0 translate-x-2 group-hover:translate-x-0">
+                                <Button variant="secondary" size="sm" className="button-glow" onClick={(e) => { e.stopPropagation(); handleTailor(job); }}>
                                     <PenTool className="w-3 h-3 mr-2" /> Tailor
                                 </Button>
-                                <Button size="sm" onClick={(e) => { e.stopPropagation(); handleApply(job); }} disabled={appliedJobIds.has(job.id)}>
+                                <Button size="sm" variant="gradient" onClick={(e) => { e.stopPropagation(); handleApply(job); }} disabled={appliedJobIds.has(job.id)}>
                                     <Send className="w-3 h-3 mr-2" /> {appliedJobIds.has(job.id) ? "Applied" : "Apply"}
                                 </Button>
                                 <Button variant="ghost" size="sm" className="text-xs" onClick={(e) => { e.stopPropagation(); setPrepJob(job); }}>

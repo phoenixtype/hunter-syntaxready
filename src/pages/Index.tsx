@@ -62,7 +62,7 @@ const Index = () => {
             {/* Headline - Responsive typography */}
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 sm:mb-8 animate-fadeInUp leading-tight" style={{ animationDelay: "0.1s" }}>
               Your Career, <br className="hidden sm:block" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/50">
+              <span className="gradient-text">
                 Autopilot.
               </span>
             </h1>
@@ -77,7 +77,8 @@ const Index = () => {
               <Link to="/signup" className="w-full sm:w-auto">
                 <Button
                   size="lg"
-                  className="rounded-full min-h-[48px] w-full sm:w-auto px-8 text-lg font-semibold touch-manipulation active:scale-[0.98] transition-transform shadow-lg hover:shadow-xl"
+                  variant="gradient"
+                  className="rounded-full min-h-[48px] w-full sm:w-auto px-8 text-lg font-semibold touch-manipulation"
                 >
                   Start Hunting <ArrowRight className="ml-2 w-5 h-5" aria-hidden="true" />
                 </Button>
@@ -86,7 +87,7 @@ const Index = () => {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="rounded-full min-h-[48px] w-full sm:w-auto px-8 text-lg bg-transparent border-primary/20 hover:bg-secondary/50 touch-manipulation active:scale-[0.98] transition-transform"
+                  className="rounded-full min-h-[48px] w-full sm:w-auto px-8 text-lg bg-transparent border-primary/30 hover:bg-secondary/50 hover:border-primary/50 touch-manipulation backdrop-blur-sm"
                 >
                   View Demo
                 </Button>
@@ -94,11 +95,21 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Abstract Background Element */}
+          {/* Abstract Background Elements - Floating Orbs */}
           <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] sm:w-[600px] md:w-[800px] h-[400px] sm:h-[600px] md:h-[800px] bg-gradient-to-tr from-primary/5 to-transparent rounded-full blur-3xl -z-10 opacity-60"
+            className="ambient-orb ambient-orb-primary w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] top-1/4 left-1/4 animate-float-slow -z-10"
             aria-hidden="true"
-          ></div>
+          />
+          <div
+            className="ambient-orb ambient-orb-primary w-[250px] sm:w-[400px] h-[250px] sm:h-[400px] top-1/3 right-1/4 animate-float -z-10 stagger-2"
+            aria-hidden="true"
+            style={{ animationDelay: '1s' }}
+          />
+          <div
+            className="ambient-orb ambient-orb-blue w-[200px] sm:w-[350px] h-[200px] sm:h-[350px] bottom-1/4 left-1/3 animate-float-slow -z-10"
+            aria-hidden="true"
+            style={{ animationDelay: '2s' }}
+          />
         </section>
 
         {/* Value Props - Responsive grid */}
@@ -122,10 +133,10 @@ const Index = () => {
               ].map((feature, i) => (
                 <article
                   key={i}
-                  className="space-y-3 sm:space-y-4 p-4 sm:p-0 rounded-xl sm:rounded-none bg-background/50 sm:bg-transparent"
+                  className="group space-y-3 sm:space-y-4 p-6 rounded-2xl bg-background/50 border border-transparent hover:border-primary/10 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5"
                 >
                   <div
-                    className="w-12 h-12 rounded-2xl bg-background flex items-center justify-center border border-border/50 shadow-sm"
+                    className="w-12 h-12 rounded-2xl bg-background flex items-center justify-center border border-border/50 shadow-md shadow-primary/10 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-primary/20 group-hover:scale-105"
                     aria-hidden="true"
                   >
                     <CheckCircle2 className="w-6 h-6 text-primary" />
