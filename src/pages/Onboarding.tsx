@@ -43,10 +43,16 @@ const Onboarding = () => {
             safe_mode: true
         };
 
-        await savePreferences(user.id, prefs);
-        setLoading(false);
-        toast.success("Intelligence updated.");
-        navigate("/dashboard");
+        try {
+            await savePreferences(user.id, prefs);
+            toast.success("Intelligence updated.");
+            navigate("/dashboard");
+        } catch (error) {
+            console.error("Failed to save preferences:", error);
+            toast.error("Failed to update preferences. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (

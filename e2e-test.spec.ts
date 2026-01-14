@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Hunter Application E2E Tests', () => {
-  const baseURL = 'http://localhost:8080';
+  const baseURL = 'http://localhost:8081';
   
   test('Landing page loads correctly', async ({ page }) => {
     await page.goto(baseURL);
@@ -27,10 +27,10 @@ test.describe('Hunter Application E2E Tests', () => {
   test('Signup page loads and validates', async ({ page }) => {
     await page.goto(`${baseURL}/signup`);
     
-    // Check form elements
-    await expect(page.getByLabel(/full name/i)).toBeVisible();
-    await expect(page.getByLabel(/email/i)).toBeVisible();
-    await expect(page.getByLabel(/password/i)).toBeVisible();
+    // Check form elements - use explicit matching to avoid "Show password" button conflict
+    await expect(page.getByLabel('Full Name', { exact: true })).toBeVisible();
+    await expect(page.getByLabel('Email Address', { exact: true })).toBeVisible();
+    await expect(page.getByLabel('Password', { exact: true })).toBeVisible();
     
     // Test form validation
     await page.getByRole('button', { name: /create account/i }).click();
@@ -42,8 +42,8 @@ test.describe('Hunter Application E2E Tests', () => {
   test('Login page loads', async ({ page }) => {
     await page.goto(`${baseURL}/login`);
     
-    await expect(page.getByLabel(/email/i)).toBeVisible();
-    await expect(page.getByLabel(/password/i)).toBeVisible();
+    await expect(page.getByLabel('Email Address', { exact: true })).toBeVisible();
+    await expect(page.getByLabel('Password', { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible();
   });
 
@@ -87,16 +87,12 @@ test.describe('Hunter Application E2E Tests', () => {
       await page.waitForTimeout(500);
     }
   });
-});
 
-test.describe('Error Handling', () => {
-  const baseURL = 'http://localhost:8080';
-  
   test('404 page for invalid routes', async ({ page }) => {
     await page.goto(`${baseURL}/invalid-route-12345`);
     
-    // Should show 404 or redirect
-    const url = page.url();
-    expect(url).toMatch(/404|not-found|\/$/i);
+    // Check for 404 content instead of URL
+    await expect(page.locator('h1')).toContainText(/404|Page not found|Oops/i);
+    await expect(page.getByRole('link', { name: /return home/i })).toBeVisible();
   });
 });
