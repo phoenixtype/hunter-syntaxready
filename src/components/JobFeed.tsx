@@ -7,7 +7,7 @@ import { EnrichedJob } from "@/hooks/useJobs";
 import { generateTailoredContent, TailoredContent } from "@/lib/writer_engine";
 import { simulateApplication, ApplicationState, ComplianceError, getApplicationHistory } from "@/lib/application_engine";
 import { recordFeedback, getOptimizedWeights, MatchingWeights } from "@/lib/learning_engine";
-import { ExternalLink, Sparkles, RefreshCw, Terminal, PenTool, Send, Check, GraduationCap, X, Loader2, Globe, Zap, Clock, Users } from "lucide-react";
+import { ExternalLink, Sparkles, RefreshCw, Terminal, PenTool, Send, Check, GraduationCap, X, Loader2, Globe, Zap, Clock, Users, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import InterviewPrepModal from "./InterviewPrep";
@@ -308,8 +308,35 @@ const JobFeed = ({ profile }: JobFeedProps) => {
                     ))}
 
                     {jobs.length === 0 && !loading && (
-                        <div className="p-12 text-center text-muted-foreground">
-                            No jobs found. The hunt continues...
+                        <div className="flex flex-col items-center justify-center py-16 px-4 text-center space-y-4">
+                            <div className="w-16 h-16 rounded-full bg-secondary/50 flex items-center justify-center mb-2">
+                                <Search className="w-8 h-8 text-muted-foreground" />
+                            </div>
+                            <div className="max-w-xs space-y-2">
+                                <h3 className="font-semibold text-lg">No jobs found yet</h3>
+                                <p className="text-sm text-muted-foreground">
+                                    We couldn't find any matches. Try broadening your search or updating your profile skills.
+                                </p>
+                            </div>
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={handleCrawl}
+                                disabled={crawling}
+                                className="mt-4"
+                            >
+                                {crawling ? (
+                                    <>
+                                        <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                                        Searching Wide...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Globe className="w-3 h-3 mr-2" />
+                                        Broaden Search
+                                    </>
+                                )}
+                            </Button>
                         </div>
                     )}
                 </div>

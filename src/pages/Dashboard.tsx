@@ -25,7 +25,7 @@ const Dashboard = () => {
   const { profile, loading: resumeLoading, setProfile } = useResume();
   const { subscription, isLoading: subLoading } = useSubscription();
   const { preferences, appCount, visibility, isLoading: dataLoading } = useDashboardData();
-  
+
   const [showPostInterview, setShowPostInterview] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
 
@@ -78,14 +78,14 @@ const Dashboard = () => {
 
       {/* SIMPLE LAYOUT */}
       <div className="container max-w-6xl mx-auto px-4 pt-20 pb-12">
-        
+
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-2xl font-semibold mb-1">
-            {profile?.identity?.name ? `Welcome back, ${profile.identity.name.split(' ')[0]}` : 'Welcome'}
+            {profile?.identity?.name && profile.identity.name !== 'Unknown Candidate' ? `Welcome back, ${profile.identity.name.split(' ')[0]}` : 'Welcome back'}
           </h1>
           <p className="text-muted-foreground text-sm">
-            {appCount > 0 
+            {appCount > 0
               ? `You have ${appCount} active application${appCount > 1 ? 's' : ''}`
               : 'Start your job search below'
             }
@@ -94,7 +94,7 @@ const Dashboard = () => {
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          
+
           {/* Sidebar - Left */}
           <div className="lg:col-span-1 space-y-4">
             <DashboardSidebar
@@ -109,7 +109,7 @@ const Dashboard = () => {
 
           {/* Main Content - Right */}
           <div className="lg:col-span-3 space-y-6">
-            
+
             {/* Job Feed Header */}
             <div className="flex items-center justify-between">
               <div>
