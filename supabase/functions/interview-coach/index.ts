@@ -180,90 +180,107 @@ serve(async (req) => {
         6. Evaluation Criteria (what they grade on)
         `;
 
-        const llmResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${lovableApiKey}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                model: 'google/gemini-2.5-flash',
-                messages: [{ role: 'user', content: briefingPrompt }],
-                tools: [{
-                    type: 'function',
-                    function: {
-                        name: 'generate_dossier',
-                        description: 'Generate interview preparation dossier',
-                        parameters: {
-                            type: 'object',
-                            properties: {
-                                company_profile: {
-                                    type: 'object',
-                                    properties: {
-                                        mission: { type: 'string' },
-                                        industry: { type: 'string' },
-                                        stage: { type: 'string' },
-                                        recent_news: { type: 'array', items: { type: 'string' } }
-                                    },
-                                    required: ['mission', 'industry']
-                                },
-                                technical_questions: { type: 'array', items: { type: 'string' } },
-                                behavioral_questions: { type: 'array', items: { type: 'string' } },
-                                red_flags_to_watch: { type: 'array', items: { type: 'string' } },
-                                interviewer_insights: {
-                                    type: 'array',
-                                    items: {
-                                        type: 'object',
-                                        properties: {
-                                            role: { type: 'string' },
-                                            name_archetype: { type: 'string' },
-                                            focus_area: { type: 'string' },
-                                            tip: { type: 'string' }
-                                        }
-                                    }
-                                },
-                                evaluation_criteria: {
-                                    type: 'array',
-                                    items: {
-                                        type: 'object',
-                                        properties: {
-                                            dimension: { type: 'string' },
-                                            weight: { type: 'string' },
-                                            description: { type: 'string' }
-                                        }
-                                    }
-                                }
-                            },
-                            required: ['company_profile', 'technical_questions', 'red_flags_to_watch']
-                        }
-                    }
-                }],
-                tool_choice: { type: 'function', function: { name: 'generate_dossier' } }
-            }),
-        });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout protection
 
-        if (!llmResponse.ok) {
-            console.error('[INTERVIEW] Briefing generation failed');
+        try {
+            const llmResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${lovableApiKey}`,
+                    'Content-Type': 'application/json',
+                },
+                signal: controller.signal,
+                body: JSON.stringify({
+                    model: 'google/gemini-2.5-flash',
+                    messages: [{ role: 'user', content: briefingPrompt }],
+                    tools: [{
+                        type: 'function',
+                        function: {
+                            name: 'generate_dossier',
+                            description: 'Generate interview preparation dossier',
+                            parameters: {
+                                type: 'object',
+                                properties: {
+                                    company_profile: {
+                                        type: 'object',
+                                        properties: {
+                                            mission: { type: 'string' },
+                                            industry: { type: 'string' },
+                                            stage: { type: 'string' },
+                                            recent_news: { type: 'array', items: { type: 'string' } }
+                                        },
+                                        required: ['mission', 'industry']
+                                    },
+                                    technical_questions: { type: 'array', items: { type: 'string' } },
+                                    behavioral_questions: { type: 'array', items: { type: 'string' } },
+                                    red_flags_to_watch: { type: 'array', items: { type: 'string' } },
+                                    interviewer_insights: {
+                                        type: 'array',
+                                        items: {
+                                            type: 'object',
+                                            properties: {
+                                                role: { type: 'string' },
+                                                name_archetype: { type: 'string' },
+                                                focus_area: { type: 'string' },
+                                                tip: { type: 'string' }
+                                            }
+                                        }
+                                    },
+                                    evaluation_criteria: {
+                                        type: 'array',
+                                        items: {
+                                            type: 'object',
+                                            properties: {
+                                                dimension: { type: 'string' },
+                                                weight: { type: 'string' },
+                                                description: { type: 'string' }
+                                            }
+                                        }
+                                    }
+                                },
+                                required: ['company_profile', 'technical_questions', 'red_flags_to_watch']
+                            }
+                        }
+                    }],
+                    tool_choice: { type: 'function', function: { name: 'generate_dossier' } }
+                }),
+            });
+            clearTimeout(timeoutId);
+
+            if (!llmResponse.ok) {
+                console.error('[INTERVIEW] Briefing generation failed');
+                return new Response(
+                    JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
+                    { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                );
+            }
+
+            const llmData = await llmResponse.json();
+            const toolCall = llmData.choices?.[0]?.message?.tool_calls?.[0];
+            const dossier = toolCall?.function?.arguments ? JSON.parse(toolCall.function.arguments) : null;
+
+            // Augment default values if AI missed some fields
+            const safeDossier = {
+                company_values: ["Innovation", "Impact", "Ownership"], // Default, AI usually misses this specific field in simple prompt
+                ...dossier
+            };
+
             return new Response(
-                JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
+                JSON.stringify(safeDossier), // Return raw JSON directly as expected by frontend
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+
+        } catch (err) {
+            clearTimeout(timeoutId);
+            console.error('[INTERVIEW] Briefing error:', err);
+            return new Response(
+                JSON.stringify({ success: false, error: 'Briefing generation timed out or failed' }),
                 { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
         }
 
-        const llmData = await llmResponse.json();
-        const toolCall = llmData.choices?.[0]?.message?.tool_calls?.[0];
-        const dossier = toolCall?.function?.arguments ? JSON.parse(toolCall.function.arguments) : null;
 
-        // Augment default values if AI missed some fields
-        const safeDossier = {
-            company_values: ["Innovation", "Impact", "Ownership"], // Default, AI usually misses this specific field in simple prompt
-            ...dossier
-        };
-
-        return new Response(
-            JSON.stringify(safeDossier), // Return raw JSON directly as expected by frontend
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
     }
 
     const interviewMode = mode || 'behavioral';
@@ -324,52 +341,67 @@ Description: ${job.description}`;
       );
     }
 
-    const llmResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: chatMessages
-      }),
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout protection
 
-    if (!llmResponse.ok) {
-      console.error('[INTERVIEW] AI response failed');
-      
-      if (llmResponse.status === 429) {
+    try {
+        const llmResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${lovableApiKey}`,
+                'Content-Type': 'application/json',
+            },
+            signal: controller.signal,
+            body: JSON.stringify({
+                model: 'google/gemini-2.5-flash',
+                messages: chatMessages
+            }),
+        });
+        clearTimeout(timeoutId);
+
+        if (!llmResponse.ok) {
+            console.error('[INTERVIEW] AI response failed');
+            
+            if (llmResponse.status === 429) {
+                return new Response(
+                    JSON.stringify({ success: false, error: GENERIC_RATE_LIMIT_ERROR }),
+                    { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                );
+            }
+            
+            return new Response(
+                JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
+                { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+        }
+
+        const llmData = await llmResponse.json();
+        const content = llmData.choices?.[0]?.message?.content;
+
+        if (!content) {
+            return new Response(
+                JSON.stringify({ success: false, error: 'No response generated' }),
+                { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+        }
+
         return new Response(
-          JSON.stringify({ success: false, error: GENERIC_RATE_LIMIT_ERROR }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            JSON.stringify({ 
+                success: true, 
+                message: content,
+                mode: interviewMode
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
-      }
-      
-      return new Response(
-        JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+
+    } catch (err) {
+        clearTimeout(timeoutId);
+        console.error('[INTERVIEW] AI Chat error:', err);
+        return new Response(
+            JSON.stringify({ success: false, error: 'Interview coach timed out' }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
     }
-
-    const llmData = await llmResponse.json();
-    const content = llmData.choices?.[0]?.message?.content;
-
-    if (!content) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'No response generated' }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: content,
-        mode: interviewMode
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
 
   } catch (error) {
     // SECURITY: Never expose internal errors
