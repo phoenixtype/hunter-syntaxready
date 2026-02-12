@@ -12,6 +12,7 @@ import MobileNav from "@/components/MobileNav";
 import SkipLink from "@/components/SkipLink";
 import { useResume } from "@/hooks/useResume";
 import { SubscriptionTier, checkAccess } from "@/lib/subscription";
+import { CandidateProfile } from "@/lib/resume_engine";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import PostInterviewModal from "@/components/PostInterviewModal";
 import PricingModal from "@/components/PricingModal";
@@ -41,6 +42,10 @@ const Dashboard = () => {
     } else {
       setShowPricing(true);
     }
+  };
+
+  const handleResumeUpload = (newProfile: CandidateProfile) => {
+    navigate("/profile", { state: { pendingProfile: newProfile, mode: 'edit' } });
   };
 
   // Consolidate loading state
@@ -102,7 +107,7 @@ const Dashboard = () => {
               visibility={visibility}
               preferences={preferences}
               onRefreshProfile={() => setProfile(null)}
-              onUploadProfile={setProfile}
+              onUploadProfile={handleResumeUpload}
               onSignOut={handleSignOut}
             />
           </div>
@@ -116,10 +121,16 @@ const Dashboard = () => {
                 <h2 className="text-lg font-semibold">Jobs for you</h2>
                 <p className="text-xs text-muted-foreground">Matched based on your profile</p>
               </div>
-              <Button size="sm" variant="outline" onClick={handleOpenInterviewTools} className="text-xs">
-                <Sparkles className="w-3 h-3 mr-1.5" />
-                Interview Prep
-              </Button>
+              <div className="flex gap-2">
+                <Button size="sm" variant="default" onClick={() => navigate("/application-wizard")} className="text-xs">
+                  <Search className="w-3 h-3 mr-1.5" />
+                  Target Application
+                </Button>
+                <Button size="sm" variant="outline" onClick={handleOpenInterviewTools} className="text-xs">
+                  <Sparkles className="w-3 h-3 mr-1.5" />
+                  Interview Prep
+                </Button>
+              </div>
             </div>
 
             {/* Job Feed */}

@@ -29,7 +29,7 @@ const EmailVerification = () => {
       // Check if this is an email confirmation callback
       const token_hash = searchParams.get('token_hash');
       const type = searchParams.get('type');
-      
+
       // Handle verification token types
       if (token_hash && (type === 'email' || type === 'signup' || type === 'magiclink')) {
         try {
@@ -37,7 +37,7 @@ const EmailVerification = () => {
             token_hash,
             type: type as 'email' | 'signup' | 'magiclink',
           });
-          
+
           if (error) {
             setStatus('error');
             setErrorMessage(error.message);
@@ -91,8 +91,8 @@ const EmailVerification = () => {
         toast.success(`Verification email sent to ${emailToResend}! Check your inbox.`);
         // If successful, save to session storage for convenience
         if (!lastEmail) {
-            setLastEmail(emailToResend);
-            sessionStorage.setItem('pendingVerificationEmail', emailToResend);
+          setLastEmail(emailToResend);
+          sessionStorage.setItem('pendingVerificationEmail', emailToResend);
         }
       }
     } catch (err) {
@@ -182,7 +182,7 @@ const EmailVerification = () => {
                   We've sent you a verification link. Click the link in your email to continue.
                 </p>
               </div>
-              
+
               <div className="p-4 rounded-lg bg-muted/50 text-sm text-muted-foreground space-y-2">
                 <p>Didn't receive the email? Check your spam folder.</p>
                 {lastEmail ? (
@@ -191,7 +191,7 @@ const EmailVerification = () => {
                     size="sm"
                     onClick={handleResendEmail}
                     disabled={resending}
-                    className="text-primary hover:text-primary/80"
+                    className="text-primary hover:text-primary/80 whitespace-normal h-auto py-2 text-center"
                   >
                     {resending ? (
                       <>
@@ -207,14 +207,14 @@ const EmailVerification = () => {
                   </Button>
                 ) : (
                   <div className="flex flex-col gap-2 mt-4 max-w-xs mx-auto">
-                    <Input 
-                      type="email" 
-                      placeholder="Enter your email" 
-                      value={manualEmail} 
+                    <Input
+                      type="email"
+                      placeholder="Enter your email"
+                      value={manualEmail}
                       onChange={(e) => setManualEmail(e.target.value)}
                       className="h-10 text-sm"
                     />
-                     <Button
+                    <Button
                       variant="secondary"
                       size="sm"
                       onClick={handleResendEmail}

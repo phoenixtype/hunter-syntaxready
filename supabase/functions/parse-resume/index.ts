@@ -191,20 +191,31 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are an expert resume parser. Extract structured information from resumes with high accuracy.
-            
-For skills, estimate proficiency on a 0-1 scale based on:
-- 0.9-1.0: Explicitly listed as expert/advanced, or has 5+ years experience
-- 0.7-0.89: Listed prominently with substantial evidence
-- 0.5-0.69: Mentioned with some context
-- 0.3-0.49: Briefly mentioned
+            content: `You are a precise data extraction engine for the Hunter job application system.
+Your goal is to extract a candidate's profile with 100% accuracy from the raw resume text.
 
-For experience atoms, extract each distinct role with its key accomplishments.
-Extract keywords that would match job descriptions (technologies, methodologies, soft skills).`
+CRITICAL RULES:
+1. **IDENTITY**: The Candidate Name is almost ALWAYS at the very top. Do NOT confuse headers with names.
+2. **SUMMARY**: Extract professional summary/bio if present.
+3. **SKILLS**: Extract all technical skills, tools, and languages.
+4. **EXPERIENCE**: Capture EVERY job entry. 
+   - Map strictly distinct jobs to `experience_atoms`.
+5. **EDUCATION**: Extract degree, major, school.
+6. **EVERYTHING ELSE**: If there are sections for "Projects", "Volunteering", "Awards", "Certifications", "Publications", or "Interests" that do NOT fit into Experience or Education, put them in `custom_sections`.
+   - preserve the header title as `title`.
+   - preserve the content as a list of strings in `content`.
+
+CAPTURE EVERYTHING. Do not leave any meaningful text behind.`
           },
           {
             role: 'user',
-            content: `Parse this resume and extract all relevant information:\n\n${resumeText.substring(0, 8000)}`
+            content: `Analyze the following resume text.
+Note: The text extraction may have imperfect spacing. Use context to identify headers.
+
+RESUME TEXT:
+${resumeText}
+
+output_json:`
           }
         ],
         tools: [
@@ -221,6 +232,7 @@ Extract keywords that would match job descriptions (technologies, methodologies,
                     properties: {
                       name: { type: 'string', description: 'Full name of the candidate' },
                       email: { type: 'string', description: 'Email address' },
+                      phone: { type: 'string', description: 'Phone number' },
                       links: { type: 'array', items: { type: 'string' }, description: 'LinkedIn, GitHub, portfolio URLs' }
                     },
                     required: ['name', 'email']
@@ -262,6 +274,18 @@ Extract keywords that would match job descriptions (technologies, methodologies,
                         year: { type: 'string' }
                       },
                       required: ['school', 'degree']
+                    }
+                  },
+                  summary: { type: 'string', description: 'Professional summary or objective statement' },
+                  custom_sections: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        title: { type: 'string', description: 'Section header (e.g. Projects, Volunteering, Awards)' },
+                        content: { type: 'array', items: { type: 'string' }, description: 'Bullet points or text content' }
+                      },
+                      required: ['title', 'content']
                     }
                   }
                 },
@@ -322,7 +346,7 @@ Extract keywords that would match job descriptions (technologies, methodologies,
         skills: profile.skills,
         experience_atoms: profile.experience_atoms,
         education: profile.education,
-        raw_resume_text: resumeText.substring(0, 50000),
+        raw_resume_text: resumeText,
         resume_file_url: resumeUrl || null
       }, { onConflict: 'user_id' });
 

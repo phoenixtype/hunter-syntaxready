@@ -32,11 +32,15 @@ export const calculateMatch = async (
   let matches = 0;
   const reasoning: string[] = [];
 
-  // 1. Skill Analysis (Mock)
-  // Simple keyword matching against job content
+  // 1. Skill Analysis
+  // Match skills against both job description AND tech_stack for better accuracy
   const jobLower = job.description.toLowerCase();
+  const techStackLower = (job.tech_stack || []).map(t => t.toLowerCase());
+  
   profile.skills.forEach(skill => {
-    if (jobLower.includes(skill.name.toLowerCase())) {
+    const skillLower = skill.name.toLowerCase();
+    // Match against both description AND tech_stack
+    if (jobLower.includes(skillLower) || techStackLower.includes(skillLower)) {
       matches++;
     }
   });
@@ -65,12 +69,29 @@ export const calculateMatch = async (
       reasoning.push(`Matched ${Math.floor(matches)} key requirements.`);
   }
 
-  // 2. Culture/Soft Signals
-  // Random "AI" noise for variation in this mock, biased towards high for specific companies
-  let cultureScore = 75; 
-  if (job.company === "Linear" || job.company === "Stripe") {
-    cultureScore = 95; // Everyone fits at Stripe in our dream world
-  }
+  // 2. Culture/Soft Signals Analysis (Real keyword-based scoring)
+  let cultureScore = 70; // Base score
+  
+  // Culture indicators to look for in job description
+  const cultureKeywords = {
+    positive: ['remote', 'flexible', 'work-life balance', 'inclusive', 'diverse', 'mentorship', 'growth', 'collaborative', 'transparent'],
+    highValue: ['equity', 'unlimited pto', 'great benefits', 'competitive salary']
+  };
+  
+  cultureKeywords.positive.forEach(keyword => {
+    if (jobLower.includes(keyword)) {
+      cultureScore += 3;
+      reasoning.push(`Culture match: ${keyword}`);
+    }
+  });
+  
+  cultureKeywords.highValue.forEach(keyword => {
+    if (jobLower.includes(keyword)) {
+      cultureScore += 5;
+    }
+  });
+  
+  cultureScore = Math.min(100, cultureScore); // Cap at 100
   
   // 3. Overall Weighted Score
   // Default: Skills 60%, Culture 20%, Freshness 20%

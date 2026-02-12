@@ -8,6 +8,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { signUpFormSchema, validateWithSchema, getPasswordStrength } from "@/lib/validation";
 
+import WavyBackground from "@/components/WavyBackground";
+
 const SignUp = () => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -79,10 +81,9 @@ const SignUp = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background transition-colors duration-500 relative overflow-hidden">
-      {/* Ambient Background Orbs */}
-      <div className="ambient-orb ambient-orb-primary w-[450px] h-[450px] -top-40 -right-40 animate-float-slow -z-10" aria-hidden="true" />
-      <div className="ambient-orb ambient-orb-primary w-[350px] h-[350px] -bottom-32 -left-32 animate-float -z-10" style={{ animationDelay: '2s' }} aria-hidden="true" />
-      
+      {/* Dynamic Wavy Background */}
+      <WavyBackground />
+
       <div className="w-full max-w-md animate-fadeInUp relative z-10">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" />
@@ -155,8 +156,8 @@ const SignUp = () => {
                       <div
                         key={index}
                         className={`flex-1 rounded-full transition-colors ${index <= getPasswordStrength(password).score
-                            ? getPasswordStrength(password).color
-                            : 'bg-muted'
+                          ? getPasswordStrength(password).color
+                          : 'bg-muted'
                           }`}
                       />
                     ))}

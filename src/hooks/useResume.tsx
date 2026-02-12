@@ -13,6 +13,10 @@ export const useResume = () => {
         if (!user) return;
         try {
             setLoading(true);
+
+            // Self-healing: Ensure user base record exists
+            await import('@/lib/auth_helpers').then(m => m.ensureUserProfile(user));
+
             const data = await getCandidateProfile(user.id);
             setProfile(data);
         } catch (err) {

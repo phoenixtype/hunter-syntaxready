@@ -12,6 +12,8 @@ const GENERIC_AUTH_ERROR = 'Authentication required';
 const GENERIC_SESSION_ERROR = 'Session expired or invalid';
 const GENERIC_RATE_LIMIT_ERROR = 'Too many requests. Please try again later.';
 
+console.log('[CRAWL] VERSION: DEBUG-FIX-5 (With Fallback + Timeout Fixes)');
+
 // Rate limit configuration: 10 requests per minute (allows reasonable testing)
 const RATE_LIMIT_MAX_REQUESTS = 10;
 const RATE_LIMIT_WINDOW_SECONDS = 60;
@@ -186,75 +188,129 @@ Deno.serve(async (req) => {
     // SECURITY: Log user ID only, not email or other PII
     console.log('[AUTH] Authenticated user:', user.id);
 
-    const { sources, keywords } = await req.json();
+    const { sources, keywords, url } = await req.json();
     
+    // Get API keys for external services
     const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
 
-    // SECURITY: Don't reveal which specific service is missing
     if (!firecrawlApiKey || !lovableApiKey) {
-      console.error('[CONFIG] Missing required API keys');
+      console.error('[SECURITY] Missing required API keys (FIRECRAWL_API_KEY or LOVABLE_API_KEY)');
       return new Response(
         JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    
-    // Default search sources and keywords (Optimized for speed - 1 source only)
-    const searchSources = sources?.slice(0, 1) || ['Remote jobs'];
-    const searchKeywords = keywords || ['hiring now'];
-    
-    console.log('[CRAWL] Starting job crawl, sources:', searchSources.length);
-    
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const allJobs: any[] = [];
     
-    // Search for jobs using Firecrawl
-    for (const source of searchSources) {
+    if (url) {
+      // SINGLE URL SCRAPE MODE
+      console.log(`[CRAWL] Scraping specific URL: ${url}`);
       try {
-        console.log(`[CRAWL] Searching source: ${source}`);
-        
-        // Construct query: "software engineer remote" or "marketing manager hiring now"
-        const baseQuery = searchKeywords.join(' ');
-        const query = `${source} ${baseQuery}`;
-        console.log(`[CRAWL] Query: ${query}`);
-
-        const searchResponse = await fetch('https://api.firecrawl.dev/v1/search', {
+        const scrapeResponse = await fetch('https://api.firecrawl.dev/v1/scrape', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${firecrawlApiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            query: query,
-            limit: 5
+            url: url,
+            formats: ['markdown'],
           }),
         });
 
-        console.log(`[CRAWL] Firecrawl response status: ${searchResponse.status}`);
-
-        if (!searchResponse.ok) {
-          const errorText = await searchResponse.text();
-          console.error(`[CRAWL] Search failed for ${source}: Status ${searchResponse.status}, Body: ${errorText}`);
-          continue;
-        }
-
-        const searchData = await searchResponse.json();
-        console.log(`[CRAWL] Firecrawl response data keys: ${Object.keys(searchData).join(', ')}`);
-        const results = searchData.data || [];
-        
-        console.log(`[CRAWL] Found ${results.length} results from ${source}`);
-        
-        for (const res of results) {
-          allJobs.push({
-            title: res.title || 'Untitled Job',
-            url: res.url,
-            content: res.markdown || res.content || res.description || '',
-            source: source
-          });
+        if (scrapeResponse.ok) {
+           const scrapeData = await scrapeResponse.json();
+           const markdown = scrapeData.data?.markdown || '';
+           console.log('[CRAWL] Scrape successful');
+           
+           allJobs.push({
+             title: 'Scraped Job',
+             url: url,
+             content: markdown,
+             source: 'Direct' 
+           });
+        } else {
+           console.error(`[CRAWL] Scrape failed: ${scrapeResponse.status}`);
+           const errorText = await scrapeResponse.text();
+           console.error(errorText);
         }
       } catch (err) {
-        console.error(`[CRAWL] Error fetching from ${source}:`, err);
+         console.error('[CRAWL] Scrape exception', err);
+      }
+
+    } else {
+      // EXISTING SEARCH MODE
+      // REQUIRE explicit sources and keywords from client
+      // Defaults should be handled by the client, not the backend, to avoid "magic" behavior
+      if (!sources || sources.length === 0) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'No search sources provided' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      const searchSources = sources;
+      const searchKeywords = keywords || []; // Optional keywords, but sources are mandatory
+      
+      console.log('[CRAWL] Starting job crawl, sources:', searchSources.length);
+      
+      // Search for jobs using Firecrawl
+      for (const source of searchSources) {
+        try {
+          console.log(`[CRAWL] Searching source: ${source}`);
+          
+          // Construct query: "software engineer remote" or "marketing manager hiring now"
+          const baseQuery = searchKeywords.join(' ');
+          const query = `${source} ${baseQuery}`;
+          console.log(`[CRAWL] Query: ${query}`);
+
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s strict timeout for search
+
+          const searchResponse = await fetch('https://api.firecrawl.dev/v1/search', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${firecrawlApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            signal: controller.signal,
+            body: JSON.stringify({
+              query: query,
+              limit: 5,
+              // Remove 'scrapeOptions' to speed up response - just get search snippets
+            }),
+          });
+          clearTimeout(timeoutId);
+
+          console.log(`[CRAWL] Firecrawl response status: ${searchResponse.status}`);
+
+          if (!searchResponse.ok) {
+            const errorText = await searchResponse.text();
+            console.error(`[CRAWL] Search failed for ${source}: Status ${searchResponse.status}, Body: ${errorText}`);
+            continue;
+          }
+
+          const searchData = await searchResponse.json();
+          console.log(`[CRAWL] Firecrawl response data keys: ${Object.keys(searchData).join(', ')}`);
+          const results = searchData.data || [];
+          
+          console.log(`[CRAWL] Found ${results.length} results from ${source}`);
+          
+          for (const res of results) {
+            allJobs.push({
+              title: res.title || 'Untitled Job',
+              url: res.url,
+              content: res.markdown || res.content || res.description || '',
+              source: source
+            });
+          }
+        } catch (err) {
+          console.error(`[CRAWL] Error fetching from ${source}:`, err);
+          // Don't crash, just try next source or hit fallback
+        }
       }
     }
 
@@ -262,12 +318,17 @@ Deno.serve(async (req) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const normalizeJob = async (rawJob: any) => {
       try {
+        const controller = new AbortController();
+        // Increased timeout to 45s for AI processing as some models can be slow
+        const timeoutId = setTimeout(() => controller.abort(), 45000);
+
         const llmResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${lovableApiKey}`,
             'Content-Type': 'application/json',
           },
+          signal: controller.signal,
           body: JSON.stringify({
             model: 'google/gemini-2.5-flash',
             // Normalize with AI
@@ -353,8 +414,23 @@ Deno.serve(async (req) => {
         }
         return null;
       } catch (err) {
-        console.error('[NORMALIZE] Error normalizing job');
-        return null;
+        console.error('[NORMALIZE] Error normalizing job, using fallback:', err);
+        // Fallback: Return raw job if AI fails
+        return {
+          title: rawJob.title || 'Untitled Job',
+          company: 'Unknown Company',
+          location: 'Remote',
+          salary_range: 'Not specified',
+          description: rawJob.content?.substring(0, 200) || '',
+          source: rawJob.source,
+          freshness_score: 0.5,
+          credibility_score: 0.5, // Lower score for unverified/raw jobs
+          url: rawJob.url,
+          posted_at: 'Unknown',
+          tech_stack: [],
+          job_hash: generateJobHash('Unknown', rawJob.title || 'Untitled'),
+          raw_data: rawJob
+        };
       }
     };
 
@@ -371,54 +447,20 @@ Deno.serve(async (req) => {
 
     console.log(`[CRAWL] Successfully normalized ${normalizedJobs.length} jobs`);
 
-    // FALLBACK: If no jobs found, insert demo jobs so the feed isn't empty
+    // If no jobs found, return empty result (no hardcoded fallbacks)
     if (normalizedJobs.length === 0) {
-      console.log('[CRAWL] No jobs from Firecrawl, inserting demo jobs');
-      const demoJobs = [
-        {
-          title: 'Senior Software Engineer',
-          company: 'TechCorp Inc',
-          location: 'Remote',
-          salary_range: '$150,000 - $200,000',
-          description: 'Join our team to build scalable distributed systems using modern technologies.',
-          source: 'Direct',
-          freshness_score: 0.95,
-          credibility_score: 0.9,
-          url: 'https://example.com/job/1',
-          posted_at: '2 hours ago',
-          tech_stack: ['Python', 'AWS', 'Kubernetes', 'PostgreSQL'],
-          job_hash: 'demo-job-1'
-        },
-        {
-          title: 'Product Manager',
-          company: 'StartupXYZ',
-          location: 'San Francisco, CA',
-          salary_range: '$130,000 - $170,000',
-          description: 'Lead product strategy for our B2B SaaS platform serving enterprise clients.',
-          source: 'Direct',
-          freshness_score: 0.9,
-          credibility_score: 0.85,
-          url: 'https://example.com/job/2',
-          posted_at: '1 day ago',
-          tech_stack: ['Agile', 'Roadmapping', 'Analytics', 'SQL'],
-          job_hash: 'demo-job-2'
-        },
-        {
-          title: 'Full Stack Developer',
-          company: 'InnovateTech',
-          location: 'New York, NY (Hybrid)',
-          salary_range: '$120,000 - $160,000',
-          description: 'Build and maintain web applications using React, Node.js, and cloud services.',
-          source: 'Direct',
-          freshness_score: 0.85,
-          credibility_score: 0.9,
-          url: 'https://example.com/job/3',
-          posted_at: '3 days ago',
-          tech_stack: ['React', 'Node.js', 'TypeScript', 'MongoDB'],
-          job_hash: 'demo-job-3'
-        }
-      ];
-      normalizedJobs = demoJobs;
+      console.log('[CRAWL] No jobs found from search - returning empty result');
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          inserted: 0,
+          duplicates: 0,
+          total: 0,
+          jobs: [],
+          message: 'No jobs found matching your criteria. Try different keywords or sources.'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Insert jobs into database with deduplication

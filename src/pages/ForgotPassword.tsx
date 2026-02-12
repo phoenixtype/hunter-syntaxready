@@ -7,6 +7,8 @@ import { ArrowLeft, Loader2, Mail, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+import WavyBackground from "@/components/WavyBackground";
+
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -21,7 +23,7 @@ const ForgotPassword = () => {
     }
 
     setIsLoading(true);
-    
+
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
@@ -38,8 +40,9 @@ const ForgotPassword = () => {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-background transition-colors duration-500">
-        <div className="w-full max-w-md animate-scale-in">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-background transition-colors duration-500 relative overflow-hidden">
+        <WavyBackground />
+        <div className="w-full max-w-md animate-scale-in relative z-10">
           <div className="glass-card rounded-2xl p-8 md:p-12 space-y-6 text-center">
             <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
               <CheckCircle2 className="w-8 h-8 text-primary" />
@@ -63,8 +66,9 @@ const ForgotPassword = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background transition-colors duration-500">
-      <div className="w-full max-w-md animate-scale-in">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background transition-colors duration-500 relative overflow-hidden">
+      <WavyBackground />
+      <div className="w-full max-w-md animate-scale-in relative z-10">
         {/* Back to Login */}
         <Link to="/login" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" />

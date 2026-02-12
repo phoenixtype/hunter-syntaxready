@@ -42,10 +42,26 @@ export const analyzeResumeForJob = async (
     }
   });
 
-  // 2. Formatting Audit (Mock)
-  // Check if "Education" is present but maybe simulated issues
+  // 2. Formatting Audit (Real checks)
   if (profile.education.length === 0) {
     formattingIssues.push("Missing Education Section");
+  }
+  
+  // Check for missing contact info
+  if (!profile.identity.email || profile.identity.email.trim() === '') {
+    formattingIssues.push("Missing email in contact information");
+  }
+  
+  // Check for experience entries
+  if (profile.experience_atoms.length === 0) {
+    formattingIssues.push("Missing Work Experience Section");
+  }
+  
+  // Check for skills
+  if (profile.skills.length === 0) {
+    formattingIssues.push("Missing Skills Section");
+  } else if (profile.skills.length < 3) {
+    formattingIssues.push("Consider adding more relevant skills");
   }
 
   // 3. Scoring

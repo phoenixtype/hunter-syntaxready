@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { FileText, RefreshCw, LogOut, CheckCircle2, Upload } from "lucide-react";
+import { FileText, RefreshCw, LogOut, CheckCircle2, Upload, Sparkles } from "lucide-react";
 import { CandidateProfile } from "@/lib/resume_engine";
 import { VisibilityScore } from "@/lib/visibility_engine";
 import { ResumeUpload } from "@/components/resume/ResumeUpload";
@@ -26,104 +26,113 @@ export const DashboardSidebar = ({
     onSignOut
 }: DashboardSidebarProps) => {
     const { user } = useAuth();
+    const initials = profile?.identity?.name
+        ? profile.identity.name.split(' ').map(n => n[0]).join('').slice(0, 2)
+        : user?.email?.charAt(0).toUpperCase();
 
     return (
-        <div className="space-y-4">
-            
-            {/* Profile Card */}
-            <Card className="border-border/50">
-                <CardContent className="pt-5 pb-4">
-                    <div className="flex items-center gap-3 mb-4">
-                        <Avatar className="h-12 w-12">
+        <div className="space-y-6 animate-fade-in">
+
+            {/* Profile Identity - Integrated Look */}
+            <div className="glass-card rounded-2xl p-5 border-white/10 relative overflow-hidden group">
+                {/* Decoration background */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none transition-opacity duration-500 group-hover:opacity-100" />
+
+                <div className="flex flex-col items-center text-center space-y-3 relative z-10">
+                    <div className="relative">
+                        <Avatar className="h-20 w-20 ring-4 ring-background shadow-lg">
                             <AvatarImage src={user?.user_metadata?.avatar_url} />
-                            <AvatarFallback className="bg-foreground text-background font-medium text-base">
-                                {profile?.identity?.name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}
+                            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-xl font-bold">
+                                {initials}
                             </AvatarFallback>
                         </Avatar>
-                        <div className="min-w-0 flex-1">
-                            <p className="font-medium text-sm truncate">
-                                {profile?.identity?.name || "Your Profile"}
-                            </p>
-                            <p className="text-xs text-muted-foreground truncate">
-                                {user?.email}
-                            </p>
-                        </div>
+                        {profile && (
+                            <div className="absolute bottom-0 right-0 bg-green-500 rounded-full p-1 ring-2 ring-background" title="Profile Active">
+                                <CheckCircle2 className="w-3 h-3 text-white" />
+                            </div>
+                        )}
                     </div>
 
-                    {profile ? (
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
-                                <CheckCircle2 className="w-3.5 h-3.5" />
-                                <span>Resume uploaded</span>
-                            </div>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={onRefreshProfile}
-                                className="w-full text-xs h-8"
-                            >
-                                <RefreshCw className="w-3 h-3 mr-1.5" />
-                                Update Resume
-                            </Button>
-                        </div>
-                    ) : (
-                        <div className="space-y-3">
-                            <p className="text-xs text-muted-foreground">
-                                Upload your resume to find matching jobs
-                            </p>
-                            <ResumeUpload onUploadComplete={onUploadProfile} />
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+                    <div className="space-y-1">
+                        <h3 className="font-semibold text-lg leading-tight">
+                            {profile?.identity?.name || "Guest User"}
+                        </h3>
+                        <p className="text-xs text-muted-foreground truncate max-w-[200px] mx-auto">
+                            {user?.email}
+                        </p>
+                    </div>
 
-            {/* Match Score Card */}
+                    <div className="flex gap-2 w-full pt-2">
+                        <Link to="/profile" className="flex-1">
+                            <Button variant="outline" size="sm" className="w-full text-xs h-8 bg-background/50 hover:bg-background/80 transition-all">
+                                <FileText className="w-3 h-3 mr-1.5" />
+                                Edit
+                            </Button>
+                        </Link>
+                        <Button variant="ghost" size="sm" onClick={onRefreshProfile} className="h-8 w-8 p-0" title="Refresh Profile">
+                            <RefreshCw className="w-3 h-3" />
+                        </Button>
+                    </div>
+                </div>
+
+                {!profile && (
+                    <div className="mt-4 pt-4 border-t border-border/50">
+                        <p className="text-xs text-muted-foreground mb-3 text-center">
+                            Upload resume to unlock features
+                        </p>
+                        <ResumeUpload onUploadComplete={onUploadProfile} />
+                    </div>
+                )}
+            </div>
+
+            {/* Match Score - Premium Card */}
             {visibility && (
-                <Card className="border-border/50">
-                    <CardHeader className="pb-2 pt-4 px-4">
-                        <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                            Your Match Score
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="px-4 pb-4">
-                        <div className="flex items-baseline gap-1 mb-3">
-                            <span className="text-3xl font-semibold">{visibility.totalScore}</span>
-                            <span className="text-sm text-muted-foreground">/ 100</span>
-                        </div>
-                        
-                        <div className="space-y-3">
-                            <div>
-                                <div className="flex justify-between text-xs mb-1">
-                                    <span className="text-muted-foreground">Resume quality</span>
-                                    <span>{visibility.atsPassRate}%</span>
-                                </div>
-                                <Progress value={visibility.atsPassRate} className="h-1.5" />
+                <div className="glass-card rounded-2xl p-5 border-white/10 space-y-4">
+                    <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider text-[10px]">
+                            Employability Score
+                        </h4>
+                        <Sparkles className="w-3 h-3 text-yellow-500" />
+                    </div>
+
+                    <div className="flex items-end gap-2">
+                        <span className="text-4xl font-bold tracking-tight text-foreground">
+                            {visibility.totalScore}
+                        </span>
+                        <span className="text-sm text-muted-foreground mb-1.5">/100</span>
+                    </div>
+
+                    <div className="space-y-3 pt-1">
+                        <div className="space-y-1.5">
+                            <div className="flex justify-between text-xs">
+                                <span className="text-muted-foreground">ATS Compatibility</span>
+                                <span className="font-medium">{visibility.atsPassRate}%</span>
                             </div>
-                            <div>
-                                <div className="flex justify-between text-xs mb-1">
-                                    <span className="text-muted-foreground">Market fit</span>
-                                    <span>{visibility.recruiterAppeal}%</span>
-                                </div>
-                                <Progress value={visibility.recruiterAppeal} className="h-1.5" />
-                            </div>
+                            <Progress value={visibility.atsPassRate} className="h-1.5 bg-primary/10" />
                         </div>
-                    </CardContent>
-                </Card>
+                        <div className="space-y-1.5">
+                            <div className="flex justify-between text-xs">
+                                <span className="text-muted-foreground">Recruiter Appeal</span>
+                                <span className="font-medium">{visibility.recruiterAppeal}%</span>
+                            </div>
+                            <Progress value={visibility.recruiterAppeal} className="h-1.5 bg-primary/10" />
+                        </div>
+                    </div>
+                </div>
             )}
 
-            {/* Sign Out - Desktop only */}
-            <div className="hidden lg:block pt-4">
-                <Button 
-                    variant="ghost" 
+            {/* Actions */}
+            <div className="hidden lg:block">
+                <Button
+                    variant="ghost"
                     size="sm"
-                    className="w-full justify-start text-muted-foreground hover:text-foreground text-xs" 
+                    className="w-full justify-start text-muted-foreground hover:text-destructive text-xs h-9"
                     onClick={onSignOut}
                 >
                     <LogOut className="w-3.5 h-3.5 mr-2" />
                     Sign out
                 </Button>
             </div>
-
         </div>
     );
 };

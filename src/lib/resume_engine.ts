@@ -26,12 +26,18 @@ export interface CandidateProfile {
   identity: {
     name: string;
     email: string;
+    phone?: string;
     links: string[];
   };
   skills: Skill[];
   experience_atoms: ExperienceAtom[];
   education: Education[];
   resume_file_url?: string;
+  summary?: string;
+  custom_sections?: {
+    title: string;
+    content: string[];
+  }[];
 }
 
 // Custom error class for better error handling
@@ -249,7 +255,7 @@ async function uploadResumeFile(file: File): Promise<string> {
   return publicUrl;
 }
 
-// Extract text from file using PDF.js for robust parsing
+// Extract text from file using PDF.js for robust parsing with layout preservation
 export async function extractTextFromFile(file: File): Promise<string> {
   console.log('[PDF] Starting extraction for:', file.name, 'Type:', file.type, 'Size:', file.size);
   
@@ -260,7 +266,6 @@ export async function extractTextFromFile(file: File): Promise<string> {
       console.log('[PDF] PDF.js version:', pdfJS.version);
       
       // Set worker - use CDN version matching our package (5.4.530)
-      // Using unpkg as it's more reliable for exact version matching
       pdfJS.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@5.4.530/build/pdf.worker.min.mjs`;
       
       return new Promise((resolve, reject) => {
@@ -273,7 +278,7 @@ export async function extractTextFromFile(file: File): Promise<string> {
             
             const loadingTask = pdfJS.getDocument({
               data: typedarray,
-              verbosity: 0, // Reduce console spam
+              verbosity: 0,
             });
 
             const pdf = await loadingTask.promise;
@@ -286,12 +291,48 @@ export async function extractTextFromFile(file: File): Promise<string> {
               const page = await pdf.getPage(i);
               const textContent = await page.getTextContent();
               
-              // Join items with space, preserving roughly the flow
-              const pageText = textContent.items
-                .map((item) => 'str' in item ? (item as { str: string }).str : '')
-                .join(' ');
+              let lastY = -1;
+              let pageText = '';
+
+              // Sort items by Y (top to bottom) then X (left to right) to handle multi-column layouts better
+              // PDF coordinates: (0,0) is bottom-left. Higher Y = higher on page.
+              // We use a tolerance of ~20% of typical font height (approx 2-3 units) for "same line" detection
+              
+              const items = textContent.items.map(item => item as { str: string, transform: number[], width: number, height: number });
+              
+              items.sort((a, b) => {
+                const yDiff = b.transform[5] - a.transform[5]; // Compare Y
+                if (Math.abs(yDiff) > 4) return yDiff; // Different line? Use Y order
+                return a.transform[4] - b.transform[4]; // Same line? Use X order
+              });
+
+              for (const item of items) {
+                const currentY = item.transform[5];
+                const text = item.str;
+
+                // If it's the first item, just append
+                if (lastY === -1) {
+                    pageText += text;
+                } else {
+                    const dy = Math.abs(currentY - lastY);
+                    
+                    // If vertical distance is significant (> font height approx), assume new line
+                    if (dy > 10) { 
+                        pageText += '\n' + text;
+                    } else if (dy > 4) {
+                        // Small vertical shift but maybe not a full line break? 
+                        // Often this is a superscript or subscript or just weird spacing.
+                        // We'll treat it as a space.
+                        pageText += ' ' + text; 
+                    } else {
+                        // Same line (dy <= 4)
+                        pageText += (text.startsWith(' ') || pageText.endsWith(' ') ? '' : ' ') + text;
+                    }
+                }
+                lastY = currentY;
+              }
                 
-              fullText += pageText + '\n\n';
+              fullText += pageText + '\n\n---\n\n'; // Explicit page break
               console.log(`[PDF] Extracted page ${i}/${pdf.numPages}, chars so far: ${fullText.length}`);
             }
             
@@ -375,20 +416,41 @@ export const getCandidateProfile = async (userId: string): Promise<CandidateProf
       .eq('user_id', userId)
       .maybeSingle();
 
-    if (error || !data) {
-      console.log('No saved profile found');
+    if (error) {
+      console.error('[PROFILE] Error fetching profile:', error.message);
       return null;
     }
 
+    if (!data) {
+      console.log('[PROFILE] No saved profile found for user');
+      return null;
+    }
+
+    // Parse identity with better defaults
+    const identity = data.identity as any;
+    const profileIdentity = {
+      name: identity?.name || 'Unknown Candidate',
+      email: identity?.email || '',
+      phone: identity?.phone || '',
+      links: identity?.links || []
+    };
+
+    console.log('[PROFILE] Loaded profile from database:', {
+      name: profileIdentity.name,
+      email: profileIdentity.email,
+      skillsCount: (data.skills as any[])?.length || 0,
+      experienceCount: (data.experience_atoms as any[])?.length || 0
+    });
+
     return {
-      identity: (data.identity as unknown as CandidateProfile['identity']) || { name: 'Unknown Candidate', email: '', links: [] },
+      identity: profileIdentity,
       skills: (data.skills as unknown as Skill[]) || [],
       experience_atoms: (data.experience_atoms as unknown as ExperienceAtom[]) || [],
       education: (data.education as unknown as Education[]) || [],
       resume_file_url: data.resume_file_url || undefined
     };
   } catch (err) {
-    console.error('Error fetching profile:', err);
+    console.error('[PROFILE] Exception fetching profile:', err);
     return null;
   }
 };
@@ -411,7 +473,7 @@ export const saveCandidateProfile = async (userId: string, profile: CandidatePro
   }
 };
 
-// Helper to polish text using AI (Mock for now to save tokens, or use generate-content)
+// Helper to polish text using heuristic rules for formatting
 export const polishText = async (text: string, type: 'experience' | 'skill'): Promise<string> => {
     // For now, we'll use a heuristic polish to ensure "world class" speed without edge function dependency issues.
     let polished = text.trim();

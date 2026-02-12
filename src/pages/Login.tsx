@@ -8,6 +8,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { loginFormSchema, validateWithSchema } from "@/lib/validation";
 
+import WavyBackground from "@/components/WavyBackground";
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -59,10 +61,9 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-background transition-colors duration-500 safe-area-inset-bottom relative overflow-hidden">
-      {/* Ambient Background Orbs */}
-      <div className="ambient-orb ambient-orb-primary w-[400px] h-[400px] -top-32 -left-32 animate-float-slow -z-10" aria-hidden="true" />
-      <div className="ambient-orb ambient-orb-primary w-[300px] h-[300px] -bottom-20 -right-20 animate-float -z-10" style={{ animationDelay: '1.5s' }} aria-hidden="true" />
-      
+      {/* Dynamic Wavy Background */}
+      <WavyBackground />
+
       <div className="w-full max-w-md animate-scale-in relative z-10">
         <Link
           to="/"

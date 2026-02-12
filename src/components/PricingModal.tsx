@@ -18,13 +18,11 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
         setLoading(true);
         try {
             await upgradeToPro();
-            toast.success("Welcome to Hunter Pro!", {
-                description: "You now have access to Deep Intelligence and Autopilot."
-            });
-            onClose();
+            // Redirect happens inside upgradeToPro, so we don't need to close or toast success immediately
+            // But if it returns (void), we might want to catch errors
         } catch (e) {
-            toast.error("Payment failed.");
-        } finally {
+            console.error(e);
+            toast.error("Payment initiation failed.", { description: "Please try again later." });
             setLoading(false);
         }
     };
