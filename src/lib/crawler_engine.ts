@@ -15,22 +15,34 @@ export interface JobOpportunity {
   tech_stack?: string[];
 }
 
+export interface CrawlParams {
+  keywords?: string[];
+  targetRoles?: string[];
+  location?: string;
+  remotePolicy?: string;
+  url?: string;
+}
+
 // Trigger a crawl to fetch fresh jobs
 export const triggerJobCrawl = async (
-  sources?: string[], 
-  keywords?: string[]
+  params: CrawlParams = {}
 ): Promise<{ success: boolean; inserted?: number; error?: string }> => {
   try {
-    // Get current session to ensure we have auth token
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    
+
     if (sessionError || !session) {
       console.error('No active session for crawl:', sessionError);
       return { success: false, error: 'Please sign in to crawl jobs' };
     }
 
     const { data, error } = await supabase.functions.invoke('crawl-jobs', {
-      body: { sources, keywords },
+      body: {
+        keywords: params.keywords,
+        targetRoles: params.targetRoles,
+        location: params.location,
+        remotePolicy: params.remotePolicy,
+        url: params.url,
+      },
       headers: {
         Authorization: `Bearer ${session.access_token}`
       }
@@ -41,10 +53,10 @@ export const triggerJobCrawl = async (
       return { success: false, error: error.message };
     }
 
-    return { 
-      success: data?.success ?? false, 
+    return {
+      success: data?.success ?? false,
       inserted: data?.inserted,
-      error: data?.error 
+      error: data?.error
     };
   } catch (err) {
     console.error('Crawl error:', err);
@@ -67,9 +79,7 @@ export const searchJobs = async (query?: string): Promise<JobOpportunity[]> => {
       .order('created_at', { ascending: false })
       .limit(50);
 
-    // If query provided, do text search with sanitized input
     if (query && query.trim()) {
-      // Limit query length and sanitize special characters
       const sanitizedQuery = escapeLikePattern(query.trim().slice(0, 100));
       queryBuilder = queryBuilder.or(
         `title.ilike.%${sanitizedQuery}%,company.ilike.%${sanitizedQuery}%,description.ilike.%${sanitizedQuery}%`
@@ -83,14 +93,12 @@ export const searchJobs = async (query?: string): Promise<JobOpportunity[]> => {
       return [];
     }
 
-    // Transform database records to JobOpportunity interface
     return (data || []).map((job: unknown) => {
-        // Define shape of DB record locally
-        const j = job as { 
-          id: string; title: string; company: string; location: string; 
-          salary_range: string; description: string; source: string; 
-          freshness_score: number; credibility_score: number; url: string; 
-          posted_at: string; tech_stack: string[] 
+        const j = job as {
+          id: string; title: string; company: string; location: string;
+          salary_range: string; description: string; source: string;
+          freshness_score: number; credibility_score: number; url: string;
+          posted_at: string; tech_stack: string[]
         };
         return {
             id: j.id,

@@ -107,12 +107,16 @@ const Onboarding = () => {
         safe_mode: true,
       });
 
-      // Trigger job crawl in background
+      // Trigger job crawl in background with full preferences
       const keywords = [
         ...profile.skills.slice(0, 5).map(s => s.name),
-        ...roles.slice(0, 3),
       ].filter(Boolean);
-      triggerJobCrawl(undefined, keywords.length > 0 ? keywords : ["remote jobs"]).catch(() => {});
+      triggerJobCrawl({
+        keywords: keywords.length > 0 ? keywords : undefined,
+        targetRoles: roles.length > 0 ? roles : undefined,
+        location: locations.trim() || undefined,
+        remotePolicy: remotePolicy,
+      }).catch(() => {});
 
       toast.success("You're all set! Let's find your next role.");
       navigate("/dashboard");

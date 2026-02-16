@@ -180,7 +180,7 @@ const Dashboard = () => {
               {/* Jobs Tab */}
               <TabsContent value="jobs" className="mt-0 space-y-4">
                 <WidgetErrorBoundary>
-                  <JobFeed profile={profile} />
+                  <JobFeed profile={profile} preferences={preferences} />
                 </WidgetErrorBoundary>
               </TabsContent>
 

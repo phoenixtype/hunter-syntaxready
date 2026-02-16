@@ -1,15 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { searchJobs, triggerJobCrawl, getJobCount, JobOpportunity } from "@/lib/crawler_engine";
+import { searchJobs, triggerJobCrawl, getJobCount, JobOpportunity, CrawlParams } from "@/lib/crawler_engine";
 import { CandidateProfile } from "@/lib/resume_engine";
 import { calculateMatch, MatchResult } from "@/lib/matching_engine";
 import { getOptimizedWeights } from "@/lib/learning_engine";
+import { UserPreferences } from "@/lib/user_preferences";
 import { toast } from "sonner";
 
 export interface EnrichedJob extends JobOpportunity {
     match?: MatchResult;
 }
 
-export const useJobs = (profile: CandidateProfile | null) => {
+export const useJobs = (profile: CandidateProfile | null, preferences?: UserPreferences | null) => {
     const queryClient = useQueryClient();
 
     // 1. Fetch Job Count
@@ -23,9 +24,8 @@ export const useJobs = (profile: CandidateProfile | null) => {
         queryKey: ['jobs', profile], // Refetch if profile changes to re-rank
         queryFn: async (): Promise<EnrichedJob[]> => {
             const rawJobs = await searchJobs();
-            
+
             if (!profile) {
-                // Return raw jobs as EnrichedJob (without match data)
                 return rawJobs.map(job => ({ ...job, match: undefined }));
             }
 
@@ -37,35 +37,45 @@ export const useJobs = (profile: CandidateProfile | null) => {
                 })
             );
 
-            // Filter out banned matches (score 0) & Sort by score
             return matches
                 .filter(j => j.match && j.match.overall_score > 0)
                 .sort((a, b) => (b.match?.overall_score ?? 0) - (a.match?.overall_score ?? 0));
         },
-        staleTime: 1000 * 60 * 5 // 5 minutes
+        staleTime: 1000 * 60 * 5
     });
 
-    // 3. Crawl Mutation
+    // 3. Crawl Mutation — uses profile + preferences for smart search
     const { mutate: crawl, isPending: isCrawling } = useMutation({
-        mutationFn: async () => {
-             // Personalized Crawl Logic
-             let keywords: string[] = ['hiring now'];
-             if (profile) {
-                 const topSkills = profile.skills.slice(0, 3).map(s => s.name);
-                 const latestRole = profile.experience_atoms?.[0]?.role;
-     
-                 keywords = [];
-                 if (latestRole) keywords.push(latestRole);
-                 if (topSkills.length > 0) keywords.push(...topSkills);
-             }
+        mutationFn: async (extraKeywords?: string[]) => {
+            const params: CrawlParams = {};
 
-            const result = await triggerJobCrawl(undefined, keywords);
+            // Build keywords from profile skills
+            if (profile) {
+                const topSkills = profile.skills.slice(0, 5).map(s => s.name);
+                const latestRole = profile.experience_atoms?.[0]?.role;
+                params.keywords = [];
+                if (latestRole) params.keywords.push(latestRole);
+                if (topSkills.length > 0) params.keywords.push(...topSkills);
+            }
+
+            // Add any extra keywords (e.g., from search bar)
+            if (extraKeywords && extraKeywords.length > 0) {
+                params.keywords = [...(params.keywords || []), ...extraKeywords];
+            }
+
+            // Wire in user preferences
+            if (preferences) {
+                params.targetRoles = preferences.target_roles;
+                params.location = preferences.locations?.join(', ');
+                params.remotePolicy = preferences.remote_policy;
+            }
+
+            const result = await triggerJobCrawl(params);
             if (!result.success) throw new Error(result.error);
             return result;
         },
         onSuccess: (data) => {
             toast.success(`Crawl complete! Found ${data.inserted || 0} new jobs`);
-            // Invalidate queries to trigger auto-refresh
             queryClient.invalidateQueries({ queryKey: ['jobs'] });
             queryClient.invalidateQueries({ queryKey: ['jobCount'] });
         },

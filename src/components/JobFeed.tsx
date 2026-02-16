@@ -1,31 +1,46 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
 import { CandidateProfile } from "@/lib/resume_engine";
 import { EnrichedJob } from "@/hooks/useJobs";
 import { generateTailoredContent } from "@/lib/writer_engine";
 import { simulateApplication, ApplicationState, ComplianceError, getApplicationHistory } from "@/lib/application_engine";
 import { recordFeedback } from "@/lib/learning_engine";
 import { ExternalLink, Sparkles, RefreshCw, PenTool, Send, GraduationCap, X, Loader2, Globe, Search, MapPin, Building2, ChevronDown, ChevronUp } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
 import InterviewPrepModal from "./InterviewPrep";
 import { useAuth } from "@/hooks/useAuth";
 import { Stakeholder } from "@/lib/recruiter_engine";
 import { useJobs } from "@/hooks/useJobs";
+import { UserPreferences } from "@/lib/user_preferences";
 
 interface JobFeedProps {
   profile: CandidateProfile | null;
+  preferences?: UserPreferences | null;
 }
 
-const JobFeed = ({ profile }: JobFeedProps) => {
+const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   const { user } = useAuth();
-  const { jobs, jobCount, loading, crawling, refreshJobs, crawl } = useJobs(profile);
+  const { jobs, jobCount, loading, crawling, refreshJobs, crawl } = useJobs(profile, preferences);
+  const [searchQuery, setSearchQuery] = useState("");
   const [activeApplication, setActiveApplication] = useState<ApplicationState | null>(null);
   const [stakeholders, setStakeholders] = useState<Record<string, Stakeholder[]>>({});
   const [prepJob, setPrepJob] = useState<EnrichedJob | null>(null);
   const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set());
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
+
+  // Client-side search filtering
+  const filteredJobs = useMemo(() => {
+    if (!searchQuery.trim()) return jobs;
+    const q = searchQuery.toLowerCase();
+    return jobs.filter(job =>
+      job.title.toLowerCase().includes(q) ||
+      job.company.toLowerCase().includes(q) ||
+      job.description.toLowerCase().includes(q) ||
+      job.location.toLowerCase().includes(q)
+    );
+  }, [jobs, searchQuery]);
 
   useEffect(() => {
     if (!user) return;
@@ -111,7 +126,9 @@ const JobFeed = ({ profile }: JobFeedProps) => {
 
   const handleCrawl = () => {
     toast.info(profile ? "Targeting your skills..." : "Starting global hunt...");
-    crawl();
+    // Pass search bar terms as extra keywords to supplement profile data
+    const extra = searchQuery.trim() ? searchQuery.trim().split(/\s+/) : undefined;
+    crawl(extra);
   };
 
   const getScoreColor = (score: number) => {
@@ -122,30 +139,39 @@ const JobFeed = ({ profile }: JobFeedProps) => {
 
   return (
     <div className="space-y-4">
-      {/* Header Bar */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-medium">
-            {loading ? 'Loading...' : `${jobCount} jobs found`}
-          </span>
+      {/* Search Bar */}
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search jobs by title, company, or location..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 h-9 text-sm"
+          />
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleCrawl} disabled={crawling || loading} className="text-xs h-8">
+        <Button variant="outline" size="sm" onClick={handleCrawl} disabled={crawling || loading} className="text-xs h-9 shrink-0">
             {crawling ? (
               <><Loader2 className="w-3 h-3 mr-1.5 animate-spin" />Searching...</>
             ) : (
               <><Globe className="w-3 h-3 mr-1.5" />Find More</>
             )}
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => { refreshJobs(); toast.info("Refreshing..."); }} disabled={loading || crawling} className="h-8 w-8">
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-          </Button>
-        </div>
+        <Button variant="ghost" size="icon" onClick={() => { refreshJobs(); toast.info("Refreshing..."); }} disabled={loading || crawling} className="h-9 w-9 shrink-0">
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+        </Button>
+      </div>
+
+      {/* Results count */}
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-muted-foreground">
+          {loading ? 'Loading...' : searchQuery ? `${filteredJobs.length} of ${jobCount} jobs` : `${jobCount} jobs found`}
+        </span>
       </div>
 
       {/* Job Cards */}
       <div className="space-y-3">
-        {jobs.map((job) => {
+        {filteredJobs.map((job) => {
           const isExpanded = expandedJob === job.id;
           const isApplied = appliedJobIds.has(job.id);
           const isApplying = activeApplication?.jobId === job.id;
@@ -311,7 +337,7 @@ const JobFeed = ({ profile }: JobFeedProps) => {
         })}
 
         {/* Empty State */}
-        {jobs.length === 0 && !loading && (
+        {filteredJobs.length === 0 && !loading && (
           <div className="flex flex-col items-center justify-center py-16 text-center space-y-4 border border-dashed border-border/50 rounded-xl">
             <div className="w-14 h-14 rounded-full bg-secondary/50 flex items-center justify-center">
               <Search className="w-6 h-6 text-muted-foreground" />
