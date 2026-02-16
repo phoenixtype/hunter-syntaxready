@@ -355,39 +355,93 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_price_id: string | null
+          stripe_subscription_id: string | null
+          tier: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+          tier?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+          tier?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           aggressiveness: number | null
+          alert_frequency: string | null
           created_at: string
+          experience_level: string | null
           id: string
           locations: string[] | null
           min_salary_usd: number | null
           remote_policy: string | null
           safe_mode: boolean | null
+          search_intent: string | null
           target_roles: string[] | null
           updated_at: string
           user_id: string
         }
         Insert: {
           aggressiveness?: number | null
+          alert_frequency?: string | null
           created_at?: string
+          experience_level?: string | null
           id?: string
           locations?: string[] | null
           min_salary_usd?: number | null
           remote_policy?: string | null
           safe_mode?: boolean | null
+          search_intent?: string | null
           target_roles?: string[] | null
           updated_at?: string
           user_id: string
         }
         Update: {
           aggressiveness?: number | null
+          alert_frequency?: string | null
           created_at?: string
+          experience_level?: string | null
           id?: string
           locations?: string[] | null
           min_salary_usd?: number | null
           remote_policy?: string | null
           safe_mode?: boolean | null
+          search_intent?: string | null
           target_roles?: string[] | null
           updated_at?: string
           user_id?: string

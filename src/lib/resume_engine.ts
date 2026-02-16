@@ -461,11 +461,11 @@ export const saveCandidateProfile = async (userId: string, profile: CandidatePro
     .from('candidate_profiles')
     .upsert({
       user_id: userId,
-      identity: profile.identity as unknown,
-      skills: profile.skills as unknown,
-      experience_atoms: profile.experience_atoms as unknown,
-      education: profile.education as unknown
-    }, { onConflict: 'user_id' });
+      identity: profile.identity as any,
+      skills: profile.skills as any,
+      experience_atoms: profile.experience_atoms as any,
+      education: profile.education as any
+    } as any, { onConflict: 'user_id' });
 
   if (error) {
     console.error('Error saving profile:', error);
