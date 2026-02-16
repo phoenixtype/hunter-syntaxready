@@ -14,11 +14,9 @@ export const generateTailoredContent = async (
 ): Promise<TailoredContent> => {
   console.log(`Generating tailored content for ${job.company} - ${job.title}`);
 
-  // Get session for auth
   const { data: { session } } = await supabase.auth.getSession();
   const authHeader = session ? { Authorization: `Bearer ${session.access_token}` } : {};
 
-  // Generate cover letter using AI
   const { data: coverLetterData, error: coverLetterError } = await supabase.functions.invoke('generate-content', {
     body: { profile, job, type: 'cover_letter' },
     headers: authHeader
@@ -29,7 +27,6 @@ export const generateTailoredContent = async (
     throw new Error(coverLetterError.message || 'Failed to generate cover letter');
   }
 
-  // Generate resume optimization suggestions
   const { data: optimizationData, error: optimizationError } = await supabase.functions.invoke('generate-content', {
     body: { profile, job, type: 'resume_optimization' },
     headers: authHeader
@@ -39,10 +36,8 @@ export const generateTailoredContent = async (
     console.error('Resume optimization error:', optimizationError);
   }
 
-  // Parse optimization suggestions into changes
   const changesReceived: string[] = [];
   if (optimizationData?.content) {
-    // Extract key suggestions from the optimization content
     const suggestions = optimizationData.content.split('\n')
       .filter((line: string) => line.trim().startsWith('-') || line.trim().startsWith('•'))
       .slice(0, 5)
@@ -56,10 +51,7 @@ export const generateTailoredContent = async (
     changesReceived.push('Enhanced achievement metrics');
   }
 
-  // Create tailored resume with minor optimizations
   const tailoredResume = JSON.parse(JSON.stringify(profile)) as CandidateProfile;
-  
-  // Add job-specific keywords from the structured tech_stack (reliable source)
   const jobKeywords = (job.tech_stack || []).slice(0, 5);
 
   jobKeywords.forEach(keyword => {
@@ -81,6 +73,52 @@ export const generateTailoredContent = async (
   };
 };
 
+// Optimize resume for a specific job URL - crawl + tailor
+export const optimizeResumeForJobUrl = async (
+  profile: CandidateProfile,
+  jobUrl: string
+): Promise<TailoredContent> => {
+  const { data: { session } } = await supabase.auth.getSession();
+
+  // Crawl the job URL to extract details
+  const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/crawl-jobs`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${session?.access_token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ url: jobUrl })
+  });
+
+  const result = await response.json();
+
+  if (!result.success || !result.jobs || result.jobs.length === 0) {
+    throw new Error(result.error || 'Could not extract job details from URL');
+  }
+
+  const job = result.jobs[0] as JobOpportunity;
+  return generateTailoredContent(profile, job);
+};
+
+// Generate LinkedIn profile optimization suggestions
+export const generateLinkedInOptimization = async (
+  profile: CandidateProfile,
+  job: JobOpportunity
+): Promise<string> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  const { data, error } = await supabase.functions.invoke('generate-content', {
+    body: { profile, job, type: 'linkedin_optimization' },
+    headers: session ? { Authorization: `Bearer ${session.access_token}` } : {}
+  });
+
+  if (error) {
+    console.error('LinkedIn optimization error:', error);
+    throw new Error(error.message || 'Failed to generate LinkedIn suggestions');
+  }
+
+  return data?.content || generateFallbackLinkedInSuggestions(profile, job);
+};
+
 // Generate interview prep content
 export const generateInterviewPrep = async (
   profile: CandidateProfile,
@@ -100,7 +138,6 @@ export const generateInterviewPrep = async (
   return data?.content || '';
 };
 
-// Fallback cover letter if AI fails
 function generateFallbackCoverLetter(profile: CandidateProfile, job: JobOpportunity): string {
   return `
 Dear Hiring Team at ${job.company},
@@ -116,5 +153,35 @@ I am excited about the opportunity to contribute to ${job.company} and would wel
 
 Best regards,
 ${profile.identity.name}
+  `.trim();
+}
+
+function generateFallbackLinkedInSuggestions(profile: CandidateProfile, job: JobOpportunity): string {
+  const skills = profile.skills.slice(0, 5).map(s => s.name).join(', ');
+  return `
+## LinkedIn Profile Optimization Suggestions
+
+### Headline
+Update your headline to: "${profile.experience_atoms[0]?.role || 'Professional'} | ${skills}"
+
+### About Section
+- Lead with your unique value proposition
+- Include keywords: ${job.tech_stack?.slice(0, 5).join(', ') || skills}
+- Quantify achievements from your experience
+
+### Experience
+- Mirror the language used in ${job.company}'s job description
+- Add measurable outcomes to each role
+- Include relevant projects and technologies
+
+### Skills & Endorsements
+- Add: ${job.tech_stack?.slice(0, 5).join(', ') || 'relevant skills from target roles'}
+- Reorder skills to match target role requirements
+- Request endorsements for top skills
+
+### Activity
+- Engage with ${job.company}'s content
+- Share industry-relevant articles
+- Comment on posts from hiring managers
   `.trim();
 }
