@@ -103,18 +103,18 @@ const JobUrlOptimizer = ({ isOpen, onClose, profile }: JobUrlOptimizerProps) => 
                             )}
                         </Button>
                         {!profile && (
-                            <p className="text-xs text-amber-500">Upload your resume first from the dashboard sidebar.</p>
+                            <p className="text-xs text-muted-foreground">Upload your resume first from the dashboard sidebar.</p>
                         )}
                     </div>
                 ) : (
                     <div className="space-y-3">
                         {result.changes_summary.length > 0 && (
-                            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
-                                <h4 className="text-xs font-semibold text-green-600 dark:text-green-400 mb-2">Optimizations Applied:</h4>
+                            <div className="bg-secondary border border-border rounded-lg p-3">
+                                <h4 className="text-xs font-semibold text-foreground mb-2">Optimizations Applied:</h4>
                                 <ul className="space-y-1">
                                     {result.changes_summary.map((change, i) => (
                                         <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
-                                            <Check className="w-3 h-3 text-green-500 mt-0.5 shrink-0" />
+                                            <Check className="w-3 h-3 text-foreground mt-0.5 shrink-0" />
                                             {change}
                                         </li>
                                     ))}

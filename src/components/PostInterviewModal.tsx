@@ -144,7 +144,7 @@ const PostInterviewModal = ({ isOpen, onClose, companyName, profile }: PostInter
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="text-lg flex items-center gap-2">
-                                            <DollarSign className="w-5 h-5 text-green-500" /> Recommended Counter
+                                            <DollarSign className="w-5 h-5 text-foreground" /> Recommended Counter
                                         </CardTitle>
                                         <CardDescription>{strategy.recommendedCounter}</CardDescription>
                                     </CardHeader>

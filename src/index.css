@@ -475,16 +475,16 @@
 .score-ring-excellent {
   background: conic-gradient(
     from 0deg,
-    hsl(142 76% 36%) 0%,
-    hsl(142 76% 50%) 100%
+    hsl(var(--primary)) 0%,
+    hsl(var(--primary) / 0.7) 100%
   );
 }
 
 .score-ring-good {
   background: conic-gradient(
     from 0deg,
-    hsl(48 96% 53%) 0%,
-    hsl(36 100% 50%) 100%
+    hsl(var(--primary) / 0.6) 0%,
+    hsl(var(--primary) / 0.4) 100%
   );
 }
 
@@ -506,7 +506,7 @@
   right: 0;
   width: 12px;
   height: 12px;
-  background: hsl(142 76% 36%);
+  background: hsl(var(--primary));
   border: 2px solid hsl(var(--background));
   border-radius: 50%;
   animation: pulse-glow 2s ease-in-out infinite;

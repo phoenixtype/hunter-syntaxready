@@ -47,8 +47,8 @@ export const DashboardSidebar = ({
                             </AvatarFallback>
                         </Avatar>
                         {profile && (
-                            <div className="absolute bottom-0 right-0 bg-green-500 rounded-full p-1 ring-2 ring-background" title="Profile Active">
-                                <CheckCircle2 className="w-3 h-3 text-white" />
+                            <div className="absolute bottom-0 right-0 bg-foreground rounded-full p-1 ring-2 ring-background" title="Profile Active">
+                                <CheckCircle2 className="w-3 h-3 text-background" />
                             </div>
                         )}
                     </div>
@@ -92,7 +92,7 @@ export const DashboardSidebar = ({
                         <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider text-[10px]">
                             Employability Score
                         </h4>
-                        <Sparkles className="w-3 h-3 text-yellow-500" />
+                        <Sparkles className="w-3 h-3 text-muted-foreground" />
                     </div>
 
                     <div className="flex items-end gap-2">

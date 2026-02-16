@@ -10,11 +10,8 @@ import { formatDistanceToNow } from "date-fns";
 
 const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-        case 'interviewing': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
-        case 'offer': return 'bg-green-500/10 text-green-500 border-green-500/20';
-        case 'rejected': case 'failed': return 'bg-red-500/10 text-red-500 border-red-500/20';
-        case 'applied': return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
-        default: return 'bg-secondary text-muted-foreground';
+        case 'rejected': case 'failed': return 'bg-destructive/10 text-destructive border-destructive/20';
+        default: return 'bg-secondary text-secondary-foreground border-border';
     }
 };
 

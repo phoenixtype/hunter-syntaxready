@@ -65,32 +65,32 @@ const Dashboard = () => {
       title: "Target Application",
       desc: "Paste a job link for a full application package",
       action: () => navigate("/application-wizard"),
-      color: "text-blue-500",
-      bg: "bg-blue-500/10",
+      color: "text-foreground",
+      bg: "bg-secondary",
     },
     {
       icon: Link2,
       title: "Resume Optimizer",
       desc: "Tailor your resume for a specific job URL",
       action: () => setShowResumeOptimizer(true),
-      color: "text-emerald-500",
-      bg: "bg-emerald-500/10",
+      color: "text-foreground",
+      bg: "bg-secondary",
     },
     {
       icon: Linkedin,
       title: "LinkedIn Optimizer",
       desc: "Get AI suggestions to improve your profile",
       action: () => setShowLinkedIn(true),
-      color: "text-sky-500",
-      bg: "bg-sky-500/10",
+      color: "text-foreground",
+      bg: "bg-secondary",
     },
     {
       icon: MessageSquare,
       title: "Post-Interview Tools",
       desc: "Thank-you notes & negotiation coaching",
       action: handleOpenInterviewTools,
-      color: "text-amber-500",
-      bg: "bg-amber-500/10",
+      color: "text-foreground",
+      bg: "bg-secondary",
     },
   ];
 
@@ -213,7 +213,7 @@ const Dashboard = () => {
 
                 {/* Quick tip */}
                 {!profile && (
-                  <div className="mt-4 p-4 rounded-lg bg-amber-500/10 border border-amber-500/20 text-sm text-amber-700 dark:text-amber-300">
+                  <div className="mt-4 p-4 rounded-lg bg-secondary border border-border text-sm text-muted-foreground">
                     <strong>Tip:</strong> Upload your resume from the sidebar to unlock all AI-powered tools.
                   </div>
                 )}

@@ -128,7 +128,7 @@ export const ResumeUpload = ({ onUploadComplete, onATSDataExtracted }: ResumeUpl
                     <div className="p-8 border-2 border-dashed rounded-xl border-primary/20 bg-muted/30 text-center space-y-4 animate-in fade-in zoom-in-95 leading-relaxed">
                         <div className="flex justify-center mb-4">
                             {uploadStep === 'error' ? (
-                                <div className="h-12 w-12 rounded-full bg-red-500/20 flex items-center justify-center text-red-500">
+                                <div className="h-12 w-12 rounded-full bg-destructive/20 flex items-center justify-center text-destructive">
                                     <AlertCircle className="h-6 w-6" />
                                 </div>
                             ) : (
@@ -146,7 +146,7 @@ export const ResumeUpload = ({ onUploadComplete, onATSDataExtracted }: ResumeUpl
                         </h3>
 
                         {uploadStep === 'error' ? (
-                            <p className="text-red-400 text-sm">{errorMsg}</p>
+                            <p className="text-destructive text-sm">{errorMsg}</p>
                         ) : (
                             <Progress value={progress} className="h-2 w-64 mx-auto" />
                         )}

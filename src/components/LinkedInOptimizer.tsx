@@ -63,7 +63,7 @@ const LinkedInOptimizer = ({ isOpen, onClose, profile, job }: LinkedInOptimizerP
             <DialogContent className="max-w-2xl max-h-[85vh]">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
-                        <Linkedin className="w-5 h-5 text-blue-600" />
+                        <Linkedin className="w-5 h-5 text-foreground" />
                         LinkedIn Profile Optimizer
                     </DialogTitle>
                 </DialogHeader>
@@ -92,7 +92,7 @@ const LinkedInOptimizer = ({ isOpen, onClose, profile, job }: LinkedInOptimizerP
                             )}
                         </Button>
                         {!profile && (
-                            <p className="text-xs text-amber-500">Upload your resume first from the dashboard sidebar.</p>
+                            <p className="text-xs text-muted-foreground">Upload your resume first from the dashboard sidebar.</p>
                         )}
                     </div>
                 ) : (

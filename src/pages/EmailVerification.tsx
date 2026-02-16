@@ -129,8 +129,8 @@ const EmailVerification = () => {
 
           {status === 'success' && (
             <>
-              <div className="w-16 h-16 mx-auto rounded-full bg-green-500/10 flex items-center justify-center">
-                <CheckCircle2 className="w-8 h-8 text-green-500 animate-bounce" />
+              <div className="w-16 h-16 mx-auto rounded-full bg-secondary flex items-center justify-center">
+                <CheckCircle2 className="w-8 h-8 text-foreground animate-bounce" />
               </div>
               <div className="space-y-2">
                 <h1 className="text-2xl font-semibold tracking-tight">Email Verified!</h1>

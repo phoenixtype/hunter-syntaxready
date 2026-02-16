@@ -167,7 +167,7 @@ const SignUp = () => {
                       />
                     ))}
                   </div>
-                  <p className={`text-xs ${passwordStrength.score >= 3 ? 'text-green-600' : 'text-muted-foreground'
+                  <p className={`text-xs ${passwordStrength.score >= 3 ? 'text-foreground' : 'text-muted-foreground'
                     }`}>
                     Password strength: {passwordStrength.label}
                   </p>

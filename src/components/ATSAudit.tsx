@@ -83,8 +83,7 @@ const ATSAudit = ({ profile, preferences }: ATSAuditProps) => {
                                 <div className="space-y-2">
                                     <div className="flex justify-between items-end">
                                         <span className="font-semibold">Visibility Score</span>
-                                        <span className={`text-2xl font-bold ${result.score > 80 ? 'text-green-500' : 'text-yellow-500'
-                                            }`}>
+                                        <span className="text-2xl font-bold text-foreground">
                                             {result.score}/100
                                         </span>
                                     </div>
@@ -98,9 +97,9 @@ const ATSAudit = ({ profile, preferences }: ATSAuditProps) => {
                                     {result.recommendations.map((rec, i) => (
                                         <div key={i} className="flex gap-3 items-start p-3 rounded-lg bg-secondary/30">
                                             {rec.includes("parsing errors") ? (
-                                                <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                                                <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
                                             ) : (
-                                                <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+                                                <CheckCircle className="w-5 h-5 text-foreground shrink-0 mt-0.5" />
                                             )}
                                             <p className="text-sm">{rec}</p>
                                         </div>
@@ -113,7 +112,7 @@ const ATSAudit = ({ profile, preferences }: ATSAuditProps) => {
                                         <h3 className="text-sm font-medium uppercase text-muted-foreground tracking-wider">Missing Keywords</h3>
                                         <div className="flex flex-wrap gap-2">
                                             {result.missing_keywords.map(k => (
-                                                <Badge key={k} variant="destructive" className="bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/20">
+                                                <Badge key={k} variant="destructive" className="bg-destructive/10 text-destructive hover:bg-destructive/20 border-destructive/20">
                                                     {k}
                                                 </Badge>
                                             ))}

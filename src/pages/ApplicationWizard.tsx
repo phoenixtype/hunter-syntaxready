@@ -172,7 +172,7 @@ const ApplicationWizard = () => {
                                     <CardContent className="p-6 space-y-4">
                                         <div className="p-4 bg-muted/30 rounded-lg border space-y-2">
                                             <div className="flex items-center gap-2 font-medium">
-                                                <FileCheck className="w-4 h-4 text-green-500" />
+                                                <FileCheck className="w-4 h-4 text-foreground" />
                                                 Tailored Resume
                                             </div>
                                             <p className="text-xs text-muted-foreground">Optimized for {job.company} ATS</p>
@@ -214,7 +214,7 @@ const ApplicationWizard = () => {
                                                     rel="noopener noreferrer"
                                                     className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border"
                                                 >
-                                                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">
+                                                    <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-foreground font-bold text-xs">
                                                         <Search className="w-4 h-4" />
                                                     </div>
                                                     <div>

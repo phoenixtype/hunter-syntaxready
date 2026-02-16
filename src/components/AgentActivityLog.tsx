@@ -29,10 +29,7 @@ export const AgentActivityLog = () => {
 
     const getTypeColor = (type: LogType) => {
         switch (type) {
-            case 'error': return 'text-red-500 border-red-500/20 bg-red-500/10';
-            case 'warning': return 'text-amber-500 border-amber-500/20 bg-amber-500/10';
-            case 'success': return 'text-emerald-500 border-emerald-500/20 bg-emerald-500/10';
-            case 'action': return 'text-blue-500 border-blue-500/20 bg-blue-500/10';
+            case 'error': return 'text-destructive border-destructive/20 bg-destructive/10';
             default: return 'text-muted-foreground border-border bg-secondary/50';
         }
     };
@@ -46,10 +43,10 @@ export const AgentActivityLog = () => {
                 </div>
                 <div className="flex items-center gap-2">
                     <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-foreground opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-foreground"></span>
                     </span>
-                    <span className="text-[10px] font-mono text-emerald-500">SYSTEM_ACTIVE</span>
+                    <span className="text-[10px] font-mono text-foreground">SYSTEM_ACTIVE</span>
                 </div>
             </div>
 
@@ -66,7 +63,7 @@ export const AgentActivityLog = () => {
                             </div>
 
                             <div className="flex-1">
-                                <span className={log.type === 'error' ? 'text-red-400 font-bold' : 'text-primary/90 font-semibold'}>
+                                <span className={log.type === 'error' ? 'text-destructive font-bold' : 'text-primary/90 font-semibold'}>
                                     [{log.agent.toUpperCase()}]
                                 </span>
                                 <span className="mx-2 text-muted-foreground">::</span>

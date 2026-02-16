@@ -104,7 +104,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                         <section className="grid md:grid-cols-3 gap-6">
                                             <div className="md:col-span-2 space-y-4">
                                                 <h3 className="text-lg font-semibold flex items-center gap-2">
-                                                    <Building2 className="w-5 h-5 text-sky-500" />
+                                                    <Building2 className="w-5 h-5 text-foreground" />
                                                     Company Profile
                                                 </h3>
                                                 <div className="p-5 rounded-xl bg-card border border-border/50 shadow-sm space-y-4">
@@ -127,7 +127,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
 
                                             <div className="space-y-4">
                                                 <h3 className="text-lg font-semibold flex items-center gap-2">
-                                                    <Newspaper className="w-5 h-5 text-indigo-500" />
+                                                    <Newspaper className="w-5 h-5 text-foreground" />
                                                     Recent Intel
                                                 </h3>
                                                 <div className="space-y-3">
@@ -143,7 +143,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                         {/* Evaluation Criteria */}
                                         <section className="space-y-4">
                                             <h3 className="text-lg font-semibold flex items-center gap-2">
-                                                <Target className="w-5 h-5 text-emerald-500" />
+                                                <Target className="w-5 h-5 text-foreground" />
                                                 Likely Appraisal Criteria
                                             </h3>
                                             <div className="grid md:grid-cols-3 gap-4">
@@ -166,18 +166,18 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                         {/* Interviewer Profiles */}
                                         <section className="space-y-4">
                                             <h3 className="text-lg font-semibold flex items-center gap-2">
-                                                <Users className="w-5 h-5 text-amber-500" />
+                                                <Users className="w-5 h-5 text-foreground" />
                                                 Interviewer Personas
                                             </h3>
                                             <div className="grid md:grid-cols-2 gap-4">
                                                 {material.interviewer_insights.map((person, i) => (
                                                     <div key={i} className="flex gap-4 p-4 rounded-xl bg-gradient-to-br from-card to-background border border-border/50 shadow-sm">
-                                                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrank-0">
+                                                        <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-foreground font-bold shrank-0">
                                                             {person.role[0]}
                                                         </div>
                                                         <div className="space-y-1">
                                                             <div className="font-medium">{person.role}</div>
-                                                            <div className="text-xs text-amber-500 font-medium uppercase tracking-wide">{person.name_archetype}</div>
+                                                            <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{person.name_archetype}</div>
                                                             <p className="text-sm text-muted-foreground mt-2">"{person.tip}"</p>
                                                         </div>
                                                     </div>
@@ -189,12 +189,12 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                     <TabsContent value="culture" className="mt-0 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
                                         <div className="grid md:grid-cols-2 gap-6">
                                             <div className="space-y-4">
-                                                <div className="flex items-center gap-2 text-lg font-semibold text-blue-500">
+                                                <div className="flex items-center gap-2 text-lg font-semibold text-foreground">
                                                     <BookOpen className="w-5 h-5" /> Official Values
                                                 </div>
                                                 <div className="grid gap-2">
                                                     {material.company_values.map((val, i) => (
-                                                        <div key={i} className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 text-sm font-medium">
+                                                        <div key={i} className="p-4 rounded-xl bg-secondary/30 border border-border/50 text-sm font-medium">
                                                             {val}
                                                         </div>
                                                     ))}
@@ -202,12 +202,12 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                             </div>
 
                                             <div className="space-y-4">
-                                                <div className="flex items-center gap-2 text-lg font-semibold text-red-500">
+                                                <div className="flex items-center gap-2 text-lg font-semibold text-foreground">
                                                     <AlertTriangle className="w-5 h-5" /> Risk Analysis
                                                 </div>
                                                 <div className="grid gap-2">
                                                     {material.red_flags_to_watch.map((flag, i) => (
-                                                        <div key={i} className="p-4 rounded-xl bg-red-500/5 border border-red-500/10 text-sm text-red-700 dark:text-red-300">
+                                                        <div key={i} className="p-4 rounded-xl bg-destructive/5 border border-destructive/10 text-sm text-destructive">
                                                             {flag}
                                                         </div>
                                                     ))}

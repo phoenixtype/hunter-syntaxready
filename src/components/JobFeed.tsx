@@ -131,10 +131,8 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
     crawl(extra);
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/30";
-    if (score >= 60) return "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/30";
-    return "text-muted-foreground bg-muted/50 border-border";
+  const getScoreColor = (_score: number) => {
+    return "text-foreground bg-secondary border-border";
   };
 
   return (
@@ -200,7 +198,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                         <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-semibold text-base truncate">{job.title}</h3>
                           {job.freshness_score > 0.9 && (
-                            <Badge variant="secondary" className="text-[10px] bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20">
+                            <Badge variant="secondary" className="text-[10px]">
                               <Sparkles className="w-2.5 h-2.5 mr-0.5" /> New
                             </Badge>
                           )}
@@ -241,7 +239,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                       )}
                       <Badge variant="outline" className="text-[10px] font-normal">{job.source}</Badge>
                       {job.match?.reasoning[0] && (
-                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-0.5">
+                        <span className="text-[10px] text-muted-foreground font-medium flex items-center gap-0.5">
                           <Sparkles className="w-2.5 h-2.5" /> {job.match.reasoning[0]}
                         </span>
                       )}
@@ -302,7 +300,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
               {isExpanded && (
                 <div className="border-t border-border/50 p-4 bg-secondary/20 animate-fade-in">
                   <h4 className="text-[10px] uppercase font-bold text-muted-foreground mb-3 flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Hiring Team Intel
+                    <span className="w-1.5 h-1.5 rounded-full bg-foreground" /> Hiring Team Intel
                   </h4>
                   {stakeholders[job.id] ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -314,7 +312,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                           rel="noopener noreferrer"
                           className="flex items-center gap-3 p-2.5 rounded-lg bg-card hover:bg-card/80 transition-colors border border-border/50"
                         >
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-foreground text-xs font-bold shrink-0">
                             {person.name?.[0] || '?'}
                           </div>
                           <div className="min-w-0 flex-1">

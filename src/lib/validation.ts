@@ -178,7 +178,7 @@ export function getPasswordStrength(password: string): {
   
   const labels: Array<'Very Weak' | 'Weak' | 'Fair' | 'Strong' | 'Very Strong'> = 
     ['Very Weak', 'Weak', 'Fair', 'Strong', 'Very Strong'];
-  const colors = ['bg-destructive', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500', 'bg-green-600'];
+  const colors = ['bg-destructive', 'bg-primary/25', 'bg-primary/50', 'bg-primary/75', 'bg-primary'];
   
   return {
     score: normalizedScore,
