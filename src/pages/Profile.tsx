@@ -165,7 +165,7 @@ const Profile = () => {
     return (
         <div className="min-h-screen bg-background text-foreground pb-20">
             {/* Header */}
-            <header className="fixed top-0 w-full z-50 border-b border-border/40 backdrop-blur-xl bg-background/80">
+            <header className="fixed top-0 w-full z-50 border-b border-border bg-background">
                 <div className="container max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
                     <Button variant="ghost" onClick={() => navigate("/dashboard")} className="gap-2">
                         <ArrowLeft className="w-4 h-4" />
@@ -191,7 +191,7 @@ const Profile = () => {
                         {mode === 'preview' && (
                             <>
                                 <Button variant="ghost" onClick={() => setMode('edit')}>Back to Edit</Button>
-                                <Button onClick={handleSave} disabled={isSaving} variant="gradient">
+                                <Button onClick={handleSave} disabled={isSaving}>
                                     {isSaving ? (
                                         <>
                                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -216,7 +216,7 @@ const Profile = () => {
                 {(mode === 'view' || mode === 'preview') && (
                     <div className="space-y-8">
                         {mode === 'preview' && (
-                            <div className="bg-primary/10 border border-primary/20 p-4 rounded-lg text-primary flex items-center gap-2">
+                            <div className="bg-secondary border border-border p-4 rounded-lg text-foreground flex items-center gap-2">
                                 <Eye className="w-5 h-5" />
                                 <span className="font-semibold">Preview Mode - Review your changes before saving.</span>
                             </div>
@@ -225,7 +225,7 @@ const Profile = () => {
                         {/* Identity */}
                         <section className="space-y-4">
                             <h2 className="text-xl font-semibold">Personal Information</h2>
-                            <Card className="glass-card">
+                            <Card className="">
                                 <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div>
                                         <Label className="text-muted-foreground">Full Name</Label>
@@ -247,7 +247,7 @@ const Profile = () => {
                         {formData.summary && (
                             <section className="space-y-4">
                                 <h2 className="text-xl font-semibold">Professional Summary</h2>
-                                <Card className="glass-card">
+                                <Card className="">
                                     <CardContent className="p-6">
                                         <p className="text-lg leading-relaxed whitespace-pre-wrap">{formData.summary}</p>
                                     </CardContent>
@@ -260,7 +260,7 @@ const Profile = () => {
                             <h2 className="text-xl font-semibold">Experience</h2>
                             <div className="space-y-4">
                                 {formData.experience_atoms.map((exp, idx) => (
-                                    <Card key={idx} className="glass-card">
+                                    <Card key={idx} className="">
                                         <CardContent className="p-6 space-y-2">
                                             <div className="flex justify-between items-start">
                                                 <div>
@@ -282,7 +282,7 @@ const Profile = () => {
                             <h2 className="text-xl font-semibold">Education</h2>
                             <div className="grid gap-4">
                                 {formData.education.map((edu, idx) => (
-                                    <Card key={idx} className="glass-card">
+                                    <Card key={idx} className="">
                                         <CardContent className="p-6 flex justify-between items-center">
                                             <div>
                                                 <h3 className="font-semibold">{edu.school}</h3>
@@ -312,7 +312,7 @@ const Profile = () => {
                                 <h2 className="text-xl font-semibold">Additional Information</h2>
                                 <div className="space-y-4">
                                     {formData.custom_sections.map((section, idx) => (
-                                        <Card key={idx} className="glass-card">
+                                        <Card key={idx} className="">
                                             <CardContent className="p-6 space-y-2">
                                                 <h3 className="text-lg font-bold">{section.title}</h3>
                                                 <Separator className="my-2" />
@@ -339,7 +339,7 @@ const Profile = () => {
                             {/* Identity Section */}
                             <section className="space-y-4">
                                 <h2 className="text-xl font-semibold">Personal Information</h2>
-                                <Card className="glass-card">
+                                <Card className="">
                                     <CardContent className="p-6 space-y-4">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="space-y-2">
@@ -347,7 +347,7 @@ const Profile = () => {
                                                 <Input
                                                     value={formData.identity.name || ""}
                                                     onChange={(e) => updateIdentity("name", e.target.value)}
-                                                    className="bg-background/50"
+                                                    className="bg-transparent"
                                                 />
                                             </div>
                                             <div className="space-y-2">
@@ -355,7 +355,7 @@ const Profile = () => {
                                                 <Input
                                                     value={formData.identity.email || ""}
                                                     onChange={(e) => updateIdentity("email", e.target.value)}
-                                                    className="bg-background/50"
+                                                    className="bg-transparent"
                                                 />
                                             </div>
                                             <div className="space-y-2">
@@ -363,7 +363,7 @@ const Profile = () => {
                                                 <Input
                                                     value={formData.identity.phone || ""}
                                                     onChange={(e) => updateIdentity("phone", e.target.value)}
-                                                    className="bg-background/50"
+                                                    className="bg-transparent"
                                                 />
                                             </div>
                                         </div>
@@ -374,12 +374,12 @@ const Profile = () => {
                             {/* Summary Section */}
                             <section className="space-y-4">
                                 <h2 className="text-xl font-semibold">Professional Summary</h2>
-                                <Card className="glass-card">
+                                <Card className="">
                                     <CardContent className="p-6">
                                         <Textarea
                                             value={formData.summary || ""}
                                             onChange={(e) => setFormData(prev => prev ? ({ ...prev, summary: e.target.value }) : null)}
-                                            className="min-h-[120px] bg-background/50 resize-y text-lg"
+                                            className="min-h-[120px] bg-transparent resize-y text-lg"
                                             placeholder="Brief professional summary..."
                                         />
                                     </CardContent>
@@ -397,7 +397,7 @@ const Profile = () => {
                                 </div>
                                 <div className="space-y-4">
                                     {formData.experience_atoms.map((exp, index) => (
-                                        <Card key={exp.id || index} className="glass-card group hover:border-primary/30 transition-colors">
+                                        <Card key={exp.id || index} className=" group hover:border-foreground/20 transition-colors">
                                             <CardHeader className="flex flex-row items-start justify-between pb-2">
                                                 <div className="space-y-1 w-full mr-4">
                                                     <Input
@@ -434,7 +434,7 @@ const Profile = () => {
                                                 <Textarea
                                                     value={exp.content}
                                                     onChange={(e) => updateExperience(index, "content", e.target.value)}
-                                                    className="min-h-[100px] bg-background/50 resize-y"
+                                                    className="min-h-[100px] bg-transparent resize-y"
                                                     placeholder="Describe your responsibilities and achievements..."
                                                 />
                                             </CardContent>
@@ -454,26 +454,26 @@ const Profile = () => {
                                 </div>
                                 <div className="grid gap-4">
                                     {formData.education.map((edu, index) => (
-                                        <Card key={index} className="glass-card group hover:border-primary/30 transition-colors">
+                                        <Card key={index} className=" group hover:border-foreground/20 transition-colors">
                                             <CardContent className="p-4 flex items-start gap-4">
                                                 <div className="flex-1 space-y-2">
                                                     <Input
                                                         value={edu.school}
                                                         onChange={(e) => updateEducation(index, "school", e.target.value)}
-                                                        className="font-medium bg-background/50"
+                                                        className="font-medium bg-transparent"
                                                         placeholder="School / University"
                                                     />
                                                     <div className="flex gap-2">
                                                         <Input
                                                             value={edu.degree}
                                                             onChange={(e) => updateEducation(index, "degree", e.target.value)}
-                                                            className="text-sm bg-background/50 flex-1"
+                                                            className="text-sm bg-transparent flex-1"
                                                             placeholder="Degree"
                                                         />
                                                         <Input
                                                             value={edu.year}
                                                             onChange={(e) => updateEducation(index, "year", e.target.value)}
-                                                            className="text-sm bg-background/50 w-24"
+                                                            className="text-sm bg-transparent w-24"
                                                             placeholder="Year"
                                                         />
                                                     </div>
@@ -495,7 +495,7 @@ const Profile = () => {
                             {/* Skills Section */}
                             <section className="space-y-4">
                                 <h2 className="text-xl font-semibold">Skills</h2>
-                                <Card className="glass-card">
+                                <Card className="">
                                     <CardContent className="p-6 space-y-4">
                                         <div className="flex flex-wrap gap-2">
                                             {formData.skills.map((skill, index) => (
@@ -556,7 +556,7 @@ const Profile = () => {
                                 </div>
                                 <div className="space-y-4">
                                     {formData.custom_sections?.map((section, idx) => (
-                                        <Card key={idx} className="glass-card group hover:border-primary/30 transition-colors">
+                                        <Card key={idx} className=" group hover:border-foreground/20 transition-colors">
                                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                                 <Input
                                                     value={section.title}
@@ -588,7 +588,7 @@ const Profile = () => {
                                                         newSections[idx].content = e.target.value.split('\n');
                                                         setFormData(prev => prev ? ({ ...prev, custom_sections: newSections }) : null);
                                                     }}
-                                                    className="min-h-[100px] bg-background/50 resize-y"
+                                                    className="min-h-[100px] bg-transparent resize-y"
                                                     placeholder="List items (one per line)..."
                                                 />
                                                 <p className="text-xs text-muted-foreground">One item per line</p>

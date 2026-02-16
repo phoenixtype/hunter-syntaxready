@@ -19,7 +19,7 @@ export const ErrorState = ({
     className = "",
 }: ErrorStateProps) => {
     return (
-        <Card className={`glass-card border-destructive/20 bg-destructive/5 ${className}`}>
+        <Card className={`border-destructive/20 bg-destructive/5 ${className}`}>
             <CardContent className="flex flex-col items-center justify-center py-12 px-6 text-center">
                 <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
                     <AlertTriangle className="w-8 h-8 text-destructive" />

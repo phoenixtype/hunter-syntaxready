@@ -6,67 +6,67 @@
 
 @layer base {
   :root {
-    /* Apple-esque Minimalist Palette - Light */
-    --background: 0 0% 100%; /* Pure White */
-    --foreground: 240 10% 3.9%; /* #09090b */
+    /* Resend-style Light Mode */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card: 0 0% 99%;
+    --card-foreground: 0 0% 0%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+    --popover-foreground: 0 0% 0%;
 
-    --primary: 240 5.9% 10%; /* Almost Black */
-    --primary-foreground: 0 0% 98%;
+    --primary: 0 0% 0%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 0%;
 
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 0%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 0%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
   }
 
   .dark {
-    /* Apple-esque Minimalist Palette - Dark */
-    --background: 240 10% 3.9%; /* #09090b - Deep Black/Gray */
-    --foreground: 0 0% 98%;
+    /* Resend-style Dark Mode — pure black */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
 
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
+    --card: 0 0% 4%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 4%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 0 0% 10%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+    --border: 0 0% 10%;
+    --input: 0 0% 10%;
+    --ring: 0 0% 100%;
   }
 }
 
@@ -76,21 +76,13 @@
   }
 
   html {
-    /* Prevent font scaling issues on mobile */
     -webkit-text-size-adjust: 100%;
-    /* Smooth scrolling */
     scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased selection:bg-primary selection:text-primary-foreground;
-    /* Prevent overscroll bounce on iOS */
+    @apply bg-background text-foreground font-sans antialiased;
     overscroll-behavior: none;
-  }
-
-  /* Smooth Mode Transition */
-  :root {
-    transition: background-color 0.5s ease, color 0.5s ease;
   }
 
   /* Improve tap targets for touch devices */
@@ -106,23 +98,13 @@
     }
   }
 
-  /* Focus visible styles for accessibility */
+  /* Focus visible — thin ring, Resend-style */
   :focus-visible {
-    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+    @apply outline-none ring-1 ring-ring ring-offset-1 ring-offset-background;
   }
 
-  /* Remove focus ring on non-keyboard navigation */
   :focus:not(:focus-visible) {
     outline: none;
-  }
-
-  /* Glassmorphism Utilities */
-  .glass {
-    @apply bg-white/70 dark:bg-black/70 backdrop-blur-lg border border-white/20 dark:border-white/10;
-  }
-
-  .glass-card {
-    @apply bg-white/50 dark:bg-zinc-900/50 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-xl;
   }
 
   /* Touch-friendly utilities */
@@ -164,7 +146,7 @@
     @apply text-3xl sm:text-4xl md:text-5xl lg:text-6xl;
   }
 
-  /* Line clamping for truncated text */
+  /* Line clamping */
   .line-clamp-1 {
     overflow: hidden;
     display: -webkit-box;
@@ -185,77 +167,7 @@
   }
 }
 
-/* ============================================
-   PREMIUM DESIGN SYSTEM - Steve Jobs Edition
-   ============================================ */
-
-/* Keyframe Animations */
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  33% {
-    transform: translateY(-10px) rotate(1deg);
-  }
-  66% {
-    transform: translateY(5px) rotate(-1deg);
-  }
-}
-
-@keyframes float-slow {
-  0%,
-  100% {
-    transform: translateY(0px) scale(1);
-  }
-  50% {
-    transform: translateY(-20px) scale(1.02);
-  }
-}
-
-@keyframes pulse-glow {
-  0%,
-  100% {
-    opacity: 0.4;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.05);
-  }
-}
-
-@keyframes gradient-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-@keyframes border-glow {
-  0%,
-  100% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
+/* Functional animations only */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -287,28 +199,6 @@
   }
 }
 
-/* Animation Utilities */
-.animate-shimmer {
-  animation: shimmer 2s linear infinite;
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-.animate-float-slow {
-  animation: float-slow 8s ease-in-out infinite;
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 3s ease-in-out infinite;
-}
-
-.animate-gradient {
-  background-size: 200% 200%;
-  animation: gradient-shift 3s ease infinite;
-}
-
 .animate-fadeInUp {
   animation: fadeInUp 0.6s ease-out forwards;
 }
@@ -321,198 +211,7 @@
   animation: fade-in 0.5s ease-out forwards;
 }
 
-/* Gradient Text */
-.gradient-text {
-  color: hsl(var(--foreground));
-}
-
-.gradient-text-static {
-  color: hsl(var(--foreground));
-}
-
-/* Enhanced Glassmorphism */
-.glass-premium {
-  @apply bg-white/60 dark:bg-black/60 backdrop-blur-2xl;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-.dark .glass-premium {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-/* Card Glow Effect */
-.card-glow {
-  position: relative;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.card-glow::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(
-    135deg,
-    transparent 0%,
-    hsl(var(--primary) / 0.3) 50%,
-    transparent 100%
-  );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-}
-
-.card-glow:hover::before {
-  opacity: 1;
-}
-
-.card-glow:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1),
-    0 0 0 1px hsl(var(--primary) / 0.1);
-}
-
-.dark .card-glow:hover {
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 30px hsl(var(--primary) / 0.1);
-}
-
-/* Button Glow */
-.button-glow {
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.button-glow::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    120deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.1) 50%,
-    transparent 100%
-  );
-  transform: translateX(-100%);
-  transition: transform 0.6s ease;
-}
-
-.button-glow:hover::after {
-  transform: translateX(100%);
-}
-
-.button-glow:hover {
-  box-shadow: 0 0 20px hsl(var(--primary) / 0.4);
-}
-
-/* Gradient Border Button */
-.button-gradient {
-  background: hsl(var(--primary));
-  border: none;
-}
-
-/* Ambient Orbs */
-.ambient-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(60px);
-  pointer-events: none;
-  will-change: transform;
-}
-
-.ambient-orb-primary {
-  background: radial-gradient(
-    circle,
-    hsl(var(--primary) / 0.12) 0%,
-    transparent 70%
-  );
-}
-
-.ambient-orb-purple {
-  background: radial-gradient(
-    circle,
-    hsl(var(--primary) / 0.08) 0%,
-    transparent 70%
-  );
-}
-
-.ambient-orb-blue {
-  background: radial-gradient(
-    circle,
-    hsl(var(--primary) / 0.06) 0%,
-    transparent 70%
-  );
-}
-
-/* Progress Glow */
-.progress-glow {
-  position: relative;
-}
-
-.progress-glow::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  right: 0;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 20px;
-  background: hsl(var(--primary));
-  border-radius: 50%;
-  filter: blur(8px);
-  opacity: 0.6;
-}
-
-/* Match Score Ring Gradient */
-.score-ring-excellent {
-  background: conic-gradient(
-    from 0deg,
-    hsl(var(--primary)) 0%,
-    hsl(var(--primary) / 0.7) 100%
-  );
-}
-
-.score-ring-good {
-  background: conic-gradient(
-    from 0deg,
-    hsl(var(--primary) / 0.6) 0%,
-    hsl(var(--primary) / 0.4) 100%
-  );
-}
-
-/* Input Focus Glow */
-.input-glow:focus {
-  box-shadow: 0 0 0 2px hsl(var(--background)),
-    0 0 0 4px hsl(var(--primary) / 0.3), 0 0 20px hsl(var(--primary) / 0.15);
-}
-
-/* Status Indicator */
-.status-online {
-  position: relative;
-}
-
-.status-online::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 12px;
-  height: 12px;
-  background: hsl(var(--primary));
-  border: 2px solid hsl(var(--background));
-  border-radius: 50%;
-  animation: pulse-glow 2s ease-in-out infinite;
-}
-
-/* Custom Scrollbar Enhancement */
+/* Custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }
@@ -528,21 +227,4 @@
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.5);
-}
-
-/* Stagger Animation Delays */
-.stagger-1 {
-  animation-delay: 0.1s;
-}
-.stagger-2 {
-  animation-delay: 0.2s;
-}
-.stagger-3 {
-  animation-delay: 0.3s;
-}
-.stagger-4 {
-  animation-delay: 0.4s;
-}
-.stagger-5 {
-  animation-delay: 0.5s;
 }

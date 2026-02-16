@@ -114,11 +114,11 @@ const EmailVerification = () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background transition-colors duration-500">
       <div className="w-full max-w-md animate-scale-in">
-        <div className="glass-card rounded-2xl p-8 md:p-12 space-y-6 text-center">
+        <div className="bg-card border border-border rounded-lg p-8 md:p-12 space-y-6 text-center">
           {status === 'loading' && (
             <>
-              <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
-                <Loader2 className="w-8 h-8 text-primary animate-spin" />
+              <div className="w-16 h-16 mx-auto rounded-full bg-secondary flex items-center justify-center animate-pulse">
+                <Loader2 className="w-8 h-8 text-foreground animate-spin" />
               </div>
               <div className="space-y-2">
                 <h1 className="text-2xl font-semibold tracking-tight">Verifying your email...</h1>
@@ -173,8 +173,8 @@ const EmailVerification = () => {
 
           {status === 'pending' && (
             <>
-              <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-                <Mail className="w-8 h-8 text-primary" />
+              <div className="w-16 h-16 mx-auto rounded-full bg-secondary flex items-center justify-center">
+                <Mail className="w-8 h-8 text-foreground" />
               </div>
               <div className="space-y-2">
                 <h1 className="text-2xl font-semibold tracking-tight">Check Your Email</h1>
@@ -191,7 +191,7 @@ const EmailVerification = () => {
                     size="sm"
                     onClick={handleResendEmail}
                     disabled={resending}
-                    className="text-primary hover:text-primary/80 whitespace-normal h-auto py-2 text-center"
+                    className="text-foreground hover:text-foreground/80 whitespace-normal h-auto py-2 text-center"
                   >
                     {resending ? (
                       <>

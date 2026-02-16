@@ -48,7 +48,7 @@ export const ApplicationsView = () => {
     }
 
     return (
-        <Card className="glass-card">
+        <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
                     <CardTitle className="text-lg font-bold">Application Pipeline</CardTitle>
@@ -60,9 +60,9 @@ export const ApplicationsView = () => {
                 </Button>
             </CardHeader>
             <CardContent>
-                <div className="rounded-md border border-border/50 overflow-hidden">
+                <div className="rounded-md border border-border overflow-hidden">
                     <Table>
-                        <TableHeader className="bg-secondary/20">
+                        <TableHeader className="bg-secondary">
                             <TableRow>
                                 <TableHead>Company & Role</TableHead>
                                 <TableHead>Status</TableHead>
@@ -73,7 +73,7 @@ export const ApplicationsView = () => {
                         </TableHeader>
                         <TableBody>
                             {applications.map((app) => (
-                                <TableRow key={app.id} className="hover:bg-secondary/10">
+                                <TableRow key={app.id} className="hover:bg-accent">
                                     <TableCell>
                                         <div className="font-medium">{app.company}</div>
                                         <div className="text-xs text-muted-foreground">{app.job_title}</div>

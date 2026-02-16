@@ -47,15 +47,15 @@ const ATSAudit = ({ profile, preferences }: ATSAuditProps) => {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="outline" className="w-full gap-2 border-primary/20 hover:bg-primary/5">
+                <Button variant="outline" className="w-full gap-2">
                     <Search className="w-4 h-4" />
                     Run ATS Audit
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col glass-card">
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
-                        <Wand2 className="w-5 h-5 text-primary" />
+                        <Wand2 className="w-5 h-5 text-foreground" />
                         ATS Optimization Agent
                     </DialogTitle>
                     <DialogDescription>
@@ -66,7 +66,7 @@ const ATSAudit = ({ profile, preferences }: ATSAuditProps) => {
                 <div className="flex-1 overflow-hidden flex flex-col gap-6 py-4">
                     {!result ? (
                         <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                            <div className="w-16 h-16 rounded-full bg-secondary/50 flex items-center justify-center">
+                            <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center">
                                 <Search className="w-8 h-8 text-muted-foreground" />
                             </div>
                             <p className="text-muted-foreground text-center max-w-xs">
@@ -95,7 +95,7 @@ const ATSAudit = ({ profile, preferences }: ATSAuditProps) => {
                                     <h3 className="text-sm font-medium uppercase text-muted-foreground tracking-wider">Analysis</h3>
 
                                     {result.recommendations.map((rec, i) => (
-                                        <div key={i} className="flex gap-3 items-start p-3 rounded-lg bg-secondary/30">
+                                        <div key={i} className="flex gap-3 items-start p-3 rounded-lg bg-secondary">
                                             {rec.includes("parsing errors") ? (
                                                 <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
                                             ) : (

@@ -8,8 +8,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { signUpFormSchema, validateWithSchema, getPasswordStrength } from "@/lib/validation";
 
-import WavyBackground from "@/components/WavyBackground";
-
 const SignUp = () => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -19,9 +17,6 @@ const SignUp = () => {
   const { loading, signUp } = useAuth();
   const navigate = useNavigate();
   const passwordStrength = useMemo(() => getPasswordStrength(password), [password]);
-
-  // Redirect if already logged in
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,12 +40,9 @@ const SignUp = () => {
       if (error) {
         console.error('[SIGNUP] Error details:', error);
 
-        // SECURITY: Use generic error messages to prevent email enumeration
-        // Don't reveal whether an email is already registered
         if (error.message.includes("Password")) {
           toast.error("Password must be at least 6 characters");
         } else if (error.message.includes("User already registered")) {
-          // SECURITY: Don't reveal email existence — show same flow as new signup
           sessionStorage.setItem('pendingVerificationEmail', validatedEmail);
           toast.success("Check your email to confirm your account.");
           navigate("/verify-email");
@@ -58,7 +50,6 @@ const SignUp = () => {
         } else if (error.message.includes("Email")) {
           toast.error("Please enter a valid email address");
         } else {
-          // Show the actual error in development for debugging
           console.error('[SIGNUP] Full error:', error);
           toast.error("Unable to create account. Please try again.");
         }
@@ -71,7 +62,6 @@ const SignUp = () => {
         navigate("/onboarding", { replace: true });
       } else {
         console.log('[SIGNUP] No session, email verification required');
-        // Store email for resend functionality
         sessionStorage.setItem('pendingVerificationEmail', validatedEmail);
         toast.success("Account created! Check your email to confirm.");
         navigate("/verify-email");
@@ -85,17 +75,14 @@ const SignUp = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background transition-colors duration-500 relative overflow-hidden">
-      {/* Dynamic Wavy Background */}
-      <WavyBackground />
-
-      <div className="w-full max-w-md animate-fadeInUp relative z-10">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+      <div className="w-full max-w-md animate-fadeInUp">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Back to Home
         </Link>
 
-        <div className="glass-card glass-premium rounded-2xl p-8 md:p-12 space-y-8">
+        <div className="bg-card border border-border rounded-lg p-8 md:p-12 space-y-8">
           <div className="space-y-2 text-center">
             <h1 className="text-3xl font-semibold tracking-tight">Create an account</h1>
             <p className="text-muted-foreground text-sm">Start your autonomous job search today</p>
@@ -110,7 +97,7 @@ const SignUp = () => {
                 id="fullName"
                 type="text"
                 placeholder="John Doe"
-                className="bg-transparent border-muted h-12 input-glow transition-all duration-300"
+                className="h-12"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 disabled={isLoading}
@@ -124,7 +111,7 @@ const SignUp = () => {
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                className="bg-transparent border-muted h-12 input-glow transition-all duration-300"
+                className="h-12"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
@@ -139,7 +126,7 @@ const SignUp = () => {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Create a strong password"
-                  className="bg-transparent border-muted h-12 pr-10 input-glow transition-all duration-300"
+                  className="h-12 pr-10"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
@@ -153,7 +140,6 @@ const SignUp = () => {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              {/* Password strength indicator */}
               {password.length > 0 && (
                 <div className="space-y-1">
                   <div className="flex gap-1 h-1">
@@ -179,8 +165,7 @@ const SignUp = () => {
             </div>
             <Button
               type="submit"
-              variant="gradient"
-              className="w-full h-12 text-base font-medium touch-manipulation rounded-xl"
+              className="w-full h-12 text-base font-medium"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -196,7 +181,7 @@ const SignUp = () => {
 
           <p className="text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link to="/login" className="text-primary font-medium hover:underline inline-flex items-center gap-1">
+            <Link to="/login" className="text-foreground font-medium hover:underline inline-flex items-center gap-1">
               Sign in <ArrowRight className="w-3 h-3" />
             </Link>
           </p>

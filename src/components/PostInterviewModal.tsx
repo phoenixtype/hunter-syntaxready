@@ -79,7 +79,7 @@ const PostInterviewModal = ({ isOpen, onClose, companyName, profile }: PostInter
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl bg-background/95 backdrop-blur-xl border-white/10">
+            <DialogContent className="max-w-2xl">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-light">
                         Post-Interview Command Center
@@ -159,7 +159,7 @@ const PostInterviewModal = ({ isOpen, onClose, companyName, profile }: PostInter
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-sm font-medium text-muted-foreground">Negotiation Script</label>
-                                            <div className="p-3 bg-muted rounded-lg text-sm italic border border-white/5">
+                                            <div className="p-3 bg-muted rounded-lg text-sm italic border border-border">
                                                 "{strategy.script}"
                                             </div>
                                         </div>

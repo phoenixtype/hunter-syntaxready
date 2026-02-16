@@ -60,7 +60,7 @@ const MobileNav = ({ isAuthenticated = false, onSignOut }: MobileNavProps) => {
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-border">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-bold text-xl">
+              <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-foreground font-bold text-xl">
                 h.
               </div>
               <span className="font-bold tracking-tight">hunter.</span>
@@ -76,7 +76,7 @@ const MobileNav = ({ isAuthenticated = false, onSignOut }: MobileNavProps) => {
                   <Link
                     to={item.href}
                     onClick={() => setIsOpen(false)}
-                    className={`flex items-center gap-4 px-4 py-4 rounded-xl transition-all touch-manipulation min-h-[56px] ${
+                    className={`flex items-center gap-4 px-4 py-4 rounded-lg transition-colors min-h-[56px] ${
                       isActive(item.href)
                         ? "bg-primary text-primary-foreground"
                         : "hover:bg-muted active:bg-muted/80"

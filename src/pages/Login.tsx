@@ -8,8 +8,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { loginFormSchema, validateWithSchema } from "@/lib/validation";
 
-import WavyBackground from "@/components/WavyBackground";
-
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,8 +15,6 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { loading, signIn } = useAuth();
   const navigate = useNavigate();
-
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,17 +30,13 @@ const Login = () => {
       const { error } = await signIn(email, password);
 
       if (error) {
-        // Handle unconfirmed email specifically
         if (error.message.includes("Email not confirmed")) {
-          // Store email for resend functionality
           sessionStorage.setItem('pendingVerificationEmail', email);
           toast.error("Please verify your email address before signing in.");
           navigate("/verify-email");
           return;
         }
 
-        // SECURITY: Use generic error message to prevent email enumeration
-        // Don't reveal whether the email exists or if password is wrong
         toast.error("Invalid credentials. Please check your email and password.");
         return;
       }
@@ -52,7 +44,6 @@ const Login = () => {
       toast.success("Welcome back!");
       navigate("/dashboard", { replace: true });
     } catch (error) {
-      // SECURITY: Generic error for unexpected failures
       toast.error("Unable to sign in. Please try again later.");
     } finally {
       setIsLoading(false);
@@ -60,20 +51,17 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-background transition-colors duration-500 safe-area-inset-bottom relative overflow-hidden">
-      {/* Dynamic Wavy Background */}
-      <WavyBackground />
-
-      <div className="w-full max-w-md animate-scale-in relative z-10">
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-background">
+      <div className="w-full max-w-md animate-fadeInUp">
         <Link
           to="/"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 sm:mb-6 transition-colors touch-manipulation py-2"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors py-2"
         >
           <ArrowLeft className="w-4 h-4" aria-hidden="true" />
           Back to Home
         </Link>
 
-        <div className="glass-card glass-premium rounded-2xl p-6 sm:p-8 md:p-12 space-y-6 sm:space-y-8">
+        <div className="bg-card border border-border rounded-lg p-6 sm:p-8 md:p-12 space-y-6 sm:space-y-8">
           <div className="space-y-2 text-center">
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Welcome back</h1>
             <p className="text-muted-foreground text-sm">Enter your credentials to access your agent</p>
@@ -88,7 +76,7 @@ const Login = () => {
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                className="bg-transparent border-muted h-12 input-glow transition-all duration-300"
+                className="h-12"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
@@ -102,7 +90,7 @@ const Login = () => {
                 </Label>
                 <Link
                   to="/forgot-password"
-                  className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Forgot password?
                 </Link>
@@ -112,7 +100,7 @@ const Login = () => {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
-                  className="bg-transparent border-muted h-12 pr-10 input-glow transition-all duration-300"
+                  className="h-12 pr-10"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
@@ -129,8 +117,7 @@ const Login = () => {
             </div>
             <Button
               type="submit"
-              variant="gradient"
-              className="w-full h-12 sm:h-14 text-base font-medium touch-manipulation rounded-xl"
+              className="w-full h-12 sm:h-14 text-base font-medium"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -146,7 +133,7 @@ const Login = () => {
 
           <p className="text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
-            <Link to="/signup" className="text-primary font-medium hover:underline inline-flex items-center gap-1">
+            <Link to="/signup" className="text-foreground font-medium hover:underline inline-flex items-center gap-1">
               Sign up <ArrowRight className="w-3 h-3" />
             </Link>
           </p>

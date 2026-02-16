@@ -5,14 +5,14 @@ export const DashboardSkeleton = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Nav skeleton */}
-      <nav className="fixed top-0 w-full z-50 glass border-b border-white/10">
+      <nav className="fixed top-0 w-full z-50 bg-background border-b border-border">
         <div className="container max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Skeleton className="w-8 h-8 rounded-lg" />
             <Skeleton className="w-16 h-4" />
           </div>
           <div className="flex items-center gap-4">
-            <Skeleton className="w-24 h-8 rounded-full" />
+            <Skeleton className="w-24 h-8 rounded-lg" />
             <Skeleton className="w-8 h-8 rounded-full" />
           </div>
         </div>
@@ -34,7 +34,7 @@ export const DashboardSkeleton = () => {
               <Skeleton className="w-full h-10 rounded-lg" />
 
               {/* Card skeleton */}
-              <Card className="glass-card">
+              <Card>
                 <CardHeader className="pb-2">
                   <div className="flex items-center gap-2">
                     <Skeleton className="w-5 h-5 rounded" />
@@ -62,12 +62,12 @@ export const DashboardSkeleton = () => {
               </Card>
 
               {/* Resume section skeleton */}
-              <div className="glass-card rounded-2xl p-8 space-y-6">
+              <div className="rounded-lg border border-border bg-card p-8 space-y-6">
                 <div className="space-y-2">
                   <Skeleton className="h-7 w-44" />
                   <Skeleton className="h-4 w-full" />
                 </div>
-                <div className="border-2 border-dashed border-muted-foreground/25 rounded-xl p-12">
+                <div className="border-2 border-dashed border-border rounded-lg p-12">
                   <div className="flex flex-col items-center">
                     <Skeleton className="w-10 h-10 rounded mb-4" />
                     <Skeleton className="w-48 h-4" />
@@ -80,7 +80,7 @@ export const DashboardSkeleton = () => {
             {/* Main content */}
             <div className="lg:col-span-3 space-y-6">
               {/* Activity log skeleton */}
-              <Card className="glass-card">
+              <Card>
                 <CardHeader>
                   <div className="flex justify-between items-center">
                     <div className="space-y-1">
@@ -107,7 +107,7 @@ export const DashboardSkeleton = () => {
               </Card>
 
               {/* Job feed skeleton */}
-              <Card className="glass-card">
+              <Card>
                 <CardHeader>
                   <div className="flex justify-between items-center">
                     <Skeleton className="h-6 w-28" />
@@ -120,7 +120,7 @@ export const DashboardSkeleton = () => {
                 <CardContent>
                   <div className="space-y-4">
                     {[1, 2, 3].map((i) => (
-                      <div key={i} className="p-4 rounded-xl border border-border/50 space-y-3">
+                      <div key={i} className="p-4 rounded-lg border border-border space-y-3">
                         <div className="flex justify-between">
                           <div className="space-y-1">
                             <Skeleton className="h-5 w-48" />

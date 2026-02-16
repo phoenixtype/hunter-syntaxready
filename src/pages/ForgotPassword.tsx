@@ -7,8 +7,6 @@ import { ArrowLeft, Loader2, Mail, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-import WavyBackground from "@/components/WavyBackground";
-
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -40,12 +38,11 @@ const ForgotPassword = () => {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-background transition-colors duration-500 relative overflow-hidden">
-        <WavyBackground />
-        <div className="w-full max-w-md animate-scale-in relative z-10">
-          <div className="glass-card rounded-2xl p-8 md:p-12 space-y-6 text-center">
-            <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-              <CheckCircle2 className="w-8 h-8 text-primary" />
+      <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+        <div className="w-full max-w-md animate-fadeInUp">
+          <div className="bg-card border border-border rounded-lg p-8 md:p-12 space-y-6 text-center">
+            <div className="w-16 h-16 mx-auto rounded-full bg-secondary flex items-center justify-center">
+              <CheckCircle2 className="w-8 h-8 text-foreground" />
             </div>
             <div className="space-y-2">
               <h1 className="text-2xl font-semibold tracking-tight">Check your email</h1>
@@ -66,19 +63,17 @@ const ForgotPassword = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background transition-colors duration-500 relative overflow-hidden">
-      <WavyBackground />
-      <div className="w-full max-w-md animate-scale-in relative z-10">
-        {/* Back to Login */}
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+      <div className="w-full max-w-md animate-fadeInUp">
         <Link to="/login" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Back to Login
         </Link>
 
-        <div className="glass-card rounded-2xl p-8 md:p-12 space-y-8">
+        <div className="bg-card border border-border rounded-lg p-8 md:p-12 space-y-8">
           <div className="space-y-2 text-center">
-            <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
-              <Mail className="w-6 h-6 text-primary" />
+            <div className="w-12 h-12 mx-auto rounded-full bg-secondary flex items-center justify-center mb-4">
+              <Mail className="w-6 h-6 text-foreground" />
             </div>
             <h1 className="text-2xl font-semibold tracking-tight">Forgot your password?</h1>
             <p className="text-muted-foreground text-sm">
@@ -95,7 +90,7 @@ const ForgotPassword = () => {
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                className="bg-transparent border-muted h-12"
+                className="h-12"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
@@ -103,7 +98,7 @@ const ForgotPassword = () => {
             </div>
             <Button
               type="submit"
-              className="w-full h-12 text-base font-medium transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full h-12 text-base font-medium"
               disabled={isLoading}
             >
               {isLoading ? (

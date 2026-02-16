@@ -185,7 +185,7 @@ const Onboarding = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Top progress bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
         <Progress value={progressPercent} className="h-1 rounded-none" />
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -238,10 +238,10 @@ const Onboarding = () => {
               <div className="grid gap-4 max-w-md mx-auto pt-4">
                 <button
                   onClick={() => setCurrentStep("identity")}
-                  className="group flex items-center gap-4 p-5 rounded-xl border border-border bg-card hover:border-primary/50 hover:bg-accent/50 transition-all text-left"
+                  className="group flex items-center gap-4 p-5 rounded-lg border border-border bg-card hover:border-foreground/20 transition-colors text-left"
                 >
-                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <PenLine className="w-5 h-5 text-primary" />
+                  <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+                    <PenLine className="w-5 h-5 text-foreground" />
                   </div>
                   <div>
                     <p className="font-semibold">Enter manually</p>
@@ -332,7 +332,7 @@ const Onboarding = () => {
 
               <div className="space-y-4">
                 {profile.experience_atoms.map((exp, idx) => (
-                  <div key={exp.id || idx} className="p-4 rounded-xl border border-border bg-card space-y-3 animate-fade-in">
+                  <div key={exp.id || idx} className="p-4 rounded-lg border border-border bg-card space-y-3 animate-fade-in">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="space-y-1">
@@ -381,7 +381,7 @@ const Onboarding = () => {
 
                 <button
                   onClick={addExperience}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-accent/30 text-muted-foreground hover:text-foreground transition-all"
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-lg border-2 border-dashed border-border hover:border-foreground/20 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <Plus className="w-4 h-4" />
                   Add position
@@ -409,7 +409,7 @@ const Onboarding = () => {
 
               <div className="space-y-4">
                 {profile.education.map((edu, idx) => (
-                  <div key={idx} className="p-4 rounded-xl border border-border bg-card space-y-3 animate-fade-in">
+                  <div key={idx} className="p-4 rounded-lg border border-border bg-card space-y-3 animate-fade-in">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 space-y-3">
                         <div className="space-y-1">
@@ -451,7 +451,7 @@ const Onboarding = () => {
 
                 <button
                   onClick={addEducation}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-accent/30 text-muted-foreground hover:text-foreground transition-all"
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-lg border-2 border-dashed border-border hover:border-foreground/20 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <Plus className="w-4 h-4" />
                   Add education
@@ -543,10 +543,10 @@ const Onboarding = () => {
                           key={mode}
                           type="button"
                           onClick={() => setRemotePolicy(mode)}
-                          className={`h-10 rounded-lg text-sm font-medium border transition-all ${
+                          className={`h-10 rounded-lg text-sm font-medium border transition-colors ${
                             remotePolicy === mode
-                              ? "bg-primary text-primary-foreground border-primary"
-                              : "border-border hover:border-primary/50 hover:bg-accent/50"
+                              ? "bg-foreground text-background border-foreground"
+                              : "border-border hover:border-foreground/20"
                           }`}
                         >
                           {mode.charAt(0).toUpperCase() + mode.slice(1)}
@@ -575,7 +575,7 @@ const Onboarding = () => {
 
       {/* Bottom nav bar */}
       {currentStep !== "method" && (
-        <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm border-t border-border z-50">
+        <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50">
           <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
             <Button variant="ghost" onClick={goBack} className="gap-2">
               <ArrowLeft className="w-4 h-4" />
@@ -684,7 +684,7 @@ function SkillsStep({
               <button
                 key={s}
                 onClick={() => onAdd(s)}
-                className="px-3 py-1.5 text-sm rounded-full border border-dashed border-border hover:border-primary/50 hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-all"
+                className="px-3 py-1.5 text-sm rounded-full border border-dashed border-border hover:border-foreground/20 text-muted-foreground hover:text-foreground transition-colors"
               >
                 + {s}
               </button>

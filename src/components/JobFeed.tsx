@@ -177,7 +177,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
           return (
             <div
               key={job.id}
-              className="rounded-xl border border-border/50 bg-card overflow-hidden transition-all duration-200 hover:border-border hover:shadow-sm"
+              className="rounded-lg border border-border bg-card overflow-hidden transition-colors hover:border-foreground/20"
             >
               {/* Main card content */}
               <div className="p-4 sm:p-5">
@@ -298,7 +298,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
 
               {/* Expanded Intel Section */}
               {isExpanded && (
-                <div className="border-t border-border/50 p-4 bg-secondary/20 animate-fade-in">
+                <div className="border-t border-border p-4 bg-secondary animate-fade-in">
                   <h4 className="text-[10px] uppercase font-bold text-muted-foreground mb-3 flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-foreground" /> Hiring Team Intel
                   </h4>
@@ -310,7 +310,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                           href={person.profile_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-3 p-2.5 rounded-lg bg-card hover:bg-card/80 transition-colors border border-border/50"
+                          className="flex items-center gap-3 p-2.5 rounded-lg bg-card hover:bg-accent transition-colors border border-border"
                         >
                           <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-foreground text-xs font-bold shrink-0">
                             {person.name?.[0] || '?'}
@@ -336,17 +336,33 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
 
         {/* Empty State */}
         {filteredJobs.length === 0 && !loading && (
-          <div className="flex flex-col items-center justify-center py-16 text-center space-y-4 border border-dashed border-border/50 rounded-xl">
-            <div className="w-14 h-14 rounded-full bg-secondary/50 flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center py-16 text-center space-y-4 border border-dashed border-border rounded-lg">
+            <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center">
               <Search className="w-6 h-6 text-muted-foreground" />
             </div>
-            <div className="max-w-xs space-y-1.5">
-              <h3 className="font-semibold">No jobs found yet</h3>
-              <p className="text-sm text-muted-foreground">
-                Try broadening your search or updating your profile skills.
-              </p>
-            </div>
-            <Button variant="outline" size="sm" onClick={handleCrawl} disabled={crawling}>
+            {!profile ? (
+              <div className="max-w-xs space-y-1.5">
+                <h3 className="font-semibold">Upload your resume to get started</h3>
+                <p className="text-sm text-muted-foreground">
+                  Hunter needs your profile to find and rank relevant jobs for you.
+                </p>
+              </div>
+            ) : !preferences?.target_roles?.length ? (
+              <div className="max-w-xs space-y-1.5">
+                <h3 className="font-semibold">Set your job preferences</h3>
+                <p className="text-sm text-muted-foreground">
+                  Add target roles, locations, and remote policy in your preferences to start finding jobs.
+                </p>
+              </div>
+            ) : (
+              <div className="max-w-xs space-y-1.5">
+                <h3 className="font-semibold">No jobs found yet</h3>
+                <p className="text-sm text-muted-foreground">
+                  Click below to search for {preferences.target_roles[0]} roles{preferences.locations?.length ? ` in ${preferences.locations[0]}` : ''}.
+                </p>
+              </div>
+            )}
+            <Button variant="outline" size="sm" onClick={handleCrawl} disabled={crawling || !profile}>
               {crawling ? <><Loader2 className="w-3 h-3 mr-1.5 animate-spin" />Searching...</> : <><Globe className="w-3 h-3 mr-1.5" />Find Jobs</>}
             </Button>
           </div>

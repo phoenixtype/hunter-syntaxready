@@ -23,6 +23,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import WidgetErrorBoundary from "@/components/WidgetErrorBoundary";
 import { ApplicationsView } from "@/components/ApplicationsView";
+import PreferencesModal from "@/components/PreferencesModal";
 
 const Dashboard = () => {
   const { loading: authLoading, signOut } = useAuth();
@@ -36,6 +37,7 @@ const Dashboard = () => {
   const [showPricing, setShowPricing] = useState(false);
   const [showResumeOptimizer, setShowResumeOptimizer] = useState(false);
   const [showLinkedIn, setShowLinkedIn] = useState(false);
+  const [showPreferences, setShowPreferences] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -99,7 +101,7 @@ const Dashboard = () => {
       <SkipLink />
 
       {/* Header */}
-      <header className="fixed top-0 w-full z-50 border-b border-border/40 backdrop-blur-xl bg-background/80">
+      <header className="fixed top-0 w-full z-50 border-b border-border bg-background">
         <div className="container max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <div className="w-7 h-7 rounded-lg bg-foreground flex items-center justify-center text-background font-bold text-sm">h</div>
@@ -151,6 +153,7 @@ const Dashboard = () => {
               onRefreshProfile={() => setProfile(null)}
               onUploadProfile={handleResumeUpload}
               onSignOut={handleSignOut}
+              onEditPreferences={() => setShowPreferences(true)}
             />
           </div>
 
@@ -243,6 +246,11 @@ const Dashboard = () => {
         isOpen={showLinkedIn}
         onClose={() => setShowLinkedIn(false)}
         profile={profile}
+      />
+      <PreferencesModal
+        isOpen={showPreferences}
+        onClose={() => setShowPreferences(false)}
+        preferences={preferences ?? null}
       />
     </div>
   );

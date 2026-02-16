@@ -18,8 +18,6 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
         setLoading(true);
         try {
             await upgradeToPro();
-            // Redirect happens inside upgradeToPro, so we don't need to close or toast success immediately
-            // But if it returns (void), we might want to catch errors
         } catch (e) {
             console.error(e);
             toast.error("Payment initiation failed.", { description: "Please try again later." });
@@ -29,10 +27,10 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-3xl glass-card border-white/10 p-0 overflow-hidden">
+            <DialogContent className="max-w-3xl p-0 overflow-hidden">
                 <div className="grid md:grid-cols-2">
                     {/* Free Tier */}
-                    <div className="p-8 space-y-6 bg-background/50">
+                    <div className="p-8 space-y-6">
                         <div className="space-y-2">
                             <h3 className="text-xl font-bold">Hunter Basic</h3>
                             <p className="text-2xl font-mono">$0<span className="text-sm text-muted-foreground font-sans">/mo</span></p>
@@ -47,33 +45,30 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                     </div>
 
                     {/* Pro Tier */}
-                    <div className="p-8 space-y-6 bg-gradient-to-br from-primary/10 to-primary/5 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-2">
-                            <span className="bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wider">Recommended</span>
+                    <div className="p-8 space-y-6 bg-secondary border-l border-border">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-2">
+                                <h3 className="text-xl font-bold flex items-center gap-2">
+                                    Hunter Pro <Sparkles className="w-4 h-4 text-foreground" />
+                                </h3>
+                                <p className="text-2xl font-mono">$29<span className="text-sm text-muted-foreground font-sans">/mo</span></p>
+                                <p className="text-sm text-muted-foreground">Supercharge your search with Agentic AI.</p>
+                            </div>
+                            <span className="bg-foreground text-background text-xs font-bold px-2 py-1 rounded-md uppercase tracking-wider shrink-0">Pro</span>
                         </div>
-                        <div className="space-y-2 relative z-10">
-                            <h3 className="text-xl font-bold flex items-center gap-2">
-                                Hunter Pro <Sparkles className="w-4 h-4 text-foreground" />
-                            </h3>
-                            <p className="text-2xl font-mono">$29<span className="text-sm text-muted-foreground font-sans">/mo</span></p>
-                            <p className="text-sm text-muted-foreground">Supercharge your search with Agentic AI.</p>
-                        </div>
-                        <ul className="space-y-3 text-sm relative z-10">
+                        <ul className="space-y-3 text-sm">
                             <li className="flex items-center gap-2"><Zap className="w-4 h-4 text-foreground" /> Unlimited Applications</li>
                             <li className="flex items-center gap-2"><Zap className="w-4 h-4 text-foreground" /> Deep Intelligence Briefings</li>
                             <li className="flex items-center gap-2"><Zap className="w-4 h-4 text-foreground" /> Negotiation Coach Agent</li>
                             <li className="flex items-center gap-2"><Zap className="w-4 h-4 text-foreground" /> Visibility Signal Analysis</li>
                         </ul>
                         <Button
-                            className="w-full relative z-10 bg-primary hover:bg-primary/90 transition-colors"
+                            className="w-full"
                             onClick={handleUpgrade}
                             disabled={loading}
                         >
                             {loading ? "Processing..." : "Upgrade to Pro"}
                         </Button>
-
-                        {/* Background FX */}
-                        <div className="absolute inset-0 bg-primary/5 blur-3xl rounded-full scale-150 translate-x-1/2 translate-y-1/2"></div>
                     </div>
                 </div>
             </DialogContent>

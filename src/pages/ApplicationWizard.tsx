@@ -98,7 +98,7 @@ const ApplicationWizard = () => {
 
                 {/* INPUT STEP */}
                 {step === 'input' && (
-                    <Card className="glass-card">
+                    <Card className="">
                         <CardContent className="p-8">
                             <form onSubmit={handleAnalyze} className="space-y-4">
                                 <div className="space-y-2">
@@ -141,7 +141,7 @@ const ApplicationWizard = () => {
                                 <Briefcase className="w-5 h-5" />
                                 <h2 className="text-xl font-semibold">Target Role</h2>
                             </div>
-                            <Card className="glass-card">
+                            <Card className="">
                                 <CardContent className="p-6">
                                     <div className="flex justify-between items-start">
                                         <div>
@@ -168,7 +168,7 @@ const ApplicationWizard = () => {
                                     <FileText className="w-5 h-5" />
                                     <h2 className="text-xl font-semibold">Application Assets</h2>
                                 </div>
-                                <Card className="glass-card h-full">
+                                <Card className=" h-full">
                                     <CardContent className="p-6 space-y-4">
                                         <div className="p-4 bg-muted/30 rounded-lg border space-y-2">
                                             <div className="flex items-center gap-2 font-medium">
@@ -202,7 +202,7 @@ const ApplicationWizard = () => {
                                     <UserPlus className="w-5 h-5" />
                                     <h2 className="text-xl font-semibold">Recruiting Team</h2>
                                 </div>
-                                <Card className="glass-card h-full">
+                                <Card className=" h-full">
                                     <CardContent className="p-6 space-y-4">
                                         <p className="text-sm text-muted-foreground">Use these search strategies to find key people.</p>
                                         <div className="space-y-3">
