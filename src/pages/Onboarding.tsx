@@ -1,439 +1,695 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
+import { savePreferences, UserPreferences } from "@/lib/user_preferences";
+import { CandidateProfile, saveCandidateProfile, ExperienceAtom, Education, Skill } from "@/lib/resume_engine";
+import { triggerJobCrawl } from "@/lib/crawler_engine";
+import { ResumeUpload } from "@/components/resume/ResumeUpload";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/hooks/useAuth";
-import { savePreferences, UserPreferences } from "@/lib/user_preferences";
-import { toast } from "sonner";
-import { Loader2, Check, X, Plus, ArrowLeft, Eye, Edit2 } from "lucide-react";
-import { ResumeUpload } from "@/components/resume/ResumeUpload";
-import { CandidateProfile, saveCandidateProfile, ExperienceAtom, Education } from "@/lib/resume_engine";
-import { triggerJobCrawl } from "@/lib/crawler_engine";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+  Loader2, ArrowLeft, ArrowRight, Upload, PenLine, X, Plus,
+  User, Briefcase, Sparkles, GraduationCap, Target, Check
+} from "lucide-react";
+
+// Steps for the onboarding wizard
+const STEPS = [
+  { id: "method", label: "Start", icon: Sparkles },
+  { id: "identity", label: "You", icon: User },
+  { id: "experience", label: "Experience", icon: Briefcase },
+  { id: "skills", label: "Skills", icon: Sparkles },
+  { id: "education", label: "Education", icon: GraduationCap },
+  { id: "preferences", label: "Preferences", icon: Target },
+] as const;
+
+type StepId = typeof STEPS[number]["id"];
+
+const emptyProfile: CandidateProfile = {
+  identity: { name: "", email: "", phone: "", links: [] },
+  skills: [],
+  experience_atoms: [],
+  education: [],
+};
 
 const Onboarding = () => {
-    const { user, loading: authLoading } = useAuth();
-    const navigate = useNavigate();
-    const [loading, setLoading] = useState(false);
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const [saving, setSaving] = useState(false);
+  const [currentStep, setCurrentStep] = useState<StepId>("method");
+  const [profile, setProfile] = useState<CandidateProfile>({ ...emptyProfile });
 
-    // Flow: upload -> edit -> preview -> configure
-    const [step, setStep] = useState<'upload' | 'edit' | 'preview' | 'configure'>('upload');
-    const [pendingProfile, setPendingProfile] = useState<CandidateProfile | null>(null);
+  // Preferences state
+  const [roles, setRoles] = useState<string[]>([]);
+  const [currentRole, setCurrentRole] = useState("");
+  const [salary, setSalary] = useState([120000]);
+  const [locations, setLocations] = useState("");
+  const [remotePolicy, setRemotePolicy] = useState<UserPreferences["remote_policy"]>("any");
+  const [aggressiveness, setAggressiveness] = useState([5]);
 
-    // Redirect if not authenticated
-    useEffect(() => {
-        if (!authLoading && !user) {
-            navigate('/login');
-        }
-    }, [user, authLoading, navigate]);
+  useEffect(() => {
+    if (!authLoading && !user) navigate("/login");
+  }, [user, authLoading, navigate]);
 
-    // --- Configuration State ---
-    const [roles, setRoles] = useState<string[]>([]);
-    const [currentRole, setCurrentRole] = useState("");
-    const [salary, setSalary] = useState([120000]);
-    const [locations, setLocations] = useState("");
-    const [remotePolicy, setRemotePolicy] = useState<UserPreferences['remote_policy']>('any');
-    const [aggressiveness, setAggressiveness] = useState([5]);
+  // Pre-fill email from auth
+  useEffect(() => {
+    if (user?.email && !profile.identity.email) {
+      setProfile(prev => ({
+        ...prev,
+        identity: { ...prev.identity, email: user.email! }
+      }));
+    }
+  }, [user]);
 
-    const handleResumeParsed = async (profile: CandidateProfile) => {
-        setPendingProfile(profile);
+  const stepIndex = STEPS.findIndex(s => s.id === currentStep);
+  const progressPercent = ((stepIndex) / (STEPS.length - 1)) * 100;
 
-        // Pre-fill preferences based on resume
-        const suggestedRoles = [
-            ...profile.experience_atoms.map(exp => exp.role),
-            ...profile.skills.slice(0, 3).map(s => s.name)
-        ].slice(0, 5);
-        setRoles(prev => Array.from(new Set([...prev, ...suggestedRoles])));
+  const goNext = () => {
+    const idx = STEPS.findIndex(s => s.id === currentStep);
+    if (idx < STEPS.length - 1) setCurrentStep(STEPS[idx + 1].id);
+  };
+  const goBack = () => {
+    const idx = STEPS.findIndex(s => s.id === currentStep);
+    if (idx > 0) setCurrentStep(STEPS[idx - 1].id);
+  };
 
-        // Skip edit/preview - go directly to crawling jobs
-        toast.info("Resume uploaded! Starting job search...");
+  // Resume upload handler — pre-fill everything and jump to preferences
+  const handleResumeParsed = (parsed: CandidateProfile) => {
+    setProfile(parsed);
+    // Pre-fill roles from experience
+    const suggestedRoles = [
+      ...parsed.experience_atoms.map(e => e.role),
+      ...parsed.skills.slice(0, 3).map(s => s.name),
+    ].filter(Boolean).slice(0, 5);
+    setRoles(prev => Array.from(new Set([...prev, ...suggestedRoles])));
+    toast.success("Resume parsed! Review your details or skip ahead.");
+    setCurrentStep("identity");
+  };
 
-        // Trigger job crawl in background using skills/roles as keywords
-        const keywords = [
-            ...profile.skills.slice(0, 5).map(s => s.name),
-            ...profile.experience_atoms.slice(0, 2).map(exp => exp.role)
-        ].filter(Boolean);
+  // Final submit
+  const handleFinish = async () => {
+    if (!user) return;
+    setSaving(true);
+    try {
+      await saveCandidateProfile(user.id, profile);
+      await savePreferences(user.id, {
+        target_roles: roles,
+        min_salary_usd: salary[0],
+        locations: locations.split(",").map(s => s.trim()).filter(Boolean),
+        remote_policy: remotePolicy,
+        aggressiveness: aggressiveness[0],
+        safe_mode: true,
+      });
 
-        try {
-            const result = await triggerJobCrawl(undefined, keywords.length > 0 ? keywords : ['remote jobs', 'hiring now']);
-            if (result.success) {
-                toast.success(`Found ${result.inserted || 0} new job opportunities!`);
-            } else {
-                console.warn('[CRAWL] Crawl completed with issues:', result.error);
-                toast.warning(result.error || 'Job search completed with no results. Try again from the dashboard.');
-            }
-        } catch (err) {
-            console.error('[CRAWL] Failed to trigger crawl:', err);
-            toast.error('Job search failed. You can try again from the dashboard.');
-        }
+      // Trigger job crawl in background
+      const keywords = [
+        ...profile.skills.slice(0, 5).map(s => s.name),
+        ...roles.slice(0, 3),
+      ].filter(Boolean);
+      triggerJobCrawl(undefined, keywords.length > 0 ? keywords : ["remote jobs"]).catch(() => {});
 
-        // Skip to configure step (bypass edit/preview)
-        setStep('configure');
-    };
+      toast.success("You're all set! Let's find your next role.");
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Onboarding save failed:", err);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
-    // --- Profile Edit Handlers ---
-    const updateIdentity = (field: string, value: string) => {
-        setPendingProfile(prev => prev ? ({ ...prev, identity: { ...prev.identity, [field]: value } }) : null);
-    };
+  // Helpers for editing profile
+  const updateIdentity = (field: string, value: string) =>
+    setProfile(p => ({ ...p, identity: { ...p.identity, [field]: value } }));
 
-    const updateExperience = (index: number, field: keyof ExperienceAtom, value: any) => {
-        setPendingProfile(prev => {
-            if (!prev) return null;
-            const newExp = [...prev.experience_atoms];
-            newExp[index] = { ...newExp[index], [field]: value };
-            return { ...prev, experience_atoms: newExp };
-        });
-    };
+  const addExperience = () =>
+    setProfile(p => ({
+      ...p,
+      experience_atoms: [
+        ...p.experience_atoms,
+        { id: crypto.randomUUID(), company: "", role: "", duration: "", content: "", keywords: [] },
+      ],
+    }));
 
-    const removeExperience = (index: number) => {
-        setPendingProfile(prev => prev ? ({ ...prev, experience_atoms: prev.experience_atoms.filter((_, i) => i !== index) }) : null);
-    };
+  const updateExperience = (idx: number, field: keyof ExperienceAtom, value: any) =>
+    setProfile(p => {
+      const atoms = [...p.experience_atoms];
+      atoms[idx] = { ...atoms[idx], [field]: value };
+      return { ...p, experience_atoms: atoms };
+    });
 
-    const removeSkill = (index: number) => {
-        setPendingProfile(prev => prev ? ({ ...prev, skills: prev.skills.filter((_, i) => i !== index) }) : null);
-    };
+  const removeExperience = (idx: number) =>
+    setProfile(p => ({ ...p, experience_atoms: p.experience_atoms.filter((_, i) => i !== idx) }));
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!user) return;
+  const addSkill = (name: string) => {
+    if (!name.trim()) return;
+    if (profile.skills.some(s => s.name.toLowerCase() === name.trim().toLowerCase())) return;
+    setProfile(p => ({
+      ...p,
+      skills: [...p.skills, { name: name.trim(), proficiency: 3, evidence: [] }],
+    }));
+  };
 
-        setLoading(true);
-        const prefs: UserPreferences = {
-            target_roles: roles,
-            min_salary_usd: salary[0],
-            locations: locations.split(',').map(s => s.trim()).filter(Boolean),
-            remote_policy: remotePolicy,
-            aggressiveness: aggressiveness[0],
-            safe_mode: true
-        };
+  const removeSkill = (idx: number) =>
+    setProfile(p => ({ ...p, skills: p.skills.filter((_, i) => i !== idx) }));
 
-        try {
-            // 1. Save Profile
-            if (pendingProfile) {
-                await saveCandidateProfile(user.id, pendingProfile);
-            }
-            // 2. Save Preferences
-            await savePreferences(user.id, prefs);
+  const addEducation = () =>
+    setProfile(p => ({
+      ...p,
+      education: [...p.education, { school: "", degree: "", year: "" }],
+    }));
 
-            toast.success("Setup complete! Initializing agent...");
-            navigate("/dashboard");
-        } catch (error) {
-            console.error("Failed to save onboarding data:", error);
-            toast.error("Failed to finish setup. Please try again.");
-        } finally {
-            setLoading(false);
-        }
-    };
+  const updateEducation = (idx: number, field: keyof Education, value: string) =>
+    setProfile(p => {
+      const edu = [...p.education];
+      edu[idx] = { ...edu[idx], [field]: value };
+      return { ...p, education: edu };
+    });
 
-    return (
-        <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-6 animate-fade-in py-12">
-            <div className="w-full max-w-3xl space-y-8">
+  const removeEducation = (idx: number) =>
+    setProfile(p => ({ ...p, education: p.education.filter((_, i) => i !== idx) }));
 
-                {/* Header */}
-                <div className="space-y-4 text-center">
-                    <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-                        {step === 'upload' && <>Upload your <span className="gradient-text">Resume</span></>}
-                        {step === 'edit' && <>Refine your <span className="gradient-text">Profile</span></>}
-                        {step === 'preview' && <>Confirm <span className="gradient-text">Details</span></>}
-                        {step === 'configure' && <>Define your <span className="gradient-text">Hunt</span></>}
-                    </h1>
-                    <p className="text-xl text-muted-foreground">
-                        {step === 'upload' && "Let's analyze your experience to get started."}
-                        {step === 'edit' && "Edit any details that we missed or got wrong."}
-                        {step === 'preview' && "Review the final profile before proceeding."}
-                        {step === 'configure' && "Configure parameters for the autonomous agent."}
-                    </p>
+  // Can user skip to end?
+  const canFinish = roles.length > 0 || profile.experience_atoms.length > 0;
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Top progress bar */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
+        <Progress value={progressPercent} className="h-1 rounded-none" />
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {stepIndex > 0 && (
+              <button onClick={goBack} className="text-muted-foreground hover:text-foreground transition-colors">
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+            )}
+            <span className="text-sm font-medium text-muted-foreground">
+              Step {stepIndex + 1} of {STEPS.length}
+            </span>
+          </div>
+          <div className="hidden sm:flex items-center gap-1">
+            {STEPS.map((s, i) => (
+              <div
+                key={s.id}
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  i <= stepIndex ? "bg-primary" : "bg-muted"
+                }`}
+              />
+            ))}
+          </div>
+          {canFinish && currentStep !== "method" && (
+            <button
+              onClick={() => setCurrentStep("preferences")}
+              className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
+            >
+              Skip to finish
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Content area */}
+      <div className="pt-20 pb-32 px-4">
+        <div className="max-w-2xl mx-auto">
+
+          {/* ===== STEP: METHOD ===== */}
+          {currentStep === "method" && (
+            <div className="animate-fade-in space-y-8 text-center pt-12">
+              <div className="space-y-3">
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+                  Let's build your profile
+                </h1>
+                <p className="text-muted-foreground text-lg max-w-md mx-auto">
+                  Choose how you'd like to get started. You can always edit everything later.
+                </p>
+              </div>
+
+              <div className="grid gap-4 max-w-md mx-auto pt-4">
+                <button
+                  onClick={() => setCurrentStep("identity")}
+                  className="group flex items-center gap-4 p-5 rounded-xl border border-border bg-card hover:border-primary/50 hover:bg-accent/50 transition-all text-left"
+                >
+                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <PenLine className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">Enter manually</p>
+                    <p className="text-sm text-muted-foreground">Fill in your details step by step</p>
+                  </div>
+                  <ArrowRight className="w-4 h-4 ml-auto text-muted-foreground group-hover:text-foreground transition-colors" />
+                </button>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-border" />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-background px-3 text-xs text-muted-foreground uppercase tracking-wider">or</span>
+                  </div>
                 </div>
 
-                {/* STEP 1: UPLOAD */}
-                {step === 'upload' && (
-                    <div className="animate-scale-in">
-                        <ResumeUpload onUploadComplete={handleResumeParsed} />
-                    </div>
-                )}
-
-                {/* STEP 2: EDIT (Inputs) */}
-                {step === 'edit' && pendingProfile && (
-                    <div className="space-y-8 animate-fade-in">
-                        <section className="space-y-4">
-                            <h3 className="text-lg font-semibold">Identity</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>Name</Label>
-                                    <Input
-                                        value={pendingProfile.identity.name}
-                                        onChange={(e) => updateIdentity('name', e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Email</Label>
-                                    <Input
-                                        value={pendingProfile.identity.email}
-                                        onChange={(e) => updateIdentity('email', e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Phone</Label>
-                                    <Input
-                                        value={pendingProfile.identity.phone || ""}
-                                        onChange={(e) => updateIdentity('phone', e.target.value)}
-                                        placeholder="+1 (555) 000-0000"
-                                    />
-                                </div>
-                            </div>
-                        </section>
-
-                        <section className="space-y-4">
-                            <h3 className="text-lg font-semibold">Experience</h3>
-                            <div className="space-y-4">
-                                {pendingProfile.experience_atoms.map((exp, idx) => (
-                                    <Card key={idx} className="bg-muted/30">
-                                        <CardContent className="p-4 space-y-3">
-                                            <div className="flex justify-between items-start gap-4">
-                                                <div className="flex-1 space-y-2">
-                                                    <Input
-                                                        value={exp.role}
-                                                        onChange={(e) => updateExperience(idx, 'role', e.target.value)}
-                                                        className="font-bold border-transparent bg-transparent px-0 text-lg focus-visible:bg-background focus-visible:px-3 focus-visible:border-input"
-                                                        placeholder="Role"
-                                                    />
-                                                    <div className="flex gap-2">
-                                                        <Input
-                                                            value={exp.company}
-                                                            onChange={(e) => updateExperience(idx, 'company', e.target.value)}
-                                                            className="text-sm border-transparent bg-transparent px-0 text-muted-foreground w-1/2 focus-visible:bg-background focus-visible:px-3 focus-visible:border-input"
-                                                            placeholder="Company"
-                                                        />
-                                                        <Input
-                                                            value={exp.duration}
-                                                            onChange={(e) => updateExperience(idx, 'duration', e.target.value)}
-                                                            className="text-sm border-transparent bg-transparent px-0 text-muted-foreground w-1/2 text-right focus-visible:bg-background focus-visible:px-3 focus-visible:border-input"
-                                                            placeholder="Duration"
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <Button variant="ghost" size="icon" onClick={() => removeExperience(idx)} className="text-destructive">
-                                                    <X className="w-4 h-4" />
-                                                </Button>
-                                            </div>
-                                            <Textarea
-                                                value={exp.content}
-                                                onChange={(e) => updateExperience(idx, 'content', e.target.value)}
-                                                className="min-h-[80px] text-sm text-muted-foreground"
-                                                placeholder="Responsibilites..."
-                                            />
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        </section>
-
-                        <div className="flex justify-between pt-4">
-                            <Button variant="outline" onClick={() => setStep('upload')}>
-                                Re-upload
-                            </Button>
-                            <Button onClick={() => setStep('preview')} className="px-8">
-                                <Eye className="w-4 h-4 mr-2" />
-                                Preview Profile
-                            </Button>
-                        </div>
-                    </div>
-                )}
-
-                {/* STEP 3: PREVIEW (Read Only) */}
-                {step === 'preview' && pendingProfile && (
-                    <div className="space-y-8 animate-fade-in">
-                        <div className="bg-muted/30 p-8 rounded-xl border space-y-6">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h2 className="text-2xl font-bold">{pendingProfile.identity.name}</h2>
-                                    <div className="text-muted-foreground space-y-1 mt-1">
-                                        <p>{pendingProfile.identity.email}</p>
-                                        <p>{pendingProfile.identity.phone}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Skills */}
-                            <div>
-                                <h3 className="font-semibold mb-3">Skills</h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {pendingProfile.skills.map((s, i) => (
-                                        <Badge key={i} variant="outline">{s.name}</Badge>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Experience */}
-                            <div className="space-y-4">
-                                <h3 className="font-semibold border-b pb-2">Experience</h3>
-                                {pendingProfile.experience_atoms.map((exp, i) => (
-                                    <div key={i} className="space-y-1">
-                                        <div className="flex justify-between font-medium">
-                                            <span>{exp.role}</span>
-                                            <span className="text-muted-foreground text-sm">{exp.duration}</span>
-                                        </div>
-                                        <p className="text-sm text-muted-foreground">{exp.company}</p>
-                                        <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap mt-2">{exp.content}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="flex justify-between pt-4">
-                            <Button variant="outline" onClick={() => setStep('edit')}>
-                                <Edit2 className="w-4 h-4 mr-2" />
-                                Back to Edit
-                            </Button>
-                            <Button onClick={() => setStep('configure')} className="px-8">
-                                Confirm & Configure
-                            </Button>
-                        </div>
-                    </div>
-                )}
-
-                {/* STEP 4: CONFIGURE */}
-                {step === 'configure' && (
-                    <form onSubmit={handleSubmit} className="space-y-12 animate-fade-in">
-                        {/* Roles */}
-                        <div className="space-y-4">
-                            <Label className="text-lg font-medium">Target Roles</Label>
-                            <div className="flex flex-wrap gap-2 mb-3">
-                                {roles.map((role, index) => (
-                                    <div key={index} className="flex items-center gap-1 bg-secondary/50 text-secondary-foreground px-3 py-1.5 rounded-full text-sm font-medium animate-scale-in border border-primary/20">
-                                        <span>{role}</span>
-                                        <button
-                                            type="button"
-                                            onClick={() => setRoles(roles.filter((_, i) => i !== index))}
-                                            className="text-muted-foreground hover:text-destructive transition-colors ml-1"
-                                        >
-                                            <X className="w-3 h-3" />
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="flex gap-2">
-                                <Input
-                                    value={currentRole}
-                                    onChange={(e) => setCurrentRole(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            e.preventDefault();
-                                            if (currentRole.trim()) {
-                                                if (!roles.includes(currentRole.trim())) {
-                                                    setRoles([...roles, currentRole.trim()]);
-                                                }
-                                                setCurrentRole("");
-                                            }
-                                        }
-                                    }}
-                                    placeholder="Type a role and press Enter..."
-                                    className="h-14 text-lg bg-transparent border-2 border-muted focus-visible:ring-0 focus-visible:border-primary transition-all duration-300 input-glow"
-                                />
-                                <Button
-                                    type="button"
-                                    onClick={() => {
-                                        if (currentRole.trim()) {
-                                            if (!roles.includes(currentRole.trim())) {
-                                                setRoles([...roles, currentRole.trim()]);
-                                            }
-                                            setCurrentRole("");
-                                        }
-                                    }}
-                                    className="h-14 px-6"
-                                    variant="secondary"
-                                >
-                                    <Plus className="w-5 h-5" />
-                                </Button>
-                            </div>
-                        </div>
-
-                        {/* Salary */}
-                        <div className="space-y-6">
-                            <div className="flex justify-between items-end">
-                                <Label className="text-lg font-medium">Minimum Base Salary</Label>
-                                <span className="text-2xl font-mono">${salary[0].toLocaleString()}</span>
-                            </div>
-                            <Slider
-                                value={salary}
-                                onValueChange={setSalary}
-                                min={50000}
-                                max={500000}
-                                step={5000}
-                                className="py-4"
-                            />
-                        </div>
-
-                        {/* Location */}
-                        <div className="grid md:grid-cols-2 gap-8">
-                            <div className="space-y-4">
-                                <Label className="text-lg font-medium">Locations</Label>
-                                <Input
-                                    value={locations}
-                                    onChange={(e) => setLocations(e.target.value)}
-                                    placeholder="e.g. San Francisco, New York, London"
-                                    className="h-12 bg-transparent border-muted"
-                                />
-                            </div>
-                            <div className="space-y-4">
-                                <Label className="text-lg font-medium">Remote Policy</Label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {(['remote', 'hybrid', 'onsite', 'any'] as const).map((mode) => (
-                                        <button
-                                            key={mode}
-                                            type="button"
-                                            onClick={() => setRemotePolicy(mode)}
-                                            className={`h-12 border rounded-lg text-sm font-medium transition-all duration-300 ${remotePolicy === mode
-                                                ? 'bg-primary text-primary-foreground border-primary'
-                                                : 'border-muted hover:border-primary/50 hover:bg-secondary/50'
-                                                }`}
-                                        >
-                                            {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Aggressiveness */}
-                        <div className="space-y-6">
-                            <div className="flex justify-between items-end">
-                                <Label className="text-lg font-medium">Agent Aggressiveness</Label>
-                                <span className="text-xl font-mono text-muted-foreground">Level {aggressiveness[0]}</span>
-                            </div>
-                            <Slider
-                                value={aggressiveness}
-                                onValueChange={setAggressiveness}
-                                min={1}
-                                max={10}
-                                step={1}
-                                className="py-4"
-                            />
-                        </div>
-
-                        <div className="flex justify-between pt-4">
-                            <Button variant="outline" type="button" onClick={() => setStep('upload')}>
-                                Re-upload Resume
-                            </Button>
-                            <Button
-                                type="submit"
-                                size="lg"
-                                variant="gradient"
-                                className="w-full md:w-auto h-16 px-12 text-lg font-bold rounded-full ml-auto"
-                                disabled={loading}
-                            >
-                                {loading ? <Loader2 className="animate-spin" /> : "Initiate Agent"}
-                            </Button>
-                        </div>
-                    </form>
-                )}
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">Upload a resume and we'll fill everything in</p>
+                  <ResumeUpload onUploadComplete={handleResumeParsed} />
+                </div>
+              </div>
             </div>
+          )}
+
+          {/* ===== STEP: IDENTITY ===== */}
+          {currentStep === "identity" && (
+            <div className="animate-fade-in space-y-8 pt-8">
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold">About you</h2>
+                <p className="text-muted-foreground">Basic contact information for your profile.</p>
+              </div>
+
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <Label>Full Name</Label>
+                  <Input
+                    value={profile.identity.name}
+                    onChange={e => updateIdentity("name", e.target.value)}
+                    placeholder="Jane Smith"
+                    className="h-12"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input
+                    value={profile.identity.email}
+                    onChange={e => updateIdentity("email", e.target.value)}
+                    placeholder="jane@example.com"
+                    type="email"
+                    className="h-12"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Phone <span className="text-muted-foreground text-xs">(optional)</span></Label>
+                  <Input
+                    value={profile.identity.phone || ""}
+                    onChange={e => updateIdentity("phone", e.target.value)}
+                    placeholder="+1 (555) 000-0000"
+                    className="h-12"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>LinkedIn / Portfolio URL <span className="text-muted-foreground text-xs">(optional)</span></Label>
+                  <Input
+                    value={profile.identity.links?.[0] || ""}
+                    onChange={e =>
+                      setProfile(p => ({
+                        ...p,
+                        identity: { ...p.identity, links: e.target.value ? [e.target.value] : [] },
+                      }))
+                    }
+                    placeholder="https://linkedin.com/in/janesmith"
+                    className="h-12"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ===== STEP: EXPERIENCE ===== */}
+          {currentStep === "experience" && (
+            <div className="animate-fade-in space-y-8 pt-8">
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold">Work experience</h2>
+                <p className="text-muted-foreground">Add your most recent and relevant positions.</p>
+              </div>
+
+              <div className="space-y-4">
+                {profile.experience_atoms.map((exp, idx) => (
+                  <div key={exp.id || idx} className="p-4 rounded-xl border border-border bg-card space-y-3 animate-fade-in">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Job title</Label>
+                          <Input
+                            value={exp.role}
+                            onChange={e => updateExperience(idx, "role", e.target.value)}
+                            placeholder="Software Engineer"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Company</Label>
+                          <Input
+                            value={exp.company}
+                            onChange={e => updateExperience(idx, "company", e.target.value)}
+                            placeholder="Acme Inc."
+                          />
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removeExperience(idx)}
+                        className="p-1.5 text-muted-foreground hover:text-destructive transition-colors mt-5"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Duration</Label>
+                      <Input
+                        value={exp.duration}
+                        onChange={e => updateExperience(idx, "duration", e.target.value)}
+                        placeholder="Jan 2022 — Present"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Key responsibilities & achievements</Label>
+                      <Textarea
+                        value={exp.content}
+                        onChange={e => updateExperience(idx, "content", e.target.value)}
+                        placeholder="• Led a team of 5 engineers..."
+                        className="min-h-[80px]"
+                      />
+                    </div>
+                  </div>
+                ))}
+
+                <button
+                  onClick={addExperience}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-accent/30 text-muted-foreground hover:text-foreground transition-all"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add position
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ===== STEP: SKILLS ===== */}
+          {currentStep === "skills" && (
+            <SkillsStep
+              skills={profile.skills}
+              onAdd={addSkill}
+              onRemove={removeSkill}
+            />
+          )}
+
+          {/* ===== STEP: EDUCATION ===== */}
+          {currentStep === "education" && (
+            <div className="animate-fade-in space-y-8 pt-8">
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold">Education</h2>
+                <p className="text-muted-foreground">Add your degrees and certifications.</p>
+              </div>
+
+              <div className="space-y-4">
+                {profile.education.map((edu, idx) => (
+                  <div key={idx} className="p-4 rounded-xl border border-border bg-card space-y-3 animate-fade-in">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 space-y-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">School</Label>
+                          <Input
+                            value={edu.school}
+                            onChange={e => updateEducation(idx, "school", e.target.value)}
+                            placeholder="MIT"
+                          />
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">Degree</Label>
+                            <Input
+                              value={edu.degree}
+                              onChange={e => updateEducation(idx, "degree", e.target.value)}
+                              placeholder="B.S. Computer Science"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">Year</Label>
+                            <Input
+                              value={edu.year}
+                              onChange={e => updateEducation(idx, "year", e.target.value)}
+                              placeholder="2020"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removeEducation(idx)}
+                        className="p-1.5 text-muted-foreground hover:text-destructive transition-colors mt-5"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                <button
+                  onClick={addEducation}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-accent/30 text-muted-foreground hover:text-foreground transition-all"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add education
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ===== STEP: PREFERENCES ===== */}
+          {currentStep === "preferences" && (
+            <div className="animate-fade-in space-y-8 pt-8">
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold">Job preferences</h2>
+                <p className="text-muted-foreground">Tell us what you're looking for so we can find the best matches.</p>
+              </div>
+
+              <div className="space-y-8">
+                {/* Target Roles */}
+                <div className="space-y-3">
+                  <Label className="text-base font-medium">Target Roles</Label>
+                  <div className="flex flex-wrap gap-2 min-h-[32px]">
+                    {roles.map((role, i) => (
+                      <Badge key={i} variant="secondary" className="pl-3 pr-1.5 py-1.5 gap-1 text-sm">
+                        {role}
+                        <button onClick={() => setRoles(roles.filter((_, idx) => idx !== i))} className="hover:text-destructive">
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      value={currentRole}
+                      onChange={e => setCurrentRole(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          if (currentRole.trim() && !roles.includes(currentRole.trim())) {
+                            setRoles([...roles, currentRole.trim()]);
+                          }
+                          setCurrentRole("");
+                        }
+                      }}
+                      placeholder="e.g. Senior Frontend Engineer"
+                      className="h-11"
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="icon"
+                      className="h-11 w-11 shrink-0"
+                      onClick={() => {
+                        if (currentRole.trim() && !roles.includes(currentRole.trim())) {
+                          setRoles([...roles, currentRole.trim()]);
+                        }
+                        setCurrentRole("");
+                      }}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Salary */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-baseline">
+                    <Label className="text-base font-medium">Minimum Base Salary</Label>
+                    <span className="text-lg font-mono font-semibold">${salary[0].toLocaleString()}</span>
+                  </div>
+                  <Slider value={salary} onValueChange={setSalary} min={30000} max={500000} step={5000} />
+                </div>
+
+                {/* Location + Remote */}
+                <div className="grid sm:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <Label className="text-base font-medium">Preferred Locations</Label>
+                    <Input
+                      value={locations}
+                      onChange={e => setLocations(e.target.value)}
+                      placeholder="SF, NYC, Remote"
+                      className="h-11"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-base font-medium">Remote Policy</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(["remote", "hybrid", "onsite", "any"] as const).map(mode => (
+                        <button
+                          key={mode}
+                          type="button"
+                          onClick={() => setRemotePolicy(mode)}
+                          className={`h-10 rounded-lg text-sm font-medium border transition-all ${
+                            remotePolicy === mode
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "border-border hover:border-primary/50 hover:bg-accent/50"
+                          }`}
+                        >
+                          {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Aggressiveness */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-baseline">
+                    <Label className="text-base font-medium">Search Intensity</Label>
+                    <span className="text-sm text-muted-foreground font-mono">Level {aggressiveness[0]}</span>
+                  </div>
+                  <Slider value={aggressiveness} onValueChange={setAggressiveness} min={1} max={10} step={1} />
+                  <p className="text-xs text-muted-foreground">
+                    Higher = more applications sent automatically. Lower = more selective, manual approval.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-    );
+      </div>
+
+      {/* Bottom nav bar */}
+      {currentStep !== "method" && (
+        <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm border-t border-border z-50">
+          <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
+            <Button variant="ghost" onClick={goBack} className="gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </Button>
+
+            {currentStep === "preferences" ? (
+              <Button onClick={handleFinish} disabled={saving} className="gap-2 px-6">
+                {saving ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Check className="w-4 h-4" />
+                )}
+                {saving ? "Saving..." : "Finish Setup"}
+              </Button>
+            ) : (
+              <Button onClick={goNext} className="gap-2 px-6">
+                Continue
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
+
+// ===== Skills Sub-component =====
+function SkillsStep({
+  skills,
+  onAdd,
+  onRemove,
+}: {
+  skills: Skill[];
+  onAdd: (name: string) => void;
+  onRemove: (idx: number) => void;
+}) {
+  const [input, setInput] = useState("");
+
+  const SUGGESTED = [
+    "JavaScript", "TypeScript", "React", "Node.js", "Python", "SQL",
+    "AWS", "Docker", "Kubernetes", "Go", "Java", "Figma",
+    "GraphQL", "REST APIs", "Git", "CI/CD", "Agile", "Leadership",
+  ];
+
+  const unusedSuggestions = SUGGESTED.filter(
+    s => !skills.some(sk => sk.name.toLowerCase() === s.toLowerCase())
+  );
+
+  return (
+    <div className="animate-fade-in space-y-8 pt-8">
+      <div className="space-y-2">
+        <h2 className="text-2xl font-bold">Skills</h2>
+        <p className="text-muted-foreground">Add your technical and professional skills.</p>
+      </div>
+
+      {/* Current skills */}
+      {skills.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {skills.map((s, i) => (
+            <Badge key={i} variant="secondary" className="pl-3 pr-1.5 py-1.5 gap-1 text-sm animate-scale-in">
+              {s.name}
+              <button onClick={() => onRemove(i)} className="hover:text-destructive">
+                <X className="w-3 h-3" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
+
+      {/* Input */}
+      <div className="flex gap-2">
+        <Input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              onAdd(input);
+              setInput("");
+            }
+          }}
+          placeholder="Type a skill and press Enter"
+          className="h-11"
+        />
+        <Button
+          variant="secondary"
+          size="icon"
+          className="h-11 w-11 shrink-0"
+          onClick={() => {
+            onAdd(input);
+            setInput("");
+          }}
+        >
+          <Plus className="w-4 h-4" />
+        </Button>
+      </div>
+
+      {/* Quick-add suggestions */}
+      {unusedSuggestions.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Quick add</p>
+          <div className="flex flex-wrap gap-2">
+            {unusedSuggestions.map(s => (
+              <button
+                key={s}
+                onClick={() => onAdd(s)}
+                className="px-3 py-1.5 text-sm rounded-full border border-dashed border-border hover:border-primary/50 hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-all"
+              >
+                + {s}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default Onboarding;
