@@ -199,11 +199,11 @@ CRITICAL RULES:
 2. **SUMMARY**: Extract professional summary/bio if present.
 3. **SKILLS**: Extract all technical skills, tools, and languages.
 4. **EXPERIENCE**: Capture EVERY job entry. 
-   - Map strictly distinct jobs to `experience_atoms`.
+   - Map strictly distinct jobs to experience_atoms.
 5. **EDUCATION**: Extract degree, major, school.
-6. **EVERYTHING ELSE**: If there are sections for "Projects", "Volunteering", "Awards", "Certifications", "Publications", or "Interests" that do NOT fit into Experience or Education, put them in `custom_sections`.
-   - preserve the header title as `title`.
-   - preserve the content as a list of strings in `content`.
+6. **EVERYTHING ELSE**: If there are sections for "Projects", "Volunteering", "Awards", "Certifications", "Publications", or "Interests" that do NOT fit into Experience or Education, put them in custom_sections.
+   - preserve the header title as "title".
+   - preserve the content as a list of strings in "content".
 
 CAPTURE EVERYTHING. Do not leave any meaningful text behind.`
           },
