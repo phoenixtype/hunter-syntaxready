@@ -69,15 +69,14 @@ async function checkRateLimit(
     });
 
     if (error) {
-      // SECURITY: Log error but don't block on rate limit check failure
-      console.error('[RATE_LIMIT] Check failed, allowing request');
-      return true;
+      console.error('[RATE_LIMIT] Check failed, blocking request');
+      return false;
     }
 
     return data === true;
   } catch (err) {
-    console.error('[RATE_LIMIT] Exception during check');
-    return true; // Fail open to avoid blocking legitimate users
+    console.error('[RATE_LIMIT] Exception during check, blocking request');
+    return false;
   }
 }
 

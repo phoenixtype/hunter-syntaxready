@@ -69,11 +69,11 @@ export const checkCompliance = async (
             }
         } catch (err) {
             console.error('Error checking compliance:', err);
-            // Fail open but with warning
+            // Fail closed on error — block action to prevent abuse
             return {
-                allowed: true,
-                risk: 'MEDIUM',
-                reason: 'Compliance check failed, proceeding with caution.'
+                allowed: false,
+                risk: 'HIGH',
+                reason: 'Compliance check failed. Please try again shortly.'
             };
         }
     }

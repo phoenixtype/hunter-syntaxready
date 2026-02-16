@@ -15,8 +15,6 @@ export const calculateMatch = async (
   job: JobOpportunity,
   weights?: MatchingWeights
 ): Promise<MatchResult> => {
-  // Simulate processing time (Vector matching is heavy!)
-  await new Promise(resolve => setTimeout(resolve, 600));
 
   // 0. Safety Checks (Learning Agent override)
   if (weights?.bannedCompanies.includes(job.company)) {

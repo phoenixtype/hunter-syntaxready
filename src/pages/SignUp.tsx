@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,7 @@ const SignUp = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { loading, signUp } = useAuth();
   const navigate = useNavigate();
+  const passwordStrength = useMemo(() => getPasswordStrength(password), [password]);
 
   // Redirect if already logged in
 
@@ -49,13 +50,17 @@ const SignUp = () => {
         if (error.message.includes("Password")) {
           toast.error("Password must be at least 6 characters");
         } else if (error.message.includes("User already registered")) {
-          toast.error("An account with this email already exists. Try signing in instead.");
+          // SECURITY: Don't reveal email existence — show same flow as new signup
+          sessionStorage.setItem('pendingVerificationEmail', validatedEmail);
+          toast.success("Check your email to confirm your account.");
+          navigate("/verify-email");
+          return;
         } else if (error.message.includes("Email")) {
           toast.error("Please enter a valid email address");
         } else {
           // Show the actual error in development for debugging
           console.error('[SIGNUP] Full error:', error);
-          toast.error(`Unable to create account: ${error.message}`);
+          toast.error("Unable to create account. Please try again.");
         }
         return;
       }
@@ -155,16 +160,16 @@ const SignUp = () => {
                     {[0, 1, 2, 3, 4].map((index) => (
                       <div
                         key={index}
-                        className={`flex-1 rounded-full transition-colors ${index <= getPasswordStrength(password).score
-                          ? getPasswordStrength(password).color
+                        className={`flex-1 rounded-full transition-colors ${index <= passwordStrength.score
+                          ? passwordStrength.color
                           : 'bg-muted'
                           }`}
                       />
                     ))}
                   </div>
-                  <p className={`text-xs ${getPasswordStrength(password).score >= 3 ? 'text-green-600' : 'text-muted-foreground'
+                  <p className={`text-xs ${passwordStrength.score >= 3 ? 'text-green-600' : 'text-muted-foreground'
                     }`}>
-                    Password strength: {getPasswordStrength(password).label}
+                    Password strength: {passwordStrength.label}
                   </p>
                 </div>
               )}

@@ -24,9 +24,18 @@ interface InterviewPrepModalProps {
 const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) => {
     const [material, setMaterial] = useState<InterviewPrepMaterial | null>(null);
     const [loading, setLoading] = useState(false);
+    const [lastJobId, setLastJobId] = useState<string | null>(null);
+
+    // Reset material when switching jobs
+    useEffect(() => {
+        if (job && job.id !== lastJobId) {
+            setMaterial(null);
+            setLastJobId(job.id);
+        }
+    }, [job, lastJobId]);
 
     useEffect(() => {
-        if (isOpen && job && !material) {
+        if (isOpen && job && !material && !loading) {
             let isMounted = true;
             setLoading(true);
             generateInterviewPrep(job)
@@ -43,7 +52,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                 isMounted = false;
             };
         }
-    }, [isOpen, job, material]);
+    }, [isOpen, job, material, loading]);
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>

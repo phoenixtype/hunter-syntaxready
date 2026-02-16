@@ -457,8 +457,8 @@ export const getCandidateProfile = async (userId: string): Promise<CandidateProf
 
 // Save candidate profile to database
 export const saveCandidateProfile = async (userId: string, profile: CandidateProfile): Promise<void> => {
-  const { error } = await (supabase
-    .from('candidate_profiles') as unknown as { upsert: (data: unknown, options?: unknown) => Promise<{ error: unknown }> })
+  const { error } = await supabase
+    .from('candidate_profiles')
     .upsert({
       user_id: userId,
       identity: profile.identity as unknown,

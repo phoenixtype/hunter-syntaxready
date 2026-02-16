@@ -40,14 +40,14 @@ async function checkRateLimit(
     });
 
     if (error) {
-      console.error('[RATE_LIMIT] Check failed, allowing request');
-      return true;
+      console.error('[RATE_LIMIT] Check failed, blocking request');
+      return false;
     }
 
     return data === true;
   } catch (err) {
-    console.error('[RATE_LIMIT] Exception during check');
-    return true;
+    console.error('[RATE_LIMIT] Exception during check, blocking request');
+    return false;
   }
 }
 

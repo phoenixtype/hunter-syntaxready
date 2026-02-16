@@ -59,18 +59,15 @@ export const generateTailoredContent = async (
   // Create tailored resume with minor optimizations
   const tailoredResume = JSON.parse(JSON.stringify(profile)) as CandidateProfile;
   
-  // Add job-specific keyword if mentioned in description
-  const jobKeywords = job.description?.split(/\s+/)
-    .filter(w => w.length > 5 && /^[A-Z]/.test(w))
-    .slice(0, 3) || [];
-  
+  // Add job-specific keywords from the structured tech_stack (reliable source)
+  const jobKeywords = (job.tech_stack || []).slice(0, 5);
+
   jobKeywords.forEach(keyword => {
-    const cleanKeyword = keyword.replace(/[^a-zA-Z]/g, '');
-    if (cleanKeyword && !tailoredResume.skills.find(s => 
-      s.name.toLowerCase() === cleanKeyword.toLowerCase()
+    if (keyword && !tailoredResume.skills.find(s =>
+      s.name.toLowerCase() === keyword.toLowerCase()
     )) {
       tailoredResume.skills.push({
-        name: cleanKeyword,
+        name: keyword,
         proficiency: 0.7,
         evidence: [`Inferred from ${job.company} requirements`]
       });
