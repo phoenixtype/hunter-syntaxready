@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Briefcase, FileText, Search, Link2, Linkedin, MessageSquare, User, Settings, LogOut, Loader2, ChevronRight, Zap, Bot, LayoutGrid, GraduationCap, Bell } from "lucide-react";
+import { Briefcase, FileText, Search, Link2, Linkedin, MessageSquare, User, Settings, LogOut, Loader2, ChevronRight, Zap, Bot, LayoutGrid, GraduationCap, Bell, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -105,6 +105,12 @@ const Dashboard = () => {
       title: "Interview Coach",
       desc: "AI-powered mock interviews",
       action: () => navigate("/interview-coach?title=Software+Engineer&company=Target+Company"),
+    },
+    {
+      icon: FolderOpen,
+      title: "My Tailored Resumes",
+      desc: "View & download all your optimized resumes",
+      action: () => navigate("/tailored-resumes"),
     },
   ];
 

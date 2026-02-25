@@ -9,6 +9,7 @@ import { Loader2, Link2, Copy, Check, FileText, ClipboardPaste, FileDown } from 
 import { CandidateProfile } from "@/lib/resume_engine";
 import { optimizeResumeForJobUrl, TailoredContent } from "@/lib/writer_engine";
 import { exportResumeToPdf } from "@/lib/pdf_export";
+import { saveTailoredResume } from "@/lib/tailored_resume_store";
 import { toast } from "sonner";
 
 interface JobUrlOptimizerProps {
@@ -49,7 +50,12 @@ const JobUrlOptimizer = ({ isOpen, onClose, profile }: JobUrlOptimizerProps) => 
                 inputMode === "jd" ? jobDescription.trim() : undefined
             );
             setResult(content);
-            toast.success("Content optimized for this role!");
+            await saveTailoredResume(content, {
+                title: content.resume.experience_atoms?.[0]?.role || "Target Role",
+                company: content.resume.identity?.name ? "Optimized" : "Target Company",
+                url: inputMode === "url" ? jobUrl.trim() : undefined
+            });
+            toast.success("Content optimized & saved!");
         } catch {
             toast.error("Optimization failed. Please try again.");
         } finally {
