@@ -128,9 +128,9 @@ const Index = () => {
                   Start For Free <ArrowRight className="w-4 h-4" />
                 </Button>
               </Link>
-              <Link to="/login?demo=true" className="w-full sm:w-auto">
+              <Link to="/login" className="w-full sm:w-auto">
                 <Button variant="outline" size="lg" className="w-full sm:w-auto px-8 h-12 text-base rounded-lg font-medium">
-                  View Demo
+                  Sign In
                 </Button>
               </Link>
             </div>
@@ -263,7 +263,7 @@ const Index = () => {
               <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
               <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
             </nav>
-            <p className="text-sm text-muted-foreground">© 2025 Hunter AI. All rights reserved.</p>
+            <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Hunter AI. All rights reserved.</p>
           </div>
         </div>
       </footer>
