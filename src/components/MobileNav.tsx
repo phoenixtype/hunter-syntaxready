@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
-import { Menu, Home, LogIn, UserPlus, LayoutDashboard, User, Settings } from "lucide-react";
+import { Menu, Home, LogIn, UserPlus, LayoutDashboard, User, Settings, FileText, GraduationCap, Bot, Search } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 
 interface MobileNavProps {
@@ -23,7 +23,10 @@ const MobileNav = ({ isAuthenticated = false, onSignOut }: MobileNavProps) => {
   const authNavItems = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { label: "Profile", href: "/profile", icon: User },
-    { label: "Settings", href: "/auto-applier-settings", icon: Settings },
+    { label: "Resume Builder", href: "/resume-builder", icon: FileText },
+    { label: "Interview Coach", href: "/interview-coach", icon: GraduationCap },
+    { label: "Application Wizard", href: "/application-wizard", icon: Search },
+    { label: "Auto-Applier", href: "/auto-applier-settings", icon: Bot },
   ];
 
   const navItems = isAuthenticated ? authNavItems : publicNavItems;
