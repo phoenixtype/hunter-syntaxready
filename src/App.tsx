@@ -26,6 +26,7 @@ import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { PublicRoute } from "./components/auth/PublicRoute";
 import FloatingThemeToggle from "./components/FloatingThemeToggle";
+import Footer from "./components/Footer";
 import { runStartupValidation } from "./lib/env_validator";
 import { checkDatabaseHealth, logHealthStatus } from "./lib/database_health";
 
@@ -66,64 +67,69 @@ const App = () => (
             <AppInitializer />
             <ScrollToTop />
             <FloatingThemeToggle />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={
-                <PublicRoute>
-                  <Login />
-                </PublicRoute>
-              } />
-              <Route path="/signup" element={
-                <PublicRoute>
-                  <SignUp />
-                </PublicRoute>
-              } />
-              <Route path="/onboarding" element={
-                <ProtectedRoute>
-                  <Onboarding />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              } />
-              <Route path="/application-wizard" element={
-                <ProtectedRoute>
-                  <ApplicationWizard />
-                </ProtectedRoute>
-              } />
-              <Route path="/auto-applier-settings" element={
-                <ProtectedRoute>
-                  <AutoApplierSettings />
-                </ProtectedRoute>
-              } />
-              <Route path="/interview-coach" element={
-                <ProtectedRoute>
-                  <InterviewCoach />
-                </ProtectedRoute>
-              } />
-              <Route path="/resume-builder" element={
-                <ProtectedRoute>
-                  <ResumeBuilder />
-                </ProtectedRoute>
-              } />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/forgot-password" element={
-                <PublicRoute>
-                  <ForgotPassword />
-                </PublicRoute>
-              } />
-              <Route path="/verify-email" element={<EmailVerification />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <div className="flex flex-col min-h-screen">
+              <div className="flex-1">
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/login" element={
+                    <PublicRoute>
+                      <Login />
+                    </PublicRoute>
+                  } />
+                  <Route path="/signup" element={
+                    <PublicRoute>
+                      <SignUp />
+                    </PublicRoute>
+                  } />
+                  <Route path="/onboarding" element={
+                    <ProtectedRoute>
+                      <Onboarding />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard" element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/profile" element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/application-wizard" element={
+                    <ProtectedRoute>
+                      <ApplicationWizard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/auto-applier-settings" element={
+                    <ProtectedRoute>
+                      <AutoApplierSettings />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/interview-coach" element={
+                    <ProtectedRoute>
+                      <InterviewCoach />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/resume-builder" element={
+                    <ProtectedRoute>
+                      <ResumeBuilder />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/terms" element={<Terms />} />
+                  <Route path="/forgot-password" element={
+                    <PublicRoute>
+                      <ForgotPassword />
+                    </PublicRoute>
+                  } />
+                  <Route path="/verify-email" element={<EmailVerification />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </div>
+              <Footer />
+            </div>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
