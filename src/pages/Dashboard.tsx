@@ -13,7 +13,6 @@ import MobileNav from "@/components/MobileNav";
 import SkipLink from "@/components/SkipLink";
 import { useResume } from "@/hooks/useResume";
 import { SubscriptionTier } from "@/lib/subscription";
-import { CandidateProfile } from "@/lib/resume_engine";
 import PostInterviewModal from "@/components/PostInterviewModal";
 import PricingModal from "@/components/PricingModal";
 import JobUrlOptimizer from "@/components/JobUrlOptimizer";
@@ -54,9 +53,6 @@ const Dashboard = () => {
     navigate("/");
   };
 
-  const handleResumeUpload = (newProfile: CandidateProfile) => {
-    navigate("/profile", { state: { pendingProfile: newProfile, mode: 'edit' } });
-  };
 
   if (authLoading || resumeLoading || subLoading || dataLoading) {
     return <DashboardSkeleton />;
@@ -68,11 +64,17 @@ const Dashboard = () => {
 
   const tools = [
     {
+      icon: FileText,
+      title: "Resume Builder",
+      desc: "Build a polished, ATS-friendly resume",
+      action: () => navigate("/resume-builder"),
+      featured: true,
+    },
+    {
       icon: Bot,
       title: "Auto-Applier",
       desc: "Mass-apply to jobs while you sleep",
       action: () => navigate("/auto-applier-settings"),
-      featured: true,
     },
     {
       icon: Search,
@@ -82,8 +84,8 @@ const Dashboard = () => {
     },
     {
       icon: Link2,
-      title: "Resume Optimizer",
-      desc: "Tailor resume for a specific job",
+      title: "Optimize for Job",
+      desc: "Get a tailored resume & cover letter for any job",
       action: () => setShowResumeOptimizer(true),
     },
     {
@@ -291,8 +293,8 @@ const Dashboard = () => {
 
               {!profile && (
                 <div className="p-4 rounded-lg bg-primary/5 border border-primary/10 text-sm text-muted-foreground">
-                  <strong className="text-foreground">Tip:</strong> Upload your resume to unlock all AI-powered tools.
-                  <Link to="/profile" className="text-primary font-medium ml-1 hover:underline">Go to Profile →</Link>
+                  <strong className="text-foreground">Tip:</strong> Build your resume to unlock all AI-powered tools.
+                  <Link to="/resume-builder" className="text-primary font-medium ml-1 hover:underline">Build Resume →</Link>
                 </div>
               )}
             </div>

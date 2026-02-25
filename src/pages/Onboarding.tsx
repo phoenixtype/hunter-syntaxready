@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { savePreferences, UserPreferences } from "@/lib/user_preferences";
 import { CandidateProfile, saveCandidateProfile, ExperienceAtom, Education, Skill } from "@/lib/resume_engine";
 import { triggerJobCrawl } from "@/lib/crawler_engine";
-import { ResumeUpload } from "@/components/resume/ResumeUpload";
+
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,16 +73,6 @@ const Onboarding = () => {
     if (idx > 0) setCurrentStep(STEPS[idx - 1].id);
   };
 
-  const handleResumeParsed = (parsed: CandidateProfile) => {
-    setProfile(parsed);
-    const suggestedRoles = [
-      ...parsed.experience_atoms.map(e => e.role),
-      ...parsed.skills.slice(0, 3).map(s => s.name),
-    ].filter(Boolean).slice(0, 5);
-    setRoles(prev => Array.from(new Set([...prev, ...suggestedRoles])));
-    toast.success("Resume parsed! Review your details.");
-    setCurrentStep("identity");
-  };
 
   const handleFinish = async () => {
     if (!user) return;
@@ -194,7 +184,7 @@ const Onboarding = () => {
             <div className="animate-fade-in space-y-8 text-center pt-12">
               <div className="space-y-3">
                 <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Let's build your profile</h1>
-                <p className="text-muted-foreground text-lg max-w-md mx-auto">Choose how you'd like to get started.</p>
+                <p className="text-muted-foreground text-lg max-w-md mx-auto">We'll walk you through a few quick steps to get started.</p>
               </div>
               <div className="grid gap-4 max-w-md mx-auto pt-4">
                 <button
@@ -205,23 +195,11 @@ const Onboarding = () => {
                     <PenLine className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <p className="font-semibold group-hover:text-primary transition-colors">Enter manually</p>
+                    <p className="font-semibold group-hover:text-primary transition-colors">Get Started</p>
                     <p className="text-sm text-muted-foreground">Fill in your details step by step</p>
                   </div>
                   <ArrowRight className="w-4 h-4 ml-auto text-muted-foreground" />
                 </button>
-
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
-                  <div className="relative flex justify-center">
-                    <span className="bg-background px-3 text-xs text-muted-foreground uppercase tracking-wider">or</span>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground">Upload a resume and we'll fill everything in</p>
-                  <ResumeUpload onUploadComplete={handleResumeParsed} />
-                </div>
               </div>
             </div>
           )}

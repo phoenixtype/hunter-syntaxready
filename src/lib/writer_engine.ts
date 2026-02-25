@@ -76,9 +76,28 @@ export const generateTailoredContent = async (
 // Optimize resume for a specific job URL - crawl + tailor
 export const optimizeResumeForJobUrl = async (
   profile: CandidateProfile,
-  jobUrl: string
+  jobUrl: string,
+  jobDescriptionText?: string
 ): Promise<TailoredContent> => {
   const { data: { session } } = await supabase.auth.getSession();
+
+  // If JD text is provided directly, build a synthetic job and generate content
+  if (jobDescriptionText) {
+    const syntheticJob: JobOpportunity = {
+      id: crypto.randomUUID(),
+      title: "Target Role",
+      company: "Target Company",
+      location: "",
+      salary_range: "",
+      description: jobDescriptionText,
+      source: "Direct" as const,
+      freshness_score: 1,
+      credibility_score: 1,
+      url: jobUrl || "",
+      posted_at: new Date().toISOString(),
+    };
+    return generateTailoredContent(profile, syntheticJob);
+  }
 
   // Crawl the job URL to extract details
   const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/crawl-jobs`, {

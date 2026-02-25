@@ -16,6 +16,7 @@ import Profile from "./pages/Profile";
 import ApplicationWizard from "./pages/ApplicationWizard";
 import AutoApplierSettings from "./pages/AutoApplierSettings";
 import InterviewCoach from "./pages/InterviewCoach";
+import ResumeBuilder from "./pages/ResumeBuilder";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -104,6 +105,11 @@ const App = () => (
               <Route path="/interview-coach" element={
                 <ProtectedRoute>
                   <InterviewCoach />
+                </ProtectedRoute>
+              } />
+              <Route path="/resume-builder" element={
+                <ProtectedRoute>
+                  <ResumeBuilder />
                 </ProtectedRoute>
               } />
               <Route path="/privacy" element={<Privacy />} />
