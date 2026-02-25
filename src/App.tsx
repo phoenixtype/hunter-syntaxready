@@ -20,6 +20,7 @@ import ResumeBuilder from "./pages/ResumeBuilder";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import EmailVerification from "./pages/EmailVerification";
 import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
@@ -120,6 +121,7 @@ const App = () => (
                 </PublicRoute>
               } />
               <Route path="/verify-email" element={<EmailVerification />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
