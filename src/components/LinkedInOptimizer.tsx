@@ -22,7 +22,7 @@ const LinkedInOptimizer = ({ isOpen, onClose, profile, job }: LinkedInOptimizerP
 
     const handleGenerate = async () => {
         if (!profile) {
-            toast.error("Upload your resume first to get LinkedIn suggestions.");
+            toast.error("Build your profile first using the Resume Builder.");
             return;
         }
 
@@ -92,7 +92,7 @@ const LinkedInOptimizer = ({ isOpen, onClose, profile, job }: LinkedInOptimizerP
                             )}
                         </Button>
                         {!profile && (
-                            <p className="text-xs text-muted-foreground">Upload your resume first from the dashboard sidebar.</p>
+                            <p className="text-xs text-muted-foreground">Build your profile first using the Resume Builder in the Tools section.</p>
                         )}
                     </div>
                 ) : (

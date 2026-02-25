@@ -38,7 +38,7 @@ const PostInterviewModal = ({ isOpen, onClose, companyName, profile }: PostInter
 
     const handleGenerateNote = async () => {
         if (!profile) {
-            toast.error("Activate agent by uploading resume first.");
+            toast.error("Build your profile first using the Resume Builder.");
             return;
         }
         setLoading(true);
@@ -55,7 +55,7 @@ const PostInterviewModal = ({ isOpen, onClose, companyName, profile }: PostInter
 
     const handleGenerateStrategy = async () => {
         if (!profile) {
-            toast.error("Activate agent by uploading resume first.");
+            toast.error("Build your profile first using the Resume Builder.");
             return;
         }
         setLoading(true);
