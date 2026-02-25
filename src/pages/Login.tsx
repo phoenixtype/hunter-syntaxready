@@ -61,7 +61,7 @@ const Login = () => {
           Back to Home
         </Link>
 
-        <div className="bg-card/50 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-6 sm:p-8 md:p-12 space-y-6 sm:space-y-8">
+        <div className="bg-card/50 backdrop-blur-xl border border-border shadow-2xl rounded-2xl p-6 sm:p-8 md:p-12 space-y-6 sm:space-y-8">
           <div className="space-y-2 text-center">
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Welcome back</h1>
             <p className="text-muted-foreground text-sm">Enter your credentials to access your agent</p>
