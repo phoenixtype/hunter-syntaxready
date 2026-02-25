@@ -247,10 +247,10 @@ Deno.serve(async (req) => {
     const { keywords, url, location, remotePolicy, targetRoles } = body;
 
     const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
 
-    if (!firecrawlApiKey || !lovableApiKey) {
-      console.error('[SECURITY] Missing required API keys');
+    if (!firecrawlApiKey || !geminiApiKey) {
+      console.error('[SECURITY] Missing required API keys (Firecrawl or Gemini)');
       return new Response(
         JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -332,49 +332,40 @@ Deno.serve(async (req) => {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-        const llmResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        const llmResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${lovableApiKey}`,
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           signal: controller.signal,
           body: JSON.stringify({
-            model: 'google/gemini-2.5-flash',
-            messages: [
-              {
-                role: 'system',
-                content: 'You are a universal job listing parser. Extract structured job information from the provided content for ANY industry.\nReturn a JSON object with these fields:\n- title: job title (string)\n- company: company name (string)\n- location: location or "Remote" (string)\n- salary_range: salary range if mentioned, otherwise "Not specified" (string)\n- description: brief job description (string, max 200 chars)\n- tech_stack: array of HARD SKILLS or TECHNOLOGIES required\n- posted_at: when it was posted, e.g. "2 hours ago", "1 day ago" (string)\n\nIf you cannot extract valid job info, return {"valid": false}.\nAlways return valid JSON only, no markdown.'
-              },
+            contents: [
               {
                 role: 'user',
-                content: `Parse this job listing:\n\nTitle: ${rawJob.title}\nURL: ${rawJob.url}\nContent: ${(rawJob.content || '').substring(0, 2000)}`
+                parts: [{
+                  text: `You are a universal job listing parser. Extract structured job information from the provided content for ANY industry.
+Return a JSON object with these fields:
+- title: job title (string)
+- company: company name (string)
+- location: location or "Remote" (string)
+- salary_range: salary range if mentioned, otherwise "Not specified" (string)
+- description: brief job description (string, max 200 chars)
+- tech_stack: array of HARD SKILLS or TECHNOLOGIES required
+- posted_at: when it was posted, e.g. "2 hours ago", "1 day ago" (string)
+- valid: boolean, true if this is a real job listing
+
+If you cannot extract valid job info, return {"valid": false}.
+Always return valid JSON only, no markdown.
+
+Parse this job listing:
+
+Title: ${rawJob.title}
+URL: ${rawJob.url}
+Content: ${(rawJob.content || '').substring(0, 2000)}`
+                }]
               }
             ],
-            tools: [
-              {
-                type: 'function',
-                function: {
-                  name: 'extract_job_info',
-                  description: 'Extract structured job information',
-                  parameters: {
-                    type: 'object',
-                    properties: {
-                      valid: { type: 'boolean' },
-                      title: { type: 'string' },
-                      company: { type: 'string' },
-                      location: { type: 'string' },
-                      salary_range: { type: 'string' },
-                      description: { type: 'string' },
-                      tech_stack: { type: 'array', items: { type: 'string' } },
-                      posted_at: { type: 'string' }
-                    },
-                    required: ['valid']
-                  }
-                }
-              }
-            ],
-            tool_choice: { type: 'function', function: { name: 'extract_job_info' } }
+            generationConfig: {
+              responseMimeType: 'application/json'
+            }
           }),
         });
         clearTimeout(timeoutId);
@@ -402,10 +393,10 @@ Deno.serve(async (req) => {
         }
 
         const llmData = await llmResponse.json();
-        const toolCall = llmData.choices?.[0]?.message?.tool_calls?.[0];
+        const textContent = llmData.candidates?.[0]?.content?.parts?.[0]?.text;
 
-        if (toolCall?.function?.arguments) {
-          const parsed = JSON.parse(toolCall.function.arguments);
+        if (textContent) {
+          const parsed = JSON.parse(textContent);
 
           if (parsed.valid !== false && (parsed.title || parsed.company)) {
             const jobHash = generateJobHash(parsed.company || 'Unknown', parsed.title || 'Unknown');
