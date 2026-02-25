@@ -17,7 +17,7 @@ const RATE_LIMIT_MAX_REQUESTS = 10;
 const RATE_LIMIT_WINDOW_SECONDS = 60;
 
 // Max jobs to normalize per crawl (balance between coverage and timeout)
-const MAX_NORMALIZE = 10;
+const MAX_NORMALIZE = 25;
 
 // Generate a hash for deduplication
 function generateJobHash(company: string, title: string): string {
@@ -63,21 +63,36 @@ function buildSearchQueries(
 
   const queries: string[] = [];
 
-  // Query 1: Role-focused (e.g., "Software Engineer jobs remote San Francisco hiring")
+  // Query 1: Role-focused on primary job boards
   if (targetRoles.length > 0) {
-    const role = targetRoles[0];
-    queries.push(`${role} jobs${remotePart}${locationPart} hiring`.trim());
+    queries.push(`${targetRoles[0]} jobs${remotePart}${locationPart} hiring`.trim());
+    // Query 2: Alternative role if available
+    if (targetRoles.length > 1) {
+      queries.push(`${targetRoles[1]} jobs${remotePart}${locationPart} open positions`.trim());
+    }
   }
 
-  // Query 2: Skills-focused (e.g., "React TypeScript Node.js developer jobs remote")
+  // Query 3: Skills-focused
   if (keywords.length > 0) {
     const skillsPart = keywords.slice(0, 4).join(' ');
     queries.push(`${skillsPart} developer jobs${remotePart}${locationPart}`.trim());
   }
 
-  // Fallback if neither roles nor keywords provided
+  // Query 4: LinkedIn/Indeed style search
+  if (targetRoles.length > 0) {
+    queries.push(`site:linkedin.com/jobs ${targetRoles[0]}${remotePart}${locationPart}`.trim());
+  }
+
+  // Query 5: Broader search with skills
+  if (keywords.length > 2) {
+    const altSkills = keywords.slice(2, 5).join(' ');
+    queries.push(`${altSkills} engineer jobs${remotePart}${locationPart} 2026`.trim());
+  }
+
+  // Fallback
   if (queries.length === 0) {
-    queries.push(`jobs${remotePart}${locationPart} hiring now`.trim());
+    queries.push(`software engineer jobs${remotePart}${locationPart} hiring now`.trim());
+    queries.push(`developer jobs${remotePart}${locationPart} open positions 2026`.trim());
   }
 
   return queries;
@@ -303,7 +318,7 @@ Deno.serve(async (req) => {
 
       // Run searches in parallel for speed
       const searchResults = await Promise.allSettled(
-        queries.map(q => firecrawlSearch(firecrawlApiKey, q, 5))
+        queries.map(q => firecrawlSearch(firecrawlApiKey, q, 10))
       );
 
       // Deduplicate by URL across search results

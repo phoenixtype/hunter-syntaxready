@@ -6,6 +6,7 @@ import { CandidateProfile } from "@/lib/resume_engine";
 import { EnrichedJob } from "@/hooks/useJobs";
 import { generateTailoredContent } from "@/lib/writer_engine";
 import { simulateApplication, ApplicationState, ComplianceError, getApplicationHistory } from "@/lib/application_engine";
+import { exportResumeToPdf } from "@/lib/pdf_export";
 import { recordFeedback } from "@/lib/learning_engine";
 import { ExternalLink, Sparkles, RefreshCw, PenTool, Send, GraduationCap, X, Loader2, Globe, Search, MapPin, Building2, ChevronDown, ChevronUp } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
@@ -106,7 +107,14 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
     toast.info("Optimizing resume...");
     try {
       const content = await generateTailoredContent(profile, job);
-      toast.success("Resume optimized!", { description: content.changes_summary[0] });
+      toast.success("Resume optimized!", {
+        description: content.changes_summary[0],
+        action: {
+          label: "Download PDF",
+          onClick: () => exportResumeToPdf(content.resume, content.coverLetter)
+        },
+        duration: 10000
+      });
     } catch {
       toast.error("Tailoring failed.");
     }
