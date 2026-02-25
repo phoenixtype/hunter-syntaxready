@@ -19,6 +19,22 @@ const RATE_LIMIT_WINDOW_SECONDS = 60;
 // Max jobs to normalize per crawl (balance between coverage and timeout)
 const MAX_NORMALIZE = 25;
 
+// Sanitize job titles: remove number prefixes, site suffixes, aggregation patterns
+function sanitizeJobTitle(title: string): string {
+  let clean = title;
+  // Remove leading numbers like "332 " or "1,234 "
+  clean = clean.replace(/^\d[\d,]*\s+/, '');
+  // Remove trailing site names like "| Glassdoor", "- Indeed", "| LinkedIn"
+  clean = clean.replace(/\s*[|\-–—]\s*(Glassdoor|Indeed|LinkedIn|ZipRecruiter|Monster|SimplyHired|Dice|CareerBuilder|AngelList).*$/i, '');
+  // Remove "Jobs in City, State" patterns
+  clean = clean.replace(/\s+jobs?\s+in\s+.*/i, '');
+  // Remove trailing date patterns like ", February 2026"
+  clean = clean.replace(/,?\s*(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}$/i, '');
+  // Remove trailing "Jobs" or "Hiring"
+  clean = clean.replace(/\s+(jobs?|hiring|openings?|positions?|opportunities?)$/i, '');
+  return clean.trim() || title;
+}
+
 // Generate a hash for deduplication
 function generateJobHash(company: string, title: string): string {
   const str = `${company.toLowerCase().trim()}-${title.toLowerCase().trim()}`;
@@ -358,14 +374,14 @@ Deno.serve(async (req) => {
                 parts: [{
                   text: `You are a universal job listing parser. Extract structured job information from the provided content for ANY industry.
 Return a JSON object with these fields:
-- title: job title (string)
-- company: company name (string)
+- title: the ACTUAL job title only (string). CRITICAL: Remove any number prefixes like "332 ", remove site suffixes like "| Glassdoor", "| Indeed", "| LinkedIn". Remove location/date info from the title. Example: "332 java developer Jobs in Alpharetta, GA, February 2026 | Glassdoor" should become "Java Developer". Only return the clean role name.
+- company: company name (string). If only an aggregator site name is found (Glassdoor, Indeed, LinkedIn, ZipRecruiter), return "Unknown Company".
 - location: location or "Remote" (string)
 - salary_range: salary range if mentioned, otherwise "Not specified" (string)
 - description: brief job description (string, max 200 chars)
 - tech_stack: array of HARD SKILLS or TECHNOLOGIES required
 - posted_at: when it was posted, e.g. "2 hours ago", "1 day ago" (string)
-- valid: boolean, true if this is a real job listing
+- valid: boolean. Set to FALSE if this is a search results page or job listing aggregation page (e.g. "332 jobs in ...") rather than a single specific job posting. Only set true for individual job postings.
 
 If you cannot extract valid job info, return {"valid": false}.
 Always return valid JSON only, no markdown.
@@ -418,7 +434,7 @@ Content: ${(rawJob.content || '').substring(0, 2000)}`
             const freshnessScore = calculateFreshnessScore(parsed.posted_at || '1 week ago');
 
             return {
-              title: parsed.title || rawJob.title || 'Unknown Title',
+              title: sanitizeJobTitle(parsed.title || rawJob.title || 'Unknown Title'),
               company: parsed.company || 'Unknown Company',
               location: parsed.location || 'Remote',
               salary_range: parsed.salary_range || 'Not specified',
