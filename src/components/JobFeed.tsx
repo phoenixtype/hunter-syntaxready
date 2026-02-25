@@ -10,7 +10,8 @@ import { exportResumeToPdf } from "@/lib/pdf_export";
 import { saveTailoredResume } from "@/lib/tailored_resume_store";
 import { recordFeedback } from "@/lib/learning_engine";
 import { ExternalLink, Sparkles, RefreshCw, PenTool, Send, GraduationCap, X, Loader2, Globe, Search, MapPin, Building2, ChevronDown, ChevronUp } from "lucide-react";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
+import JobFiltersBar, { JobFilters, DEFAULT_FILTERS, hasActiveFilters } from "./JobFiltersBar";
 import { toast } from "sonner";
 import InterviewPrepModal from "./InterviewPrep";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,6 +29,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   const { user } = useAuth();
   const { jobs, jobCount, loading, crawling, refreshJobs, crawl } = useJobs(profile, preferences);
   const [searchQuery, setSearchQuery] = useState("");
+  const [filters, setFilters] = useState<JobFilters>(DEFAULT_FILTERS);
   const [activeApplication, setActiveApplication] = useState<ApplicationState | null>(null);
   const [stakeholders, setStakeholders] = useState<Record<string, Stakeholder[]>>({});
   const [prepJob, setPrepJob] = useState<EnrichedJob | null>(null);
@@ -35,15 +37,62 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
 
   const filteredJobs = useMemo(() => {
-    if (!searchQuery.trim()) return jobs;
-    const q = searchQuery.toLowerCase();
-    return jobs.filter(job =>
-      job.title.toLowerCase().includes(q) ||
-      job.company.toLowerCase().includes(q) ||
-      job.description.toLowerCase().includes(q) ||
-      job.location.toLowerCase().includes(q)
-    );
-  }, [jobs, searchQuery]);
+    let result = jobs;
+
+    // Text search
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(job =>
+        job.title.toLowerCase().includes(q) ||
+        job.company.toLowerCase().includes(q) ||
+        job.description.toLowerCase().includes(q) ||
+        job.location.toLowerCase().includes(q)
+      );
+    }
+
+    // Work mode filter
+    if (filters.workMode !== "all") {
+      result = result.filter(job => {
+        const loc = (job.location || "").toLowerCase();
+        const desc = (job.description || "").toLowerCase();
+        const combined = loc + " " + desc;
+        if (filters.workMode === "remote") return combined.includes("remote");
+        if (filters.workMode === "hybrid") return combined.includes("hybrid");
+        if (filters.workMode === "onsite") return combined.includes("onsite") || combined.includes("on-site") || combined.includes("in-office") || (!combined.includes("remote") && !combined.includes("hybrid"));
+        return true;
+      });
+    }
+
+    // Experience level filter
+    if (filters.experienceLevel !== "all") {
+      result = result.filter(job => {
+        const text = ((job.title || "") + " " + (job.description || "")).toLowerCase();
+        if (filters.experienceLevel === "entry") return text.includes("entry") || text.includes("junior") || text.includes("associate") || text.includes("intern") || text.includes("graduate");
+        if (filters.experienceLevel === "mid") return text.includes("mid") || text.includes("intermediate") || (!text.includes("senior") && !text.includes("junior") && !text.includes("lead") && !text.includes("staff") && !text.includes("principal"));
+        if (filters.experienceLevel === "senior") return text.includes("senior") || text.includes("sr.");
+        if (filters.experienceLevel === "lead") return text.includes("lead") || text.includes("staff") || text.includes("principal") || text.includes("architect") || text.includes("director") || text.includes("manager");
+        return true;
+      });
+    }
+
+    // Salary filter
+    if (filters.minSalary > 0) {
+      result = result.filter(job => {
+        if (!job.salary_range || job.salary_range === "Not specified") return false;
+        // Extract numbers from salary string (e.g., "$120k-$150k", "$120,000")
+        const nums = job.salary_range.match(/\d[\d,]*/g);
+        if (!nums) return false;
+        const maxSalary = Math.max(...nums.map(n => {
+          const cleaned = parseInt(n.replace(/,/g, ""));
+          // If value < 1000 it's probably in "k" notation
+          return cleaned < 1000 ? cleaned * 1000 : cleaned;
+        }));
+        return maxSalary >= filters.minSalary * 1000;
+      });
+    }
+
+    return result;
+  }, [jobs, searchQuery, filters]);
 
   useEffect(() => {
     if (!user) return;
@@ -144,14 +193,40 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
         <Button variant="outline" size="sm" onClick={handleCrawl} disabled={crawling || loading} className="h-10 px-4 shrink-0">
           {crawling ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />Searching...</> : <><Globe className="w-3.5 h-3.5 mr-1.5" />Find Jobs</>}
         </Button>
+        <JobFiltersBar filters={filters} onChange={setFilters} />
         <Button variant="ghost" size="icon" onClick={() => { refreshJobs(); toast.info("Refreshing..."); }} disabled={loading || crawling} className="h-10 w-10 shrink-0">
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
         </Button>
       </div>
 
+      {/* Active filter badges */}
+      {hasActiveFilters(filters) && (
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wide">Active:</span>
+          {filters.workMode !== "all" && (
+            <Badge variant="secondary" className="text-[10px] gap-1 pr-1">
+              {filters.workMode}
+              <button onClick={() => setFilters(f => ({ ...f, workMode: "all" }))} className="ml-0.5 hover:text-destructive"><X className="w-2.5 h-2.5" /></button>
+            </Badge>
+          )}
+          {filters.experienceLevel !== "all" && (
+            <Badge variant="secondary" className="text-[10px] gap-1 pr-1">
+              {filters.experienceLevel}
+              <button onClick={() => setFilters(f => ({ ...f, experienceLevel: "all" }))} className="ml-0.5 hover:text-destructive"><X className="w-2.5 h-2.5" /></button>
+            </Badge>
+          )}
+          {filters.minSalary > 0 && (
+            <Badge variant="secondary" className="text-[10px] gap-1 pr-1">
+              ${filters.minSalary}k+
+              <button onClick={() => setFilters(f => ({ ...f, minSalary: 0 }))} className="ml-0.5 hover:text-destructive"><X className="w-2.5 h-2.5" /></button>
+            </Badge>
+          )}
+        </div>
+      )}
+
       {/* Count */}
       <p className="text-xs text-muted-foreground">
-        {loading ? 'Loading...' : searchQuery ? `${filteredJobs.length} of ${jobCount} jobs` : `${jobCount} jobs found`}
+        {loading ? 'Loading...' : hasActiveFilters(filters) || searchQuery ? `${filteredJobs.length} of ${jobCount} jobs` : `${jobCount} jobs found`}
       </p>
 
       {/* Job Cards */}
