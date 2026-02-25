@@ -113,13 +113,13 @@ const Index = () => {
             </div>
 
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 animate-fadeInUp leading-[1.1]" style={{ animationDelay: "0.1s" }}>
-              Stop applying.
+              Your career on
               <br />
-              <span className="text-primary">Start landing interviews.</span>
+              <span className="text-primary">autopilot.</span>
             </h1>
 
             <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed animate-fadeInUp" style={{ animationDelay: "0.2s" }}>
-              From finding roles to submission — Hunter asks smart questions, writes your applications, and lets you review before sending.
+              Hunter discovers hidden opportunities, tailors every application to beat ATS filters, and preps you for interviews — so you focus on what matters.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 animate-fadeInUp" style={{ animationDelay: "0.3s" }}>
