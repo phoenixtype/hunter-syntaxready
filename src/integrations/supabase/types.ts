@@ -445,6 +445,42 @@ export type Database = {
         }
         Relationships: []
       }
+      tailored_resumes: {
+        Row: {
+          changes_summary: string[]
+          company: string
+          cover_letter: string
+          created_at: string
+          id: string
+          job_title: string
+          job_url: string | null
+          tailored_profile: Json
+          user_id: string
+        }
+        Insert: {
+          changes_summary?: string[]
+          company: string
+          cover_letter?: string
+          created_at?: string
+          id?: string
+          job_title: string
+          job_url?: string | null
+          tailored_profile?: Json
+          user_id: string
+        }
+        Update: {
+          changes_summary?: string[]
+          company?: string
+          cover_letter?: string
+          created_at?: string
+          id?: string
+          job_title?: string
+          job_url?: string | null
+          tailored_profile?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           aggressiveness: number | null

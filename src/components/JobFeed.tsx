@@ -7,6 +7,7 @@ import { EnrichedJob } from "@/hooks/useJobs";
 import { generateTailoredContent } from "@/lib/writer_engine";
 import { simulateApplication, ApplicationState, ComplianceError, getApplicationHistory } from "@/lib/application_engine";
 import { exportResumeToPdf } from "@/lib/pdf_export";
+import { saveTailoredResume } from "@/lib/tailored_resume_store";
 import { recordFeedback } from "@/lib/learning_engine";
 import { ExternalLink, Sparkles, RefreshCw, PenTool, Send, GraduationCap, X, Loader2, Globe, Search, MapPin, Building2, ChevronDown, ChevronUp } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
@@ -107,7 +108,8 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
     toast.info("Optimizing resume...");
     try {
       const content = await generateTailoredContent(profile, job);
-      toast.success("Resume optimized!", {
+      await saveTailoredResume(content, { title: job.title, company: job.company, url: job.url });
+      toast.success("Resume optimized & saved!", {
         description: content.changes_summary[0],
         action: {
           label: "Download PDF",
