@@ -42,10 +42,8 @@ const SignUp = () => {
 
         if (error.message.includes("Password")) {
           toast.error("Password must be at least 6 characters");
-        } else if (error.message.includes("User already registered")) {
-          sessionStorage.setItem('pendingVerificationEmail', validatedEmail);
-          toast.success("Check your email to confirm your account.");
-          navigate("/verify-email");
+      } else if (error.message.includes("User already registered")) {
+          toast.error("This email is already registered. Try logging in instead.");
           return;
         } else if (error.message.includes("Email")) {
           toast.error("Please enter a valid email address");
@@ -56,15 +54,13 @@ const SignUp = () => {
         return;
       }
 
-      if (data?.session) {
-        console.log('[SIGNUP] Session created, redirecting to onboarding');
-        toast.success("Account created! Logging you in...");
+      if (data?.user) {
+        console.log('[SIGNUP] Account created, redirecting to onboarding');
+        toast.success("Account created successfully!");
         navigate("/onboarding", { replace: true });
       } else {
-        console.log('[SIGNUP] No session, email verification required');
-        sessionStorage.setItem('pendingVerificationEmail', validatedEmail);
-        toast.success("Account created! Check your email to confirm.");
-        navigate("/verify-email");
+        console.log('[SIGNUP] Unexpected: no user returned');
+        toast.error("Something went wrong. Please try again.");
       }
     } catch (error) {
       console.error('[SIGNUP] Unexpected error:', error);
