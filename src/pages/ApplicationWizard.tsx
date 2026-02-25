@@ -197,7 +197,7 @@ const ApplicationWizard = () => {
                                                     <p key={i} className="text-sm text-muted-foreground pl-3">{change}</p>
                                                 ))}
                                             </div>
-                                            <Button className="w-full mt-4 shadow-glow" onClick={() => toast.success("Resume generation complete. Downloading PDF...")}>Download Ready PDF</Button>
+                                            <Button className="w-full mt-4 shadow-glow" onClick={() => navigate('/resume-builder')}>Open Resume Builder</Button>
                                         </div>
 
                                         <div className="pt-6 border-t border-border space-y-3">
@@ -208,7 +208,12 @@ const ApplicationWizard = () => {
                                                 Cover Letter
                                             </div>
                                             <p className="text-sm text-muted-foreground italic bg-muted/50 p-4 rounded-lg border border-border line-clamp-4">"{tailoredAssets.coverLetter}"</p>
-                                            <Button variant="outline" className="w-full">Copy to Clipboard</Button>
+                                            <Button variant="outline" className="w-full" onClick={() => {
+                                                if (tailoredAssets?.coverLetter) {
+                                                    navigator.clipboard.writeText(tailoredAssets.coverLetter);
+                                                    toast.success("Cover letter copied to clipboard!");
+                                                }
+                                            }}>Copy to Clipboard</Button>
                                         </div>
                                     </CardContent>
                                 </Card>

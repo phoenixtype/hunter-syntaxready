@@ -20,8 +20,6 @@ export const analyzeResumeForJob = async (
   profile: CandidateProfile, 
   jobDescription: string
 ): Promise<ATSResult> => {
-  // Simulate processing
-  await new Promise(resolve => setTimeout(resolve, 800));
 
   const missingKeywords: string[] = [];
   const formattingIssues: string[] = [];
