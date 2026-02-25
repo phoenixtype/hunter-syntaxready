@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, MoreHorizontal, MapPin, Calendar, ExternalLink, Briefcase } from "lucide-react";
-import { getApplicationHistory, ApplicationRecord } from "@/lib/application_engine";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2, MapPin, Calendar, ExternalLink, Briefcase } from "lucide-react";
+import { getApplicationHistory, ApplicationRecord, updateApplicationStatus } from "@/lib/application_engine";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
 
 type Stage = "applied" | "interview" | "offer" | "rejected";
 
@@ -28,23 +30,36 @@ export const ApplicationsView = () => {
   const [applications, setApplications] = useState<ApplicationRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchHistory = async () => {
-      if (session?.user?.id) {
-        try {
-          const history = await getApplicationHistory(session.user.id);
-          setApplications(history);
-        } catch (e) {
-          console.error("Failed to load applications", e);
-        } finally {
-          setLoading(false);
-        }
-      } else {
+  const fetchHistory = async () => {
+    if (session?.user?.id) {
+      try {
+        const history = await getApplicationHistory(session.user.id);
+        setApplications(history);
+      } catch (e) {
+        console.error("Failed to load applications", e);
+      } finally {
         setLoading(false);
       }
-    };
+    } else {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchHistory();
   }, [session?.user?.id]);
+
+  const handleStatusChange = async (appId: string, newStatus: string) => {
+    try {
+      await updateApplicationStatus(appId, newStatus);
+      setApplications(prev =>
+        prev.map(app => app.id === appId ? { ...app, status: newStatus } : app)
+      );
+      toast.success(`Status updated to "${newStatus}"`);
+    } catch {
+      toast.error("Failed to update status");
+    }
+  };
 
   if (loading) {
     return (
@@ -109,9 +124,6 @@ export const ApplicationsView = () => {
                         <h4 className="text-sm font-medium truncate">{app.job_title}</h4>
                         <p className="text-xs text-muted-foreground truncate">{app.company}</p>
                       </div>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <MoreHorizontal className="w-3.5 h-3.5" />
-                      </Button>
                     </div>
 
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
@@ -121,10 +133,24 @@ export const ApplicationsView = () => {
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between mt-3">
-                      <Badge variant="outline" className={`text-[10px] ${stage.color}`}>
-                        {app.status}
-                      </Badge>
+                    <div className="flex items-center justify-between mt-3 gap-2">
+                      <Select
+                        value={app.status}
+                        onValueChange={(val) => handleStatusChange(app.id, val)}
+                      >
+                        <SelectTrigger className="h-7 text-[10px] w-auto min-w-[100px] border-border">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="applied">Applied</SelectItem>
+                          <SelectItem value="screening">Screening</SelectItem>
+                          <SelectItem value="interview">Interview</SelectItem>
+                          <SelectItem value="offer">Offer</SelectItem>
+                          <SelectItem value="accepted">Accepted</SelectItem>
+                          <SelectItem value="rejected">Rejected</SelectItem>
+                          <SelectItem value="declined">Declined</SelectItem>
+                        </SelectContent>
+                      </Select>
                       {app.job_url && (
                         <a href={app.job_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                           <ExternalLink className="w-3 h-3" />

@@ -87,7 +87,7 @@ const ApplicationWizard = () => {
     return (
         <div className="min-h-screen bg-background text-foreground bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background p-6">
             <header className="mb-10 container max-w-4xl mx-auto pt-6 animate-fade-in-up">
-                <Button variant="ghost" onClick={() => navigate("/dashboard")} className="gap-2 mb-6 hover:bg-white/10 text-muted-foreground hover:text-foreground transition-all">
+                <Button variant="ghost" onClick={() => navigate("/dashboard")} className="gap-2 mb-6 text-muted-foreground hover:text-foreground transition-all">
                     <ArrowLeft className="w-4 h-4" /> Back to Dashboard
                 </Button>
                 <div className="flex items-center gap-3">
@@ -105,7 +105,7 @@ const ApplicationWizard = () => {
 
                 {/* INPUT STEP */}
                 {step === 'input' && (
-                    <Card className="border-white/10 bg-card/50 backdrop-blur-md shadow-xl">
+                    <Card className="border-border bg-card/50 backdrop-blur-md shadow-xl">
                         <CardContent className="p-8 md:p-10">
                             <form onSubmit={handleAnalyze} className="space-y-6">
                                 <div className="space-y-4">
@@ -115,7 +115,7 @@ const ApplicationWizard = () => {
                                             value={url}
                                             onChange={(e) => setUrl(e.target.value)}
                                             placeholder="https://www.linkedin.com/jobs/view/..."
-                                            className="h-14 text-lg bg-background/50 border-white/10 focus:border-primary shadow-inner"
+                                            className="h-14 text-lg bg-background/50 border-border focus:border-primary"
                                         />
                                         <Button type="submit" disabled={!url} size="lg" className="h-14 px-8 text-lg font-medium shadow-glow hover:shadow-glow-lg transition-all rounded-xl whitespace-nowrap">
                                             Analyze with AI
@@ -149,13 +149,13 @@ const ApplicationWizard = () => {
                                 <FileCheck className="w-5 h-5 text-primary" />
                                 <h2 className="text-xl font-semibold">Parsed Extracted Strategy</h2>
                             </div>
-                            <Card className="border-white/10 bg-card/50 backdrop-blur-md shadow-lg overflow-hidden">
-                                <div className="bg-gradient-to-r from-primary/20 via-primary/5 to-transparent p-6 border-b border-white/5 flex justify-between items-start">
+                            <Card className="border-border bg-card/50 backdrop-blur-md shadow-lg overflow-hidden">
+                                <div className="bg-gradient-to-r from-primary/20 via-primary/5 to-transparent p-6 border-b border-border flex justify-between items-start">
                                     <div>
                                         <h3 className="text-2xl font-bold tracking-tight text-foreground">{job.title}</h3>
                                         <p className="text-lg text-primary font-medium mt-1">{job.company}</p>
                                     </div>
-                                    <Badge variant="outline" className="bg-background/80 backdrop-blur-sm border-white/20 text-xs px-3 py-1 text-muted-foreground">{job.source}</Badge>
+                                    <Badge variant="outline" className="bg-background/80 backdrop-blur-sm border-border text-xs px-3 py-1 text-muted-foreground">{job.source}</Badge>
                                 </div>
                                 <CardContent className="p-6">
                                     <div className="flex gap-4 mb-6 text-sm text-muted-foreground font-medium">
@@ -182,7 +182,7 @@ const ApplicationWizard = () => {
                                     <FileText className="w-5 h-5 text-primary" />
                                     <h2 className="text-xl font-semibold">Application Assets</h2>
                                 </div>
-                                <Card className="h-full border-white/10 bg-card/50 backdrop-blur-md shadow-lg">
+                                <Card className="h-full border-border bg-card/50 backdrop-blur-md shadow-lg">
                                     <CardContent className="p-6 space-y-6">
                                         <div className="space-y-3">
                                             <div className="flex items-center gap-2 font-medium text-lg">
@@ -200,15 +200,15 @@ const ApplicationWizard = () => {
                                             <Button className="w-full mt-4 shadow-glow" onClick={() => toast.success("Resume generation complete. Downloading PDF...")}>Download Ready PDF</Button>
                                         </div>
 
-                                        <div className="pt-6 border-t border-white/10 space-y-3">
+                                        <div className="pt-6 border-t border-border space-y-3">
                                             <div className="flex items-center gap-2 font-medium text-lg">
                                                 <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
                                                   <FileText className="w-4 h-4" />
                                                 </div>
                                                 Cover Letter
                                             </div>
-                                            <p className="text-sm text-muted-foreground italic bg-secondary/50 p-4 rounded-lg border border-white/5 line-clamp-4">"{tailoredAssets.coverLetter}"</p>
-                                            <Button variant="outline" className="w-full border-white/20 hover:bg-white/5">Copy to Clipboard</Button>
+                                            <p className="text-sm text-muted-foreground italic bg-muted/50 p-4 rounded-lg border border-border line-clamp-4">"{tailoredAssets.coverLetter}"</p>
+                                            <Button variant="outline" className="w-full">Copy to Clipboard</Button>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -220,7 +220,7 @@ const ApplicationWizard = () => {
                                     <UserPlus className="w-5 h-5 text-primary" />
                                     <h2 className="text-xl font-semibold">Recruiting Team</h2>
                                 </div>
-                                <Card className="h-full border-white/10 bg-card/50 backdrop-blur-md shadow-lg">
+                                <Card className="h-full border-border bg-card/50 backdrop-blur-md shadow-lg">
                                     <CardContent className="p-6 space-y-6">
                                         <p className="text-sm text-muted-foreground text-center bg-primary/10 text-primary border border-primary/20 rounded-lg p-3">Smart connections increase callback rates by 40%.</p>
                                         <div className="space-y-3">
@@ -230,7 +230,7 @@ const ApplicationWizard = () => {
                                                     href={person.profile_url}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="group flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl hover:bg-white/5 transition-all border border-white/5 hover:border-white/20"
+                                                    className="group flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl hover:bg-muted transition-all border border-border hover:border-primary/20"
                                                 >
                                                     <div className="flex items-center gap-4">
                                                       <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-foreground font-bold group-hover:bg-primary/20 transition-colors">
