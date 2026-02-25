@@ -171,35 +171,32 @@ const Profile = () => {
                     { label: "Profile" },
                 ]}
                 actions={
-                    <div className="flex gap-2">
+                <div className="flex gap-1.5 sm:gap-2">
                         {mode === 'view' && (
-                            <Button onClick={() => setMode('edit')} variant="outline">
-                                <Edit2 className="w-4 h-4 mr-2" />
-                                Edit Profile
+                            <Button onClick={() => setMode('edit')} variant="outline" size="sm">
+                                <Edit2 className="w-4 h-4 sm:mr-2" />
+                                <span className="hidden sm:inline">Edit Profile</span>
                             </Button>
                         )}
                         {mode === 'edit' && (
                             <>
-                                <Button variant="ghost" onClick={handleCancel}>Cancel</Button>
-                                <Button onClick={() => setMode('preview')} className="shadow-glow hover:shadow-glow-lg transition-all">
-                                    <Eye className="w-4 h-4 mr-2" />
-                                    Preview Changes
+                                <Button variant="ghost" size="sm" onClick={handleCancel}>Cancel</Button>
+                                <Button size="sm" onClick={() => setMode('preview')} className="shadow-glow hover:shadow-glow-lg transition-all">
+                                    <Eye className="w-4 h-4 sm:mr-2" />
+                                    <span className="hidden sm:inline">Preview</span>
                                 </Button>
                             </>
                         )}
                         {mode === 'preview' && (
                             <>
-                                <Button variant="ghost" onClick={() => setMode('edit')}>Back to Edit</Button>
-                                <Button onClick={handleSave} disabled={isSaving} className="shadow-glow hover:shadow-glow-lg transition-all">
+                                <Button variant="ghost" size="sm" onClick={() => setMode('edit')}>Back</Button>
+                                <Button size="sm" onClick={handleSave} disabled={isSaving} className="shadow-glow hover:shadow-glow-lg transition-all">
                                     {isSaving ? (
-                                        <>
-                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                            Saving...
-                                        </>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
                                     ) : (
                                         <>
-                                            <Save className="w-4 h-4 mr-2" />
-                                            Save Changes
+                                            <Save className="w-4 h-4 sm:mr-2" />
+                                            <span className="hidden sm:inline">Save</span>
                                         </>
                                     )}
                                 </Button>
@@ -423,7 +420,7 @@ const Profile = () => {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    className="text-destructive sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                                                     onClick={() => removeExperience(index)}
                                                 >
                                                     <Trash2 className="w-4 h-4" />
@@ -480,7 +477,7 @@ const Profile = () => {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="text-destructive h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    className="text-destructive h-8 w-8 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                                                     onClick={() => removeEducation(index)}
                                                 >
                                                     <Trash2 className="w-4 h-4" />
@@ -571,7 +568,7 @@ const Profile = () => {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    className="text-destructive sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                                                     onClick={() => {
                                                         const newSections = (formData.custom_sections || []).filter((_, i) => i !== idx);
                                                         setFormData(prev => prev ? ({ ...prev, custom_sections: newSections }) : null);

@@ -143,54 +143,56 @@ const AutoApplierSettings = () => {
         ]}
         icon={<Bot className="w-4 h-4 text-primary" />}
         actions={
-          <div className="flex items-center gap-2">
-            <Badge variant={isRunning ? "default" : "secondary"} className={isRunning ? 'bg-success/20 text-success border-success/50' : ''}>
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
+            <Badge variant={isRunning ? "default" : "secondary"} className={`text-xs ${isRunning ? 'bg-success/20 text-success border-success/50' : ''}`}>
               {isRunning ? "Running" : "Idle"}
             </Badge>
             <ThemeToggle />
             <Button onClick={handleStartBot} size="sm" variant={isRunning ? "destructive" : "default"}>
-              {isRunning ? "Stop Agent" : <><Play className="w-4 h-4 mr-2" /> Start Agent</>}
+              {isRunning ? "Stop" : <><Play className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Start Agent</span></>}
             </Button>
           </div>
         }
       />
 
       {/* Main Content */}
-      <main className="container max-w-5xl mx-auto px-4 py-8 md:py-12 animate-fade-in">
-        <div className="mb-10 text-center space-y-4">
-          <h1 className="text-3xl md:text-5xl font-bold tracking-tight">Configure Your <span className="text-primary">AI Job Hunter</span></h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+      <main className="container max-w-5xl mx-auto px-4 py-6 md:py-12 animate-fade-in">
+        <div className="mb-8 md:mb-10 text-center space-y-3 sm:space-y-4">
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight">Configure Your <span className="text-primary">AI Job Hunter</span></h1>
+          <p className="text-muted-foreground max-w-2xl mx-auto text-sm sm:text-lg">
             Set your preferences once and let the bot apply to hundreds of jobs while you sleep.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Sidebar Steps */}
-          <div className="md:col-span-1 space-y-2">
-            {steps.map((step) => (
-              <button
-                key={step.num}
-                onClick={() => setActiveStep(step.num)}
-                className={`w-full flex items-center gap-3 p-4 rounded-xl text-left transition-all duration-300 ${
-                  activeStep === step.num
-                  ? "bg-primary/10 border-primary/30 border"
-                  : "hover:bg-muted border border-transparent opacity-70 hover:opacity-100"
-                }`}
-              >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                  activeStep === step.num ? "bg-primary text-primary-foreground" : "bg-muted"
-                }`}>
-                  <step.icon className="w-4 h-4" />
-                </div>
-                <div className="font-medium text-sm">{step.title}</div>
-              </button>
-            ))}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8">
+          {/* Sidebar Steps - horizontal scroll on mobile */}
+          <div className="md:col-span-1">
+            <div className="flex md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
+              {steps.map((step) => (
+                <button
+                  key={step.num}
+                  onClick={() => setActiveStep(step.num)}
+                  className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl text-left transition-all duration-300 shrink-0 md:shrink md:w-full ${
+                    activeStep === step.num
+                    ? "bg-primary/10 border-primary/30 border"
+                    : "hover:bg-muted border border-transparent opacity-70 hover:opacity-100"
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium shrink-0 ${
+                    activeStep === step.num ? "bg-primary text-primary-foreground" : "bg-muted"
+                  }`}>
+                    <step.icon className="w-4 h-4" />
+                  </div>
+                  <div className="font-medium text-xs sm:text-sm whitespace-nowrap">{step.title}</div>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Config Forms */}
           <div className="md:col-span-3">
             <Card className="border-border bg-card/50 backdrop-blur-md shadow-xl overflow-hidden">
-              <CardContent className="p-8">
+              <CardContent className="p-4 sm:p-8">
                 {activeStep === 1 && (
                   <div className="space-y-6 animate-fade-in">
                     <div>
