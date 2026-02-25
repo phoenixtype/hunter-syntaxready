@@ -36,21 +36,24 @@ export class ComplianceError extends Error {
     }
 }
 
-// Simulate application (with real compliance checks)
+/**
+ * Apply to a job: compliance check → record in DB → redirect user to external job URL.
+ * This is NOT a simulated/mocked flow — it logs a real application and opens the job page.
+ */
 export const simulateApplication = async (
   job: JobOpportunity, 
   onUpdate: (state: ApplicationState) => void,
   userId?: string,
   safeMode: boolean = true
 ) => {
-    // Compliance Check
+    // 1. Compliance Check
     const compliance = await checkCompliance('APPLY', safeMode, job.url, userId);
     
     if (!compliance.allowed) {
         throw new ComplianceError(compliance.reason);
     }
     
-    // Record the action
+    // 2. Record the compliance action
     if (userId) {
         await recordCompliantAction('APPLY', userId);
     }
@@ -59,7 +62,7 @@ export const simulateApplication = async (
         jobId: job.id,
         status: 'idle',
         progress: 0,
-        logs: ["Compliance Check Passed. Initializing Agent..."]
+        logs: ["Compliance check passed."]
     };
 
     const update = (partial: Partial<ApplicationState>) => {
@@ -69,24 +72,13 @@ export const simulateApplication = async (
 
     logActivity('Application', 'Started', `Applying to ${job.title} at ${job.company}`, 'action', userId);
 
-    update({ status: 'filling_form', progress: 10, logs: [...state.logs, "Navigating to career portal..."] });
-    await new Promise(r => setTimeout(r, 1000));
+    update({ status: 'filling_form', progress: 25, logs: [...state.logs, "Preparing your application..."] });
 
-    update({ progress: 30, logs: [...state.logs, "Auto-filling contact details..."] });
-    await new Promise(r => setTimeout(r, 1000));
-
-    update({ status: 'uploading_resume', progress: 50, logs: [...state.logs, "Uploading optimized resume..."] });
-    await new Promise(r => setTimeout(r, 1500));
-
-    update({ status: 'answering_questions', progress: 70, logs: [...state.logs, "Answering EEOC questions..."] });
-    await new Promise(r => setTimeout(r, 1000));
-
-    update({ status: 'submitting', progress: 90, logs: [...state.logs, "Final review... Submitting..."] });
-    await new Promise(r => setTimeout(r, 1000));
-
-    // Record application in database
+    // 3. Record application in database
     if (userId) {
         try {
+            update({ status: 'submitting', progress: 50, logs: [...state.logs, "Recording application..."] });
+            
             await supabase
                 .from('application_history')
                 .insert({
@@ -106,8 +98,14 @@ export const simulateApplication = async (
         }
     }
 
-    logActivity('Application', 'Completed', `Successfully applied to ${job.company}`, 'success', userId);
-    update({ status: 'applied', progress: 100, logs: [...state.logs, "Application Successful!"] });
+    // 4. Open the job URL for the user to complete the actual application
+    if (job.url) {
+        update({ progress: 75, logs: [...state.logs, "Opening job page in new tab..."] });
+        window.open(job.url, '_blank', 'noopener,noreferrer');
+    }
+
+    logActivity('Application', 'Completed', `Recorded application to ${job.company}`, 'success', userId);
+    update({ status: 'applied', progress: 100, logs: [...state.logs, "Application recorded! Complete the application on the employer's site."] });
 };
 
 // Get application history

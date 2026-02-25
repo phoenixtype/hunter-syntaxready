@@ -171,27 +171,24 @@ const ResumeBuilder = () => {
           profile: formData,
           template: selectedTemplate,
         },
+        headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
       });
 
       if (error) throw error;
 
-      if (data?.url) {
-        setGeneratedUrl(data.url);
-        toast.success("Resume generated successfully!");
-      } else if (data?.content) {
-        // Fallback: content returned as text
+      if (data?.content) {
         const blob = new Blob([data.content], { type: "text/html" });
         const url = URL.createObjectURL(blob);
         setGeneratedUrl(url);
-        toast.success("Resume generated!");
+        toast.success("Resume generated successfully!");
       } else {
-        toast.success("Profile saved! Resume generation will be available soon.");
+        throw new Error("No content returned");
       }
     } catch (err) {
       console.error("Generate failed:", err);
-      // Still save the profile even if generation fails
-      toast.success("Profile saved successfully!");
-      toast.info("Resume document generation coming soon.");
+      // Still save the profile
+      toast.success("Profile saved!");
+      toast.error("Resume generation failed. Please try again.");
     } finally {
       setGenerating(false);
     }

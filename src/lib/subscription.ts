@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { logActivity } from "./activity_logger";
 
@@ -8,7 +7,7 @@ export enum SubscriptionTier {
     ENTERPRISE = 'enterprise'
 }
 
-export type Feature = 'autopilot' | 'deep_intelligence' | 'unlimited_applications' | 'negotiation_coach';
+export type Feature = 'autopilot' | 'deep_intelligence' | 'unlimited_applications' | 'negotiation_coach' | 'sms_notifications';
 
 export interface UserSubscription {
     tier: SubscriptionTier;
@@ -19,15 +18,13 @@ export interface UserSubscription {
     }
 }
 
-// Features map
 const TIER_FEATURES: Record<SubscriptionTier, Feature[]> = {
     [SubscriptionTier.FREE]: [],
-    [SubscriptionTier.PRO]: ['autopilot', 'deep_intelligence', 'unlimited_applications', 'negotiation_coach'],
-    [SubscriptionTier.ENTERPRISE]: ['autopilot', 'deep_intelligence', 'unlimited_applications', 'negotiation_coach']
+    [SubscriptionTier.PRO]: ['autopilot', 'deep_intelligence', 'unlimited_applications', 'negotiation_coach', 'sms_notifications'],
+    [SubscriptionTier.ENTERPRISE]: ['autopilot', 'deep_intelligence', 'unlimited_applications', 'negotiation_coach', 'sms_notifications']
 };
 
 export const getSubscription = async (): Promise<UserSubscription> => {
-    // 1. Get User
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return {
         tier: SubscriptionTier.FREE,
@@ -35,8 +32,7 @@ export const getSubscription = async (): Promise<UserSubscription> => {
         usage: { applications_this_month: 0, applications_limit: 20 }
     };
 
-    // 2. Fetch Subscription from DB (using type assertion as subscriptions table may not be in generated types)
-    const { data: subData } = await (supabase as any)
+    const { data: subData } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('user_id', session.user.id)
@@ -45,12 +41,10 @@ export const getSubscription = async (): Promise<UserSubscription> => {
 
     const tier = (subData?.tier as SubscriptionTier) || SubscriptionTier.FREE;
 
-    // Count actual applications this month from the database
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
     
-    // Use application_history table to count applications
     const { count: applicationsCount } = await supabase
         .from('application_history')
         .select('*', { count: 'exact', head: true })
@@ -69,14 +63,13 @@ export const getSubscription = async (): Promise<UserSubscription> => {
     };
 };
 
-export const checkAccess = (feature: Feature): boolean => {
-    // This is a synchronous check usually called with data from the hook
-    // It assumes we have the subscription state available in context or passed in
-    // But for this direct helper, we might need to rely on what the caller passed.
-    // Ideally this helper takes the subscription object as an arg, but to keep signature compatible:
-    // We'll warn that this helper is deprecated for direct checking without context.
-    // For now, let's keep it simple: It should be used via useSubscription hook.
-    return true; 
+/**
+ * Check if the current subscription includes a specific feature.
+ * Must be called with subscription data from the useSubscription hook.
+ */
+export const checkAccess = (feature: Feature, subscription?: UserSubscription | null): boolean => {
+    if (!subscription) return false;
+    return subscription.features.includes(feature);
 };
 
 export const upgradeToPro = async (): Promise<void> => {
@@ -95,6 +88,5 @@ export const upgradeToPro = async (): Promise<void> => {
         throw new Error(error?.message || "Failed to create checkout session");
     }
 
-    // Redirect to Stripe
     window.location.href = data.url;
 };

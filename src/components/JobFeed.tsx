@@ -274,8 +274,8 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
             </div>
             {!profile ? (
               <div className="max-w-xs space-y-2">
-                <h3 className="font-semibold">Upload your resume to start</h3>
-                <p className="text-sm text-muted-foreground">Hunter needs your profile to find relevant jobs.</p>
+                <h3 className="font-semibold">Build your profile to start</h3>
+                <p className="text-sm text-muted-foreground">Complete onboarding or use the Resume Builder so Hunter can find matching jobs.</p>
               </div>
             ) : !preferences?.target_roles?.length ? (
               <div className="max-w-xs space-y-2">
