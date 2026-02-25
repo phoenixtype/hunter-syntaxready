@@ -1,12 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { FileText, RefreshCw, LogOut, CheckCircle2, Upload, Sparkles, Settings2 } from "lucide-react";
+import { FileText, RefreshCw, LogOut, CheckCircle2, Sparkles, Settings2, PenLine } from "lucide-react";
 import { CandidateProfile } from "@/lib/resume_engine";
 import { VisibilityScore } from "@/lib/visibility_engine";
-import { ResumeUpload } from "@/components/resume/ResumeUpload";
 import { useAuth } from "@/hooks/useAuth";
 import { UserPreferences } from "@/lib/user_preferences";
 
@@ -15,7 +14,6 @@ interface DashboardSidebarProps {
     visibility: VisibilityScore | null;
     preferences: UserPreferences | null;
     onRefreshProfile: () => void;
-    onUploadProfile: (p: CandidateProfile) => void;
     onSignOut: () => void;
     onEditPreferences?: () => void;
 }
@@ -25,7 +23,6 @@ export const DashboardSidebar = ({
     visibility,
     preferences,
     onRefreshProfile,
-    onUploadProfile,
     onSignOut,
     onEditPreferences
 }: DashboardSidebarProps) => {
@@ -79,9 +76,14 @@ export const DashboardSidebar = ({
                 {!profile && (
                     <div className="mt-4 pt-4 border-t border-border">
                         <p className="text-xs text-muted-foreground mb-3 text-center">
-                            Upload resume to unlock features
+                            Build your profile to unlock features
                         </p>
-                        <ResumeUpload onUploadComplete={onUploadProfile} />
+                        <Link to="/onboarding">
+                            <Button variant="outline" size="sm" className="w-full text-xs gap-1.5">
+                                <PenLine className="w-3 h-3" />
+                                Build Profile
+                            </Button>
+                        </Link>
                     </div>
                 )}
             </div>

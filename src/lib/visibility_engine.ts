@@ -22,9 +22,9 @@ export const calculateVisibilityScore = async (profile?: CandidateProfile | null
             recruiterAppeal: 0,
             signalStrength: 0,
             breakdown: [
-                { category: "Profile Status", score: 0, feedback: "No resume detected. Upload a resume to activate scoring." }
+                { category: "Profile Status", score: 0, feedback: "No profile detected. Build your profile to activate scoring." }
             ],
-            recommendations: ["Upload your resume for AI visibility analysis."]
+            recommendations: ["Complete your profile using the Resume Builder for AI visibility analysis."]
         };
     }
 

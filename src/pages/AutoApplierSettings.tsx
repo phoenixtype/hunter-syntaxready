@@ -92,9 +92,30 @@ const AutoApplierSettings = () => {
     }
   };
 
-  const handleStartBot = () => {
-    setIsRunning(!isRunning);
-    toast.success(isRunning ? "Auto-applier paused." : "Auto-applier started successfully in the background!");
+  const handleStartBot = async () => {
+    if (isRunning) {
+      setIsRunning(false);
+      toast.success("Auto-applier paused.");
+      return;
+    }
+    // Save settings first, then start crawling jobs based on preferences
+    await handleSaveAll();
+    setIsRunning(true);
+    toast.success("Auto-applier started! Searching for matching jobs...");
+    try {
+      const { triggerJobCrawl } = await import("@/lib/crawler_engine");
+      await triggerJobCrawl({
+        keywords: jobTitles.split(",").map(s => s.trim()).filter(Boolean),
+        targetRoles: jobTitles.split(",").map(s => s.trim()).filter(Boolean),
+        location: locations.split(",")[0]?.trim() || undefined,
+        remotePolicy: workSetup,
+      });
+      toast.success("Job search complete! Check your dashboard for new matches.");
+    } catch {
+      toast.error("Job search failed. Please try again.");
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   const steps = [

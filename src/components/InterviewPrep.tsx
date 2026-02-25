@@ -248,8 +248,29 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
 
                 <div className="p-6 pt-4 border-t border-border flex justify-end gap-3">
                     <Button variant="ghost" onClick={onClose}>Dismiss</Button>
-                    <Button onClick={() => toast.success("Briefing saved to notes.")} className="">
-                        Save to Dossier
+                    <Button onClick={() => {
+                        if (material) {
+                            const text = [
+                                `Interview Briefing: ${job.title} at ${job.company}`,
+                                '',
+                                `Industry: ${material.company_profile.industry}`,
+                                `Stage: ${material.company_profile.stage}`,
+                                `Mission: ${material.company_profile.mission}`,
+                                '',
+                                'Technical Questions:',
+                                ...material.technical_questions.map((q, i) => `${i + 1}. ${q}`),
+                                '',
+                                'Behavioral Questions:',
+                                ...material.behavioral_questions.map((q, i) => `${i + 1}. ${q}`),
+                                '',
+                                'Red Flags:',
+                                ...material.red_flags_to_watch.map((f, i) => `${i + 1}. ${f}`),
+                            ].join('\n');
+                            navigator.clipboard.writeText(text);
+                            toast.success("Briefing copied to clipboard!");
+                        }
+                    }}>
+                        Copy Briefing
                     </Button>
                 </div>
             </DialogContent>
