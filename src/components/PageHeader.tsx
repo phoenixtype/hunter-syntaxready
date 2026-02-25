@@ -36,13 +36,13 @@ const PageHeader = ({ breadcrumbs, icon, actions, sticky = true }: PageHeaderPro
     <header
       className={`${sticky ? "sticky top-0 z-50" : ""} w-full border-b border-border bg-background/80 backdrop-blur-lg`}
     >
-      <div className="container max-w-5xl mx-auto px-4 h-14 flex items-center gap-3">
+      <div className="container max-w-5xl mx-auto px-4 min-h-[3.5rem] py-2 flex items-center gap-2 sm:gap-3 flex-wrap">
         {/* Back button */}
         <Button
           variant="ghost"
           size="icon"
           onClick={() => (parentHref ? navigate(parentHref) : navigate(-1))}
-          className="shrink-0 -ml-2"
+          className="shrink-0 -ml-2 h-8 w-8"
           aria-label="Go back"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -50,7 +50,7 @@ const PageHeader = ({ breadcrumbs, icon, actions, sticky = true }: PageHeaderPro
 
         {/* Icon */}
         {icon && (
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
             {icon}
           </div>
         )}
@@ -64,12 +64,12 @@ const PageHeader = ({ breadcrumbs, icon, actions, sticky = true }: PageHeaderPro
                 <BreadcrumbItem key={i}>
                   {i > 0 && <BreadcrumbSeparator />}
                   {isLast ? (
-                    <BreadcrumbPage className="truncate font-semibold text-sm">
+                    <BreadcrumbPage className="truncate font-semibold text-xs sm:text-sm">
                       {crumb.label}
                     </BreadcrumbPage>
                   ) : (
                     <BreadcrumbLink
-                      className="cursor-pointer text-xs sm:text-sm"
+                      className="cursor-pointer text-xs sm:text-sm hidden sm:inline"
                       onClick={() => crumb.href && navigate(crumb.href)}
                     >
                       {crumb.label}
@@ -82,7 +82,7 @@ const PageHeader = ({ breadcrumbs, icon, actions, sticky = true }: PageHeaderPro
         </Breadcrumb>
 
         {/* Actions */}
-        {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
+        {actions && <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 flex-wrap justify-end">{actions}</div>}
       </div>
     </header>
   );
