@@ -281,24 +281,7 @@ const Index = () => {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="py-10 border-t border-border" role="contentinfo">
-        <div className="container max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-xs">H</span>
-              </div>
-              <span className="font-semibold">Hunter</span>
-            </div>
-            <nav className="flex gap-6 text-sm text-muted-foreground" aria-label="Footer navigation">
-              <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-              <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-            </nav>
-            <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Hunter AI. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      {/* Footer is rendered globally via App.tsx */}
     </div>
   );
 };
