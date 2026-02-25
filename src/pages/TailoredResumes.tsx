@@ -48,14 +48,15 @@ const TailoredResumes = () => {
   }, [user]);
 
   const fetchResumes = async () => {
+    if (!user) return;
     setLoading(true);
     const { data, error } = await supabase
       .from("tailored_resumes")
       .select("*")
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Failed to fetch tailored resumes:", error);
       toast.error("Failed to load saved resumes");
     } else {
       setResumes((data || []) as unknown as TailoredResume[]);

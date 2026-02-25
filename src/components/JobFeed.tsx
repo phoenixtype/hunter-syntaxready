@@ -34,10 +34,11 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   const [stakeholders, setStakeholders] = useState<Record<string, Stakeholder[]>>({});
   const [prepJob, setPrepJob] = useState<EnrichedJob | null>(null);
   const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set());
+  const [dismissedJobIds, setDismissedJobIds] = useState<Set<string>>(new Set());
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
 
   const filteredJobs = useMemo(() => {
-    let result = jobs;
+    let result = jobs.filter(job => !dismissedJobIds.has(job.id));
 
     // Text search
     if (searchQuery.trim()) {
@@ -92,7 +93,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
     }
 
     return result;
-  }, [jobs, searchQuery, filters]);
+  }, [jobs, dismissedJobIds, searchQuery, filters]);
 
   useEffect(() => {
     if (!user) return;
@@ -131,12 +132,12 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   };
 
   const handleDismiss = async (job: EnrichedJob) => {
-    await recordFeedback({
+    setDismissedJobIds(prev => new Set(prev).add(job.id));
+    toast("Job dismissed");
+    recordFeedback({
       jobId: job.id, action: 'DISMISS', timestamp: Date.now(),
       jobMetadata: { skills: [], company: job.company, source: job.source }
     });
-    toast("Job dismissed");
-    refreshJobs();
   };
 
   const handleExpandJob = async (jobId: string) => {
@@ -153,7 +154,10 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   };
 
   const handleTailor = async (job: EnrichedJob) => {
-    if (!profile) return;
+    if (!profile) {
+      toast.error("Build your profile first.", { description: "Use the Resume Builder to create your profile before tailoring." });
+      return;
+    }
     toast.info("Optimizing resume...");
     try {
       const content = await generateTailoredContent(profile, job);

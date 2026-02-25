@@ -153,10 +153,10 @@ serve(async (req) => {
 
     const { messages, profile, job, mode } = await req.json();
 
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
 
     // SECURITY: Don't reveal which service is missing
-    if (!lovableApiKey) {
+    if (!geminiApiKey) {
       console.error('[CONFIG] Missing required API key');
       return new Response(
         JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
@@ -184,15 +184,15 @@ serve(async (req) => {
         const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout protection
 
         try {
-            const llmResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+            const llmResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${lovableApiKey}`,
+                    'Authorization': `Bearer ${geminiApiKey}`,
                     'Content-Type': 'application/json',
                 },
                 signal: controller.signal,
                 body: JSON.stringify({
-                    model: 'google/gemini-2.5-flash',
+                    model: 'gemini-2.5-flash',
                     messages: [{ role: 'user', content: briefingPrompt }],
                     tools: [{
                         type: 'function',
@@ -345,15 +345,15 @@ Description: ${job.description}`;
     const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout protection
 
     try {
-        const llmResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        const llmResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${lovableApiKey}`,
+                'Authorization': `Bearer ${geminiApiKey}`,
                 'Content-Type': 'application/json',
             },
             signal: controller.signal,
             body: JSON.stringify({
-                model: 'google/gemini-2.5-flash',
+                model: 'gemini-2.5-flash',
                 messages: chatMessages
             }),
         });

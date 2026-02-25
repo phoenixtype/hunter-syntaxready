@@ -104,7 +104,7 @@ const Dashboard = () => {
       icon: GraduationCap,
       title: "Interview Coach",
       desc: "AI-powered mock interviews",
-      action: () => navigate("/interview-coach?title=Software+Engineer&company=Target+Company"),
+      action: () => navigate("/interview-coach"),
     },
     {
       icon: FolderOpen,
@@ -309,7 +309,7 @@ const Dashboard = () => {
       </div>
 
       {/* Modals */}
-      <PostInterviewModal isOpen={showPostInterview} onClose={() => setShowPostInterview(false)} companyName="Target Company" profile={profile} />
+      <PostInterviewModal isOpen={showPostInterview} onClose={() => setShowPostInterview(false)} companyName="" profile={profile} />
       <PricingModal isOpen={showPricing} onClose={() => setShowPricing(false)} />
       <JobUrlOptimizer isOpen={showResumeOptimizer} onClose={() => setShowResumeOptimizer(false)} profile={profile} />
       <LinkedInOptimizer isOpen={showLinkedIn} onClose={() => setShowLinkedIn(false)} profile={profile} />

@@ -186,10 +186,7 @@ const ResumeBuilder = () => {
         throw new Error("No content returned");
       }
     } catch (err) {
-      console.error("Generate failed:", err);
-      // Still save the profile
-      toast.success("Profile saved!");
-      toast.error("Resume generation failed. Please try again.");
+      toast.error("Resume generation failed", { description: "Your profile was saved. Please try generating again." });
     } finally {
       setGenerating(false);
     }

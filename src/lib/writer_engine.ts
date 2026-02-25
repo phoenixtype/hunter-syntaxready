@@ -12,8 +12,6 @@ export const generateTailoredContent = async (
   profile: CandidateProfile,
   job: JobOpportunity
 ): Promise<TailoredContent> => {
-  console.log(`Generating tailored content for ${job.company} - ${job.title}`);
-
   const { data: { session } } = await supabase.auth.getSession();
   const authHeader = session ? { Authorization: `Bearer ${session.access_token}` } : {};
 
@@ -39,16 +37,12 @@ export const generateTailoredContent = async (
   const changesReceived: string[] = [];
   if (optimizationData?.content) {
     const suggestions = optimizationData.content.split('\n')
-      .filter((line: string) => line.trim().startsWith('-') || line.trim().startsWith('•'))
+      .map((line: string) => line.trim())
+      .filter((line: string) => /^[-•*\d+\.\)]/.test(line) && line.length > 10)
       .slice(0, 5)
-      .map((line: string) => line.replace(/^[-•]\s*/, '').trim());
+      .map((line: string) => line.replace(/^[-•*\d+\.\)]+\s*/, '').trim())
+      .filter((line: string) => line.length > 0);
     changesReceived.push(...suggestions);
-  }
-
-  if (changesReceived.length === 0) {
-    changesReceived.push(`Optimized for ${job.company}'s ${job.title} role`);
-    changesReceived.push('Highlighted relevant technical skills');
-    changesReceived.push('Enhanced achievement metrics');
   }
 
   const tailoredResume = JSON.parse(JSON.stringify(profile)) as CandidateProfile;

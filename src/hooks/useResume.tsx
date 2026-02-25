@@ -30,6 +30,8 @@ export const useResume = () => {
     useEffect(() => {
         if (user) {
             fetchProfile();
+        } else {
+            setLoading(false);
         }
     }, [user, fetchProfile]);
 

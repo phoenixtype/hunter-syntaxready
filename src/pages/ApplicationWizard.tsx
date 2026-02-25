@@ -33,11 +33,7 @@ const ApplicationWizard = () => {
         setStep('analyzing');
 
         try {
-            // 1. Crawl URL
-            // We use triggerJobCrawl but currently it's hardcoded to trigger 'crawl-jobs'. 
-            // We need to pass the URL. The existing triggerJobCrawl might need a tiny update or we call edge function directly.
-            // For now, let's assume we can pass optional body via a direct fetch or updated helper.
-            // I'll use a direct fetch here to be safe and precise, rather than relying on the helper that might assume search.
+            // 1. Crawl the job URL via the crawl-jobs edge function
             const { data: { session } } = await import('@/integrations/supabase/client').then(m => m.supabase.auth.getSession());
 
             const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/crawl-jobs`, {

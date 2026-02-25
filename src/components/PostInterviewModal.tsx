@@ -19,15 +19,16 @@ import { CandidateProfile } from "@/lib/resume_engine";
 interface PostInterviewModalProps {
     isOpen: boolean;
     onClose: () => void;
-    companyName: string;
+    companyName?: string;
     profile: CandidateProfile | null;
 }
 
-const PostInterviewModal = ({ isOpen, onClose, companyName, profile }: PostInterviewModalProps) => {
+const PostInterviewModal = ({ isOpen, onClose, companyName = "", profile }: PostInterviewModalProps) => {
     const [activeTab, setActiveTab] = useState("thankyou");
     const [loading, setLoading] = useState(false);
 
     // Thank You Note State
+    const [company, setCompany] = useState(companyName);
     const [interviewer, setInterviewer] = useState("");
     const [topics, setTopics] = useState("");
     const [generatedNote, setGeneratedNote] = useState("");
@@ -43,7 +44,7 @@ const PostInterviewModal = ({ isOpen, onClose, companyName, profile }: PostInter
         }
         setLoading(true);
         try {
-            const note = await generateThankYouNote(interviewer, companyName, "Candidate", topics.split(','), profile);
+            const note = await generateThankYouNote(interviewer, company, "Candidate", topics.split(','), profile);
             setGeneratedNote(note);
             toast.success("Draft generated.");
         } catch (e) {
@@ -61,7 +62,7 @@ const PostInterviewModal = ({ isOpen, onClose, companyName, profile }: PostInter
         setLoading(true);
         try {
             const offer: OfferDetails = {
-                company: companyName,
+                company,
                 baseSalary: parseInt(baseSalary) || 0,
                 equity: "0.5%",
                 bonus: "10%",
@@ -83,7 +84,7 @@ const PostInterviewModal = ({ isOpen, onClose, companyName, profile }: PostInter
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-light">
                         Post-Interview Command Center
-                        <span className="block text-sm text-muted-foreground mt-1">Target: {companyName}</span>
+                        {company && <span className="block text-sm text-muted-foreground mt-1">Target: {company}</span>}
                     </DialogTitle>
                 </DialogHeader>
 
@@ -95,6 +96,10 @@ const PostInterviewModal = ({ isOpen, onClose, companyName, profile }: PostInter
 
                     <TabsContent value="thankyou" className="space-y-4 py-4">
                         <div className="grid gap-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Company Name</label>
+                                <Input placeholder="e.g. Stripe, Shopify" value={company} onChange={e => setCompany(e.target.value)} />
+                            </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Interviewer Name</label>
@@ -121,7 +126,7 @@ const PostInterviewModal = ({ isOpen, onClose, companyName, profile }: PostInter
                                     </div>
                                 </div>
                             ) : (
-                                <Button onClick={handleGenerateNote} disabled={loading || !interviewer}>
+                                <Button onClick={handleGenerateNote} disabled={loading || !interviewer || !company}>
                                     {loading ? "Drafting..." : "Generate Thank You Note"}
                                 </Button>
                             )}

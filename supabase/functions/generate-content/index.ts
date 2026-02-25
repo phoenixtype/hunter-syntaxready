@@ -155,10 +155,10 @@ serve(async (req) => {
       );
     }
 
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
 
     // SECURITY: Don't reveal which service is missing
-    if (!lovableApiKey) {
+    if (!geminiApiKey) {
       console.error('[CONFIG] Missing required API key');
       return new Response(
         JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
@@ -212,26 +212,45 @@ TARGET JOB:
 ${job.title} at ${job.company}
 ${job.description}
 
-Provide specific optimization suggestions.`;
+Provide specific optimization suggestions as a list where each item starts with "- ".`;
+    } else if (requestType === 'linkedin_optimization') {
+      systemPrompt = `You are a LinkedIn profile expert. Provide specific, actionable profile optimization suggestions to help candidates stand out for their target role.`;
+      userPrompt = `Optimize the LinkedIn profile for this candidate applying to ${job.title} at ${job.company}.
+
+CANDIDATE:
+Name: ${profile.identity?.name}
+Current Role: ${profile.experience_atoms?.[0]?.role} at ${profile.experience_atoms?.[0]?.company}
+Skills: ${profile.skills?.slice(0, 8).map((s: { name: string }) => s.name).join(', ')}
+
+JOB TECH STACK: ${job.tech_stack?.join(', ') || 'Not specified'}
+JOB DESCRIPTION: ${job.description?.substring(0, 500)}
+
+Provide suggestions for: Headline, About section, Experience bullets, Skills to add, and Engagement tips.`;
     } else if (requestType === 'interview_prep') {
-      systemPrompt = `You are an expert interview coach. Provide comprehensive prep.`;
-      userPrompt = `Prepare interview for ${job.title} at ${job.company}.`;
+      systemPrompt = `You are an expert interview coach. Provide comprehensive, role-specific interview preparation.`;
+      userPrompt = `Prepare interview tips for ${job.title} at ${job.company}.
+Candidate skills: ${profile.skills?.slice(0, 5).map((s: { name: string }) => s.name).join(', ')}
+Job description: ${job.description?.substring(0, 500)}
+Include: likely questions, STAR story prompts, and key talking points.`;
     } else if (requestType === 'thank_you_note') {
-      systemPrompt = `You are a career coach. Write a thank-you note.`;
-      userPrompt = `Write thank-you for ${profile.identity?.name} at ${job.company}.`;
+      systemPrompt = `You are a career coach. Write a concise, genuine thank-you note after an interview.`;
+      userPrompt = `Write a thank-you email for ${profile.identity?.name} after interviewing at ${job.company} for the ${job.title} role. Keep it under 150 words, professional, and personalized.`;
     } else if (requestType === 'offer_evaluation') {
-      systemPrompt = `You are a negotiation expert. Evaluate the offer.`;
-      userPrompt = `Evaluate offer for ${job.title} at ${job.company}.`;
+      systemPrompt = `You are a compensation and negotiation expert. Analyze job offers and provide strategic advice.`;
+      userPrompt = `Evaluate the offer for ${job.title} at ${job.company}.
+Salary range listed: ${job.salary_range || 'Not specified'}
+Candidate skills: ${profile.skills?.slice(0, 5).map((s: { name: string }) => s.name).join(', ')}
+Provide: market rate analysis, negotiation leverage points, and recommended counter-offer strategy.`;
     }
 
-    const llmResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const llmResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
+        'Authorization': `Bearer ${geminiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }

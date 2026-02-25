@@ -37,8 +37,6 @@ const AppInitializer = () => {
   useEffect(() => {
     // Run startup validations
     const runChecks = async () => {
-      console.log('🚀 Hunter AI - Starting up...');
-
       // Validate environment variables
       runStartupValidation();
 

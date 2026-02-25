@@ -73,12 +73,10 @@ export const checkAccess = (feature: Feature, subscription?: UserSubscription | 
 };
 
 export const upgradeToPro = async (): Promise<void> => {
-    console.log("[Monetization] Initiating Stripe Checkout...");
-    
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) throw new Error("Not authenticated");
 
-    const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+    const { data, error } = await supabase.functions.invoke('create-checkout', {
         headers: {
             Authorization: `Bearer ${session.access_token}`
         }
