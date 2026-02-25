@@ -380,8 +380,25 @@ Deno.serve(async (req) => {
         clearTimeout(timeoutId);
 
         if (!llmResponse.ok) {
-          console.error('[NORMALIZE] LLM parsing failed');
-          return null;
+          const errText = await llmResponse.text().catch(() => 'no body');
+          console.error(`[NORMALIZE] LLM failed: ${llmResponse.status} - ${errText}`);
+          // Fall back to basic extraction instead of returning null
+          const jobHash = generateJobHash(rawJob.title || 'Unknown', rawJob.url || 'Unknown');
+          return {
+            title: rawJob.title || 'Untitled Job',
+            company: 'Unknown Company',
+            location: 'Remote',
+            salary_range: 'Not specified',
+            description: (rawJob.content || '').substring(0, 200),
+            source: rawJob.source,
+            freshness_score: 0.5,
+            credibility_score: 0.5,
+            url: rawJob.url,
+            posted_at: 'Recently',
+            tech_stack: [],
+            job_hash: jobHash,
+            raw_data: rawJob
+          };
         }
 
         const llmData = await llmResponse.json();
