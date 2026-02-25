@@ -108,7 +108,7 @@ const InterviewCoach = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col" data-hide-footer>
       <PageHeader
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },

@@ -40,7 +40,7 @@ const ForgotPassword = () => {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
         <div className="w-full max-w-md animate-fade-in-up">
-          <div className="bg-card/50 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-8 md:p-12 space-y-6 text-center">
+          <div className="bg-card/50 backdrop-blur-xl border border-border shadow-2xl rounded-2xl p-8 md:p-12 space-y-6 text-center">
             <div className="w-16 h-16 mx-auto rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
               <CheckCircle2 className="w-8 h-8 text-primary" />
             </div>
@@ -70,7 +70,7 @@ const ForgotPassword = () => {
           Back to Login
         </Link>
 
-        <div className="bg-card/50 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-8 md:p-12 space-y-8">
+        <div className="bg-card/50 backdrop-blur-xl border border-border shadow-2xl rounded-2xl p-8 md:p-12 space-y-8">
           <div className="space-y-2 text-center">
             <div className="w-16 h-16 mx-auto rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 mb-4 shadow-glow">
               <Mail className="w-8 h-8 text-primary" />

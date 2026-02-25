@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Loader2, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { passwordSchema, validateWithSchema } from "@/lib/validation";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -42,8 +43,9 @@ const ResetPassword = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (password.length < 8) {
-      toast.error("Password must be at least 8 characters.");
+    const validation = validateWithSchema(passwordSchema, password);
+    if (!validation.success) {
+      toast.error((validation as { success: false; error: string }).error);
       return;
     }
     if (password !== confirmPassword) {

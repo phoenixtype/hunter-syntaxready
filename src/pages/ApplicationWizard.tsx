@@ -99,7 +99,7 @@ const ApplicationWizard = () => {
               <p className="text-muted-foreground text-lg mt-1">Paste a job link to generate a tailored strategy using Auto-Applier AI.</p>
             </div>
 
-            <main className="container max-w-4xl mx-auto space-y-8 animate-fade-in-up">
+            <main className="container max-w-4xl mx-auto px-6 space-y-8 pb-12 animate-fade-in-up">
 
                 {/* INPUT STEP */}
                 {step === 'input' && (
