@@ -32,13 +32,9 @@ const SignUp = () => {
 
     setIsLoading(true);
     try {
-      console.log('[SIGNUP] Attempting signup for:', validatedEmail);
       const { data, error } = await signUp(validatedEmail, validatedPassword, validatedName);
 
-      console.log('[SIGNUP] Response:', { hasData: !!data, hasError: !!error, errorMessage: error?.message });
-
       if (error) {
-        console.error('[SIGNUP] Error details:', error);
 
         if (error.message.includes("Password")) {
           toast.error("Password must be at least 6 characters");
@@ -48,23 +44,19 @@ const SignUp = () => {
         } else if (error.message.includes("Email")) {
           toast.error("Please enter a valid email address");
         } else {
-          console.error('[SIGNUP] Full error:', error);
           toast.error("Unable to create account. Please try again.");
         }
         return;
       }
 
       if (data?.user) {
-        console.log('[SIGNUP] Account created, redirecting to onboarding');
         toast.success("Account created successfully!");
         navigate("/onboarding", { replace: true });
       } else {
-        console.log('[SIGNUP] Unexpected: no user returned');
         toast.error("Something went wrong. Please try again.");
       }
-    } catch (error) {
-      console.error('[SIGNUP] Unexpected error:', error);
-      toast.error(`An unexpected error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } catch (err) {
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }

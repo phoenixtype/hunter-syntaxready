@@ -109,7 +109,7 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex">
+    <div className="min-h-screen bg-background text-foreground flex" data-hide-footer>
       <SkipLink />
 
       {/* Desktop Sidebar */}
