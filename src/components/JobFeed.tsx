@@ -30,7 +30,6 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set());
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
 
-  // Client-side search filtering
   const filteredJobs = useMemo(() => {
     if (!searchQuery.trim()) return jobs;
     const q = searchQuery.toLowerCase();
@@ -54,33 +53,25 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
       toast.error("You have already applied to this position.");
       return;
     }
-
-    toast.info(`Initiating Auto-Apply for ${job.company}...`);
-
+    toast.info(`Applying to ${job.company}...`);
     await recordFeedback({
-      jobId: job.id,
-      action: 'APPLY',
-      timestamp: Date.now(),
+      jobId: job.id, action: 'APPLY', timestamp: Date.now(),
       jobMetadata: { skills: job.tech_stack || [], company: job.company, source: job.source }
     });
-
     try {
       await simulateApplication(job, (state) => {
         setActiveApplication(state);
         if (state.status === 'applied') {
-          toast.success(`Application sent to ${job.company}!`);
+          toast.success(`Applied to ${job.company}!`);
           setAppliedJobIds(prev => new Set(prev).add(job.id));
           setTimeout(() => setActiveApplication(null), 3000);
         }
       }, user?.id, true);
     } catch (error) {
       if (error instanceof ComplianceError) {
-        toast.warning("Application Blocked by Compliance Agent", {
-          description: error.message, duration: 5000
-        });
+        toast.warning("Blocked by compliance", { description: error.message, duration: 5000 });
       } else {
-        console.error("Application error:", error);
-        toast.error("Application process interrupted. Please try again.");
+        toast.error("Application failed. Please try again.");
       }
       setActiveApplication(null);
     }
@@ -88,20 +79,15 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
 
   const handleDismiss = async (job: EnrichedJob) => {
     await recordFeedback({
-      jobId: job.id,
-      action: 'DISMISS',
-      timestamp: Date.now(),
+      jobId: job.id, action: 'DISMISS', timestamp: Date.now(),
       jobMetadata: { skills: [], company: job.company, source: job.source }
     });
-    toast("Job dismissed", { description: "Hunter will show fewer jobs like this." });
+    toast("Job dismissed");
     refreshJobs();
   };
 
   const handleExpandJob = async (jobId: string) => {
-    if (expandedJob === jobId) {
-      setExpandedJob(null);
-      return;
-    }
+    if (expandedJob === jobId) { setExpandedJob(null); return; }
     setExpandedJob(jobId);
     if (!stakeholders[jobId]) {
       const job = jobs.find(j => j.id === jobId);
@@ -115,57 +101,46 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
 
   const handleTailor = async (job: EnrichedJob) => {
     if (!profile) return;
-    toast.info("Writer Agent is rewriting your resume...");
+    toast.info("Optimizing resume...");
     try {
       const content = await generateTailoredContent(profile, job);
-      toast.success("Resume optimized for role.", { description: content.changes_summary[0] });
+      toast.success("Resume optimized!", { description: content.changes_summary[0] });
     } catch {
       toast.error("Tailoring failed.");
     }
   };
 
   const handleCrawl = () => {
-    toast.info(profile ? "Targeting your skills..." : "Starting global hunt...");
-    // Pass search bar terms as extra keywords to supplement profile data
+    toast.info(profile ? "Searching for matching roles..." : "Starting job search...");
     const extra = searchQuery.trim() ? searchQuery.trim().split(/\s+/) : undefined;
     crawl(extra);
   };
 
-  const getScoreColor = (_score: number) => {
-    return "text-foreground bg-secondary border-border";
-  };
-
   return (
-    <div className="space-y-4">
-      {/* Search Bar */}
+    <div className="space-y-4 animate-fade-in">
+      {/* Search */}
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search jobs by title, company, or location..."
+            placeholder="Search jobs..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-9 text-sm"
+            className="pl-9 h-10"
           />
         </div>
-        <Button variant="outline" size="sm" onClick={handleCrawl} disabled={crawling || loading} className="text-xs h-9 shrink-0">
-            {crawling ? (
-              <><Loader2 className="w-3 h-3 mr-1.5 animate-spin" />Searching...</>
-            ) : (
-              <><Globe className="w-3 h-3 mr-1.5" />Find More</>
-            )}
-          </Button>
-        <Button variant="ghost" size="icon" onClick={() => { refreshJobs(); toast.info("Refreshing..."); }} disabled={loading || crawling} className="h-9 w-9 shrink-0">
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+        <Button variant="outline" size="sm" onClick={handleCrawl} disabled={crawling || loading} className="h-10 px-4 shrink-0">
+          {crawling ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />Searching...</> : <><Globe className="w-3.5 h-3.5 mr-1.5" />Find Jobs</>}
+        </Button>
+        <Button variant="ghost" size="icon" onClick={() => { refreshJobs(); toast.info("Refreshing..."); }} disabled={loading || crawling} className="h-10 w-10 shrink-0">
+          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
         </Button>
       </div>
 
-      {/* Results count */}
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">
-          {loading ? 'Loading...' : searchQuery ? `${filteredJobs.length} of ${jobCount} jobs` : `${jobCount} jobs found`}
-        </span>
-      </div>
+      {/* Count */}
+      <p className="text-xs text-muted-foreground">
+        {loading ? 'Loading...' : searchQuery ? `${filteredJobs.length} of ${jobCount} jobs` : `${jobCount} jobs found`}
+      </p>
 
       {/* Job Cards */}
       <div className="space-y-3">
@@ -175,77 +150,47 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
           const isApplying = activeApplication?.jobId === job.id;
 
           return (
-            <div
-              key={job.id}
-              className="rounded-lg border border-border bg-card overflow-hidden transition-colors hover:border-foreground/20"
-            >
-              {/* Main card content */}
+            <div key={job.id} className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/20 transition-all">
               <div className="p-4 sm:p-5">
-                <div className="flex gap-3 sm:gap-4">
-                  {/* Match Score */}
-                  {job.match && (
-                    <div className="hidden sm:flex flex-col items-center justify-start pt-0.5">
-                      <div className={`w-11 h-11 rounded-full flex items-center justify-center font-semibold text-xs border ${getScoreColor(job.match.overall_score)}`}>
-                        {job.match.overall_score}%
-                      </div>
-                    </div>
-                  )}
+                <div className="flex items-start gap-3">
+                  {/* Company Initial */}
+                  <div className="hidden sm:flex w-10 h-10 rounded-lg bg-muted items-center justify-center shrink-0">
+                    <span className="text-sm font-bold text-muted-foreground">{job.company[0]}</span>
+                  </div>
 
-                  {/* Job Info */}
                   <div className="flex-1 min-w-0">
+                    {/* Title row */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-semibold text-base truncate">{job.title}</h3>
-                          {job.freshness_score > 0.9 && (
-                            <Badge variant="secondary" className="text-[10px]">
-                              <Sparkles className="w-2.5 h-2.5 mr-0.5" /> New
-                            </Badge>
-                          )}
-                          {/* Mobile match score */}
+                        <h3 className="font-semibold text-sm sm:text-base truncate">{job.title}</h3>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1"><Building2 className="w-3 h-3" />{job.company}</span>
+                          {job.location && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{job.location}</span>}
                           {job.match && (
-                            <span className={`sm:hidden text-[10px] font-semibold px-1.5 py-0.5 rounded-full border ${getScoreColor(job.match.overall_score)}`}>
-                              {job.match.overall_score}%
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Building2 className="w-3 h-3" />{job.company}
-                          </span>
-                          {job.location && (
-                            <span className="flex items-center gap-1">
-                              <MapPin className="w-3 h-3" />{job.location}
-                            </span>
+                            <span className="text-primary font-semibold">{job.match.overall_score}% match</span>
                           )}
                         </div>
                       </div>
-
-                      {/* Dismiss */}
                       <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive" onClick={() => handleDismiss(job)}>
                         <X className="w-3.5 h-3.5" />
                       </Button>
                     </div>
 
-                    {/* Description preview */}
-                    <p className="text-sm text-muted-foreground mt-2 line-clamp-2 leading-relaxed">
-                      {job.description}
-                    </p>
+                    {/* Description */}
+                    <p className="text-sm text-muted-foreground mt-2 line-clamp-2 leading-relaxed">{job.description}</p>
 
-                    {/* Meta row */}
+                    {/* Tags */}
                     <div className="flex items-center gap-2 mt-3 flex-wrap">
-                      {job.salary_range && (
-                        <span className="text-xs font-mono font-medium text-foreground">{job.salary_range}</span>
-                      )}
+                      {job.salary_range && <span className="text-xs font-mono font-medium">{job.salary_range}</span>}
                       <Badge variant="outline" className="text-[10px] font-normal">{job.source}</Badge>
-                      {job.match?.reasoning[0] && (
-                        <span className="text-[10px] text-muted-foreground font-medium flex items-center gap-0.5">
-                          <Sparkles className="w-2.5 h-2.5" /> {job.match.reasoning[0]}
-                        </span>
+                      {job.freshness_score > 0.9 && (
+                        <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px]">
+                          <Sparkles className="w-2.5 h-2.5 mr-0.5" /> New
+                        </Badge>
                       )}
                     </div>
 
-                    {/* Action buttons - always visible */}
+                    {/* Actions */}
                     <div className="flex items-center gap-2 mt-3 flex-wrap">
                       <Button
                         size="sm"
@@ -254,13 +199,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                         disabled={isApplied || isApplying}
                         className="h-8 text-xs"
                       >
-                        {isApplied ? (
-                          <><Send className="w-3 h-3 mr-1.5" />Applied</>
-                        ) : isApplying ? (
-                          <><Loader2 className="w-3 h-3 mr-1.5 animate-spin" />Applying...</>
-                        ) : (
-                          <><Send className="w-3 h-3 mr-1.5" />Quick Apply</>
-                        )}
+                        {isApplied ? <><Send className="w-3 h-3 mr-1.5" />Applied</> : isApplying ? <><Loader2 className="w-3 h-3 mr-1.5 animate-spin" />Applying...</> : <><Send className="w-3 h-3 mr-1.5" />Apply</>}
                       </Button>
                       <Button variant="outline" size="sm" onClick={() => handleTailor(job)} className="h-8 text-xs">
                         <PenTool className="w-3 h-3 mr-1.5" />Tailor
@@ -274,17 +213,15 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                       </Button>
                       {job.url && (
                         <a href={job.url} target="_blank" rel="noopener noreferrer">
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8"><ExternalLink className="w-3.5 h-3.5" /></Button>
                         </a>
                       )}
                     </div>
 
-                    {/* Application Progress */}
+                    {/* Apply progress */}
                     {isApplying && activeApplication && (
                       <div className="mt-3 space-y-1">
-                        <div className="h-1 w-full bg-secondary rounded-full overflow-hidden">
+                        <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
                           <div className="h-full bg-primary transition-all duration-300" style={{ width: `${activeApplication.progress}%` }} />
                         </div>
                         <p className="text-[10px] text-muted-foreground font-mono">
@@ -296,23 +233,16 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                 </div>
               </div>
 
-              {/* Expanded Intel Section */}
+              {/* Intel Section */}
               {isExpanded && (
-                <div className="border-t border-border p-4 bg-secondary animate-fade-in">
-                  <h4 className="text-[10px] uppercase font-bold text-muted-foreground mb-3 flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-foreground" /> Hiring Team Intel
-                  </h4>
+                <div className="border-t border-border p-4 bg-muted/30 animate-fade-in">
+                  <h4 className="text-[10px] uppercase font-bold text-muted-foreground mb-3">Hiring Team</h4>
                   {stakeholders[job.id] ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {stakeholders[job.id].map((person, i) => (
-                        <a
-                          key={i}
-                          href={person.profile_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-3 p-2.5 rounded-lg bg-card hover:bg-accent transition-colors border border-border"
-                        >
-                          <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-foreground text-xs font-bold shrink-0">
+                        <a key={i} href={person.profile_url} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center gap-3 p-3 rounded-lg bg-card hover:bg-accent transition-colors border border-border">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold shrink-0">
                             {person.name?.[0] || '?'}
                           </div>
                           <div className="min-w-0 flex-1">
@@ -325,7 +255,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                     </div>
                   ) : (
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Loader2 className="w-3 h-3 animate-spin" /> Loading network data...
+                      <Loader2 className="w-3 h-3 animate-spin" /> Loading...
                     </div>
                   )}
                 </div>
@@ -334,51 +264,42 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
           );
         })}
 
-        {/* Empty State */}
+        {/* Empty */}
         {filteredJobs.length === 0 && !loading && (
-          <div className="flex flex-col items-center justify-center py-16 text-center space-y-4 border border-dashed border-border rounded-lg">
-            <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-border rounded-xl">
+            <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mb-4">
               <Search className="w-6 h-6 text-muted-foreground" />
             </div>
             {!profile ? (
-              <div className="max-w-xs space-y-1.5">
-                <h3 className="font-semibold">Upload your resume to get started</h3>
-                <p className="text-sm text-muted-foreground">
-                  Hunter needs your profile to find and rank relevant jobs for you.
-                </p>
+              <div className="max-w-xs space-y-2">
+                <h3 className="font-semibold">Upload your resume to start</h3>
+                <p className="text-sm text-muted-foreground">Hunter needs your profile to find relevant jobs.</p>
               </div>
             ) : !preferences?.target_roles?.length ? (
-              <div className="max-w-xs space-y-1.5">
-                <h3 className="font-semibold">Set your job preferences</h3>
-                <p className="text-sm text-muted-foreground">
-                  Add target roles, locations, and remote policy in your preferences to start finding jobs.
-                </p>
+              <div className="max-w-xs space-y-2">
+                <h3 className="font-semibold">Set your preferences</h3>
+                <p className="text-sm text-muted-foreground">Add target roles and locations to start finding jobs.</p>
               </div>
             ) : (
-              <div className="max-w-xs space-y-1.5">
+              <div className="max-w-xs space-y-2">
                 <h3 className="font-semibold">No jobs found yet</h3>
-                <p className="text-sm text-muted-foreground">
-                  Click below to search for {preferences.target_roles[0]} roles{preferences.locations?.length ? ` in ${preferences.locations[0]}` : ''}.
-                </p>
+                <p className="text-sm text-muted-foreground">Click below to search for matching roles.</p>
               </div>
             )}
-            <Button variant="outline" size="sm" onClick={handleCrawl} disabled={crawling || !profile}>
+            <Button variant="outline" size="sm" onClick={handleCrawl} disabled={crawling || !profile} className="mt-4">
               {crawling ? <><Loader2 className="w-3 h-3 mr-1.5 animate-spin" />Searching...</> : <><Globe className="w-3 h-3 mr-1.5" />Find Jobs</>}
             </Button>
           </div>
         )}
 
-        {/* Loading State */}
         {loading && (
-          <div className="flex justify-center py-12">
+          <div className="flex justify-center py-16">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           </div>
         )}
       </div>
 
-      {prepJob && (
-        <InterviewPrepModal isOpen={!!prepJob} onClose={() => setPrepJob(null)} job={prepJob} />
-      )}
+      {prepJob && <InterviewPrepModal isOpen={!!prepJob} onClose={() => setPrepJob(null)} job={prepJob} />}
     </div>
   );
 };

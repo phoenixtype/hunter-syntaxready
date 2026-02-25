@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Search, Sparkles, Briefcase, FileText, LayoutGrid, Linkedin, Link2, MessageSquare, GraduationCap } from "lucide-react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Briefcase, FileText, Search, Link2, Linkedin, MessageSquare, User, Settings, LogOut, Loader2, ChevronRight, Zap, Bot, LayoutGrid, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import JobFeed from "@/components/JobFeed";
@@ -12,9 +12,8 @@ import ThemeToggle from "@/components/ThemeToggle";
 import MobileNav from "@/components/MobileNav";
 import SkipLink from "@/components/SkipLink";
 import { useResume } from "@/hooks/useResume";
-import { SubscriptionTier, checkAccess } from "@/lib/subscription";
+import { SubscriptionTier } from "@/lib/subscription";
 import { CandidateProfile } from "@/lib/resume_engine";
-import { DashboardSidebar } from "@/components/DashboardSidebar";
 import PostInterviewModal from "@/components/PostInterviewModal";
 import PricingModal from "@/components/PricingModal";
 import JobUrlOptimizer from "@/components/JobUrlOptimizer";
@@ -24,16 +23,23 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import WidgetErrorBoundary from "@/components/WidgetErrorBoundary";
 import { ApplicationsView } from "@/components/ApplicationsView";
 import PreferencesModal from "@/components/PreferencesModal";
-import { Bot, Zap } from "lucide-react";
+
+type DashboardView = "jobs" | "applications" | "tools";
+
+const NAV_ITEMS = [
+  { id: "jobs" as const, label: "Jobs", icon: Briefcase },
+  { id: "applications" as const, label: "Applications", icon: FileText },
+  { id: "tools" as const, label: "Tools", icon: LayoutGrid },
+];
 
 const Dashboard = () => {
-  const { loading: authLoading, signOut } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const { profile, loading: resumeLoading, setProfile } = useResume();
   const { subscription, isLoading: subLoading } = useSubscription();
   const { preferences, appCount, visibility, isLoading: dataLoading } = useDashboardData();
 
-  const [activeTab, setActiveTab] = useState("jobs");
+  const [activeView, setActiveView] = useState<DashboardView>("jobs");
   const [showPostInterview, setShowPostInterview] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
   const [showResumeOptimizer, setShowResumeOptimizer] = useState(false);
@@ -42,16 +48,8 @@ const Dashboard = () => {
 
   const handleSignOut = async () => {
     await signOut();
-    toast.success("Signed out successfully");
+    toast.success("Signed out");
     navigate("/");
-  };
-
-  const handleOpenInterviewTools = () => {
-    if (checkAccess('negotiation_coach')) {
-      setShowPostInterview(true);
-    } else {
-      setShowPricing(true);
-    }
   };
 
   const handleResumeUpload = (newProfile: CandidateProfile) => {
@@ -62,58 +60,153 @@ const Dashboard = () => {
     return <DashboardSkeleton />;
   }
 
+  const initials = profile?.identity?.name
+    ? profile.identity.name.split(' ').map(n => n[0]).join('').slice(0, 2)
+    : user?.email?.charAt(0).toUpperCase() || '?';
+
   const tools = [
+    {
+      icon: Bot,
+      title: "Auto-Applier",
+      desc: "Mass-apply to jobs while you sleep",
+      action: () => navigate("/auto-applier-settings"),
+      featured: true,
+    },
     {
       icon: Search,
       title: "Target Application",
-      desc: "Paste a job link for a full application package",
+      desc: "Paste a job link for a full application",
       action: () => navigate("/application-wizard"),
-      color: "text-foreground",
-      bg: "bg-secondary",
     },
     {
       icon: Link2,
       title: "Resume Optimizer",
-      desc: "Tailor your resume for a specific job URL",
+      desc: "Tailor resume for a specific job",
       action: () => setShowResumeOptimizer(true),
-      color: "text-foreground",
-      bg: "bg-secondary",
     },
     {
       icon: Linkedin,
       title: "LinkedIn Optimizer",
-      desc: "Get AI suggestions to improve your profile",
+      desc: "AI suggestions for your profile",
       action: () => setShowLinkedIn(true),
-      color: "text-foreground",
-      bg: "bg-secondary",
     },
     {
       icon: MessageSquare,
-      title: "Post-Interview Tools",
-      desc: "Thank-you notes & negotiation coaching",
-      action: handleOpenInterviewTools,
-      color: "text-foreground",
-      bg: "bg-secondary",
+      title: "Post-Interview",
+      desc: "Thank-you notes & negotiation",
+      action: () => setShowPostInterview(true),
+    },
+    {
+      icon: GraduationCap,
+      title: "Interview Prep",
+      desc: "Role-specific preparation guides",
+      action: () => navigate("/application-wizard"),
     },
   ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
+    <div className="min-h-screen bg-background text-foreground flex">
       <SkipLink />
 
-      {/* Premium Header */}
-      <header className="sticky top-0 w-full z-50 border-b border-white/5 bg-background/60 backdrop-blur-xl">
-        <div className="container max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="w-7 h-7 rounded-lg bg-foreground flex items-center justify-center text-background font-bold text-sm">h</div>
-            <span className="font-semibold text-base hidden sm:inline">hunter</span>
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex flex-col w-[260px] border-r border-border bg-card h-screen sticky top-0">
+        {/* Logo */}
+        <div className="h-16 flex items-center px-5 border-b border-border">
+          <Link to="/" className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-sm">H</span>
+            </div>
+            <span className="text-lg font-bold tracking-tight">Hunter</span>
           </Link>
+        </div>
+
+        {/* User Card */}
+        <div className="px-4 py-5 border-b border-border">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={user?.user_metadata?.avatar_url} />
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium truncate">
+                {profile?.identity?.name || user?.email?.split('@')[0] || "Guest"}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 px-3 py-4 space-y-1" aria-label="Dashboard navigation">
+          {NAV_ITEMS.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveView(item.id)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                activeView === item.id
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
+            >
+              <item.icon className="w-4 h-4" />
+              {item.label}
+              {item.id === "applications" && appCount > 0 && (
+                <Badge variant="secondary" className="ml-auto text-[10px] h-5 min-w-[20px] flex items-center justify-center px-1.5">
+                  {appCount}
+                </Badge>
+              )}
+            </button>
+          ))}
+        </nav>
+
+        {/* Sidebar Footer */}
+        <div className="px-3 py-4 border-t border-border space-y-1">
+          <Link
+            to="/profile"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          >
+            <User className="w-4 h-4" />
+            Profile
+          </Link>
+          <button
+            onClick={() => setShowPreferences(true)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          >
+            <Settings className="w-4 h-4" />
+            Preferences
+          </button>
+          <button
+            onClick={handleSignOut}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            Sign out
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-h-screen">
+        {/* Top Header */}
+        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border h-16 flex items-center justify-between px-4 sm:px-6">
+          <div className="flex items-center gap-4">
+            {/* Mobile logo */}
+            <Link to="/" className="lg:hidden flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">H</span>
+              </div>
+            </Link>
+            <h1 className="text-lg font-semibold hidden sm:block capitalize">{activeView}</h1>
+          </div>
 
           <div className="flex items-center gap-2">
-            {subscription && subscription.tier !== SubscriptionTier.FREE ? (
-              <Badge variant="secondary" className="text-xs">Pro</Badge>
+            {subscription?.tier !== SubscriptionTier.FREE && subscription?.tier ? (
+              <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">Pro</Badge>
             ) : (
-              <Button size="sm" variant="ghost" onClick={() => setShowPricing(true)} className="text-xs h-8">
+              <Button size="sm" variant="outline" onClick={() => setShowPricing(true)} className="text-xs h-8 hidden sm:flex">
+                <Zap className="w-3 h-3 mr-1.5" />
                 Upgrade
               </Button>
             )}
@@ -122,162 +215,89 @@ const Dashboard = () => {
               <MobileNav isAuthenticated={true} onSignOut={handleSignOut} />
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Main Layout */}
-      <div className="container max-w-6xl mx-auto px-4 pt-20 pb-12">
-
-        {/* Premium Welcome Hero */}
-        <div className="mb-10 text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-6 animate-fade-in-up">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
-              {profile?.identity?.name && profile.identity.name !== 'Unknown Candidate'
-                ? `Welcome back, ${profile.identity.name.split(' ')[0]}`
-                : 'Welcome to Hunter AI'} leading the charge
-            </h1>
-            <p className="text-muted-foreground text-lg">
-              {appCount > 0
-                ? `Tracking ${appCount} active application${appCount > 1 ? 's' : ''}.`
-                : 'Your automated job search dashboard.'}
-            </p>
-          </div>
-          <div className="flex gap-3">
-             <Button variant="outline" className="border-primary/50 text-primary hover:bg-primary/10 transition-all font-medium" onClick={() => navigate("/dashboard")}>
-               <Zap className="w-4 h-4 mr-2" /> Sync LinkedIn
-             </Button>
-             <Button className="shadow-glow hover:shadow-glow-lg transition-all font-medium rounded-full px-6" onClick={() => navigate("/auto-applier-settings")}>
-                <Bot className="w-4 h-4 mr-2" /> Configure Auto-Applier
-             </Button>
-          </div>
+        {/* Mobile Tab Bar */}
+        <div className="lg:hidden flex border-b border-border bg-background">
+          {NAV_ITEMS.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveView(item.id)}
+              className={`flex-1 flex flex-col items-center gap-1 py-3 text-xs font-medium transition-colors border-b-2 ${
+                activeView === item.id
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground"
+              }`}
+            >
+              <item.icon className="w-4 h-4" />
+              {item.label}
+            </button>
+          ))}
         </div>
 
-        {/* Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Content */}
+        <main id="main-content" className="flex-1 p-4 sm:p-6 max-w-5xl w-full mx-auto">
+          {/* Jobs View */}
+          {activeView === "jobs" && (
+            <WidgetErrorBoundary>
+              <JobFeed profile={profile} preferences={preferences} />
+            </WidgetErrorBoundary>
+          )}
 
-          {/* Sidebar */}
-          <div className="lg:col-span-1 space-y-4">
-            <DashboardSidebar
-              profile={profile}
-              visibility={visibility}
-              preferences={preferences}
-              onRefreshProfile={() => setProfile(null)}
-              onUploadProfile={handleResumeUpload}
-              onSignOut={handleSignOut}
-              onEditPreferences={() => setShowPreferences(true)}
-            />
-          </div>
+          {/* Applications View */}
+          {activeView === "applications" && (
+            <WidgetErrorBoundary>
+              <ApplicationsView />
+            </WidgetErrorBoundary>
+          )}
 
-          {/* Main Content with Tabs */}
-          <div className="lg:col-span-3">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-              <TabsList className="bg-secondary/50 border border-border/50 p-1 h-auto">
-                <TabsTrigger value="jobs" className="data-[state=active]:bg-background data-[state=active]:shadow-sm text-sm gap-1.5 px-4 py-2">
-                  <Briefcase className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Jobs</span>
-                </TabsTrigger>
-                <TabsTrigger value="applications" className="data-[state=active]:bg-background data-[state=active]:shadow-sm text-sm gap-1.5 px-4 py-2">
-                  <FileText className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Applications</span>
-                  {appCount > 0 && (
-                    <Badge variant="secondary" className="ml-1 h-5 min-w-[20px] flex items-center justify-center text-[10px] px-1.5">
-                      {appCount}
-                    </Badge>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger value="tools" className="data-[state=active]:bg-background data-[state=active]:shadow-sm text-sm gap-1.5 px-4 py-2">
-                  <LayoutGrid className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Tools</span>
-                </TabsTrigger>
-              </TabsList>
+          {/* Tools View */}
+          {activeView === "tools" && (
+            <div className="space-y-6 animate-fade-in">
+              <div>
+                <h2 className="text-xl font-semibold mb-1">AI Tools</h2>
+                <p className="text-sm text-muted-foreground">Supercharge your job search with intelligent automation.</p>
+              </div>
 
-              {/* Jobs Tab */}
-              <TabsContent value="jobs" className="mt-0 space-y-4">
-                <WidgetErrorBoundary>
-                  <JobFeed profile={profile} preferences={preferences} />
-                </WidgetErrorBoundary>
-              </TabsContent>
-
-              {/* Applications Tab */}
-              <TabsContent value="applications" className="mt-0">
-                <WidgetErrorBoundary>
-                  <ApplicationsView />
-                </WidgetErrorBoundary>
-              </TabsContent>
-
-              {/* Tools Tab */}
-              <TabsContent value="tools" className="mt-0 animate-fade-in-up">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Automated Applier Card First Item */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {tools.map((tool) => (
                   <button
-                      onClick={() => navigate("/auto-applier-settings")}
-                      className="group relative text-left p-6 rounded-2xl border border-primary/30 bg-card/40 backdrop-blur-md hover:border-primary/80 hover:shadow-glow transition-all duration-300 space-y-4 overflow-hidden"
-                    >
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-2xl -mr-16 -mt-16 transition-all group-hover:bg-primary/20"></div>
-                      <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center relative z-10 border border-primary/30">
-                        <Bot className="w-6 h-6 text-primary animate-pulse-slow" />
-                      </div>
-                      <div className="relative z-10">
-                        <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">Auto-Applier Bot</h3>
-                        <p className="text-sm text-muted-foreground mt-1">Configure your AI agent to mass-apply on LinkedIn while you sleep.</p>
-                      </div>
-                    </button>
+                    key={tool.title}
+                    onClick={tool.action}
+                    className={`group text-left p-5 rounded-xl border transition-all ${
+                      tool.featured
+                        ? "border-primary/30 bg-primary/5 hover:border-primary/50 hover:bg-primary/10"
+                        : "border-border bg-card hover:border-primary/20 hover:shadow-sm"
+                    }`}
+                  >
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${
+                      tool.featured ? "bg-primary/20" : "bg-muted"
+                    }`}>
+                      <tool.icon className={`w-5 h-5 ${tool.featured ? "text-primary" : "text-muted-foreground"}`} />
+                    </div>
+                    <h3 className="text-sm font-semibold mb-1 group-hover:text-primary transition-colors">{tool.title}</h3>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{tool.desc}</p>
+                  </button>
+                ))}
+              </div>
 
-                  {tools.map((tool) => (
-                    <button
-                      key={tool.title}
-                      onClick={tool.action}
-                      className="group text-left p-6 rounded-2xl border border-white/5 bg-card/40 backdrop-blur-md hover:border-white/20 hover:shadow-lg transition-all duration-300 space-y-4"
-                    >
-                      <div className={`w-12 h-12 rounded-xl ${tool.bg} flex items-center justify-center border border-white/10`}>
-                        <tool.icon className={`w-6 h-6 ${tool.color}`} />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-foreground transition-colors">{tool.title}</h3>
-                        <p className="text-sm text-muted-foreground mt-1">{tool.desc}</p>
-                      </div>
-                    </button>
-                  ))}
+              {!profile && (
+                <div className="p-4 rounded-lg bg-primary/5 border border-primary/10 text-sm text-muted-foreground">
+                  <strong className="text-foreground">Tip:</strong> Upload your resume to unlock all AI-powered tools.
+                  <Link to="/profile" className="text-primary font-medium ml-1 hover:underline">Go to Profile →</Link>
                 </div>
-
-                {/* Quick tip */}
-                {!profile && (
-                  <div className="mt-4 p-4 rounded-lg bg-secondary border border-border text-sm text-muted-foreground">
-                    <strong>Tip:</strong> Upload your resume from the sidebar to unlock all AI-powered tools.
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
-          </div>
-        </div>
+              )}
+            </div>
+          )}
+        </main>
       </div>
 
       {/* Modals */}
-      <PostInterviewModal
-        isOpen={showPostInterview}
-        onClose={() => setShowPostInterview(false)}
-        companyName="Target Company"
-        profile={profile}
-      />
-      <PricingModal
-        isOpen={showPricing}
-        onClose={() => setShowPricing(false)}
-      />
-      <JobUrlOptimizer
-        isOpen={showResumeOptimizer}
-        onClose={() => setShowResumeOptimizer(false)}
-        profile={profile}
-      />
-      <LinkedInOptimizer
-        isOpen={showLinkedIn}
-        onClose={() => setShowLinkedIn(false)}
-        profile={profile}
-      />
-      <PreferencesModal
-        isOpen={showPreferences}
-        onClose={() => setShowPreferences(false)}
-        preferences={preferences ?? null}
-      />
+      <PostInterviewModal isOpen={showPostInterview} onClose={() => setShowPostInterview(false)} companyName="Target Company" profile={profile} />
+      <PricingModal isOpen={showPricing} onClose={() => setShowPricing(false)} />
+      <JobUrlOptimizer isOpen={showResumeOptimizer} onClose={() => setShowResumeOptimizer(false)} profile={profile} />
+      <LinkedInOptimizer isOpen={showLinkedIn} onClose={() => setShowLinkedIn(false)} profile={profile} />
+      <PreferencesModal isOpen={showPreferences} onClose={() => setShowPreferences(false)} preferences={preferences ?? null} />
     </div>
   );
 };

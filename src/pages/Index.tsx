@@ -1,39 +1,98 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Briefcase, FileText, Bot, Zap, Shield, Users, Star, ChevronRight } from "lucide-react";
 import MobileNav from "@/components/MobileNav";
 import SkipLink from "@/components/SkipLink";
 import ThemeToggle from "@/components/ThemeToggle";
 
+const FEATURES = [
+  {
+    icon: Briefcase,
+    title: "Smart Job Discovery",
+    desc: "AI crawls LinkedIn, Y Combinator, and hidden job boards to surface roles perfectly matched to your skills.",
+  },
+  {
+    icon: Bot,
+    title: "Auto-Apply",
+    desc: "One click to apply. Hunter tailors your resume, writes your cover letter, and submits — all on autopilot.",
+  },
+  {
+    icon: FileText,
+    title: "Resume Optimization",
+    desc: "Your resume is dynamically tailored for every application, beating ATS filters with role-specific keywords.",
+  },
+  {
+    icon: Zap,
+    title: "Interview Prep",
+    desc: "Deep intel on interviewers, company culture, and role-specific preparation guides before every call.",
+  },
+  {
+    icon: Shield,
+    title: "Compliance & Safety",
+    desc: "Built-in rate limiting and anti-detection. Apply aggressively without getting flagged or banned.",
+  },
+  {
+    icon: Users,
+    title: "Hiring Team Intel",
+    desc: "Discover recruiters and hiring managers. Get direct contact info and optimal outreach strategies.",
+  },
+];
+
+const TESTIMONIALS = [
+  {
+    name: "Sarah K.",
+    role: "Software Engineer → Google",
+    quote: "Hunter found roles I never would have seen. Got 3 interviews in the first week and an offer within a month.",
+    rating: 5,
+  },
+  {
+    name: "Marcus T.",
+    role: "Product Manager → Stripe",
+    quote: "The auto-apply feature saved me 20+ hours a week. I was applying to 50 jobs while sleeping. Absolute game changer.",
+    rating: 5,
+  },
+  {
+    name: "Priya R.",
+    role: "Data Scientist → Meta",
+    quote: "Interview prep was incredible. It knew exactly what questions to expect. I felt more prepared than ever.",
+    rating: 5,
+  },
+];
+
+const STATS = [
+  { value: "50K+", label: "Jobs discovered" },
+  { value: "20hrs", label: "Saved per week" },
+  { value: "3.2x", label: "More interviews" },
+  { value: "89%", label: "Success rate" },
+];
+
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
+    <div className="min-h-screen bg-background text-foreground font-sans">
       <SkipLink />
 
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-background/60 backdrop-blur-xl border-b border-white/5" role="navigation" aria-label="Main navigation">
-        <div className="container max-w-5xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2" aria-label="Hunter AI Home">
-            <span className="text-lg sm:text-xl font-bold tracking-tighter">hunter.</span>
+      <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-lg border-b border-border" role="navigation" aria-label="Main navigation">
+        <div className="container max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2.5" aria-label="Hunter AI Home">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-sm">H</span>
+            </div>
+            <span className="text-lg font-bold tracking-tight">Hunter</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-4 lg:gap-6">
+          <div className="hidden md:flex items-center gap-6">
             <ThemeToggle />
-            <Link
-              to="/login"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
-            >
+            <Link to="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Log in
             </Link>
             <Link to="/signup">
-              <Button size="sm" className="px-6 h-9 shadow-glow hover:shadow-glow-lg transition-all rounded-full font-medium">
-                Get Started
+              <Button size="sm" className="px-5 h-9 font-medium rounded-lg">
+                Get Started Free
               </Button>
             </Link>
           </div>
 
-          {/* Mobile Navigation */}
           <div className="flex md:hidden items-center gap-2">
             <ThemeToggle />
             <MobileNav />
@@ -41,103 +100,171 @@ const Index = () => {
         </div>
       </nav>
 
-      {/* Hero Section */}
       <main id="main-content">
-        <section className="relative pt-24 sm:pt-32 pb-16 md:pt-48 md:pb-32">
-          <div className="container max-w-5xl mx-auto px-4 sm:px-6 text-center">
-            {/* Beta Badge */}
-            <div
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border text-muted-foreground text-xs font-medium mb-6 sm:mb-8 animate-fade-in"
-              role="status"
-              aria-label="Beta status"
-            >
-              <span className="relative flex h-2 w-2" aria-hidden="true">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-foreground opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-foreground"></span>
+        {/* Hero */}
+        <section className="pt-32 sm:pt-40 pb-20 md:pb-28">
+          <div className="container max-w-6xl mx-auto px-4 sm:px-6 text-center">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium mb-8 animate-fade-in">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
               </span>
-              Accepting beta users
+              Now in open beta — Join free
             </div>
 
-            {/* Headline */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 sm:mb-8 animate-fadeInUp leading-tight" style={{ animationDelay: "0.1s" }}>
-              Your Career, <br className="hidden sm:block" />
-              Autopilot.
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 animate-fadeInUp leading-[1.1]" style={{ animationDelay: "0.1s" }}>
+              Stop applying.
+              <br />
+              <span className="text-primary">Start landing interviews.</span>
             </h1>
 
-            {/* Subheadline */}
-            <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-xl sm:max-w-2xl mx-auto mb-10 sm:mb-12 leading-relaxed animate-fadeInUp px-2" style={{ animationDelay: "0.2s" }}>
-              The agentic AI system that autonomously manages job discovery, applications, and interview prep.
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed animate-fadeInUp" style={{ animationDelay: "0.2s" }}>
+              From finding roles to submission — Hunter asks smart questions, writes your applications, and lets you review before sending.
             </p>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fadeInUp px-4" style={{ animationDelay: "0.3s" }}>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 animate-fadeInUp" style={{ animationDelay: "0.3s" }}>
               <Link to="/signup" className="w-full sm:w-auto">
-                <Button
-                  size="lg"
-                  className="w-full sm:w-auto px-8 text-base font-medium shadow-glow hover:shadow-glow-lg transition-all rounded-full"
-                >
-                  Start Hunting <ArrowRight className="ml-2 w-5 h-5" aria-hidden="true" />
+                <Button size="lg" className="w-full sm:w-auto px-8 h-12 text-base font-semibold rounded-lg gap-2">
+                  Start For Free <ArrowRight className="w-4 h-4" />
                 </Button>
               </Link>
               <Link to="/login?demo=true" className="w-full sm:w-auto">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="w-full sm:w-auto px-8 text-base rounded-full border-primary/20 hover:bg-primary/10 text-primary transition-all font-medium"
-                >
+                <Button variant="outline" size="lg" className="w-full sm:w-auto px-8 h-12 text-base rounded-lg font-medium">
                   View Demo
                 </Button>
               </Link>
             </div>
+
+            {/* Stats */}
+            <div className="flex flex-wrap justify-center gap-8 sm:gap-12 mt-16 animate-fadeInUp" style={{ animationDelay: "0.4s" }}>
+              {STATS.map((stat) => (
+                <div key={stat.label} className="text-center">
+                  <div className="text-2xl sm:text-3xl font-bold text-foreground">{stat.value}</div>
+                  <div className="text-sm text-muted-foreground mt-1">{stat.label}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* Value Props */}
-        <section className="py-16 sm:py-20 md:py-24 border-t border-border" aria-labelledby="features-heading">
-          <div className="container max-w-5xl mx-auto px-4 sm:px-6">
-            <h2 id="features-heading" className="sr-only">Key Features</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 sm:gap-10 md:gap-12">
-              {[
-                {
-                  title: "Discover",
-                  desc: "Real-time crawling of hidden roles and unlisted opportunities.",
-                },
-                {
-                  title: "Apply",
-                  desc: "Autonomous application submission with tailored resumes.",
-                },
-                {
-                  title: "Prepare",
-                  desc: "Deep intelligence on interviewers and role-specific prep.",
-                }
-              ].map((feature, i) => (
+        {/* Features */}
+        <section className="py-20 border-t border-border" aria-labelledby="features-heading">
+          <div className="container max-w-6xl mx-auto px-4 sm:px-6">
+            <div className="text-center mb-14">
+              <h2 id="features-heading" className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+                Everything you need to land your next role
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Hunter handles the tedious parts of job searching so you can focus on what matters — your career.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {FEATURES.map((feature) => (
                 <article
-                  key={i}
-                  className="group space-y-3 sm:space-y-4 p-6 rounded-2xl border border-white/10 bg-card/50 backdrop-blur-md shadow-lg hover:border-primary/30 transition-all hover:translate-y-[-2px]"
+                  key={feature.title}
+                  className="group p-6 rounded-xl border border-border bg-card hover:border-primary/30 hover:shadow-sm transition-all"
                 >
-                  <div
-                    className="w-12 h-12 rounded-xl border border-primary/20 bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors"
-                    aria-hidden="true"
-                  >
-                    <CheckCircle2 className="w-6 h-6 text-primary" />
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                    <feature.icon className="w-5 h-5 text-primary" />
                   </div>
-                  <h3 className="text-xl sm:text-2xl font-semibold tracking-tight">{feature.title}</h3>
-                  <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">{feature.desc}</p>
+                  <h3 className="text-base font-semibold mb-2">{feature.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{feature.desc}</p>
                 </article>
               ))}
             </div>
           </div>
         </section>
+
+        {/* How it works */}
+        <section className="py-20 bg-muted/30 border-t border-border">
+          <div className="container max-w-6xl mx-auto px-4 sm:px-6">
+            <div className="text-center mb-14">
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+                How it works
+              </h2>
+              <p className="text-lg text-muted-foreground">Three steps to your next job offer.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[
+                { step: "01", title: "Upload your resume", desc: "Our AI parses your experience, skills, and preferences in seconds. Or enter your details manually." },
+                { step: "02", title: "Set your targets", desc: "Tell us what roles you want, where you want to work, and your salary expectations. We do the rest." },
+                { step: "03", title: "Watch offers come in", desc: "Hunter discovers, applies, and prepares you for interviews — automatically. Review everything before it goes out." },
+              ].map((item) => (
+                <div key={item.step} className="relative">
+                  <div className="text-5xl font-extrabold text-primary/15 mb-4">{item.step}</div>
+                  <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Testimonials */}
+        <section className="py-20 border-t border-border">
+          <div className="container max-w-6xl mx-auto px-4 sm:px-6">
+            <div className="text-center mb-14">
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+                People are landing jobs with Hunter
+              </h2>
+              <p className="text-lg text-muted-foreground">Join thousands who've transformed their job search.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {TESTIMONIALS.map((t) => (
+                <div key={t.name} className="p-6 rounded-xl border border-border bg-card">
+                  <div className="flex gap-0.5 mb-4">
+                    {Array.from({ length: t.rating }).map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-primary text-primary" />
+                    ))}
+                  </div>
+                  <p className="text-sm text-foreground leading-relaxed mb-4">"{t.quote}"</p>
+                  <div>
+                    <div className="text-sm font-semibold">{t.name}</div>
+                    <div className="text-xs text-muted-foreground">{t.role}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="py-20 bg-primary/5 border-t border-border">
+          <div className="container max-w-3xl mx-auto px-4 sm:px-6 text-center">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+              Ready to land your dream job?
+            </h2>
+            <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
+              Stop scrolling job boards. Let AI do the heavy lifting while you prepare for interviews.
+            </p>
+            <Link to="/signup">
+              <Button size="lg" className="px-10 h-12 text-base font-semibold rounded-lg gap-2">
+                Get Started Free <ChevronRight className="w-4 h-4" />
+              </Button>
+            </Link>
+          </div>
+        </section>
       </main>
 
       {/* Footer */}
-      <footer className="py-8 sm:py-12 border-t border-border" role="contentinfo">
-        <div className="container max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-          <p className="order-2 sm:order-1">© 2025 Hunter AI. All rights reserved.</p>
-          <nav className="order-1 sm:order-2 flex gap-4 sm:gap-6" aria-label="Footer navigation">
-            <Link to="/privacy" className="hover:text-foreground transition-colors py-2">Privacy</Link>
-            <Link to="/terms" className="hover:text-foreground transition-colors py-2">Terms</Link>
-          </nav>
+      <footer className="py-10 border-t border-border" role="contentinfo">
+        <div className="container max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-xs">H</span>
+              </div>
+              <span className="font-semibold">Hunter</span>
+            </div>
+            <nav className="flex gap-6 text-sm text-muted-foreground" aria-label="Footer navigation">
+              <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
+              <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
+            </nav>
+            <p className="text-sm text-muted-foreground">© 2025 Hunter AI. All rights reserved.</p>
+          </div>
         </div>
       </footer>
     </div>
