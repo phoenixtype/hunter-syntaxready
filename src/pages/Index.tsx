@@ -4,6 +4,7 @@ import { ArrowRight, Briefcase, FileText, Bot, Zap, Shield, Users, Star, Chevron
 import MobileNav from "@/components/MobileNav";
 import SkipLink from "@/components/SkipLink";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useAuth } from "@/hooks/useAuth";
 
 const FEATURES = [
   {
@@ -18,8 +19,8 @@ const FEATURES = [
   },
   {
     icon: FileText,
-    title: "Resume Optimization",
-    desc: "Your resume is dynamically tailored for every application, beating ATS filters with role-specific keywords.",
+    title: "Resume Builder",
+    desc: "Build a polished, ATS-optimized resume through a guided flow. Multiple templates to choose from.",
   },
   {
     icon: Zap,
@@ -67,6 +68,9 @@ const STATS = [
 ];
 
 const Index = () => {
+  const { user, loading } = useAuth();
+  const isAuthenticated = !loading && !!user;
+
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
       <SkipLink />
@@ -83,19 +87,29 @@ const Index = () => {
 
           <div className="hidden md:flex items-center gap-6">
             <ThemeToggle />
-            <Link to="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Log in
-            </Link>
-            <Link to="/signup">
-              <Button size="sm" className="px-5 h-9 font-medium rounded-lg">
-                Get Started Free
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <Link to="/dashboard">
+                <Button size="sm" className="px-5 h-9 font-medium rounded-lg">
+                  Go to Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link to="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                  Log in
+                </Link>
+                <Link to="/signup">
+                  <Button size="sm" className="px-5 h-9 font-medium rounded-lg">
+                    Get Started Free
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           <div className="flex md:hidden items-center gap-2">
             <ThemeToggle />
-            <MobileNav />
+            <MobileNav isAuthenticated={isAuthenticated} />
           </div>
         </div>
       </nav>
@@ -123,16 +137,26 @@ const Index = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 animate-fadeInUp" style={{ animationDelay: "0.3s" }}>
-              <Link to="/signup" className="w-full sm:w-auto">
-                <Button size="lg" className="w-full sm:w-auto px-8 h-12 text-base font-semibold rounded-lg gap-2">
-                  Start For Free <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-              <Link to="/login" className="w-full sm:w-auto">
-                <Button variant="outline" size="lg" className="w-full sm:w-auto px-8 h-12 text-base rounded-lg font-medium">
-                  Sign In
-                </Button>
-              </Link>
+              {isAuthenticated ? (
+                <Link to="/dashboard" className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full sm:w-auto px-8 h-12 text-base font-semibold rounded-lg gap-2">
+                    Go to Dashboard <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link to="/signup" className="w-full sm:w-auto">
+                    <Button size="lg" className="w-full sm:w-auto px-8 h-12 text-base font-semibold rounded-lg gap-2">
+                      Start For Free <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </Link>
+                  <Link to="/login" className="w-full sm:w-auto">
+                    <Button variant="outline" size="lg" className="w-full sm:w-auto px-8 h-12 text-base rounded-lg font-medium">
+                      Sign In
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Stats */}
@@ -188,7 +212,7 @@ const Index = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
-                { step: "01", title: "Upload your resume", desc: "Our AI parses your experience, skills, and preferences in seconds. Or enter your details manually." },
+                { step: "01", title: "Build your profile", desc: "Walk through a guided flow to enter your experience, skills, and education. Hunter crafts your resume for you." },
                 { step: "02", title: "Set your targets", desc: "Tell us what roles you want, where you want to work, and your salary expectations. We do the rest." },
                 { step: "03", title: "Watch offers come in", desc: "Hunter discovers, applies, and prepares you for interviews — automatically. Review everything before it goes out." },
               ].map((item) => (
@@ -240,11 +264,19 @@ const Index = () => {
             <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
               Stop scrolling job boards. Let AI do the heavy lifting while you prepare for interviews.
             </p>
-            <Link to="/signup">
-              <Button size="lg" className="px-10 h-12 text-base font-semibold rounded-lg gap-2">
-                Get Started Free <ChevronRight className="w-4 h-4" />
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <Link to="/dashboard">
+                <Button size="lg" className="px-10 h-12 text-base font-semibold rounded-lg gap-2">
+                  Go to Dashboard <ChevronRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/signup">
+                <Button size="lg" className="px-10 h-12 text-base font-semibold rounded-lg gap-2">
+                  Get Started Free <ChevronRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            )}
           </div>
         </section>
       </main>
