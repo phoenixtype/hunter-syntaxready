@@ -78,9 +78,14 @@ const MobileNav = ({ isAuthenticated = false, onSignOut }: MobileNavProps) => {
                 Sign Out
               </Button>
             ) : (
-              <Link to="/signup" onClick={() => setIsOpen(false)}>
-                <Button className="w-full">Get Started Free</Button>
-              </Link>
+              <>
+                <Link to="/login" onClick={() => setIsOpen(false)}>
+                  <Button variant="outline" className="w-full mb-2">Log In</Button>
+                </Link>
+                <Link to="/signup" onClick={() => setIsOpen(false)}>
+                  <Button className="w-full">Get Started Free</Button>
+                </Link>
+              </>
             )}
           </div>
         </div>

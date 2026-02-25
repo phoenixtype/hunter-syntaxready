@@ -5,9 +5,10 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Bell, Mail, Smartphone, Loader2 } from "lucide-react";
+import { Bell, Mail, Smartphone, Loader2, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
 
 interface NotificationPrefs {
@@ -23,6 +24,7 @@ interface NotificationPrefs {
 
 const NotificationSettings = () => {
   const { user } = useAuth();
+  const { isPro } = useSubscription();
   const [prefs, setPrefs] = useState<NotificationPrefs>({
     email_enabled: true,
     sms_enabled: false,
@@ -36,7 +38,6 @@ const NotificationSettings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testingEmail, setTestingEmail] = useState(false);
-  const [testingSms, setTestingSms] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -59,7 +60,6 @@ const NotificationSettings = () => {
           alert_frequency: data.alert_frequency,
         });
       } else if (!error || error.code === "PGRST116") {
-        // No record yet, use defaults with user email
         setPrefs(p => ({ ...p, notification_email: user.email || null }));
       }
       setLoading(false);
@@ -70,12 +70,11 @@ const NotificationSettings = () => {
   const save = async () => {
     if (!user) return;
     setSaving(true);
+    // If not Pro, force SMS off
+    const savePrefs = isPro ? prefs : { ...prefs, sms_enabled: false };
     const { error } = await supabase
       .from("notification_preferences")
-      .upsert({
-        user_id: user.id,
-        ...prefs,
-      }, { onConflict: "user_id" });
+      .upsert({ user_id: user.id, ...savePrefs }, { onConflict: "user_id" });
 
     if (error) {
       toast.error("Failed to save preferences");
@@ -106,27 +105,6 @@ const NotificationSettings = () => {
       console.error(err);
     }
     setTestingEmail(false);
-  };
-
-  const testSms = async () => {
-    if (!prefs.phone_number) return;
-    setTestingSms(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const { data, error } = await supabase.functions.invoke("send-sms", {
-        body: {
-          to: prefs.phone_number,
-          message: "🎯 Hunter AI: Test notification! Your SMS alerts are working correctly.",
-        },
-        headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
-      });
-      if (error) throw error;
-      toast.success("Test SMS sent!");
-    } catch (err) {
-      toast.error("Failed to send test SMS");
-      console.error(err);
-    }
-    setTestingSms(false);
   };
 
   if (loading) {
@@ -183,22 +161,36 @@ const NotificationSettings = () => {
         )}
       </Card>
 
-      {/* SMS Settings */}
-      <Card className="border-border">
+      {/* SMS Settings - Pro Only */}
+      <Card className={`border-border ${!isPro ? 'opacity-75' : ''}`}>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Smartphone className="w-4 h-4 text-primary" />
               <CardTitle className="text-base">SMS Notifications</CardTitle>
+              {!isPro && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-semibold uppercase tracking-wide">
+                  <Lock className="w-3 h-3" /> Pro
+                </span>
+              )}
             </div>
             <Switch
-              checked={prefs.sms_enabled}
-              onCheckedChange={(v) => setPrefs(p => ({ ...p, sms_enabled: v }))}
+              checked={isPro ? prefs.sms_enabled : false}
+              onCheckedChange={(v) => {
+                if (!isPro) {
+                  toast.error("SMS notifications are a Pro feature. Upgrade to enable.");
+                  return;
+                }
+                setPrefs(p => ({ ...p, sms_enabled: v }));
+              }}
+              disabled={!isPro}
             />
           </div>
-          <CardDescription className="text-xs">Get instant alerts via text message</CardDescription>
+          <CardDescription className="text-xs">
+            {isPro ? "Get instant alerts via text message" : "Upgrade to Pro for instant SMS alerts on new job matches"}
+          </CardDescription>
         </CardHeader>
-        {prefs.sms_enabled && (
+        {isPro && prefs.sms_enabled && (
           <CardContent className="space-y-4 pt-0">
             <div>
               <Label className="text-xs text-muted-foreground">Phone Number (with country code)</Label>
@@ -209,9 +201,6 @@ const NotificationSettings = () => {
                   placeholder="+1234567890"
                   className="flex-1"
                 />
-                <Button variant="outline" size="sm" onClick={testSms} disabled={testingSms || !prefs.phone_number}>
-                  {testingSms ? <Loader2 className="w-3 h-3 animate-spin" /> : "Test"}
-                </Button>
               </div>
             </div>
           </CardContent>

@@ -7,12 +7,234 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+const SITE_URL = Deno.env.get('SITE_URL') || 'https://hunter-syntaxready.lovable.app';
+
+// Design system colors
+const BRAND = {
+  primary: '#0d9488',
+  primaryLight: '#14b8a6',
+  primaryDark: '#0f766e',
+  accent: '#10b981',
+  bg: '#ffffff',
+  bgSubtle: '#f0fdfa',
+  bgMuted: '#f8fafc',
+  text: '#0f172a',
+  textSecondary: '#475569',
+  textMuted: '#94a3b8',
+  border: '#e2e8f0',
+  borderLight: '#f1f5f9',
+};
+
+function emailLayout(title: string, previewText: string, bodyContent: string): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
+</head>
+<body style="margin: 0; padding: 0; background-color: ${BRAND.bgMuted}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+  <div style="display: none; max-height: 0; overflow: hidden;">${previewText}</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: ${BRAND.bgMuted};">
+    <tr>
+      <td align="center" style="padding: 40px 16px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%;">
+          
+          <!-- Logo Header -->
+          <tr>
+            <td align="center" style="padding-bottom: 32px;">
+              <table role="presentation" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="background: ${BRAND.primary}; width: 36px; height: 36px; border-radius: 10px; text-align: center; vertical-align: middle;">
+                    <span style="color: #ffffff; font-weight: 700; font-size: 16px; line-height: 36px;">H</span>
+                  </td>
+                  <td style="padding-left: 10px;">
+                    <span style="font-size: 20px; font-weight: 700; color: ${BRAND.text}; letter-spacing: -0.5px;">Hunter</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Main Card -->
+          <tr>
+            <td style="background: ${BRAND.bg}; border-radius: 16px; border: 1px solid ${BRAND.border}; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+              ${bodyContent}
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 32px 24px 0; text-align: center;">
+              <p style="margin: 0 0 8px; font-size: 13px; color: ${BRAND.textMuted};">
+                Sent by <a href="${SITE_URL}" style="color: ${BRAND.primary}; text-decoration: none; font-weight: 500;">Hunter AI</a>
+              </p>
+              <p style="margin: 0; font-size: 12px; color: ${BRAND.textMuted};">
+                <a href="${SITE_URL}/dashboard" style="color: ${BRAND.textMuted}; text-decoration: underline;">Manage notification preferences</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+function buildJobAlertEmail(jobs: any[]): { subject: string; html: string } {
+  const jobCards = jobs.map((job: any) => `
+    <tr>
+      <td style="padding: 0 32px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid ${BRAND.border}; border-radius: 12px; overflow: hidden; margin-bottom: 12px;">
+          <tr>
+            <td style="padding: 20px;">
+              <h3 style="margin: 0 0 4px; font-size: 16px; font-weight: 600; color: ${BRAND.text};">${job.title}</h3>
+              <p style="margin: 0 0 12px; font-size: 14px; color: ${BRAND.textSecondary};">${job.company} · ${job.location || 'Remote'}</p>
+              ${job.salary_range ? `<p style="margin: 0 0 12px; font-size: 13px; color: ${BRAND.primary}; font-weight: 600;">${job.salary_range}</p>` : ''}
+              ${job.tech_stack?.length ? `<p style="margin: 0 0 12px; font-size: 12px; color: ${BRAND.textMuted};">${job.tech_stack.slice(0, 4).join(' · ')}</p>` : ''}
+              <a href="${job.url}" style="display: inline-block; font-size: 13px; font-weight: 600; color: ${BRAND.primary}; text-decoration: none;">View Job →</a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  `).join('');
+
+  const body = `
+    <!-- Hero Banner -->
+    <tr>
+      <td style="background: linear-gradient(135deg, ${BRAND.primary}, ${BRAND.accent}); padding: 40px 32px;">
+        <h1 style="margin: 0 0 8px; font-size: 24px; font-weight: 700; color: #ffffff;">🎯 New Job Matches</h1>
+        <p style="margin: 0; font-size: 15px; color: rgba(255,255,255,0.85);">We found ${jobs.length} role${jobs.length > 1 ? 's' : ''} matching your profile</p>
+      </td>
+    </tr>
+    <tr><td style="height: 24px;"></td></tr>
+    ${jobCards}
+    <tr>
+      <td align="center" style="padding: 20px 32px 36px;">
+        <a href="${SITE_URL}/dashboard" style="display: inline-block; background: ${BRAND.primary}; color: #ffffff; font-size: 14px; font-weight: 600; padding: 12px 32px; border-radius: 10px; text-decoration: none;">View All Jobs</a>
+      </td>
+    </tr>
+  `;
+
+  return {
+    subject: `🎯 ${jobs.length} New Job${jobs.length > 1 ? 's' : ''} Match Your Profile`,
+    html: emailLayout('New Job Matches', `${jobs.length} new jobs match your profile on Hunter AI`, `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${body}</table>`),
+  };
+}
+
+function buildApplicationUpdateEmail(data: any): { subject: string; html: string } {
+  const statusColors: Record<string, string> = {
+    applied: '#0d9488',
+    interview: '#7c3aed',
+    offer: '#16a34a',
+    rejected: '#dc2626',
+  };
+  const statusColor = statusColors[data?.status?.toLowerCase()] || BRAND.primary;
+
+  const body = `
+    <tr>
+      <td style="padding: 40px 32px;">
+        <h1 style="margin: 0 0 20px; font-size: 22px; font-weight: 700; color: ${BRAND.text};">📋 Application Update</h1>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: ${BRAND.bgSubtle}; border-radius: 12px; border: 1px solid ${BRAND.borderLight};">
+          <tr>
+            <td style="padding: 24px;">
+              <p style="margin: 0 0 4px; font-size: 15px; font-weight: 600; color: ${BRAND.text};">${data?.job_title || 'Your Application'}</p>
+              <p style="margin: 0 0 16px; font-size: 14px; color: ${BRAND.textSecondary};">${data?.company || 'Company'}</p>
+              <table role="presentation" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="background: ${statusColor}; color: #ffffff; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    ${data?.status || 'Updated'}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" style="padding: 0 32px 36px;">
+        <a href="${SITE_URL}/dashboard" style="display: inline-block; background: ${BRAND.primary}; color: #ffffff; font-size: 14px; font-weight: 600; padding: 12px 32px; border-radius: 10px; text-decoration: none;">View in Dashboard</a>
+      </td>
+    </tr>
+  `;
+
+  return {
+    subject: `📋 Application Update: ${data?.job_title || 'Your Application'}`,
+    html: emailLayout('Application Update', `Your application for ${data?.job_title} has been updated`, `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${body}</table>`),
+  };
+}
+
+function buildWeeklyDigestEmail(data: any): { subject: string; html: string } {
+  const body = `
+    <!-- Hero Banner -->
+    <tr>
+      <td style="background: linear-gradient(135deg, ${BRAND.primary}, ${BRAND.accent}); padding: 40px 32px;">
+        <h1 style="margin: 0 0 8px; font-size: 24px; font-weight: 700; color: #ffffff;">📊 Your Weekly Digest</h1>
+        <p style="margin: 0; font-size: 15px; color: rgba(255,255,255,0.85);">Here's how your job search is going</p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 32px;">
+        <!-- Stats Grid -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td width="50%" style="padding-right: 8px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: ${BRAND.bgSubtle}; border-radius: 12px; border: 1px solid ${BRAND.borderLight};">
+                <tr>
+                  <td align="center" style="padding: 24px 16px;">
+                    <div style="font-size: 36px; font-weight: 800; color: ${BRAND.primary}; line-height: 1;">${data?.applications_sent || 0}</div>
+                    <div style="font-size: 12px; color: ${BRAND.textSecondary}; margin-top: 6px; font-weight: 500;">Applications Sent</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+            <td width="50%" style="padding-left: 8px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: ${BRAND.bgSubtle}; border-radius: 12px; border: 1px solid ${BRAND.borderLight};">
+                <tr>
+                  <td align="center" style="padding: 24px 16px;">
+                    <div style="font-size: 36px; font-weight: 800; color: ${BRAND.primary}; line-height: 1;">${data?.new_jobs || 0}</div>
+                    <div style="font-size: 12px; color: ${BRAND.textSecondary}; margin-top: 6px; font-weight: 500;">New Matches</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        ${data?.interviews ? `
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top: 16px; background: ${BRAND.bgSubtle}; border-radius: 12px; border: 1px solid ${BRAND.borderLight};">
+          <tr>
+            <td align="center" style="padding: 24px 16px;">
+              <div style="font-size: 36px; font-weight: 800; color: #7c3aed; line-height: 1;">${data.interviews}</div>
+              <div style="font-size: 12px; color: ${BRAND.textSecondary}; margin-top: 6px; font-weight: 500;">Interviews Scheduled</div>
+            </td>
+          </tr>
+        </table>` : ''}
+      </td>
+    </tr>
+    <tr>
+      <td align="center" style="padding: 0 32px 36px;">
+        <a href="${SITE_URL}/dashboard" style="display: inline-block; background: ${BRAND.primary}; color: #ffffff; font-size: 14px; font-weight: 600; padding: 12px 32px; border-radius: 10px; text-decoration: none;">Open Dashboard</a>
+      </td>
+    </tr>
+  `;
+
+  return {
+    subject: '📊 Your Weekly Job Hunt Digest',
+    html: emailLayout('Weekly Digest', 'Your weekly job search progress summary from Hunter AI', `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${body}</table>`),
+  };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Health check
   if (req.method === 'GET' || req.method === 'HEAD') {
     return new Response(JSON.stringify({ status: 'healthy' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -50,61 +272,21 @@ serve(async (req) => {
     const resend = new Resend(resendKey);
     const { type, to, subject, html, data } = await req.json();
 
-    // Build email based on type
     let emailSubject = subject || 'Hunter AI Notification';
     let emailHtml = html || '';
 
     if (type === 'job_alert') {
-      const jobs = data?.jobs || [];
-      emailSubject = `🎯 ${jobs.length} New Jobs Match Your Profile`;
-      emailHtml = `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #0d9488, #10b981); padding: 24px; border-radius: 12px; margin-bottom: 24px;">
-            <h1 style="color: white; margin: 0; font-size: 24px;">🎯 New Job Matches</h1>
-            <p style="color: rgba(255,255,255,0.85); margin: 8px 0 0; font-size: 14px;">Found ${jobs.length} roles matching your profile</p>
-          </div>
-          ${jobs.map((job: any) => `
-            <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
-              <h3 style="margin: 0 0 4px; font-size: 16px; color: #1f2937;">${job.title}</h3>
-              <p style="margin: 0 0 8px; font-size: 14px; color: #6b7280;">${job.company} • ${job.location || 'Remote'}</p>
-              ${job.salary_range ? `<p style="margin: 0 0 8px; font-size: 13px; color: #0d9488; font-weight: 600;">${job.salary_range}</p>` : ''}
-              <a href="${job.url}" style="color: #0d9488; font-size: 13px; text-decoration: none;">View Job →</a>
-            </div>
-          `).join('')}
-          <p style="color: #9ca3af; font-size: 12px; text-align: center; margin-top: 24px;">
-            Sent by Hunter AI • <a href="${Deno.env.get('SITE_URL') || 'https://hunter-syntaxready.lovable.app'}/dashboard" style="color: #0d9488;">Manage notifications</a>
-          </p>
-        </div>
-      `;
+      const result = buildJobAlertEmail(data?.jobs || []);
+      emailSubject = result.subject;
+      emailHtml = result.html;
     } else if (type === 'application_update') {
-      emailSubject = `📋 Application Update: ${data?.job_title || 'Your Application'}`;
-      emailHtml = `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #1f2937;">Application Status Update</h2>
-          <p>Your application for <strong>${data?.job_title}</strong> at <strong>${data?.company}</strong> has been updated to: <strong>${data?.status}</strong></p>
-          <a href="${Deno.env.get('SITE_URL') || 'https://hunter-syntaxready.lovable.app'}/dashboard" style="display: inline-block; background: #0d9488; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; margin-top: 16px;">View in Dashboard</a>
-        </div>
-      `;
+      const result = buildApplicationUpdateEmail(data);
+      emailSubject = result.subject;
+      emailHtml = result.html;
     } else if (type === 'weekly_digest') {
-      emailSubject = `📊 Your Weekly Job Hunt Digest`;
-      emailHtml = `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #0d9488, #10b981); padding: 24px; border-radius: 12px; margin-bottom: 24px;">
-            <h1 style="color: white; margin: 0;">📊 Weekly Digest</h1>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
-            <div style="background: #f0fdfa; padding: 16px; border-radius: 8px; text-align: center;">
-              <div style="font-size: 28px; font-weight: 700; color: #0d9488;">${data?.applications_sent || 0}</div>
-              <div style="font-size: 12px; color: #6b7280;">Applications Sent</div>
-            </div>
-            <div style="background: #f0fdfa; padding: 16px; border-radius: 8px; text-align: center;">
-              <div style="font-size: 28px; font-weight: 700; color: #0d9488;">${data?.new_jobs || 0}</div>
-              <div style="font-size: 12px; color: #6b7280;">New Matches</div>
-            </div>
-          </div>
-          <a href="${Deno.env.get('SITE_URL') || 'https://hunter-syntaxready.lovable.app'}/dashboard" style="display: inline-block; background: #0d9488; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none;">Open Dashboard</a>
-        </div>
-      `;
+      const result = buildWeeklyDigestEmail(data);
+      emailSubject = result.subject;
+      emailHtml = result.html;
     }
 
     const recipientEmail = to || user.email;
