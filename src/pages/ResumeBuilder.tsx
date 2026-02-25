@@ -16,6 +16,7 @@ import {
   ArrowLeft, ArrowRight, X, Plus, User, Briefcase,
   Sparkles, GraduationCap, FileText, Download, Loader2, Check, Layout
 } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 import DashboardSkeleton from "@/components/DashboardSkeleton";
 
 const STEPS = [
@@ -215,34 +216,32 @@ const ResumeBuilder = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Progress Header */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
-        <Progress value={progressPercent} className="h-1 rounded-none bg-muted [&>div]:bg-primary" />
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => stepIndex > 0 ? goBack() : navigate("/dashboard")}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <span className="text-sm font-medium text-muted-foreground">
-              {STEPS[stepIndex].label} · Step {stepIndex + 1} of {STEPS.length}
+      <PageHeader
+        breadcrumbs={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Resume Builder" },
+        ]}
+        icon={<FileText className="w-4 h-4 text-primary" />}
+        actions={
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground hidden sm:inline">
+              {STEPS[stepIndex].label} · Step {stepIndex + 1}/{STEPS.length}
             </span>
+            <div className="hidden sm:flex items-center gap-1.5">
+              {STEPS.map((s, i) => (
+                <button
+                  key={s.id}
+                  onClick={() => i <= stepIndex && setCurrentStep(s.id)}
+                  className={`w-2.5 h-2.5 rounded-full transition-all ${
+                    i === stepIndex ? "bg-primary scale-125" : i < stepIndex ? "bg-primary/50 cursor-pointer" : "bg-muted"
+                  }`}
+                />
+              ))}
+            </div>
           </div>
-          <div className="hidden sm:flex items-center gap-1.5">
-            {STEPS.map((s, i) => (
-              <button
-                key={s.id}
-                onClick={() => i <= stepIndex && setCurrentStep(s.id)}
-                className={`w-2.5 h-2.5 rounded-full transition-all ${
-                  i === stepIndex ? "bg-primary scale-125" : i < stepIndex ? "bg-primary/50 cursor-pointer" : "bg-muted"
-                }`}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
+        }
+      />
+      <Progress value={progressPercent} className="h-1 rounded-none bg-muted [&>div]:bg-primary" />
 
       <div className="pt-20 pb-32 px-4">
         <div className="max-w-3xl mx-auto">

@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, Search, Briefcase, FileText, UserPlus, FileCheck } from "lucide-react";
+import { Loader2, Search, Briefcase, FileText, UserPlus, FileCheck } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 import { triggerJobCrawl, JobOpportunity } from "@/lib/crawler_engine";
 import { generateTailoredContent, TailoredContent } from "@/lib/writer_engine";
 import { findStakeholders, Stakeholder } from "@/lib/recruiter_engine";
@@ -85,21 +86,18 @@ const ApplicationWizard = () => {
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background p-6">
-            <header className="mb-10 container max-w-4xl mx-auto pt-6 animate-fade-in-up">
-                <Button variant="ghost" onClick={() => navigate("/dashboard")} className="gap-2 mb-6 text-muted-foreground hover:text-foreground transition-all">
-                    <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-                </Button>
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30">
-                    <Briefcase className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Targeted Application Wizard</h1>
-                    <p className="text-muted-foreground text-lg mt-1">Paste a job link to generate a tailored strategy using Auto-Applier AI.</p>
-                  </div>
-                </div>
-            </header>
+        <div className="min-h-screen bg-background text-foreground bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
+            <PageHeader
+              breadcrumbs={[
+                { label: "Dashboard", href: "/dashboard" },
+                { label: "Application Wizard" },
+              ]}
+              icon={<Briefcase className="w-4 h-4 text-primary" />}
+            />
+            <div className="container max-w-4xl mx-auto px-6 pt-8 pb-6 animate-fade-in-up">
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Targeted Application Wizard</h1>
+              <p className="text-muted-foreground text-lg mt-1">Paste a job link to generate a tailored strategy using Auto-Applier AI.</p>
+            </div>
 
             <main className="container max-w-4xl mx-auto space-y-8 animate-fade-in-up">
 
