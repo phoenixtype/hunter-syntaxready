@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Briefcase, FileText, Search, Link2, Linkedin, MessageSquare, User, Settings, LogOut, Loader2, ChevronRight, Zap, Bot, LayoutGrid, GraduationCap } from "lucide-react";
+import { Briefcase, FileText, Search, Link2, Linkedin, MessageSquare, User, Settings, LogOut, Loader2, ChevronRight, Zap, Bot, LayoutGrid, GraduationCap, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -23,13 +23,15 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import WidgetErrorBoundary from "@/components/WidgetErrorBoundary";
 import { ApplicationsView } from "@/components/ApplicationsView";
 import PreferencesModal from "@/components/PreferencesModal";
+import NotificationSettings from "@/components/NotificationSettings";
 
-type DashboardView = "jobs" | "applications" | "tools";
+type DashboardView = "jobs" | "applications" | "tools" | "notifications";
 
 const NAV_ITEMS = [
   { id: "jobs" as const, label: "Jobs", icon: Briefcase },
   { id: "applications" as const, label: "Applications", icon: FileText },
   { id: "tools" as const, label: "Tools", icon: LayoutGrid },
+  { id: "notifications" as const, label: "Alerts", icon: Bell },
 ];
 
 const Dashboard = () => {
@@ -98,9 +100,9 @@ const Dashboard = () => {
     },
     {
       icon: GraduationCap,
-      title: "Interview Prep",
-      desc: "Role-specific preparation guides",
-      action: () => navigate("/application-wizard"),
+      title: "Interview Coach",
+      desc: "AI-powered mock interviews",
+      action: () => navigate("/interview-coach?title=Software+Engineer&company=Target+Company"),
     },
   ];
 
@@ -251,6 +253,12 @@ const Dashboard = () => {
             </WidgetErrorBoundary>
           )}
 
+          {/* Notifications View */}
+          {activeView === "notifications" && (
+            <WidgetErrorBoundary>
+              <NotificationSettings />
+            </WidgetErrorBoundary>
+          )}
           {/* Tools View */}
           {activeView === "tools" && (
             <div className="space-y-6 animate-fade-in">

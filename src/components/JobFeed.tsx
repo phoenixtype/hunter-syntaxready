@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ interface JobFeedProps {
 }
 
 const JobFeed = ({ profile, preferences }: JobFeedProps) => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { jobs, jobCount, loading, crawling, refreshJobs, crawl } = useJobs(profile, preferences);
   const [searchQuery, setSearchQuery] = useState("");
@@ -204,7 +206,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                       <Button variant="outline" size="sm" onClick={() => handleTailor(job)} className="h-8 text-xs">
                         <PenTool className="w-3 h-3 mr-1.5" />Tailor
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => setPrepJob(job)} className="h-8 text-xs">
+                      <Button variant="ghost" size="sm" onClick={() => navigate(`/interview-coach?title=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}&desc=${encodeURIComponent(job.description?.substring(0, 500) || '')}`)} className="h-8 text-xs">
                         <GraduationCap className="w-3 h-3 mr-1.5" />Prep
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => handleExpandJob(job.id)} className="h-8 text-xs ml-auto">
