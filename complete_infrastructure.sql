@@ -235,18 +235,10 @@ ON CONFLICT (user_id) DO NOTHING;
 
 -- 8. AUTO-HUNT SCHEDULING (CRON)
 -- This schedules the job to run every 6 hours
-SELECT cron.schedule(
-  'auto-hunt-crawl',
-  '0 */6 * * *',
-  $$
-  SELECT
-    net.http_post(
-      url:='https://ffjsgjsiemtxqbhimvhb.supabase.co/functions/v1/crawl-jobs',
-      headers:='{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmanNnanNpZW10eHFiaGltdmhiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjQyNzg3MCwiZXhwIjoyMDgyMDAzODcwfQ.j_mb16oHDoiU1GK7JVs5HXStGGxAdiaOgEedXM-_-2s"}'::jsonb,
-      body:='{"sources": ["LinkedIn jobs", "Indeed jobs"], "keywords": ["remote", "hiring now"]}'::jsonb
-    ) as request_id;
-  $$
-);
+-- NOTE: Auto-hunt cron scheduling should be configured via Supabase Dashboard > Database > Extensions > pg_cron
+-- using your service role key from the Supabase project settings. Never hardcode secrets in SQL files.
+-- Example schedule: '0 */6 * * *' (every 6 hours)
+-- Target: your crawl-jobs edge function endpoint
 
 -- 9. PERFORMANCE INDEXES
 -- Add indexes for frequently queried columns to improve performance

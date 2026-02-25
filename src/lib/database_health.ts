@@ -78,10 +78,7 @@ export const checkDatabaseHealth = async (): Promise<DatabaseHealthStatus> => {
     // Generate recommendations
     if (status.missingTables.length > 0) {
         status.recommendations.push(
-            '🔧 Run complete_infrastructure.sql in your Supabase SQL Editor to create missing tables'
-        );
-        status.recommendations.push(
-            '📍 File location: /Users/savvy/Desktop/hunter-syntaxready/complete_infrastructure.sql'
+            '🔧 Run the database setup migration in Supabase SQL Editor to create missing tables'
         );
     }
 
