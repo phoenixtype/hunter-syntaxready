@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Link2, Copy, Check, FileText, ClipboardPaste } from "lucide-react";
+import { Loader2, Link2, Copy, Check, FileText, ClipboardPaste, FileDown } from "lucide-react";
 import { CandidateProfile } from "@/lib/resume_engine";
 import { optimizeResumeForJobUrl, TailoredContent } from "@/lib/writer_engine";
+import { exportResumeToPdf } from "@/lib/pdf_export";
 import { toast } from "sonner";
 
 interface JobUrlOptimizerProps {
@@ -170,6 +171,20 @@ const JobUrlOptimizer = ({ isOpen, onClose, profile }: JobUrlOptimizerProps) => 
                                     <TabsTrigger value="cover-letter">Cover Letter</TabsTrigger>
                                     <TabsTrigger value="resume-tips">Resume Tips</TabsTrigger>
                                 </TabsList>
+                                <Button
+                                    variant="default"
+                                    size="sm"
+                                    onClick={() => {
+                                        if (result && profile) {
+                                            exportResumeToPdf(result.resume, result.coverLetter);
+                                            toast.success("Download started — use Print → Save as PDF");
+                                        }
+                                    }}
+                                    className="gap-1.5"
+                                >
+                                    <FileDown className="w-3.5 h-3.5" />
+                                    Download PDF
+                                </Button>
                             </div>
                             <TabsContent value="cover-letter" className="mt-3">
                                 <div className="flex justify-end mb-2">
