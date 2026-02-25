@@ -2,14 +2,8 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
-import { Menu, X, Home, LogIn, UserPlus, LayoutDashboard, Settings } from "lucide-react";
+import { Menu, Home, LogIn, UserPlus, LayoutDashboard, User, Settings } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
-
-interface NavItem {
-  label: string;
-  href: string;
-  icon: React.ReactNode;
-}
 
 interface MobileNavProps {
   isAuthenticated?: boolean;
@@ -20,95 +14,72 @@ const MobileNav = ({ isAuthenticated = false, onSignOut }: MobileNavProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
-  const publicNavItems: NavItem[] = [
-    { label: "Home", href: "/", icon: <Home className="w-5 h-5" /> },
-    { label: "Log In", href: "/login", icon: <LogIn className="w-5 h-5" /> },
-    { label: "Sign Up", href: "/signup", icon: <UserPlus className="w-5 h-5" /> },
+  const publicNavItems = [
+    { label: "Home", href: "/", icon: Home },
+    { label: "Log In", href: "/login", icon: LogIn },
+    { label: "Sign Up", href: "/signup", icon: UserPlus },
   ];
 
-  const authNavItems: NavItem[] = [
-    { label: "Dashboard", href: "/dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
-    { label: "Settings", href: "/onboarding", icon: <Settings className="w-5 h-5" /> },
+  const authNavItems = [
+    { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { label: "Profile", href: "/profile", icon: User },
+    { label: "Settings", href: "/auto-applier-settings", icon: Settings },
   ];
 
   const navItems = isAuthenticated ? authNavItems : publicNavItems;
-
   const isActive = (href: string) => location.pathname === href;
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="md:hidden h-10 w-10 touch-manipulation"
-          aria-label="Open navigation menu"
-        >
-          <Menu className="h-6 w-6" />
+        <Button variant="ghost" size="icon" className="lg:hidden h-10 w-10" aria-label="Menu">
+          <Menu className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent 
-        side="right" 
-        className="w-[300px] sm:w-[350px] p-0"
-        aria-describedby="mobile-nav-description"
-      >
-        <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-        <div id="mobile-nav-description" className="sr-only">
-          Main navigation menu for mobile devices
-        </div>
+      <SheetContent side="right" className="w-[280px] p-0" aria-describedby="mobile-nav-desc">
+        <SheetTitle className="sr-only">Navigation</SheetTitle>
+        <div id="mobile-nav-desc" className="sr-only">Mobile navigation menu</div>
+
         <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-border">
+          <div className="flex items-center justify-between p-5 border-b border-border">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-foreground font-bold text-xl">
-                h.
+              <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-xs">H</span>
               </div>
-              <span className="font-bold tracking-tight">hunter.</span>
+              <span className="font-bold">Hunter</span>
             </div>
             <ThemeToggle />
           </div>
 
-          {/* Navigation Links */}
-          <nav className="flex-1 p-4" aria-label="Mobile navigation">
-            <ul className="space-y-2">
+          <nav className="flex-1 p-3" aria-label="Mobile navigation">
+            <ul className="space-y-1">
               {navItems.map((item) => (
                 <li key={item.href}>
                   <Link
                     to={item.href}
                     onClick={() => setIsOpen(false)}
-                    className={`flex items-center gap-4 px-4 py-4 rounded-lg transition-colors min-h-[56px] ${
+                    className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors ${
                       isActive(item.href)
-                        ? "bg-primary text-primary-foreground"
-                        : "hover:bg-muted active:bg-muted/80"
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     }`}
-                    aria-current={isActive(item.href) ? "page" : undefined}
                   >
-                    {item.icon}
-                    <span className="font-medium">{item.label}</span>
+                    <item.icon className="w-4 h-4" />
+                    {item.label}
                   </Link>
                 </li>
               ))}
             </ul>
           </nav>
 
-          {/* Footer Actions */}
-          <div className="p-4 border-t border-border space-y-3">
+          <div className="p-3 border-t border-border">
             {isAuthenticated ? (
-              <Button
-                variant="outline"
-                className="w-full h-12 touch-manipulation"
-                onClick={() => {
-                  onSignOut?.();
-                  setIsOpen(false);
-                }}
-              >
+              <Button variant="outline" className="w-full" onClick={() => { onSignOut?.(); setIsOpen(false); }}>
                 Sign Out
               </Button>
             ) : (
               <Link to="/signup" onClick={() => setIsOpen(false)}>
-                <Button className="w-full h-12 touch-manipulation">
-                  Get Started Free
-                </Button>
+                <Button className="w-full">Get Started Free</Button>
               </Link>
             )}
           </div>

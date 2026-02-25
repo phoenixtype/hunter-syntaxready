@@ -19,7 +19,6 @@ import {
   User, Briefcase, Sparkles, GraduationCap, Target, Check
 } from "lucide-react";
 
-// Steps for the onboarding wizard
 const STEPS = [
   { id: "method", label: "Start", icon: Sparkles },
   { id: "identity", label: "You", icon: User },
@@ -45,7 +44,6 @@ const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState<StepId>("method");
   const [profile, setProfile] = useState<CandidateProfile>({ ...emptyProfile });
 
-  // Preferences state
   const [roles, setRoles] = useState<string[]>([]);
   const [currentRole, setCurrentRole] = useState("");
   const [salary, setSalary] = useState([120000]);
@@ -57,13 +55,9 @@ const Onboarding = () => {
     if (!authLoading && !user) navigate("/login");
   }, [user, authLoading, navigate]);
 
-  // Pre-fill email from auth
   useEffect(() => {
     if (user?.email && !profile.identity.email) {
-      setProfile(prev => ({
-        ...prev,
-        identity: { ...prev.identity, email: user.email! }
-      }));
+      setProfile(prev => ({ ...prev, identity: { ...prev.identity, email: user.email! } }));
     }
   }, [user]);
 
@@ -79,20 +73,17 @@ const Onboarding = () => {
     if (idx > 0) setCurrentStep(STEPS[idx - 1].id);
   };
 
-  // Resume upload handler — pre-fill everything and jump to preferences
   const handleResumeParsed = (parsed: CandidateProfile) => {
     setProfile(parsed);
-    // Pre-fill roles from experience
     const suggestedRoles = [
       ...parsed.experience_atoms.map(e => e.role),
       ...parsed.skills.slice(0, 3).map(s => s.name),
     ].filter(Boolean).slice(0, 5);
     setRoles(prev => Array.from(new Set([...prev, ...suggestedRoles])));
-    toast.success("Resume parsed! Review your details or skip ahead.");
+    toast.success("Resume parsed! Review your details.");
     setCurrentStep("identity");
   };
 
-  // Final submit
   const handleFinish = async () => {
     if (!user) return;
     setSaving(true);
@@ -106,19 +97,14 @@ const Onboarding = () => {
         aggressiveness: aggressiveness[0],
         safe_mode: true,
       });
-
-      // Trigger job crawl in background with full preferences
-      const keywords = [
-        ...profile.skills.slice(0, 5).map(s => s.name),
-      ].filter(Boolean);
+      const keywords = profile.skills.slice(0, 5).map(s => s.name).filter(Boolean);
       triggerJobCrawl({
         keywords: keywords.length > 0 ? keywords : undefined,
         targetRoles: roles.length > 0 ? roles : undefined,
         location: locations.trim() || undefined,
         remotePolicy: remotePolicy,
       }).catch(() => {});
-
-      toast.success("You're all set! Let's find your next role.");
+      toast.success("You're all set!");
       navigate("/dashboard");
     } catch (err) {
       console.error("Onboarding save failed:", err);
@@ -128,17 +114,13 @@ const Onboarding = () => {
     }
   };
 
-  // Helpers for editing profile
   const updateIdentity = (field: string, value: string) =>
     setProfile(p => ({ ...p, identity: { ...p.identity, [field]: value } }));
 
   const addExperience = () =>
     setProfile(p => ({
       ...p,
-      experience_atoms: [
-        ...p.experience_atoms,
-        { id: crypto.randomUUID(), company: "", role: "", duration: "", content: "", keywords: [] },
-      ],
+      experience_atoms: [...p.experience_atoms, { id: crypto.randomUUID(), company: "", role: "", duration: "", content: "", keywords: [] }],
     }));
 
   const updateExperience = (idx: number, field: keyof ExperienceAtom, value: any) =>
@@ -154,20 +136,14 @@ const Onboarding = () => {
   const addSkill = (name: string) => {
     if (!name.trim()) return;
     if (profile.skills.some(s => s.name.toLowerCase() === name.trim().toLowerCase())) return;
-    setProfile(p => ({
-      ...p,
-      skills: [...p.skills, { name: name.trim(), proficiency: 3, evidence: [] }],
-    }));
+    setProfile(p => ({ ...p, skills: [...p.skills, { name: name.trim(), proficiency: 3, evidence: [] }] }));
   };
 
   const removeSkill = (idx: number) =>
     setProfile(p => ({ ...p, skills: p.skills.filter((_, i) => i !== idx) }));
 
   const addEducation = () =>
-    setProfile(p => ({
-      ...p,
-      education: [...p.education, { school: "", degree: "", year: "" }],
-    }));
+    setProfile(p => ({ ...p, education: [...p.education, { school: "", degree: "", year: "" }] }));
 
   const updateEducation = (idx: number, field: keyof Education, value: string) =>
     setProfile(p => {
@@ -179,14 +155,13 @@ const Onboarding = () => {
   const removeEducation = (idx: number) =>
     setProfile(p => ({ ...p, education: p.education.filter((_, i) => i !== idx) }));
 
-  // Can user skip to end?
   const canFinish = roles.length > 0 || profile.experience_atoms.length > 0;
 
   return (
-    <div className="min-h-screen bg-background text-foreground bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
-      {/* Top progress bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-background/60 backdrop-blur-xl border-b border-white/5">
-        <Progress value={progressPercent} className="h-1 rounded-none bg-secondary [&>div]:bg-primary shadow-glow" />
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Progress bar */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+        <Progress value={progressPercent} className="h-1 rounded-none bg-muted [&>div]:bg-primary" />
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {stepIndex > 0 && (
@@ -200,62 +175,46 @@ const Onboarding = () => {
           </div>
           <div className="hidden sm:flex items-center gap-1">
             {STEPS.map((s, i) => (
-              <div
-                key={s.id}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  i <= stepIndex ? "bg-primary" : "bg-muted"
-                }`}
-              />
+              <div key={s.id} className={`w-2 h-2 rounded-full transition-colors ${i <= stepIndex ? "bg-primary" : "bg-muted"}`} />
             ))}
           </div>
           {canFinish && currentStep !== "method" && (
-            <button
-              onClick={() => setCurrentStep("preferences")}
-              className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
-            >
+            <button onClick={() => setCurrentStep("preferences")} className="text-xs text-primary hover:underline underline-offset-2">
               Skip to finish
             </button>
           )}
         </div>
       </div>
 
-      {/* Content area */}
       <div className="pt-20 pb-32 px-4">
         <div className="max-w-2xl mx-auto">
 
-          {/* ===== STEP: METHOD ===== */}
+          {/* METHOD */}
           {currentStep === "method" && (
             <div className="animate-fade-in space-y-8 text-center pt-12">
               <div className="space-y-3">
-                <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-                  Let's build your profile
-                </h1>
-                <p className="text-muted-foreground text-lg max-w-md mx-auto">
-                  Choose how you'd like to get started. You can always edit everything later.
-                </p>
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Let's build your profile</h1>
+                <p className="text-muted-foreground text-lg max-w-md mx-auto">Choose how you'd like to get started.</p>
               </div>
-
               <div className="grid gap-4 max-w-md mx-auto pt-4">
                 <button
                   onClick={() => setCurrentStep("identity")}
-                  className="group flex items-center gap-4 p-5 rounded-2xl border border-white/10 bg-card/50 backdrop-blur-xl shadow-lg hover:border-primary/30 hover:-translate-y-1 transition-all text-left"
+                  className="group flex items-center gap-4 p-5 rounded-xl border border-border bg-card hover:border-primary/30 transition-all text-left"
                 >
-                  <div className="h-12 w-12 rounded-xl bg-primary/20 flex items-center justify-center shrink-0 border border-primary/30">
+                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                     <PenLine className="w-5 h-5 text-primary" />
                   </div>
                   <div>
                     <p className="font-semibold group-hover:text-primary transition-colors">Enter manually</p>
                     <p className="text-sm text-muted-foreground">Fill in your details step by step</p>
                   </div>
-                  <ArrowRight className="w-4 h-4 ml-auto text-muted-foreground group-hover:text-primary transition-colors" />
+                  <ArrowRight className="w-4 h-4 ml-auto text-muted-foreground" />
                 </button>
 
                 <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-white/10" />
-                  </div>
+                  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
                   <div className="relative flex justify-center">
-                    <span className="bg-background/80 backdrop-blur-sm px-3 text-xs text-muted-foreground uppercase tracking-wider">or</span>
+                    <span className="bg-background px-3 text-xs text-muted-foreground uppercase tracking-wider">or</span>
                   </div>
                 </div>
 
@@ -267,213 +226,131 @@ const Onboarding = () => {
             </div>
           )}
 
-          {/* ===== STEP: IDENTITY ===== */}
+          {/* IDENTITY */}
           {currentStep === "identity" && (
             <div className="animate-fade-in space-y-8 pt-8">
               <div className="space-y-2">
                 <h2 className="text-2xl font-bold">About you</h2>
-                <p className="text-muted-foreground">Basic contact information for your profile.</p>
+                <p className="text-muted-foreground">Basic contact information.</p>
               </div>
-
               <div className="space-y-5">
+                {[
+                  { label: "Full Name", value: profile.identity.name, field: "name", placeholder: "Jane Smith" },
+                  { label: "Email", value: profile.identity.email, field: "email", placeholder: "jane@example.com", type: "email" },
+                  { label: "Phone", value: profile.identity.phone || "", field: "phone", placeholder: "+1 (555) 000-0000", optional: true },
+                ].map(item => (
+                  <div key={item.field} className="space-y-2">
+                    <Label>{item.label} {item.optional && <span className="text-muted-foreground text-xs">(optional)</span>}</Label>
+                    <Input
+                      value={item.value}
+                      onChange={e => updateIdentity(item.field, e.target.value)}
+                      placeholder={item.placeholder}
+                      type={item.type || "text"}
+                      className="h-12"
+                    />
+                  </div>
+                ))}
                 <div className="space-y-2">
-                  <Label>Full Name</Label>
-                  <Input
-                    value={profile.identity.name}
-                    onChange={e => updateIdentity("name", e.target.value)}
-                    placeholder="Jane Smith"
-                    className="h-14 text-lg bg-background/50 border-white/10 focus:border-primary shadow-inner rounded-xl"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Email</Label>
-                  <Input
-                    value={profile.identity.email}
-                    onChange={e => updateIdentity("email", e.target.value)}
-                    placeholder="jane@example.com"
-                    type="email"
-                    className="h-14 text-lg bg-background/50 border-white/10 focus:border-primary shadow-inner rounded-xl"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Phone <span className="text-muted-foreground text-xs">(optional)</span></Label>
-                  <Input
-                    value={profile.identity.phone || ""}
-                    onChange={e => updateIdentity("phone", e.target.value)}
-                    placeholder="+1 (555) 000-0000"
-                    className="h-14 text-lg bg-background/50 border-white/10 focus:border-primary shadow-inner rounded-xl"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>LinkedIn / Portfolio URL <span className="text-muted-foreground text-xs">(optional)</span></Label>
+                  <Label>LinkedIn / Portfolio <span className="text-muted-foreground text-xs">(optional)</span></Label>
                   <Input
                     value={profile.identity.links?.[0] || ""}
-                    onChange={e =>
-                      setProfile(p => ({
-                        ...p,
-                        identity: { ...p.identity, links: e.target.value ? [e.target.value] : [] },
-                      }))
-                    }
+                    onChange={e => setProfile(p => ({ ...p, identity: { ...p.identity, links: e.target.value ? [e.target.value] : [] } }))}
                     placeholder="https://linkedin.com/in/janesmith"
-                    className="h-14 text-lg bg-background/50 border-white/10 focus:border-primary shadow-inner rounded-xl"
+                    className="h-12"
                   />
                 </div>
               </div>
             </div>
           )}
 
-          {/* ===== STEP: EXPERIENCE ===== */}
+          {/* EXPERIENCE */}
           {currentStep === "experience" && (
             <div className="animate-fade-in space-y-8 pt-8">
               <div className="space-y-2">
                 <h2 className="text-2xl font-bold">Work experience</h2>
-                <p className="text-muted-foreground">Add your most recent and relevant positions.</p>
+                <p className="text-muted-foreground">Add your most relevant positions.</p>
               </div>
-
               <div className="space-y-4">
                 {profile.experience_atoms.map((exp, idx) => (
-                  <div key={exp.id || idx} className="p-6 rounded-2xl border border-white/10 bg-card/50 backdrop-blur-md shadow-lg space-y-4 animate-fade-in-up">
+                  <div key={exp.id || idx} className="p-5 rounded-xl border border-border bg-card space-y-4 animate-fade-in-up">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground uppercase tracking-wider">Job title</Label>
-                          <Input
-                            value={exp.role}
-                            onChange={e => updateExperience(idx, "role", e.target.value)}
-                            placeholder="Software Engineer"
-                            className="bg-background/50 border-white/10 rounded-lg"
-                          />
+                          <Label className="text-xs text-muted-foreground">Job title</Label>
+                          <Input value={exp.role} onChange={e => updateExperience(idx, "role", e.target.value)} placeholder="Software Engineer" />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground uppercase tracking-wider">Company</Label>
-                          <Input
-                            value={exp.company}
-                            onChange={e => updateExperience(idx, "company", e.target.value)}
-                            placeholder="Acme Inc."
-                            className="bg-background/50 border-white/10 rounded-lg"
-                          />
+                          <Label className="text-xs text-muted-foreground">Company</Label>
+                          <Input value={exp.company} onChange={e => updateExperience(idx, "company", e.target.value)} placeholder="Acme Inc." />
                         </div>
                       </div>
-                      <button
-                        onClick={() => removeExperience(idx)}
-                        className="p-1.5 text-muted-foreground hover:text-destructive transition-colors mt-5"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
+                      <button onClick={() => removeExperience(idx)} className="p-1.5 text-muted-foreground hover:text-destructive mt-5"><X className="w-4 h-4" /></button>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground uppercase tracking-wider">Duration</Label>
-                      <Input
-                        value={exp.duration}
-                        onChange={e => updateExperience(idx, "duration", e.target.value)}
-                        placeholder="Jan 2022 — Present"
-                        className="bg-background/50 border-white/10 rounded-lg"
-                      />
+                      <Label className="text-xs text-muted-foreground">Duration</Label>
+                      <Input value={exp.duration} onChange={e => updateExperience(idx, "duration", e.target.value)} placeholder="Jan 2022 — Present" />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground uppercase tracking-wider">Key responsibilities & achievements</Label>
-                      <Textarea
-                        value={exp.content}
-                        onChange={e => updateExperience(idx, "content", e.target.value)}
-                        placeholder="• Led a team of 5 engineers..."
-                        className="min-h-[100px] bg-background/50 border-white/10 rounded-lg resize-y"
-                      />
+                      <Label className="text-xs text-muted-foreground">Key responsibilities</Label>
+                      <Textarea value={exp.content} onChange={e => updateExperience(idx, "content", e.target.value)} placeholder="• Led a team of 5 engineers..." className="min-h-[100px] resize-y" />
                     </div>
                   </div>
                 ))}
-
-                <button
-                  onClick={addExperience}
-                  className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border-2 border-dashed border-white/20 hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all outline-none"
-                >
-                  <Plus className="w-5 h-5" />
-                  Add Position
+                <button onClick={addExperience} className="w-full flex items-center justify-center gap-2 py-4 rounded-xl border-2 border-dashed border-border hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all">
+                  <Plus className="w-5 h-5" /> Add Position
                 </button>
               </div>
             </div>
           )}
 
-          {/* ===== STEP: SKILLS ===== */}
-          {currentStep === "skills" && (
-            <SkillsStep
-              skills={profile.skills}
-              onAdd={addSkill}
-              onRemove={removeSkill}
-            />
-          )}
+          {/* SKILLS */}
+          {currentStep === "skills" && <SkillsStep skills={profile.skills} onAdd={addSkill} onRemove={removeSkill} />}
 
-          {/* ===== STEP: EDUCATION ===== */}
+          {/* EDUCATION */}
           {currentStep === "education" && (
             <div className="animate-fade-in space-y-8 pt-8">
               <div className="space-y-2">
                 <h2 className="text-2xl font-bold">Education</h2>
                 <p className="text-muted-foreground">Add your degrees and certifications.</p>
               </div>
-
               <div className="space-y-4">
                 {profile.education.map((edu, idx) => (
-                  <div key={idx} className="p-6 rounded-2xl border border-white/10 bg-card/50 backdrop-blur-md shadow-lg space-y-4 animate-fade-in-up">
+                  <div key={idx} className="p-5 rounded-xl border border-border bg-card space-y-4 animate-fade-in-up">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 space-y-4">
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground uppercase tracking-wider">School</Label>
-                          <Input
-                            value={edu.school}
-                            onChange={e => updateEducation(idx, "school", e.target.value)}
-                            placeholder="MIT"
-                            className="bg-background/50 border-white/10 rounded-lg"
-                          />
+                          <Label className="text-xs text-muted-foreground">School</Label>
+                          <Input value={edu.school} onChange={e => updateEducation(idx, "school", e.target.value)} placeholder="MIT" />
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground uppercase tracking-wider">Degree</Label>
-                            <Input
-                              value={edu.degree}
-                              onChange={e => updateEducation(idx, "degree", e.target.value)}
-                              placeholder="B.S. Computer Science"
-                              className="bg-background/50 border-white/10 rounded-lg"
-                            />
+                            <Label className="text-xs text-muted-foreground">Degree</Label>
+                            <Input value={edu.degree} onChange={e => updateEducation(idx, "degree", e.target.value)} placeholder="B.S. Computer Science" />
                           </div>
                           <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground uppercase tracking-wider">Year</Label>
-                            <Input
-                              value={edu.year}
-                              onChange={e => updateEducation(idx, "year", e.target.value)}
-                              placeholder="2020"
-                              className="bg-background/50 border-white/10 rounded-lg"
-                            />
+                            <Label className="text-xs text-muted-foreground">Year</Label>
+                            <Input value={edu.year} onChange={e => updateEducation(idx, "year", e.target.value)} placeholder="2020" />
                           </div>
                         </div>
                       </div>
-                      <button
-                        onClick={() => removeEducation(idx)}
-                        className="p-1.5 text-muted-foreground hover:text-destructive transition-colors mt-5"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
+                      <button onClick={() => removeEducation(idx)} className="p-1.5 text-muted-foreground hover:text-destructive mt-5"><X className="w-4 h-4" /></button>
                     </div>
                   </div>
                 ))}
-
-                <button
-                  onClick={addEducation}
-                  className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border-2 border-dashed border-white/20 hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all outline-none"
-                >
-                  <Plus className="w-5 h-5" />
-                  Add Education
+                <button onClick={addEducation} className="w-full flex items-center justify-center gap-2 py-4 rounded-xl border-2 border-dashed border-border hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all">
+                  <Plus className="w-5 h-5" /> Add Education
                 </button>
               </div>
             </div>
           )}
 
-          {/* ===== STEP: PREFERENCES ===== */}
+          {/* PREFERENCES */}
           {currentStep === "preferences" && (
             <div className="animate-fade-in space-y-8 pt-8">
               <div className="space-y-2">
                 <h2 className="text-2xl font-bold">Job preferences</h2>
-                <p className="text-muted-foreground">Tell us what you're looking for so we can find the best matches.</p>
+                <p className="text-muted-foreground">What are you looking for?</p>
               </div>
-
               <div className="space-y-8">
                 {/* Target Roles */}
                 <div className="space-y-3">
@@ -482,9 +359,7 @@ const Onboarding = () => {
                     {roles.map((role, i) => (
                       <Badge key={i} variant="secondary" className="pl-3 pr-1.5 py-1.5 gap-1 text-sm bg-primary/10 text-primary border-primary/20">
                         {role}
-                        <button onClick={() => setRoles(roles.filter((_, idx) => idx !== i))} className="hover:text-destructive">
-                          <X className="w-3 h-3" />
-                        </button>
+                        <button onClick={() => setRoles(roles.filter((_, idx) => idx !== i))} className="hover:text-destructive"><X className="w-3 h-3" /></button>
                       </Badge>
                     ))}
                   </div>
@@ -495,27 +370,15 @@ const Onboarding = () => {
                       onKeyDown={e => {
                         if (e.key === "Enter") {
                           e.preventDefault();
-                          if (currentRole.trim() && !roles.includes(currentRole.trim())) {
-                            setRoles([...roles, currentRole.trim()]);
-                          }
+                          if (currentRole.trim() && !roles.includes(currentRole.trim())) setRoles([...roles, currentRole.trim()]);
                           setCurrentRole("");
                         }
                       }}
                       placeholder="e.g. Senior Frontend Engineer"
-                      className="h-12 bg-background/50 border-white/10 focus:border-primary shadow-inner rounded-xl"
+                      className="h-12"
                     />
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="icon"
-                      className="h-12 w-12 shrink-0 rounded-xl"
-                      onClick={() => {
-                        if (currentRole.trim() && !roles.includes(currentRole.trim())) {
-                          setRoles([...roles, currentRole.trim()]);
-                        }
-                        setCurrentRole("");
-                      }}
-                    >
+                    <Button type="button" variant="secondary" size="icon" className="h-12 w-12 shrink-0"
+                      onClick={() => { if (currentRole.trim() && !roles.includes(currentRole.trim())) setRoles([...roles, currentRole.trim()]); setCurrentRole(""); }}>
                       <Plus className="w-4 h-4" />
                     </Button>
                   </div>
@@ -534,25 +397,20 @@ const Onboarding = () => {
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div className="space-y-3">
                     <Label className="text-base font-medium">Preferred Locations</Label>
-                    <Input
-                      value={locations}
-                      onChange={e => setLocations(e.target.value)}
-                      placeholder="SF, NYC, Remote"
-                      className="h-11"
-                    />
+                    <Input value={locations} onChange={e => setLocations(e.target.value)} placeholder="SF, NYC, Remote" className="h-11" />
                   </div>
                   <div className="space-y-3">
                     <Label className="text-base font-medium">Remote Policy</Label>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2">
                       {(["remote", "hybrid", "onsite", "any"] as const).map(mode => (
                         <button
                           key={mode}
                           type="button"
                           onClick={() => setRemotePolicy(mode)}
-                          className={`h-12 rounded-xl text-sm font-medium border transition-all ${
+                          className={`h-11 rounded-lg text-sm font-medium border transition-all ${
                             remotePolicy === mode
-                              ? "bg-primary text-primary-foreground border-primary shadow-glow"
-                              : "bg-background/50 border-white/10 hover:border-primary/30 hover:bg-primary/5 text-muted-foreground"
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-card border-border hover:border-primary/30 text-muted-foreground"
                           }`}
                         >
                           {mode.charAt(0).toUpperCase() + mode.slice(1)}
@@ -569,9 +427,7 @@ const Onboarding = () => {
                     <span className="text-sm text-muted-foreground font-mono">Level {aggressiveness[0]}</span>
                   </div>
                   <Slider value={aggressiveness} onValueChange={setAggressiveness} min={1} max={10} step={1} />
-                  <p className="text-xs text-muted-foreground">
-                    Higher = more applications sent automatically. Lower = more selective, manual approval.
-                  </p>
+                  <p className="text-xs text-muted-foreground">Higher = more auto-applications. Lower = more selective.</p>
                 </div>
               </div>
             </div>
@@ -579,28 +435,21 @@ const Onboarding = () => {
         </div>
       </div>
 
-      {/* Bottom nav bar */}
+      {/* Bottom nav */}
       {currentStep !== "method" && (
-        <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-t border-white/10 z-50">
+        <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-lg border-t border-border z-50">
           <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
-            <Button variant="ghost" onClick={goBack} className="gap-2 hover:bg-white/10">
-              <ArrowLeft className="w-4 h-4" />
-              Back
+            <Button variant="ghost" onClick={goBack} className="gap-2">
+              <ArrowLeft className="w-4 h-4" /> Back
             </Button>
-
             {currentStep === "preferences" ? (
-              <Button onClick={handleFinish} disabled={saving} className="gap-2 px-8 h-12 rounded-xl shadow-glow hover:shadow-glow-lg transition-all text-base">
-                {saving ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Check className="w-4 h-4" />
-                )}
+              <Button onClick={handleFinish} disabled={saving} className="gap-2 px-8 h-11">
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                 {saving ? "Saving..." : "Finish Setup"}
               </Button>
             ) : (
-              <Button onClick={goNext} className="gap-2 px-8 h-12 rounded-xl shadow-glow transition-all text-base hover:shadow-glow-lg">
-                Continue
-                <ArrowRight className="w-4 h-4" />
+              <Button onClick={goNext} className="gap-2 px-8 h-11">
+                Continue <ArrowRight className="w-4 h-4" />
               </Button>
             )}
           </div>
@@ -610,27 +459,10 @@ const Onboarding = () => {
   );
 };
 
-// ===== Skills Sub-component =====
-function SkillsStep({
-  skills,
-  onAdd,
-  onRemove,
-}: {
-  skills: Skill[];
-  onAdd: (name: string) => void;
-  onRemove: (idx: number) => void;
-}) {
+function SkillsStep({ skills, onAdd, onRemove }: { skills: Skill[]; onAdd: (name: string) => void; onRemove: (idx: number) => void }) {
   const [input, setInput] = useState("");
-
-  const SUGGESTED = [
-    "JavaScript", "TypeScript", "React", "Node.js", "Python", "SQL",
-    "AWS", "Docker", "Kubernetes", "Go", "Java", "Figma",
-    "GraphQL", "REST APIs", "Git", "CI/CD", "Agile", "Leadership",
-  ];
-
-  const unusedSuggestions = SUGGESTED.filter(
-    s => !skills.some(sk => sk.name.toLowerCase() === s.toLowerCase())
-  );
+  const SUGGESTED = ["JavaScript", "TypeScript", "React", "Node.js", "Python", "SQL", "AWS", "Docker", "Kubernetes", "Go", "Java", "Figma", "GraphQL", "REST APIs", "Git", "CI/CD", "Agile", "Leadership"];
+  const unusedSuggestions = SUGGESTED.filter(s => !skills.some(sk => sk.name.toLowerCase() === s.toLowerCase()));
 
   return (
     <div className="animate-fade-in space-y-8 pt-8">
@@ -638,60 +470,34 @@ function SkillsStep({
         <h2 className="text-2xl font-bold">Skills</h2>
         <p className="text-muted-foreground">Add your technical and professional skills.</p>
       </div>
-
-      {/* Current skills */}
       {skills.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {skills.map((s, i) => (
-            <Badge key={i} variant="secondary" className="pl-3 pr-1.5 py-1.5 gap-1 text-sm animate-scale-in bg-primary/10 text-primary border-primary/20">
+            <Badge key={i} variant="secondary" className="pl-3 pr-1.5 py-1.5 gap-1 text-sm bg-primary/10 text-primary border-primary/20 animate-scale-in">
               {s.name}
-              <button onClick={() => onRemove(i)} className="hover:text-destructive">
-                <X className="w-3 h-3" />
-              </button>
+              <button onClick={() => onRemove(i)} className="hover:text-destructive"><X className="w-3 h-3" /></button>
             </Badge>
           ))}
         </div>
       )}
-
-      {/* Input */}
       <div className="flex gap-2">
         <Input
           value={input}
           onChange={e => setInput(e.target.value)}
-          onKeyDown={e => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              onAdd(input);
-              setInput("");
-            }
-          }}
+          onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); onAdd(input); setInput(""); } }}
           placeholder="Type a skill and press Enter"
-          className="h-14 text-lg bg-background/50 border-white/10 focus:border-primary shadow-inner rounded-xl"
+          className="h-12"
         />
-        <Button
-          variant="secondary"
-          size="icon"
-          className="h-14 w-14 shrink-0 rounded-xl"
-          onClick={() => {
-            onAdd(input);
-            setInput("");
-          }}
-        >
+        <Button variant="secondary" size="icon" className="h-12 w-12 shrink-0" onClick={() => { onAdd(input); setInput(""); }}>
           <Plus className="w-5 h-5" />
         </Button>
       </div>
-
-      {/* Quick-add suggestions */}
       {unusedSuggestions.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Quick add</p>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2">
             {unusedSuggestions.map(s => (
-              <button
-                key={s}
-                onClick={() => onAdd(s)}
-                className="px-4 py-2 text-sm rounded-xl border border-dashed border-white/20 hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all"
-              >
+              <button key={s} onClick={() => onAdd(s)} className="px-3 py-2 text-sm rounded-lg border border-dashed border-border hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all">
                 + {s}
               </button>
             ))}
