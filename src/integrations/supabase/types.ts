@@ -280,6 +280,51 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          alert_frequency: string
+          application_updates: boolean
+          created_at: string
+          email_enabled: boolean
+          id: string
+          job_alerts: boolean
+          notification_email: string | null
+          phone_number: string | null
+          sms_enabled: boolean
+          updated_at: string
+          user_id: string
+          weekly_digest: boolean
+        }
+        Insert: {
+          alert_frequency?: string
+          application_updates?: boolean
+          created_at?: string
+          email_enabled?: boolean
+          id?: string
+          job_alerts?: boolean
+          notification_email?: string | null
+          phone_number?: string | null
+          sms_enabled?: boolean
+          updated_at?: string
+          user_id: string
+          weekly_digest?: boolean
+        }
+        Update: {
+          alert_frequency?: string
+          application_updates?: boolean
+          created_at?: string
+          email_enabled?: boolean
+          id?: string
+          job_alerts?: boolean
+          notification_email?: string | null
+          phone_number?: string | null
+          sms_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+          weekly_digest?: boolean
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

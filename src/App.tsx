@@ -15,6 +15,7 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import ApplicationWizard from "./pages/ApplicationWizard";
 import AutoApplierSettings from "./pages/AutoApplierSettings";
+import InterviewCoach from "./pages/InterviewCoach";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -98,6 +99,11 @@ const App = () => (
               <Route path="/auto-applier-settings" element={
                 <ProtectedRoute>
                   <AutoApplierSettings />
+                </ProtectedRoute>
+              } />
+              <Route path="/interview-coach" element={
+                <ProtectedRoute>
+                  <InterviewCoach />
                 </ProtectedRoute>
               } />
               <Route path="/privacy" element={<Privacy />} />
