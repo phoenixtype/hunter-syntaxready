@@ -11,7 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, Save, Loader2, X, Edit2, Eye, Ban } from "lucide-react";
+import { Plus, Trash2, Save, Loader2, X, Edit2, Eye, Ban } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 import DashboardSkeleton from "@/components/DashboardSkeleton";
 
 const Profile = () => {
@@ -164,14 +165,12 @@ const Profile = () => {
 
     return (
         <div className="min-h-screen bg-background text-foreground bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background pb-20">
-            {/* Header */}
-            <header className="fixed top-0 w-full z-50 border-b border-border bg-background/60 backdrop-blur-xl">
-                <div className="container max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-                    <Button variant="ghost" onClick={() => navigate("/dashboard")} className="gap-2">
-                        <ArrowLeft className="w-4 h-4" />
-                        Back to Dashboard
-                    </Button>
-
+            <PageHeader
+                breadcrumbs={[
+                    { label: "Dashboard", href: "/dashboard" },
+                    { label: "Profile" },
+                ]}
+                actions={
                     <div className="flex gap-2">
                         {mode === 'view' && (
                             <Button onClick={() => setMode('edit')} variant="outline">
@@ -207,8 +206,8 @@ const Profile = () => {
                             </>
                         )}
                     </div>
-                </div>
-            </header>
+                }
+            />
 
             <main className="container max-w-4xl mx-auto px-4 pt-24 space-y-8 animate-fade-in">
 

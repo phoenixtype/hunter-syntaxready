@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Send, Loader2, BrainCircuit, MessageSquare, Swords, HandCoins } from "lucide-react";
+import { Send, Loader2, BrainCircuit, MessageSquare, Swords, HandCoins } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { useResume } from "@/hooks/useResume";
 import { supabase } from "@/integrations/supabase/client";
@@ -108,26 +109,20 @@ const InterviewCoach = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border h-14 flex items-center px-4 gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="shrink-0">
-          <ArrowLeft className="w-4 h-4" />
-        </Button>
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-            <BrainCircuit className="w-4 h-4 text-primary" />
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-sm font-semibold truncate">Interview Coach</h1>
-            <p className="text-[10px] text-muted-foreground truncate">{jobTitle} at {jobCompany}</p>
-          </div>
-        </div>
-        {started && (
-          <Badge variant="outline" className="ml-auto text-[10px] shrink-0">
-            {MODES.find(m => m.id === mode)?.label}
-          </Badge>
-        )}
-      </header>
+      <PageHeader
+        breadcrumbs={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Interview Coach" },
+        ]}
+        icon={<BrainCircuit className="w-4 h-4 text-primary" />}
+        actions={
+          started ? (
+            <Badge variant="outline" className="text-[10px] shrink-0">
+              {MODES.find(m => m.id === mode)?.label} · {jobTitle}
+            </Badge>
+          ) : undefined
+        }
+      />
 
       {/* Content */}
       {!started ? (

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Play, Settings2, User, Briefcase, FileText, Bot, Loader2, Save } from "lucide-react";
+import { Play, Settings2, User, Briefcase, FileText, Bot, Loader2, Save } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -135,19 +136,14 @@ const AutoApplierSettings = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background">
-      {/* Header */}
-      <header className="sticky top-0 w-full z-50 border-b border-border bg-background/60 backdrop-blur-xl">
-        <div className="container max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div className="flex items-center gap-2">
-              <Bot className="w-6 h-6 text-primary" />
-              <span className="font-semibold text-lg hidden sm:inline">Auto-Applier Core</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Auto-Applier" },
+        ]}
+        icon={<Bot className="w-4 h-4 text-primary" />}
+        actions={
+          <div className="flex items-center gap-2">
             <Badge variant={isRunning ? "default" : "secondary"} className={isRunning ? 'bg-success/20 text-success border-success/50' : ''}>
               {isRunning ? "Running" : "Idle"}
             </Badge>
@@ -156,8 +152,8 @@ const AutoApplierSettings = () => {
               {isRunning ? "Stop Agent" : <><Play className="w-4 h-4 mr-2" /> Start Agent</>}
             </Button>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       {/* Main Content */}
       <main className="container max-w-5xl mx-auto px-4 py-8 md:py-12 animate-fade-in">
