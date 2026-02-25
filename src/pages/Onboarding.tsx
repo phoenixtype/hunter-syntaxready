@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import LocationPicker from "@/components/LocationPicker";
 import { Progress } from "@/components/ui/progress";
 import {
   Loader2, ArrowLeft, ArrowRight, Upload, PenLine, X, Plus,
@@ -47,7 +48,7 @@ const Onboarding = () => {
   const [roles, setRoles] = useState<string[]>([]);
   const [currentRole, setCurrentRole] = useState("");
   const [salary, setSalary] = useState([120000]);
-  const [locations, setLocations] = useState("");
+  const [locations, setLocations] = useState<string[]>([]);
   const [remotePolicy, setRemotePolicy] = useState<UserPreferences["remote_policy"]>("any");
   const [aggressiveness, setAggressiveness] = useState([5]);
 
@@ -82,7 +83,7 @@ const Onboarding = () => {
       await savePreferences(user.id, {
         target_roles: roles,
         min_salary_usd: salary[0],
-        locations: locations.split(",").map(s => s.trim()).filter(Boolean),
+        locations,
         remote_policy: remotePolicy,
         aggressiveness: aggressiveness[0],
         safe_mode: true,
@@ -91,7 +92,7 @@ const Onboarding = () => {
       triggerJobCrawl({
         keywords: keywords.length > 0 ? keywords : undefined,
         targetRoles: roles.length > 0 ? roles : undefined,
-        location: locations.trim() || undefined,
+        location: locations.length > 0 ? locations.join(", ") : undefined,
         remotePolicy: remotePolicy,
       }).catch(() => {});
       toast.success("You're all set!");
@@ -371,30 +372,30 @@ const Onboarding = () => {
                   <Slider value={salary} onValueChange={setSalary} min={30000} max={500000} step={5000} />
                 </div>
 
-                {/* Location + Remote */}
-                <div className="grid sm:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <Label className="text-base font-medium">Preferred Locations</Label>
-                    <Input value={locations} onChange={e => setLocations(e.target.value)} placeholder="SF, NYC, Remote" className="h-11" />
-                  </div>
-                  <div className="space-y-3">
-                    <Label className="text-base font-medium">Remote Policy</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {(["remote", "hybrid", "onsite", "any"] as const).map(mode => (
-                        <button
-                          key={mode}
-                          type="button"
-                          onClick={() => setRemotePolicy(mode)}
-                          className={`h-11 rounded-lg text-sm font-medium border transition-all ${
-                            remotePolicy === mode
-                              ? "bg-primary text-primary-foreground border-primary"
-                              : "bg-card border-border hover:border-primary/30 text-muted-foreground"
-                          }`}
-                        >
-                          {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                        </button>
-                      ))}
-                    </div>
+                {/* Locations */}
+                <div className="space-y-3">
+                  <Label className="text-base font-medium">Preferred Locations</Label>
+                  <LocationPicker locations={locations} onChange={setLocations} />
+                </div>
+
+                {/* Remote Policy */}
+                <div className="space-y-3">
+                  <Label className="text-base font-medium">Remote Policy</Label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {(["remote", "hybrid", "onsite", "any"] as const).map(mode => (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => setRemotePolicy(mode)}
+                        className={`h-11 rounded-lg text-sm font-medium border transition-all ${
+                          remotePolicy === mode
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-card border-border hover:border-primary/30 text-muted-foreground"
+                        }`}
+                      >
+                        {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                      </button>
+                    ))}
                   </div>
                 </div>
 

@@ -10,6 +10,7 @@ import { UserPreferences, savePreferences } from "@/lib/user_preferences";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import LocationPicker from "./LocationPicker";
 
 interface PreferencesModalProps {
     isOpen: boolean;
@@ -25,7 +26,7 @@ const PreferencesModal = ({ isOpen, onClose, preferences }: PreferencesModalProp
     const [roles, setRoles] = useState<string[]>([]);
     const [currentRole, setCurrentRole] = useState("");
     const [salary, setSalary] = useState([100000]);
-    const [locations, setLocations] = useState("");
+    const [locations, setLocations] = useState<string[]>([]);
     const [remotePolicy, setRemotePolicy] = useState<UserPreferences["remote_policy"]>("any");
     const [aggressiveness, setAggressiveness] = useState([5]);
 
@@ -34,7 +35,7 @@ const PreferencesModal = ({ isOpen, onClose, preferences }: PreferencesModalProp
         if (preferences) {
             setRoles(preferences.target_roles || []);
             setSalary([preferences.min_salary_usd || 100000]);
-            setLocations(preferences.locations?.join(", ") || "");
+            setLocations(preferences.locations || []);
             setRemotePolicy(preferences.remote_policy || "any");
             setAggressiveness([preferences.aggressiveness || 5]);
         }
@@ -47,7 +48,7 @@ const PreferencesModal = ({ isOpen, onClose, preferences }: PreferencesModalProp
             await savePreferences(user.id, {
                 target_roles: roles,
                 min_salary_usd: salary[0],
-                locations: locations.split(",").map(s => s.trim()).filter(Boolean),
+                locations,
                 remote_policy: remotePolicy,
                 aggressiveness: aggressiveness[0],
                 safe_mode: true,
@@ -119,35 +120,30 @@ const PreferencesModal = ({ isOpen, onClose, preferences }: PreferencesModalProp
                         <Slider value={salary} onValueChange={setSalary} min={30000} max={500000} step={5000} />
                     </div>
 
-                    {/* Location + Remote */}
-                    <div className="grid sm:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label className="text-sm font-medium">Preferred Locations</Label>
-                            <Input
-                                value={locations}
-                                onChange={e => setLocations(e.target.value)}
-                                placeholder="SF, NYC, Remote"
-                                className="h-10"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label className="text-sm font-medium">Remote Policy</Label>
-                            <div className="grid grid-cols-2 gap-1.5">
-                                {(["remote", "hybrid", "onsite", "any"] as const).map(mode => (
-                                    <button
-                                        key={mode}
-                                        type="button"
-                                        onClick={() => setRemotePolicy(mode)}
-                                        className={`h-9 rounded-lg text-xs font-medium border transition-all ${
-                                            remotePolicy === mode
-                                                ? "bg-primary text-primary-foreground border-primary"
-                                                : "border-border hover:border-primary/50 hover:bg-accent/50"
-                                        }`}
-                                    >
-                                        {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                                    </button>
-                                ))}
-                            </div>
+                    {/* Locations */}
+                    <div className="space-y-2">
+                        <Label className="text-sm font-medium">Preferred Locations</Label>
+                        <LocationPicker locations={locations} onChange={setLocations} />
+                    </div>
+
+                    {/* Remote Policy */}
+                    <div className="space-y-2">
+                        <Label className="text-sm font-medium">Remote Policy</Label>
+                        <div className="grid grid-cols-4 gap-1.5">
+                            {(["remote", "hybrid", "onsite", "any"] as const).map(mode => (
+                                <button
+                                    key={mode}
+                                    type="button"
+                                    onClick={() => setRemotePolicy(mode)}
+                                    className={`h-9 rounded-lg text-xs font-medium border transition-all ${
+                                        remotePolicy === mode
+                                            ? "bg-primary text-primary-foreground border-primary"
+                                            : "border-border hover:border-primary/50 hover:bg-accent/50"
+                                    }`}
+                                >
+                                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                                </button>
+                            ))}
                         </div>
                     </div>
 
