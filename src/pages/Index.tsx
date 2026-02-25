@@ -7,11 +7,11 @@ import ThemeToggle from "@/components/ThemeToggle";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans">
+    <div className="min-h-screen bg-background text-foreground font-sans bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
       <SkipLink />
 
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-background border-b border-border" role="navigation" aria-label="Main navigation">
+      <nav className="fixed top-0 w-full z-50 bg-background/60 backdrop-blur-xl border-b border-white/5" role="navigation" aria-label="Main navigation">
         <div className="container max-w-5xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2" aria-label="Hunter AI Home">
             <span className="text-lg sm:text-xl font-bold tracking-tighter">hunter.</span>
@@ -27,7 +27,7 @@ const Index = () => {
               Log in
             </Link>
             <Link to="/signup">
-              <Button size="sm" className="px-6 h-9">
+              <Button size="sm" className="px-6 h-9 shadow-glow hover:shadow-glow-lg transition-all rounded-full font-medium">
                 Get Started
               </Button>
             </Link>
@@ -74,7 +74,7 @@ const Index = () => {
               <Link to="/signup" className="w-full sm:w-auto">
                 <Button
                   size="lg"
-                  className="w-full sm:w-auto px-8 text-base font-medium"
+                  className="w-full sm:w-auto px-8 text-base font-medium shadow-glow hover:shadow-glow-lg transition-all rounded-full"
                 >
                   Start Hunting <ArrowRight className="ml-2 w-5 h-5" aria-hidden="true" />
                 </Button>
@@ -83,7 +83,7 @@ const Index = () => {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="w-full sm:w-auto px-8 text-base"
+                  className="w-full sm:w-auto px-8 text-base rounded-full border-primary/20 hover:bg-primary/10 text-primary transition-all font-medium"
                 >
                   View Demo
                 </Button>
@@ -113,13 +113,13 @@ const Index = () => {
               ].map((feature, i) => (
                 <article
                   key={i}
-                  className="group space-y-3 sm:space-y-4 p-6 rounded-lg border border-border hover:border-foreground/20 transition-colors"
+                  className="group space-y-3 sm:space-y-4 p-6 rounded-2xl border border-white/10 bg-card/50 backdrop-blur-md shadow-lg hover:border-primary/30 transition-all hover:translate-y-[-2px]"
                 >
                   <div
-                    className="w-10 h-10 rounded-lg border border-border flex items-center justify-center"
+                    className="w-12 h-12 rounded-xl border border-primary/20 bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors"
                     aria-hidden="true"
                   >
-                    <CheckCircle2 className="w-5 h-5 text-foreground" />
+                    <CheckCircle2 className="w-6 h-6 text-primary" />
                   </div>
                   <h3 className="text-xl sm:text-2xl font-semibold tracking-tight">{feature.title}</h3>
                   <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">{feature.desc}</p>

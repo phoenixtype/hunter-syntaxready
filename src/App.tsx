@@ -14,6 +14,7 @@ import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import ApplicationWizard from "./pages/ApplicationWizard";
+import AutoApplierSettings from "./pages/AutoApplierSettings";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -92,6 +93,11 @@ const App = () => (
               <Route path="/application-wizard" element={
                 <ProtectedRoute>
                   <ApplicationWizard />
+                </ProtectedRoute>
+              } />
+              <Route path="/auto-applier-settings" element={
+                <ProtectedRoute>
+                  <AutoApplierSettings />
                 </ProtectedRoute>
               } />
               <Route path="/privacy" element={<Privacy />} />

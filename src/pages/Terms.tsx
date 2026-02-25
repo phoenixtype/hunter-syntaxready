@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 
 const Terms = () => {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
       <div className="container max-w-3xl mx-auto px-6 py-16">
         <Link to="/">
-          <Button variant="ghost" size="sm" className="mb-8">
+          <Button variant="ghost" size="sm" className="mb-8 hover:bg-white/10 transition-colors">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Button>

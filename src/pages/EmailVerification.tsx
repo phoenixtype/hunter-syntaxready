@@ -112,13 +112,13 @@ const EmailVerification = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background transition-colors duration-500">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background transition-colors duration-500 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
       <div className="w-full max-w-md animate-scale-in">
-        <div className="bg-card border border-border rounded-lg p-8 md:p-12 space-y-6 text-center">
+        <div className="bg-card/50 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-8 md:p-12 space-y-6 text-center">
           {status === 'loading' && (
             <>
-              <div className="w-16 h-16 mx-auto rounded-full bg-secondary flex items-center justify-center animate-pulse">
-                <Loader2 className="w-8 h-8 text-foreground animate-spin" />
+              <div className="w-20 h-20 mx-auto rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center animate-pulse shadow-glow">
+                <Loader2 className="w-10 h-10 text-primary animate-spin" />
               </div>
               <div className="space-y-2">
                 <h1 className="text-2xl font-semibold tracking-tight">Verifying your email...</h1>
@@ -129,8 +129,8 @@ const EmailVerification = () => {
 
           {status === 'success' && (
             <>
-              <div className="w-16 h-16 mx-auto rounded-full bg-secondary flex items-center justify-center">
-                <CheckCircle2 className="w-8 h-8 text-foreground animate-bounce" />
+              <div className="w-20 h-20 mx-auto rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center shadow-glow">
+                <CheckCircle2 className="w-10 h-10 text-primary animate-bounce" />
               </div>
               <div className="space-y-2">
                 <h1 className="text-2xl font-semibold tracking-tight">Email Verified!</h1>
@@ -156,14 +156,14 @@ const EmailVerification = () => {
                   {errorMessage || "The verification link may have expired or is invalid."}
                 </p>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-3 pt-4">
                 <Link to="/signup">
-                  <Button variant="outline" className="w-full h-12">
+                  <Button variant="outline" className="w-full h-12 rounded-xl border-white/20 hover:bg-white/5 transition-all">
                     Try signing up again
                   </Button>
                 </Link>
                 <Link to="/login">
-                  <Button className="w-full h-12">
+                  <Button className="w-full h-12 rounded-xl shadow-glow transition-all">
                     Go to Login
                   </Button>
                 </Link>
@@ -173,8 +173,8 @@ const EmailVerification = () => {
 
           {status === 'pending' && (
             <>
-              <div className="w-16 h-16 mx-auto rounded-full bg-secondary flex items-center justify-center">
-                <Mail className="w-8 h-8 text-foreground" />
+              <div className="w-20 h-20 mx-auto rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center shadow-glow">
+                <Mail className="w-10 h-10 text-primary" />
               </div>
               <div className="space-y-2">
                 <h1 className="text-2xl font-semibold tracking-tight">Check Your Email</h1>
@@ -234,9 +234,9 @@ const EmailVerification = () => {
                 )}
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-3 pt-6">
                 <Link to="/login">
-                  <Button className="w-full h-12">
+                  <Button className="w-full h-12 rounded-xl shadow-glow hover:shadow-glow-lg transition-all">
                     Already Verified? Sign In <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </Link>

@@ -163,9 +163,9 @@ const Profile = () => {
     }
 
     return (
-        <div className="min-h-screen bg-background text-foreground pb-20">
+        <div className="min-h-screen bg-background text-foreground bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background pb-20">
             {/* Header */}
-            <header className="fixed top-0 w-full z-50 border-b border-border bg-background">
+            <header className="fixed top-0 w-full z-50 border-b border-white/5 bg-background/60 backdrop-blur-xl">
                 <div className="container max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
                     <Button variant="ghost" onClick={() => navigate("/dashboard")} className="gap-2">
                         <ArrowLeft className="w-4 h-4" />
@@ -174,15 +174,15 @@ const Profile = () => {
 
                     <div className="flex gap-2">
                         {mode === 'view' && (
-                            <Button onClick={() => setMode('edit')} variant="outline">
+                            <Button onClick={() => setMode('edit')} variant="outline" className="border-white/20 hover:bg-white/5">
                                 <Edit2 className="w-4 h-4 mr-2" />
                                 Edit Profile
                             </Button>
                         )}
                         {mode === 'edit' && (
                             <>
-                                <Button variant="ghost" onClick={handleCancel}>Cancel</Button>
-                                <Button onClick={() => setMode('preview')} variant="default">
+                                <Button variant="ghost" onClick={handleCancel} className="hover:bg-white/10">Cancel</Button>
+                                <Button onClick={() => setMode('preview')} className="shadow-glow hover:shadow-glow-lg transition-all">
                                     <Eye className="w-4 h-4 mr-2" />
                                     Preview Changes
                                 </Button>
@@ -190,8 +190,8 @@ const Profile = () => {
                         )}
                         {mode === 'preview' && (
                             <>
-                                <Button variant="ghost" onClick={() => setMode('edit')}>Back to Edit</Button>
-                                <Button onClick={handleSave} disabled={isSaving}>
+                                <Button variant="ghost" onClick={() => setMode('edit')} className="hover:bg-white/10">Back to Edit</Button>
+                                <Button onClick={handleSave} disabled={isSaving} className="shadow-glow hover:shadow-glow-lg transition-all">
                                     {isSaving ? (
                                         <>
                                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -225,7 +225,7 @@ const Profile = () => {
                         {/* Identity */}
                         <section className="space-y-4">
                             <h2 className="text-xl font-semibold">Personal Information</h2>
-                            <Card className="">
+                            <Card className="border-white/10 bg-card/50 backdrop-blur-md shadow-lg">
                                 <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div>
                                         <Label className="text-muted-foreground">Full Name</Label>
@@ -247,7 +247,7 @@ const Profile = () => {
                         {formData.summary && (
                             <section className="space-y-4">
                                 <h2 className="text-xl font-semibold">Professional Summary</h2>
-                                <Card className="">
+                                <Card className="border-white/10 bg-card/50 backdrop-blur-md shadow-lg">
                                     <CardContent className="p-6">
                                         <p className="text-lg leading-relaxed whitespace-pre-wrap">{formData.summary}</p>
                                     </CardContent>
@@ -260,7 +260,7 @@ const Profile = () => {
                             <h2 className="text-xl font-semibold">Experience</h2>
                             <div className="space-y-4">
                                 {formData.experience_atoms.map((exp, idx) => (
-                                    <Card key={idx} className="">
+                                    <Card key={idx} className="border-white/10 bg-card/50 backdrop-blur-md shadow-lg hover:border-primary/30 transition-all hover:translate-y-[-2px]">
                                         <CardContent className="p-6 space-y-2">
                                             <div className="flex justify-between items-start">
                                                 <div>
@@ -282,7 +282,7 @@ const Profile = () => {
                             <h2 className="text-xl font-semibold">Education</h2>
                             <div className="grid gap-4">
                                 {formData.education.map((edu, idx) => (
-                                    <Card key={idx} className="">
+                                    <Card key={idx} className="border-white/10 bg-card/50 backdrop-blur-md shadow-lg hover:border-primary/30 transition-all hover:translate-y-[-2px]">
                                         <CardContent className="p-6 flex justify-between items-center">
                                             <div>
                                                 <h3 className="font-semibold">{edu.school}</h3>
@@ -300,7 +300,7 @@ const Profile = () => {
                             <h2 className="text-xl font-semibold">Skills</h2>
                             <div className="flex flex-wrap gap-2">
                                 {formData.skills.map((s, i) => (
-                                    <Badge key={i} variant="secondary" className="px-3 py-1">{s.name}</Badge>
+                                    <Badge key={i} variant="secondary" className="px-3 py-1.5 text-sm bg-primary/10 text-primary border-primary/20">{s.name}</Badge>
                                 ))}
                             </div>
                         </section>
@@ -312,7 +312,7 @@ const Profile = () => {
                                 <h2 className="text-xl font-semibold">Additional Information</h2>
                                 <div className="space-y-4">
                                     {formData.custom_sections.map((section, idx) => (
-                                        <Card key={idx} className="">
+                                        <Card key={idx} className="border-white/10 bg-card/50 backdrop-blur-md shadow-lg hover:border-primary/30 transition-all hover:translate-y-[-2px]">
                                             <CardContent className="p-6 space-y-2">
                                                 <h3 className="text-lg font-bold">{section.title}</h3>
                                                 <Separator className="my-2" />
@@ -335,11 +335,11 @@ const Profile = () => {
                 {/* --- EDIT MODE (INPUTS) --- */}
                 {
                     mode === 'edit' && (
-                        <div className="space-y-8 animate-fade-in">
+                        <div className="space-y-8 animate-fade-in-up">
                             {/* Identity Section */}
                             <section className="space-y-4">
                                 <h2 className="text-xl font-semibold">Personal Information</h2>
-                                <Card className="">
+                                <Card className="border-white/10 bg-card/50 backdrop-blur-md shadow-lg">
                                     <CardContent className="p-6 space-y-4">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="space-y-2">
@@ -363,7 +363,7 @@ const Profile = () => {
                                                 <Input
                                                     value={formData.identity.phone || ""}
                                                     onChange={(e) => updateIdentity("phone", e.target.value)}
-                                                    className="bg-transparent"
+                                                    className="bg-background/50 border-white/10 focus:border-primary shadow-inner rounded-xl"
                                                 />
                                             </div>
                                         </div>
@@ -374,12 +374,12 @@ const Profile = () => {
                             {/* Summary Section */}
                             <section className="space-y-4">
                                 <h2 className="text-xl font-semibold">Professional Summary</h2>
-                                <Card className="">
+                                <Card className="border-white/10 bg-card/50 backdrop-blur-md shadow-lg">
                                     <CardContent className="p-6">
                                         <Textarea
                                             value={formData.summary || ""}
                                             onChange={(e) => setFormData(prev => prev ? ({ ...prev, summary: e.target.value }) : null)}
-                                            className="min-h-[120px] bg-transparent resize-y text-lg"
+                                            className="min-h-[120px] bg-background/50 border-white/10 focus:border-primary shadow-inner rounded-xl resize-y text-lg"
                                             placeholder="Brief professional summary..."
                                         />
                                     </CardContent>
@@ -390,14 +390,14 @@ const Profile = () => {
                             <section className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-xl font-semibold">Experience</h2>
-                                    <Button size="sm" variant="outline" onClick={addExperience}>
+                                    <Button size="sm" variant="outline" onClick={addExperience} className="border-white/20 hover:bg-white/5">
                                         <Plus className="w-4 h-4 mr-2" />
                                         Add Role
                                     </Button>
                                 </div>
                                 <div className="space-y-4">
                                     {formData.experience_atoms.map((exp, index) => (
-                                        <Card key={exp.id || index} className=" group hover:border-foreground/20 transition-colors">
+                                        <Card key={exp.id || index} className="group border-white/10 bg-card/50 backdrop-blur-md shadow-lg hover:border-primary/30 transition-colors">
                                             <CardHeader className="flex flex-row items-start justify-between pb-2">
                                                 <div className="space-y-1 w-full mr-4">
                                                     <Input
@@ -434,7 +434,7 @@ const Profile = () => {
                                                 <Textarea
                                                     value={exp.content}
                                                     onChange={(e) => updateExperience(index, "content", e.target.value)}
-                                                    className="min-h-[100px] bg-transparent resize-y"
+                                                    className="min-h-[100px] bg-background/50 border-white/10 focus:border-primary shadow-inner rounded-xl resize-y"
                                                     placeholder="Describe your responsibilities and achievements..."
                                                 />
                                             </CardContent>
@@ -447,14 +447,14 @@ const Profile = () => {
                             <section className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-xl font-semibold">Education</h2>
-                                    <Button size="sm" variant="outline" onClick={addEducation}>
+                                    <Button size="sm" variant="outline" onClick={addEducation} className="border-white/20 hover:bg-white/5">
                                         <Plus className="w-4 h-4 mr-2" />
                                         Add Education
                                     </Button>
                                 </div>
                                 <div className="grid gap-4">
                                     {formData.education.map((edu, index) => (
-                                        <Card key={index} className=" group hover:border-foreground/20 transition-colors">
+                                        <Card key={index} className="group border-white/10 bg-card/50 backdrop-blur-md shadow-lg hover:border-primary/30 transition-colors">
                                             <CardContent className="p-4 flex items-start gap-4">
                                                 <div className="flex-1 space-y-2">
                                                     <Input
@@ -495,17 +495,17 @@ const Profile = () => {
                             {/* Skills Section */}
                             <section className="space-y-4">
                                 <h2 className="text-xl font-semibold">Skills</h2>
-                                <Card className="">
+                                <Card className="border-white/10 bg-card/50 backdrop-blur-md shadow-lg">
                                     <CardContent className="p-6 space-y-4">
                                         <div className="flex flex-wrap gap-2">
                                             {formData.skills.map((skill, index) => (
-                                                <Badge key={index} variant="secondary" className="pl-3 pr-1 py-1 h-8 text-sm">
+                                                <Badge key={index} variant="secondary" className="pl-3 pr-1.5 py-1.5 h-8 text-sm gap-1 bg-primary/10 text-primary border-primary/20 animate-scale-in">
                                                     {skill.name}
                                                     <button
                                                         onClick={() => removeSkill(index)}
-                                                        className="ml-2 hover:bg-destructive/20 rounded-full p-0.5"
+                                                        className="hover:text-destructive transition-colors ml-1"
                                                     >
-                                                        <X className="w-3 h-3" />
+                                                <X className="w-3 h-3" />
                                                     </button>
                                                 </Badge>
                                             ))}
@@ -519,8 +519,9 @@ const Profile = () => {
                                                         e.currentTarget.value = "";
                                                     }
                                                 }}
+                                                className="bg-background/50 border-white/10 focus:border-primary shadow-inner rounded-xl"
                                             />
-                                            <Button variant="outline" size="icon" onClick={() => {
+                                            <Button variant="secondary" size="icon" className="rounded-xl" onClick={() => {
                                                 const input = document.querySelector('input[placeholder="Add a skill..."]') as HTMLInputElement;
                                                 if (input) {
                                                     addSkill(input.value);
@@ -538,7 +539,7 @@ const Profile = () => {
                             <section className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-xl font-semibold">Additional Information</h2>
-                                    <Button size="sm" variant="outline" onClick={() => {
+                                    <Button size="sm" variant="outline" className="border-white/20 hover:bg-white/5" onClick={() => {
                                         setFormData(prev => {
                                             if (!prev) return null;
                                             return {
@@ -556,7 +557,7 @@ const Profile = () => {
                                 </div>
                                 <div className="space-y-4">
                                     {formData.custom_sections?.map((section, idx) => (
-                                        <Card key={idx} className=" group hover:border-foreground/20 transition-colors">
+                                        <Card key={idx} className="group border-white/10 bg-card/50 backdrop-blur-md shadow-lg hover:border-primary/30 transition-colors">
                                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                                 <Input
                                                     value={section.title}
@@ -588,7 +589,7 @@ const Profile = () => {
                                                         newSections[idx].content = e.target.value.split('\n');
                                                         setFormData(prev => prev ? ({ ...prev, custom_sections: newSections }) : null);
                                                     }}
-                                                    className="min-h-[100px] bg-transparent resize-y"
+                                                    className="min-h-[100px] bg-background/50 border-white/10 focus:border-primary shadow-inner rounded-xl resize-y"
                                                     placeholder="List items (one per line)..."
                                                 />
                                                 <p className="text-xs text-muted-foreground">One item per line</p>

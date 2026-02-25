@@ -75,14 +75,14 @@ const SignUp = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-      <div className="w-full max-w-md animate-fadeInUp">
-        <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
+      <div className="w-full max-w-md animate-fade-in-up">
+        <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-all hover:-translate-x-1">
           <ArrowLeft className="w-4 h-4" />
           Back to Home
         </Link>
 
-        <div className="bg-card border border-border rounded-lg p-8 md:p-12 space-y-8">
+        <div className="bg-card/50 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-8 md:p-12 space-y-8">
           <div className="space-y-2 text-center">
             <h1 className="text-3xl font-semibold tracking-tight">Create an account</h1>
             <p className="text-muted-foreground text-sm">Start your autonomous job search today</p>
@@ -165,7 +165,7 @@ const SignUp = () => {
             </div>
             <Button
               type="submit"
-              className="w-full h-12 text-base font-medium"
+              className="w-full h-12 sm:h-14 text-base font-medium rounded-xl shadow-glow hover:shadow-glow-lg transition-all"
               disabled={isLoading}
             >
               {isLoading ? (

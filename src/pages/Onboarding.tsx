@@ -183,10 +183,10 @@ const Onboarding = () => {
   const canFinish = roles.length > 0 || profile.experience_atoms.length > 0;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
       {/* Top progress bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
-        <Progress value={progressPercent} className="h-1 rounded-none" />
+      <div className="fixed top-0 left-0 right-0 z-50 bg-background/60 backdrop-blur-xl border-b border-white/5">
+        <Progress value={progressPercent} className="h-1 rounded-none bg-secondary [&>div]:bg-primary shadow-glow" />
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {stepIndex > 0 && (
@@ -238,24 +238,24 @@ const Onboarding = () => {
               <div className="grid gap-4 max-w-md mx-auto pt-4">
                 <button
                   onClick={() => setCurrentStep("identity")}
-                  className="group flex items-center gap-4 p-5 rounded-lg border border-border bg-card hover:border-foreground/20 transition-colors text-left"
+                  className="group flex items-center gap-4 p-5 rounded-2xl border border-white/10 bg-card/50 backdrop-blur-xl shadow-lg hover:border-primary/30 hover:-translate-y-1 transition-all text-left"
                 >
-                  <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center shrink-0">
-                    <PenLine className="w-5 h-5 text-foreground" />
+                  <div className="h-12 w-12 rounded-xl bg-primary/20 flex items-center justify-center shrink-0 border border-primary/30">
+                    <PenLine className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <p className="font-semibold">Enter manually</p>
+                    <p className="font-semibold group-hover:text-primary transition-colors">Enter manually</p>
                     <p className="text-sm text-muted-foreground">Fill in your details step by step</p>
                   </div>
-                  <ArrowRight className="w-4 h-4 ml-auto text-muted-foreground group-hover:text-foreground transition-colors" />
+                  <ArrowRight className="w-4 h-4 ml-auto text-muted-foreground group-hover:text-primary transition-colors" />
                 </button>
 
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-border" />
+                    <div className="w-full border-t border-white/10" />
                   </div>
                   <div className="relative flex justify-center">
-                    <span className="bg-background px-3 text-xs text-muted-foreground uppercase tracking-wider">or</span>
+                    <span className="bg-background/80 backdrop-blur-sm px-3 text-xs text-muted-foreground uppercase tracking-wider">or</span>
                   </div>
                 </div>
 
@@ -282,7 +282,7 @@ const Onboarding = () => {
                     value={profile.identity.name}
                     onChange={e => updateIdentity("name", e.target.value)}
                     placeholder="Jane Smith"
-                    className="h-12"
+                    className="h-14 text-lg bg-background/50 border-white/10 focus:border-primary shadow-inner rounded-xl"
                   />
                 </div>
                 <div className="space-y-2">
@@ -292,7 +292,7 @@ const Onboarding = () => {
                     onChange={e => updateIdentity("email", e.target.value)}
                     placeholder="jane@example.com"
                     type="email"
-                    className="h-12"
+                    className="h-14 text-lg bg-background/50 border-white/10 focus:border-primary shadow-inner rounded-xl"
                   />
                 </div>
                 <div className="space-y-2">
@@ -301,7 +301,7 @@ const Onboarding = () => {
                     value={profile.identity.phone || ""}
                     onChange={e => updateIdentity("phone", e.target.value)}
                     placeholder="+1 (555) 000-0000"
-                    className="h-12"
+                    className="h-14 text-lg bg-background/50 border-white/10 focus:border-primary shadow-inner rounded-xl"
                   />
                 </div>
                 <div className="space-y-2">
@@ -315,7 +315,7 @@ const Onboarding = () => {
                       }))
                     }
                     placeholder="https://linkedin.com/in/janesmith"
-                    className="h-12"
+                    className="h-14 text-lg bg-background/50 border-white/10 focus:border-primary shadow-inner rounded-xl"
                   />
                 </div>
               </div>
@@ -332,23 +332,25 @@ const Onboarding = () => {
 
               <div className="space-y-4">
                 {profile.experience_atoms.map((exp, idx) => (
-                  <div key={exp.id || idx} className="p-4 rounded-lg border border-border bg-card space-y-3 animate-fade-in">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div key={exp.id || idx} className="p-6 rounded-2xl border border-white/10 bg-card/50 backdrop-blur-md shadow-lg space-y-4 animate-fade-in-up">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Job title</Label>
+                          <Label className="text-xs text-muted-foreground uppercase tracking-wider">Job title</Label>
                           <Input
                             value={exp.role}
                             onChange={e => updateExperience(idx, "role", e.target.value)}
                             placeholder="Software Engineer"
+                            className="bg-background/50 border-white/10 rounded-lg"
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Company</Label>
+                          <Label className="text-xs text-muted-foreground uppercase tracking-wider">Company</Label>
                           <Input
                             value={exp.company}
                             onChange={e => updateExperience(idx, "company", e.target.value)}
                             placeholder="Acme Inc."
+                            className="bg-background/50 border-white/10 rounded-lg"
                           />
                         </div>
                       </div>
@@ -360,20 +362,21 @@ const Onboarding = () => {
                       </button>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Duration</Label>
+                      <Label className="text-xs text-muted-foreground uppercase tracking-wider">Duration</Label>
                       <Input
                         value={exp.duration}
                         onChange={e => updateExperience(idx, "duration", e.target.value)}
                         placeholder="Jan 2022 — Present"
+                        className="bg-background/50 border-white/10 rounded-lg"
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Key responsibilities & achievements</Label>
+                      <Label className="text-xs text-muted-foreground uppercase tracking-wider">Key responsibilities & achievements</Label>
                       <Textarea
                         value={exp.content}
                         onChange={e => updateExperience(idx, "content", e.target.value)}
                         placeholder="• Led a team of 5 engineers..."
-                        className="min-h-[80px]"
+                        className="min-h-[100px] bg-background/50 border-white/10 rounded-lg resize-y"
                       />
                     </div>
                   </div>
@@ -381,10 +384,10 @@ const Onboarding = () => {
 
                 <button
                   onClick={addExperience}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-lg border-2 border-dashed border-border hover:border-foreground/20 text-muted-foreground hover:text-foreground transition-colors"
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border-2 border-dashed border-white/20 hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all outline-none"
                 >
-                  <Plus className="w-4 h-4" />
-                  Add position
+                  <Plus className="w-5 h-5" />
+                  Add Position
                 </button>
               </div>
             </div>
@@ -409,32 +412,35 @@ const Onboarding = () => {
 
               <div className="space-y-4">
                 {profile.education.map((edu, idx) => (
-                  <div key={idx} className="p-4 rounded-lg border border-border bg-card space-y-3 animate-fade-in">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 space-y-3">
+                  <div key={idx} className="p-6 rounded-2xl border border-white/10 bg-card/50 backdrop-blur-md shadow-lg space-y-4 animate-fade-in-up">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 space-y-4">
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">School</Label>
+                          <Label className="text-xs text-muted-foreground uppercase tracking-wider">School</Label>
                           <Input
                             value={edu.school}
                             onChange={e => updateEducation(idx, "school", e.target.value)}
                             placeholder="MIT"
+                            className="bg-background/50 border-white/10 rounded-lg"
                           />
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground">Degree</Label>
+                            <Label className="text-xs text-muted-foreground uppercase tracking-wider">Degree</Label>
                             <Input
                               value={edu.degree}
                               onChange={e => updateEducation(idx, "degree", e.target.value)}
                               placeholder="B.S. Computer Science"
+                              className="bg-background/50 border-white/10 rounded-lg"
                             />
                           </div>
                           <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground">Year</Label>
+                            <Label className="text-xs text-muted-foreground uppercase tracking-wider">Year</Label>
                             <Input
                               value={edu.year}
                               onChange={e => updateEducation(idx, "year", e.target.value)}
                               placeholder="2020"
+                              className="bg-background/50 border-white/10 rounded-lg"
                             />
                           </div>
                         </div>
@@ -451,10 +457,10 @@ const Onboarding = () => {
 
                 <button
                   onClick={addEducation}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-lg border-2 border-dashed border-border hover:border-foreground/20 text-muted-foreground hover:text-foreground transition-colors"
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border-2 border-dashed border-white/20 hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all outline-none"
                 >
-                  <Plus className="w-4 h-4" />
-                  Add education
+                  <Plus className="w-5 h-5" />
+                  Add Education
                 </button>
               </div>
             </div>
@@ -472,9 +478,9 @@ const Onboarding = () => {
                 {/* Target Roles */}
                 <div className="space-y-3">
                   <Label className="text-base font-medium">Target Roles</Label>
-                  <div className="flex flex-wrap gap-2 min-h-[32px]">
+                  <div className="flex flex-wrap gap-2 min-h-[36px]">
                     {roles.map((role, i) => (
-                      <Badge key={i} variant="secondary" className="pl-3 pr-1.5 py-1.5 gap-1 text-sm">
+                      <Badge key={i} variant="secondary" className="pl-3 pr-1.5 py-1.5 gap-1 text-sm bg-primary/10 text-primary border-primary/20">
                         {role}
                         <button onClick={() => setRoles(roles.filter((_, idx) => idx !== i))} className="hover:text-destructive">
                           <X className="w-3 h-3" />
@@ -496,13 +502,13 @@ const Onboarding = () => {
                         }
                       }}
                       placeholder="e.g. Senior Frontend Engineer"
-                      className="h-11"
+                      className="h-12 bg-background/50 border-white/10 focus:border-primary shadow-inner rounded-xl"
                     />
                     <Button
                       type="button"
                       variant="secondary"
                       size="icon"
-                      className="h-11 w-11 shrink-0"
+                      className="h-12 w-12 shrink-0 rounded-xl"
                       onClick={() => {
                         if (currentRole.trim() && !roles.includes(currentRole.trim())) {
                           setRoles([...roles, currentRole.trim()]);
@@ -537,16 +543,16 @@ const Onboarding = () => {
                   </div>
                   <div className="space-y-3">
                     <Label className="text-base font-medium">Remote Policy</Label>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-3">
                       {(["remote", "hybrid", "onsite", "any"] as const).map(mode => (
                         <button
                           key={mode}
                           type="button"
                           onClick={() => setRemotePolicy(mode)}
-                          className={`h-10 rounded-lg text-sm font-medium border transition-colors ${
+                          className={`h-12 rounded-xl text-sm font-medium border transition-all ${
                             remotePolicy === mode
-                              ? "bg-foreground text-background border-foreground"
-                              : "border-border hover:border-foreground/20"
+                              ? "bg-primary text-primary-foreground border-primary shadow-glow"
+                              : "bg-background/50 border-white/10 hover:border-primary/30 hover:bg-primary/5 text-muted-foreground"
                           }`}
                         >
                           {mode.charAt(0).toUpperCase() + mode.slice(1)}
@@ -575,15 +581,15 @@ const Onboarding = () => {
 
       {/* Bottom nav bar */}
       {currentStep !== "method" && (
-        <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50">
+        <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-t border-white/10 z-50">
           <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
-            <Button variant="ghost" onClick={goBack} className="gap-2">
+            <Button variant="ghost" onClick={goBack} className="gap-2 hover:bg-white/10">
               <ArrowLeft className="w-4 h-4" />
               Back
             </Button>
 
             {currentStep === "preferences" ? (
-              <Button onClick={handleFinish} disabled={saving} className="gap-2 px-6">
+              <Button onClick={handleFinish} disabled={saving} className="gap-2 px-8 h-12 rounded-xl shadow-glow hover:shadow-glow-lg transition-all text-base">
                 {saving ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
@@ -592,7 +598,7 @@ const Onboarding = () => {
                 {saving ? "Saving..." : "Finish Setup"}
               </Button>
             ) : (
-              <Button onClick={goNext} className="gap-2 px-6">
+              <Button onClick={goNext} className="gap-2 px-8 h-12 rounded-xl shadow-glow transition-all text-base hover:shadow-glow-lg">
                 Continue
                 <ArrowRight className="w-4 h-4" />
               </Button>
@@ -637,7 +643,7 @@ function SkillsStep({
       {skills.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {skills.map((s, i) => (
-            <Badge key={i} variant="secondary" className="pl-3 pr-1.5 py-1.5 gap-1 text-sm animate-scale-in">
+            <Badge key={i} variant="secondary" className="pl-3 pr-1.5 py-1.5 gap-1 text-sm animate-scale-in bg-primary/10 text-primary border-primary/20">
               {s.name}
               <button onClick={() => onRemove(i)} className="hover:text-destructive">
                 <X className="w-3 h-3" />
@@ -660,18 +666,18 @@ function SkillsStep({
             }
           }}
           placeholder="Type a skill and press Enter"
-          className="h-11"
+          className="h-14 text-lg bg-background/50 border-white/10 focus:border-primary shadow-inner rounded-xl"
         />
         <Button
           variant="secondary"
           size="icon"
-          className="h-11 w-11 shrink-0"
+          className="h-14 w-14 shrink-0 rounded-xl"
           onClick={() => {
             onAdd(input);
             setInput("");
           }}
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-5 h-5" />
         </Button>
       </div>
 
@@ -679,12 +685,12 @@ function SkillsStep({
       {unusedSuggestions.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Quick add</p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-3">
             {unusedSuggestions.map(s => (
               <button
                 key={s}
                 onClick={() => onAdd(s)}
-                className="px-3 py-1.5 text-sm rounded-full border border-dashed border-border hover:border-foreground/20 text-muted-foreground hover:text-foreground transition-colors"
+                className="px-4 py-2 text-sm rounded-xl border border-dashed border-white/20 hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all"
               >
                 + {s}
               </button>

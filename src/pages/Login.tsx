@@ -51,17 +51,17 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-background">
-      <div className="w-full max-w-md animate-fadeInUp">
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-background bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
+      <div className="w-full max-w-md animate-fade-in-up">
         <Link
           to="/"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors py-2"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-all hover:-translate-x-1 py-2"
         >
           <ArrowLeft className="w-4 h-4" aria-hidden="true" />
           Back to Home
         </Link>
 
-        <div className="bg-card border border-border rounded-lg p-6 sm:p-8 md:p-12 space-y-6 sm:space-y-8">
+        <div className="bg-card/50 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-6 sm:p-8 md:p-12 space-y-6 sm:space-y-8">
           <div className="space-y-2 text-center">
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Welcome back</h1>
             <p className="text-muted-foreground text-sm">Enter your credentials to access your agent</p>
@@ -117,7 +117,7 @@ const Login = () => {
             </div>
             <Button
               type="submit"
-              className="w-full h-12 sm:h-14 text-base font-medium"
+              className="w-full h-12 sm:h-14 text-base font-medium rounded-xl shadow-glow hover:shadow-glow-lg transition-all"
               disabled={isLoading}
             >
               {isLoading ? (

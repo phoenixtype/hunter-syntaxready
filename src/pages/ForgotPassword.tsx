@@ -38,11 +38,11 @@ const ForgotPassword = () => {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-        <div className="w-full max-w-md animate-fadeInUp">
-          <div className="bg-card border border-border rounded-lg p-8 md:p-12 space-y-6 text-center">
-            <div className="w-16 h-16 mx-auto rounded-full bg-secondary flex items-center justify-center">
-              <CheckCircle2 className="w-8 h-8 text-foreground" />
+      <div className="min-h-screen flex items-center justify-center p-4 bg-background bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
+        <div className="w-full max-w-md animate-fade-in-up">
+          <div className="bg-card/50 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-8 md:p-12 space-y-6 text-center">
+            <div className="w-16 h-16 mx-auto rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
+              <CheckCircle2 className="w-8 h-8 text-primary" />
             </div>
             <div className="space-y-2">
               <h1 className="text-2xl font-semibold tracking-tight">Check your email</h1>
@@ -51,7 +51,7 @@ const ForgotPassword = () => {
               </p>
             </div>
             <Link to="/login">
-              <Button variant="outline" className="w-full h-12">
+              <Button variant="outline" className="w-full h-12 rounded-xl border-white/20 hover:bg-white/5 transition-all mt-4">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Login
               </Button>
@@ -63,17 +63,17 @@ const ForgotPassword = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-      <div className="w-full max-w-md animate-fadeInUp">
-        <Link to="/login" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
+      <div className="w-full max-w-md animate-fade-in-up">
+        <Link to="/login" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-all hover:-translate-x-1">
           <ArrowLeft className="w-4 h-4" />
           Back to Login
         </Link>
 
-        <div className="bg-card border border-border rounded-lg p-8 md:p-12 space-y-8">
+        <div className="bg-card/50 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-8 md:p-12 space-y-8">
           <div className="space-y-2 text-center">
-            <div className="w-12 h-12 mx-auto rounded-full bg-secondary flex items-center justify-center mb-4">
-              <Mail className="w-6 h-6 text-foreground" />
+            <div className="w-16 h-16 mx-auto rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 mb-4 shadow-glow">
+              <Mail className="w-8 h-8 text-primary" />
             </div>
             <h1 className="text-2xl font-semibold tracking-tight">Forgot your password?</h1>
             <p className="text-muted-foreground text-sm">
@@ -98,7 +98,7 @@ const ForgotPassword = () => {
             </div>
             <Button
               type="submit"
-              className="w-full h-12 text-base font-medium"
+              className="w-full h-12 text-base font-medium rounded-xl shadow-glow hover:shadow-glow-lg transition-all mt-4"
               disabled={isLoading}
             >
               {isLoading ? (
