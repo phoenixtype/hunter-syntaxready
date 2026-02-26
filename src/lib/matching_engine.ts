@@ -106,7 +106,7 @@ export const calculateMatch = async (
     reasoning.push("Missing key requirement matches.");
   }
   
-  if (job.source === 'Perplexity' || job.source === 'Firecrawl') {
+  if (job.source === 'Web' || job.source === 'Search') {
     reasoning.push("Fresh opportunity discovered via AI agents.");
   }
 

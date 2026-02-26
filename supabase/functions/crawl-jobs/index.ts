@@ -413,19 +413,25 @@ Deno.serve(async (req) => {
       const searchLoc    = typeof location === 'string' ? location : '';
       const isRemote     = remotePolicy === 'remote';
 
-      // Build 1–3 queries: primary role, secondary role, skills-based
+      // Build 1–3 queries: primary role + location, role + keywords, or broad keywords
       const queries: string[] = [];
-      const primaryRole = searchRoles[0] || searchKws[0] || 'software engineer';
+      const primaryRole = searchRoles[0] || 'software engineer';
       const locationSuffix = searchLoc ? ` ${searchLoc}` : '';
 
+      // Query 1: Role + Location
       queries.push(`${primaryRole}${locationSuffix}`.trim());
 
-      if (searchRoles[1]) {
-        queries.push(`${searchRoles[1]}${locationSuffix}`.trim());
+      // Query 2: Mixed role + top keywords
+      if (searchKws.length > 0) {
+        const keywordsForQuery = searchKws.slice(0, 3).join(' ');
+        queries.push(`${primaryRole} ${keywordsForQuery}${locationSuffix}`.trim());
       }
 
-      if (searchKws.length >= 2) {
-        queries.push(`${searchKws.slice(0, 3).join(' ')} developer${locationSuffix}`.trim());
+      // Query 3: Alternative role or keywords only
+      if (searchRoles[1]) {
+        queries.push(`${searchRoles[1]}${locationSuffix}`.trim());
+      } else if (searchKws.length >= 4) {
+        queries.push(`${searchKws.slice(3, 6).join(' ')}${locationSuffix}`.trim());
       }
 
       console.log(`[JSEARCH] Running ${queries.length} queries`);
