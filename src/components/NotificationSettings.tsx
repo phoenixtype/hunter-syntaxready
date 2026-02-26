@@ -5,6 +5,8 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { getPreferences, savePreferences, UserPreferences } from "@/lib/user_preferences";
+import { useSubscription } from "@/hooks/useSubscription";
+import PricingModal from "./PricingModal";
 
 const NotificationSettings = () => {
   const { user } = useAuth();
@@ -13,6 +15,8 @@ const NotificationSettings = () => {
   const [smsAlerts, setSmsAlerts] = useState(false);
   const [saving, setSaving] = useState(false);
   const [prefs, setPrefs] = useState<UserPreferences | null>(null);
+  const { canAccess } = useSubscription();
+  const [showPricingModal, setShowPricingModal] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -30,6 +34,11 @@ const NotificationSettings = () => {
 
   const handleToggle = async (type: 'email' | 'sms', checked: boolean) => {
     if (!user || !prefs) return;
+
+    if (type === 'sms' && checked && !canAccess('sms_notifications')) {
+      setShowPricingModal(true);
+      return;
+    }
     
     // Optimistic UI update
     if (type === 'email') setEmailAlerts(checked);
@@ -136,10 +145,15 @@ const NotificationSettings = () => {
           <Switch 
             checked={smsAlerts} 
             onCheckedChange={(c) => handleToggle('sms', c)}
-            disabled={saving}
+            disabled={loading || saving}
           />
         </div>
       </div>
+      
+      <PricingModal 
+        isOpen={showPricingModal} 
+        onClose={() => setShowPricingModal(false)} 
+      />
     </div>
   );
 };

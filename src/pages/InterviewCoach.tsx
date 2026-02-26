@@ -10,6 +10,8 @@ import { useResume } from "@/hooks/useResume";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import { useSubscription } from "@/hooks/useSubscription";
+import PricingModal from "@/components/PricingModal";
 
 type Message = { role: "user" | "assistant"; content: string };
 type Mode = "behavioral" | "technical" | "negotiation";
@@ -36,6 +38,9 @@ const InterviewCoach = () => {
   const [loading, setLoading] = useState(false);
   const [started, setStarted] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  
+  const { canAccess } = useSubscription();
+  const [showPricingModal, setShowPricingModal] = useState(false);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -44,6 +49,11 @@ const InterviewCoach = () => {
   }, [messages]);
 
   const startInterview = async (selectedMode: Mode) => {
+    if (!canAccess('negotiation_coach')) {
+      setShowPricingModal(true);
+      return;
+    }
+
     setMode(selectedMode);
     setMessages([]);
     setStarted(true);
@@ -210,6 +220,10 @@ const InterviewCoach = () => {
           </div>
         </>
       )}
+      <PricingModal 
+        isOpen={showPricingModal} 
+        onClose={() => setShowPricingModal(false)} 
+      />
     </div>
   );
 };

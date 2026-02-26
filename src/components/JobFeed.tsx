@@ -27,6 +27,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { useSubscription } from "@/hooks/useSubscription";
+import PricingModal from "./PricingModal";
 
 interface JobFeedProps {
   profile: CandidateProfile | null;
@@ -48,6 +50,9 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   const [tailoringJobId, setTailoringJobId] = useState<string | null>(null);
   const [tailorResult, setTailorResult] = useState<{ content: TailoredContent; job: { title: string; company: string } } | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
+  
+  const { subscription, canAccess, isPro } = useSubscription();
+  const [showPricingModal, setShowPricingModal] = useState(false);
 
   const filteredJobs = useMemo(() => {
     let result = jobs.filter(job => !dismissedJobIds.has(job.id));
@@ -98,6 +103,11 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   }, [user]);
 
   const handleApply = async (job: EnrichedJob) => {
+    if (subscription && subscription.usage.applications_this_month >= subscription.usage.applications_limit) {
+      toast.error("Application Limit Reached", { description: "You've reached your free tier limit. Upgrade to Pro for unlimited applications." });
+      setShowPricingModal(true);
+      return;
+    }
     if (appliedJobIds.has(job.id)) { toast.error("You have already applied to this position."); return; }
     toast.info(`Applying to ${job.company}...`);
     await recordFeedback({ jobId: job.id, action: 'APPLY', timestamp: Date.now(), jobMetadata: { skills: job.tech_stack || [], company: job.company, source: job.source } });
@@ -140,6 +150,11 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   };
 
   const handleTailor = async (job: EnrichedJob) => {
+    if (subscription && subscription.usage.applications_this_month >= subscription.usage.applications_limit) {
+      toast.error("Application Limit Reached", { description: "You've reached your free tier limit. Upgrade to Pro for unlimited applications." });
+      setShowPricingModal(true);
+      return;
+    }
     if (!profile) { toast.error("Build your profile first."); return; }
     setTailoringJobId(job.id);
     try {
@@ -410,6 +425,11 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
         onClose={() => setTailorResult(null)}
         content={tailorResult?.content ?? null}
         job={tailorResult?.job ?? null}
+      />
+      
+      <PricingModal 
+        isOpen={showPricingModal} 
+        onClose={() => setShowPricingModal(false)} 
       />
     </div>
   );
