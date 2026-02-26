@@ -1,10 +1,9 @@
-import jsPDF from "jspdf";
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle, WidthType, SectionType, convertInchesToTwip } from "docx";
 import { CandidateProfile } from "./resume_engine";
 
-// ─── PDF (jsPDF text-based, fully ATS-parseable) ──────────────────────────────
+// ─── PDF (lazy-loaded jsPDF, text-based, fully ATS-parseable) ──────────────────
 
-export const exportResumeToPdf = (profile: CandidateProfile, filename?: string, options?: { onePage?: boolean }) => {
+export const exportResumeToPdf = async (profile: CandidateProfile, filename?: string, options?: { onePage?: boolean }) => {
+    const { default: jsPDF } = await import("jspdf");
     const doc = new jsPDF({ unit: "pt", format: "letter" });
     const PW = doc.internal.pageSize.getWidth();
     const PH = doc.internal.pageSize.getHeight();
@@ -92,14 +91,10 @@ export const exportResumeToPdf = (profile: CandidateProfile, filename?: string, 
         sectionRule("Professional Experience");
         for (const exp of experience_atoms) {
             checkPage(LH * 5);
-
-            // Role title
             doc.setFont("helvetica", "bold");
             doc.setFontSize(BODY);
             doc.setTextColor(15, 15, 15);
             doc.text(exp.role || "", M, y);
-
-            // Duration — right-aligned on same baseline
             if (exp.duration) {
                 doc.setFont("helvetica", "normal");
                 doc.setFontSize(SMALL);
@@ -107,15 +102,11 @@ export const exportResumeToPdf = (profile: CandidateProfile, filename?: string, 
                 doc.text(exp.duration, M + CW, y, { align: "right" });
             }
             y += LH - 1;
-
-            // Company
             doc.setFont("helvetica", "italic");
             doc.setFontSize(SMALL);
             doc.setTextColor(60, 60, 60);
             doc.text(exp.company || "", M, y);
             y += LH;
-
-            // Content bullets
             if (exp.content) {
                 doc.setFont("helvetica", "normal");
                 doc.setFontSize(BODY);
@@ -147,11 +138,7 @@ export const exportResumeToPdf = (profile: CandidateProfile, filename?: string, 
             doc.setFont("helvetica", "italic");
             doc.setFontSize(SMALL);
             doc.setTextColor(60, 60, 60);
-            doc.text(
-                [edu.school, edu.year].filter(Boolean).join("  ·  "),
-                M,
-                y
-            );
+            doc.text([edu.school, edu.year].filter(Boolean).join("  ·  "), M, y);
             y += LH + 4;
         }
     }
@@ -168,16 +155,11 @@ export const exportResumeToPdf = (profile: CandidateProfile, filename?: string, 
 };
 
 
-// ─── DOCX (docx package, opens in Word/Google Docs) ──────────────────────────
+// ─── DOCX (lazy-loaded docx package, opens in Word/Google Docs) ──────────────
 
 export const exportResumeToDocx = async (profile: CandidateProfile, filename?: string) => {
+    const { Document, Packer, Paragraph, TextRun, HeadingLevel, BorderStyle, convertInchesToTwip } = await import("docx");
     const { identity, skills, experience_atoms, education, summary } = profile;
-
-    const hr = () =>
-        new Paragraph({
-            border: { bottom: { color: "888888", size: 6, space: 4, style: BorderStyle.SINGLE } },
-            spacing: { before: 160, after: 80 },
-        });
 
     const sectionHeading = (text: string) =>
         new Paragraph({
@@ -208,9 +190,8 @@ export const exportResumeToDocx = async (profile: CandidateProfile, filename?: s
             spacing: { after: 40 },
         });
 
-    const sections: Paragraph[] = [];
+    const sections: InstanceType<typeof Paragraph>[] = [];
 
-    // ── Name ──
     sections.push(
         new Paragraph({
             children: [new TextRun({ text: identity.name || "Your Name", bold: true, size: 40, color: "111111" })],
@@ -218,12 +199,7 @@ export const exportResumeToDocx = async (profile: CandidateProfile, filename?: s
         })
     );
 
-    // ── Contact ──
-    const contactParts = [
-        identity.email,
-        identity.phone,
-        ...(identity.links || []),
-    ].filter(Boolean);
+    const contactParts = [identity.email, identity.phone, ...(identity.links || [])].filter(Boolean);
     sections.push(
         new Paragraph({
             children: contactParts.flatMap((p, i) => [
@@ -234,24 +210,17 @@ export const exportResumeToDocx = async (profile: CandidateProfile, filename?: s
         })
     );
 
-    // ── Summary ──
     if (summary) {
         sections.push(body(summary, { size: 20, color: "333333" }));
         sections.push(new Paragraph({ spacing: { after: 80 } }));
     }
 
-    // ── Skills ──
     if (skills.length > 0) {
         sections.push(sectionHeading("Skills"));
-        const skillsText = skills
-            .slice()
-            .sort((a, b) => b.proficiency - a.proficiency)
-            .map(s => s.name)
-            .join("  •  ");
+        const skillsText = skills.slice().sort((a, b) => b.proficiency - a.proficiency).map(s => s.name).join("  •  ");
         sections.push(body(skillsText));
     }
 
-    // ── Experience ──
     if (experience_atoms.length > 0) {
         sections.push(sectionHeading("Professional Experience"));
         for (const exp of experience_atoms) {
@@ -259,16 +228,12 @@ export const exportResumeToDocx = async (profile: CandidateProfile, filename?: s
                 new Paragraph({
                     children: [
                         new TextRun({ text: exp.role || "", bold: true, size: 22, color: "111111" }),
-                        ...(exp.duration
-                            ? [new TextRun({ text: `   ${exp.duration}`, size: 18, color: "777777" })]
-                            : []),
+                        ...(exp.duration ? [new TextRun({ text: `   ${exp.duration}`, size: 18, color: "777777" })] : []),
                     ],
                     spacing: { after: 30 },
                 })
             );
-            if (exp.company) {
-                sections.push(body(exp.company, { italic: true, size: 18, color: "555555" }));
-            }
+            if (exp.company) sections.push(body(exp.company, { italic: true, size: 18, color: "555555" }));
             if (exp.content) {
                 const lines = exp.content.split("\n").map(l => l.trim()).filter(Boolean);
                 for (const line of lines) {
@@ -279,34 +244,29 @@ export const exportResumeToDocx = async (profile: CandidateProfile, filename?: s
         }
     }
 
-    // ── Education ──
     if (education.length > 0) {
         sections.push(sectionHeading("Education"));
         for (const edu of education) {
             sections.push(body([edu.degree, edu.field].filter(Boolean).join(" — ") || "", { bold: true }));
-            sections.push(
-                body([edu.school, edu.year].filter(Boolean).join("  ·  "), { italic: true, size: 18, color: "555555" })
-            );
+            sections.push(body([edu.school, edu.year].filter(Boolean).join("  ·  "), { italic: true, size: 18, color: "555555" }));
             sections.push(new Paragraph({ spacing: { after: 60 } }));
         }
     }
 
     const doc = new Document({
-        sections: [
-            {
-                properties: {
-                    page: {
-                        margin: {
-                            top: convertInchesToTwip(0.75),
-                            bottom: convertInchesToTwip(0.75),
-                            left: convertInchesToTwip(0.85),
-                            right: convertInchesToTwip(0.85),
-                        },
+        sections: [{
+            properties: {
+                page: {
+                    margin: {
+                        top: convertInchesToTwip(0.75),
+                        bottom: convertInchesToTwip(0.75),
+                        left: convertInchesToTwip(0.85),
+                        right: convertInchesToTwip(0.85),
                     },
                 },
-                children: sections,
             },
-        ],
+            children: sections,
+        }],
     });
 
     const blob = await Packer.toBlob(doc);

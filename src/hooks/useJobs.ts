@@ -5,13 +5,19 @@ import { calculateMatch, MatchResult } from "@/lib/matching_engine";
 import { getOptimizedWeights } from "@/lib/learning_engine";
 import { UserPreferences } from "@/lib/user_preferences";
 import { toast } from "sonner";
+import { useState, useCallback } from "react";
 
 export interface EnrichedJob extends JobOpportunity {
     match?: MatchResult;
 }
 
+const PAGE_SIZE = 20;
+
 export const useJobs = (profile: CandidateProfile | null, preferences?: UserPreferences | null) => {
     const queryClient = useQueryClient();
+    const [page, setPage] = useState(0);
+    const [allJobs, setAllJobs] = useState<EnrichedJob[]>([]);
+    const [hasMore, setHasMore] = useState(true);
 
     // 1. Fetch Job Count
     const { data: jobCount = 0 } = useQuery({
@@ -19,14 +25,18 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
         queryFn: getJobCount
     });
 
-    // 2. Fetch and Sort/Match Jobs
-    const { data: jobs = [], isLoading: jobsLoading, refetch: refreshJobs } = useQuery<EnrichedJob[]>({
-        queryKey: ['jobs', profile], // Refetch if profile changes to re-rank
-        queryFn: async (): Promise<EnrichedJob[]> => {
-            const rawJobs = await searchJobs();
+    // 2. Fetch and Sort/Match Jobs (page 0 initially)
+    const { isLoading: jobsLoading, refetch: refreshJobs } = useQuery({
+        queryKey: ['jobs', profile, 0],
+        queryFn: async () => {
+            const { jobs: rawJobs, hasMore: more } = await searchJobs(undefined, 0, PAGE_SIZE);
+            setHasMore(more);
 
             if (!profile) {
-                return rawJobs.map(job => ({ ...job, match: undefined }));
+                const enriched = rawJobs.map(job => ({ ...job, match: undefined }));
+                setAllJobs(enriched);
+                setPage(0);
+                return enriched;
             }
 
             const weights = getOptimizedWeights();
@@ -37,19 +47,45 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
                 })
             );
 
-            return matches
+            const sorted = matches
                 .filter(j => j.match && j.match.overall_score > 0)
                 .sort((a, b) => (b.match?.overall_score ?? 0) - (a.match?.overall_score ?? 0));
+
+            setAllJobs(sorted);
+            setPage(0);
+            return sorted;
         },
         staleTime: 1000 * 60 * 5
     });
 
-    // 3. Crawl Mutation — uses profile + preferences for smart search
+    // 3. Load more
+    const loadMore = useCallback(async () => {
+        const nextPage = page + 1;
+        const { jobs: rawJobs, hasMore: more } = await searchJobs(undefined, nextPage, PAGE_SIZE);
+        setHasMore(more);
+
+        let enriched: EnrichedJob[];
+        if (profile) {
+            const weights = getOptimizedWeights();
+            enriched = await Promise.all(
+                rawJobs.map(async (job) => {
+                    const match = await calculateMatch(profile, job, weights);
+                    return { ...job, match } as EnrichedJob;
+                })
+            );
+        } else {
+            enriched = rawJobs.map(job => ({ ...job, match: undefined }));
+        }
+
+        setAllJobs(prev => [...prev, ...enriched]);
+        setPage(nextPage);
+    }, [page, profile]);
+
+    // 4. Crawl Mutation
     const { mutate: crawl, isPending: isCrawling } = useMutation({
         mutationFn: async (extraKeywords?: string[]) => {
             const params: CrawlParams = {};
 
-            // Build keywords from profile skills
             if (profile) {
                 const topSkills = profile.skills.slice(0, 5).map(s => s.name);
                 const latestRole = profile.experience_atoms?.[0]?.role;
@@ -58,12 +94,10 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
                 if (topSkills.length > 0) params.keywords.push(...topSkills);
             }
 
-            // Add any extra keywords (e.g., from search bar)
             if (extraKeywords && extraKeywords.length > 0) {
                 params.keywords = [...(params.keywords || []), ...extraKeywords];
             }
 
-            // Wire in user preferences
             if (preferences) {
                 params.targetRoles = preferences.target_roles;
                 params.location = preferences.locations?.join(', ');
@@ -85,11 +119,13 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
     });
 
     return {
-        jobs,
+        jobs: allJobs,
         jobCount,
         loading: jobsLoading,
         crawling: isCrawling,
         refreshJobs,
-        crawl
+        crawl,
+        loadMore,
+        hasMore,
     };
 };

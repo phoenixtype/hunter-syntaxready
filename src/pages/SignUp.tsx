@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -64,6 +65,7 @@ const SignUp = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
+      <SEOHead title="Sign Up" description="Create your Hunter AI account and start your autonomous job search today." path="/signup" />
       <div className="w-full max-w-md animate-fade-in-up">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-all hover:-translate-x-1">
           <ArrowLeft className="w-4 h-4" />

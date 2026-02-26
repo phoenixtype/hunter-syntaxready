@@ -27,8 +27,6 @@ export default defineConfig(({ mode }) => ({
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           // UI component library
           'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-slot'],
-          // PDF library (large dependency)
-          'pdf-vendor': ['pdfjs-dist'],
         },
       },
     },

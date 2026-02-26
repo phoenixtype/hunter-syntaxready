@@ -69,15 +69,35 @@ function escapeLikePattern(input: string): string {
   return input.replace(/[%_\\]/g, '\\$&');
 }
 
-// Search jobs from database
-export const searchJobs = async (query?: string): Promise<JobOpportunity[]> => {
+function mapJobRow(j: any): JobOpportunity {
+  return {
+    id: j.id,
+    title: j.title,
+    company: j.company,
+    location: j.location || 'Unspecified',
+    salary_range: j.salary_range || 'Not specified',
+    description: j.description || '',
+    source: j.source as JobOpportunity['source'],
+    freshness_score: Number(j.freshness_score) || 0.5,
+    credibility_score: Number(j.credibility_score) || 0.8,
+    url: j.url,
+    posted_at: j.posted_at || 'Recently',
+    tech_stack: j.tech_stack || []
+  };
+}
+
+// Search jobs from database with pagination
+export const searchJobs = async (query?: string, page = 0, pageSize = 20): Promise<{ jobs: JobOpportunity[]; hasMore: boolean }> => {
   try {
+    const from = page * pageSize;
+    const to = from + pageSize; // fetch one extra to check hasMore
+
     let queryBuilder = supabase
       .from('job_listings')
       .select('*')
       .order('freshness_score', { ascending: false })
       .order('created_at', { ascending: false })
-      .limit(50);
+      .range(from, to);
 
     if (query && query.trim()) {
       const sanitizedQuery = escapeLikePattern(query.trim().slice(0, 100));
@@ -90,34 +110,17 @@ export const searchJobs = async (query?: string): Promise<JobOpportunity[]> => {
 
     if (error) {
       console.error('Search error:', error);
-      return [];
+      return { jobs: [], hasMore: false };
     }
 
-    return (data || []).map((job: unknown) => {
-        const j = job as {
-          id: string; title: string; company: string; location: string;
-          salary_range: string; description: string; source: string;
-          freshness_score: number; credibility_score: number; url: string;
-          posted_at: string; tech_stack: string[]
-        };
-        return {
-            id: j.id,
-            title: j.title,
-            company: j.company,
-            location: j.location || 'Unspecified',
-            salary_range: j.salary_range || 'Not specified',
-            description: j.description || '',
-            source: j.source as JobOpportunity['source'],
-            freshness_score: Number(j.freshness_score) || 0.5,
-            credibility_score: Number(j.credibility_score) || 0.8,
-            url: j.url,
-            posted_at: j.posted_at || 'Recently',
-            tech_stack: j.tech_stack || []
-        };
-    });
+    const rows = data || [];
+    const hasMore = rows.length > pageSize;
+    const jobs = rows.slice(0, pageSize).map(mapJobRow);
+
+    return { jobs, hasMore };
   } catch (err) {
     console.error('Search error:', err);
-    return [];
+    return { jobs: [], hasMore: false };
   }
 };
 
@@ -135,20 +138,7 @@ export const getJobById = async (id: string): Promise<JobOpportunity | undefined
       return undefined;
     }
 
-    return {
-      id: data.id,
-      title: data.title,
-      company: data.company,
-      location: data.location || 'Unspecified',
-      salary_range: data.salary_range || 'Not specified',
-      description: data.description || '',
-      source: data.source as JobOpportunity['source'],
-      freshness_score: Number(data.freshness_score) || 0.5,
-      credibility_score: Number(data.credibility_score) || 0.8,
-      url: data.url,
-      posted_at: data.posted_at || 'Recently',
-      tech_stack: data.tech_stack || []
-    };
+    return mapJobRow(data);
   } catch (err) {
     console.error('Get job error:', err);
     return undefined;
