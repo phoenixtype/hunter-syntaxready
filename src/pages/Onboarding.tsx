@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -105,9 +105,6 @@ const Onboarding = () => {
     }
   };
 
-  const updateIdentity = (field: string, value: string) =>
-    setProfile(p => ({ ...p, identity: { ...p.identity, [field]: value } }));
-
   const addExperience = () =>
     setProfile(p => ({
       ...p,
@@ -150,34 +147,58 @@ const Onboarding = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Progress bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
-        <Progress value={progressPercent} className="h-1 rounded-none bg-muted [&>div]:bg-primary" />
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {stepIndex > 0 && (
-              <button onClick={goBack} className="text-muted-foreground hover:text-foreground transition-colors">
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-            )}
-            <span className="text-sm font-medium text-muted-foreground">
-              Step {stepIndex + 1} of {STEPS.length}
-            </span>
-          </div>
-          <div className="hidden sm:flex items-center gap-1">
+      {/* Sticky header — progress bar + navigation */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
+        <Progress value={progressPercent} className="h-0.5 rounded-none bg-muted [&>div]:bg-primary" />
+        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
+          {/* Left: back / dashboard */}
+          {currentStep === "method" ? (
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" /> Dashboard
+            </button>
+          ) : (
+            <button
+              onClick={goBack}
+              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back
+            </button>
+          )}
+
+          {/* Center: step dots */}
+          <div className="flex items-center gap-1.5">
             {STEPS.map((s, i) => (
-              <div key={s.id} className={`w-2 h-2 rounded-full transition-colors ${i <= stepIndex ? "bg-primary" : "bg-muted"}`} />
+              <div
+                key={s.id}
+                className={`rounded-full transition-all ${
+                  i < stepIndex ? "w-2 h-2 bg-primary" :
+                  i === stepIndex ? "w-2.5 h-2.5 bg-primary" :
+                  "w-2 h-2 bg-muted"
+                }`}
+              />
             ))}
           </div>
-          {canFinish && currentStep !== "method" && (
-            <button onClick={() => setCurrentStep("preferences")} className="text-xs text-primary hover:underline underline-offset-2">
-              Skip to finish
-            </button>
+
+          {/* Right: continue / finish / skip */}
+          {currentStep === "method" ? (
+            <div className="w-20" />
+          ) : currentStep === "preferences" ? (
+            <Button onClick={handleFinish} disabled={saving} size="sm" className="gap-1.5 h-9">
+              {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+              {saving ? "Saving…" : "Finish"}
+            </Button>
+          ) : (
+            <Button onClick={goNext} size="sm" className="gap-1.5 h-9">
+              Continue <ArrowRight className="w-3.5 h-3.5" />
+            </Button>
           )}
         </div>
       </div>
 
-      <div className="pt-20 pb-32 px-4">
+      <div className="pt-16 pb-16 px-4">
         <div className="max-w-2xl mx-auto">
 
           {/* METHOD */}
@@ -207,39 +228,7 @@ const Onboarding = () => {
 
           {/* IDENTITY */}
           {currentStep === "identity" && (
-            <div className="animate-fade-in space-y-8 pt-8">
-              <div className="space-y-2">
-                <h2 className="text-2xl font-bold">About you</h2>
-                <p className="text-muted-foreground">Basic contact information.</p>
-              </div>
-              <div className="space-y-5">
-                {[
-                  { label: "Full Name", value: profile.identity.name, field: "name", placeholder: "Jane Smith" },
-                  { label: "Email", value: profile.identity.email, field: "email", placeholder: "jane@example.com", type: "email" },
-                  { label: "Phone", value: profile.identity.phone || "", field: "phone", placeholder: "+1 (555) 000-0000", optional: true },
-                ].map(item => (
-                  <div key={item.field} className="space-y-2">
-                    <Label>{item.label} {item.optional && <span className="text-muted-foreground text-xs">(optional)</span>}</Label>
-                    <Input
-                      value={item.value}
-                      onChange={e => updateIdentity(item.field, e.target.value)}
-                      placeholder={item.placeholder}
-                      type={item.type || "text"}
-                      className="h-12"
-                    />
-                  </div>
-                ))}
-                <div className="space-y-2">
-                  <Label>LinkedIn / Portfolio <span className="text-muted-foreground text-xs">(optional)</span></Label>
-                  <Input
-                    value={profile.identity.links?.[0] || ""}
-                    onChange={e => setProfile(p => ({ ...p, identity: { ...p.identity, links: e.target.value ? [e.target.value] : [] } }))}
-                    placeholder="https://linkedin.com/in/janesmith"
-                    className="h-12"
-                  />
-                </div>
-              </div>
-            </div>
+            <IdentityStep profile={profile} setProfile={setProfile} />
           )}
 
           {/* EXPERIENCE */}
@@ -414,29 +403,93 @@ const Onboarding = () => {
         </div>
       </div>
 
-      {/* Bottom nav */}
-      {currentStep !== "method" && (
-        <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-lg border-t border-border z-50">
-          <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
-            <Button variant="ghost" onClick={goBack} className="gap-2">
-              <ArrowLeft className="w-4 h-4" /> Back
-            </Button>
-            {currentStep === "preferences" ? (
-              <Button onClick={handleFinish} disabled={saving} className="gap-2 px-8 h-11">
-                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                {saving ? "Saving..." : "Finish Setup"}
-              </Button>
-            ) : (
-              <Button onClick={goNext} className="gap-2 px-8 h-11">
-                Continue <ArrowRight className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
+
+function IdentityStep({ profile, setProfile }: { profile: CandidateProfile; setProfile: React.Dispatch<React.SetStateAction<CandidateProfile>> }) {
+  const links = profile.identity.links || [];
+  // Slots: 0 = LinkedIn, 1 = GitHub, 2 = Portfolio
+  const getLink = (i: number) => links[i] || "";
+  const setLink = (i: number, val: string) => {
+    const next = [...links];
+    next[i] = val;
+    // Remove trailing empty slots but keep structure
+    const trimmed = next.map(l => l.trim()).filter((l, idx) => l || idx < i);
+    // Rebuild sparse array preserving position
+    const rebuilt: string[] = [];
+    if (next[0]?.trim()) rebuilt[0] = next[0].trim();
+    if (next[1]?.trim()) rebuilt[1] = next[1].trim();
+    if (next[2]?.trim()) rebuilt[2] = next[2].trim();
+    setProfile(p => ({ ...p, identity: { ...p.identity, links: rebuilt.filter(Boolean) } }));
+  };
+
+  // Summary stored on profile.summary via identity JSONB (handled in saveCandidateProfile)
+  const summary = profile.summary || "";
+  const setSummary = (val: string) => setProfile(p => ({ ...p, summary: val }));
+
+  return (
+    <div className="animate-fade-in space-y-6 pt-8">
+      <div className="space-y-1">
+        <h2 className="text-2xl font-bold">About you</h2>
+        <p className="text-muted-foreground">Your contact details and professional presence.</p>
+      </div>
+
+      {/* Core contact */}
+      <div className="space-y-4">
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Full Name</Label>
+            <Input value={profile.identity.name} onChange={e => setProfile(p => ({ ...p, identity: { ...p.identity, name: e.target.value } }))} placeholder="Jane Smith" className="h-11" />
+          </div>
+          <div className="space-y-2">
+            <Label>Email</Label>
+            <Input value={profile.identity.email} onChange={e => setProfile(p => ({ ...p, identity: { ...p.identity, email: e.target.value } }))} placeholder="jane@example.com" type="email" className="h-11" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label>Phone <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
+          <Input value={profile.identity.phone || ""} onChange={e => setProfile(p => ({ ...p, identity: { ...p.identity, phone: e.target.value } }))} placeholder="+1 (555) 000-0000" className="h-11" />
+        </div>
+      </div>
+
+      {/* Professional summary */}
+      <div className="space-y-2">
+        <Label>Professional Summary <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
+        <Textarea
+          value={summary}
+          onChange={e => setSummary(e.target.value)}
+          placeholder="2–3 sentences highlighting your experience, expertise, and what makes you a strong candidate."
+          className="min-h-[90px] resize-y text-sm"
+        />
+      </div>
+
+      {/* Links */}
+      <div className="space-y-3">
+        <Label>Professional Links <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
+        <div className="space-y-2.5">
+          {[
+            { icon: "in", placeholder: "linkedin.com/in/janesmith", label: "LinkedIn" },
+            { icon: "gh", placeholder: "github.com/janesmith", label: "GitHub" },
+            { icon: "🌐", placeholder: "janesmith.dev or portfolio link", label: "Portfolio / Website" },
+          ].map((item, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <span className="w-8 h-8 rounded-md bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground shrink-0 select-none">
+                {item.icon}
+              </span>
+              <Input
+                value={getLink(i)}
+                onChange={e => setLink(i, e.target.value)}
+                placeholder={item.placeholder}
+                className="h-9 text-sm"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function SkillsStep({ skills, onAdd, onRemove }: { skills: Skill[]; onAdd: (name: string) => void; onRemove: (idx: number) => void }) {
   const [input, setInput] = useState("");

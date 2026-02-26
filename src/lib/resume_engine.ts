@@ -398,7 +398,9 @@ export const getCandidateProfile = async (userId: string): Promise<CandidateProf
       skills: (data.skills as unknown as Skill[]) || [],
       experience_atoms: (data.experience_atoms as unknown as ExperienceAtom[]) || [],
       education: (data.education as unknown as Education[]) || [],
-      resume_file_url: data.resume_file_url || undefined
+      resume_file_url: data.resume_file_url || undefined,
+      // summary is embedded in the identity JSONB (no separate DB column)
+      summary: identity?._summary || undefined
     };
   } catch {
     return null;
@@ -407,11 +409,16 @@ export const getCandidateProfile = async (userId: string): Promise<CandidateProf
 
 // Save candidate profile to database
 export const saveCandidateProfile = async (userId: string, profile: CandidateProfile): Promise<void> => {
+  // Embed summary inside the identity JSONB (no separate DB column for summary)
+  const identityPayload = profile.summary
+    ? { ...profile.identity, _summary: profile.summary }
+    : profile.identity;
+
   const { error } = await supabase
     .from('candidate_profiles')
     .upsert({
       user_id: userId,
-      identity: profile.identity as any,
+      identity: identityPayload as any,
       skills: profile.skills as any,
       experience_atoms: profile.experience_atoms as any,
       education: profile.education as any
