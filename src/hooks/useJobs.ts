@@ -5,7 +5,7 @@ import { calculateMatch, MatchResult } from "@/lib/matching_engine";
 import { getOptimizedWeights } from "@/lib/learning_engine";
 import { UserPreferences } from "@/lib/user_preferences";
 import { toast } from "sonner";
-import { useState, useCallback } from "react";
+import { useState, useEffect } from "react";
 
 export interface EnrichedJob extends JobOpportunity {
     match?: MatchResult;
