@@ -7,11 +7,13 @@ import { SlidersHorizontal, X } from "lucide-react";
 
 export type WorkMode = "all" | "remote" | "hybrid" | "onsite";
 export type ExperienceLevel = "all" | "entry" | "mid" | "senior" | "lead";
+export type DatePosted = "all" | "24h" | "week" | "month";
 
 export interface JobFilters {
   workMode: WorkMode;
   experienceLevel: ExperienceLevel;
   minSalary: number; // in thousands USD, 0 = any
+  datePosted: DatePosted;
 }
 
 const WORK_MODES: { value: WorkMode; label: string }[] = [
@@ -29,10 +31,18 @@ const EXP_LEVELS: { value: ExperienceLevel; label: string }[] = [
   { value: "lead", label: "Lead/Staff" },
 ];
 
+const DATE_POSTED_OPTIONS: { value: DatePosted; label: string }[] = [
+  { value: "all", label: "Any time" },
+  { value: "24h", label: "Last 24h" },
+  { value: "week", label: "This week" },
+  { value: "month", label: "This month" },
+];
+
 export const DEFAULT_FILTERS: JobFilters = {
   workMode: "all",
   experienceLevel: "all",
   minSalary: 0,
+  datePosted: "all",
 };
 
 interface JobFiltersBarProps {
@@ -41,7 +51,7 @@ interface JobFiltersBarProps {
 }
 
 export const hasActiveFilters = (filters: JobFilters): boolean =>
-  filters.workMode !== "all" || filters.experienceLevel !== "all" || filters.minSalary > 0;
+  filters.workMode !== "all" || filters.experienceLevel !== "all" || filters.minSalary > 0 || filters.datePosted !== "all";
 
 const JobFiltersBar = ({ filters, onChange }: JobFiltersBarProps) => {
   const [open, setOpen] = useState(false);
@@ -51,6 +61,7 @@ const JobFiltersBar = ({ filters, onChange }: JobFiltersBarProps) => {
     filters.workMode !== "all",
     filters.experienceLevel !== "all",
     filters.minSalary > 0,
+    filters.datePosted !== "all",
   ].filter(Boolean).length;
 
   return (
@@ -107,6 +118,24 @@ const JobFiltersBar = ({ filters, onChange }: JobFiltersBarProps) => {
                   onClick={() => onChange({ ...filters, experienceLevel: level.value })}
                 >
                   {level.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Date Posted */}
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Date Posted</label>
+            <div className="flex flex-wrap gap-1.5">
+              {DATE_POSTED_OPTIONS.map((opt) => (
+                <Button
+                  key={opt.value}
+                  variant={filters.datePosted === opt.value ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 text-xs px-3"
+                  onClick={() => onChange({ ...filters, datePosted: opt.value })}
+                >
+                  {opt.label}
                 </Button>
               ))}
             </div>

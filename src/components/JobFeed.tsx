@@ -61,9 +61,15 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
     if (filters.workMode !== "all") {
       result = result.filter(job => {
         const combined = ((job.location || "") + " " + (job.description || "")).toLowerCase();
-        if (filters.workMode === "remote") return combined.includes("remote");
+        if (filters.workMode === "remote") return job.location?.toLowerCase().includes("remote") || combined.includes("remote");
         if (filters.workMode === "hybrid") return combined.includes("hybrid");
-        if (filters.workMode === "onsite") return !combined.includes("remote") && !combined.includes("hybrid");
+        // onsite: positively matches office/onsite signals, not just absence of remote
+        if (filters.workMode === "onsite") return (
+          combined.includes("on-site") || combined.includes("onsite") ||
+          combined.includes("in-office") || combined.includes("in office") ||
+          combined.includes("on site") ||
+          (!combined.includes("remote") && !combined.includes("hybrid") && job.location !== "Remote")
+        );
         return true;
       });
     }
@@ -89,6 +95,21 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
           return cleaned < 1000 ? cleaned * 1000 : cleaned;
         }));
         return maxSalary >= filters.minSalary * 1000;
+      });
+    }
+
+    if (filters.datePosted !== "all") {
+      const now = Date.now();
+      const cutoffs: Record<string, number> = {
+        "24h": now - 24 * 60 * 60 * 1000,
+        "week": now - 7 * 24 * 60 * 60 * 1000,
+        "month": now - 30 * 24 * 60 * 60 * 1000,
+      };
+      const cutoff = cutoffs[filters.datePosted];
+      result = result.filter(job => {
+        if (!job.posted_at) return filters.datePosted === "month"; // keep if no date for month
+        const postedTime = new Date(job.posted_at).getTime();
+        return !isNaN(postedTime) && postedTime >= cutoff;
       });
     }
 
@@ -208,6 +229,12 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
           {filters.minSalary > 0 && (
             <Badge variant="secondary" className="text-[10px] gap-1 pr-1">${filters.minSalary}k+<button onClick={() => setFilters(f => ({ ...f, minSalary: 0 }))} className="ml-0.5 hover:text-destructive"><X className="w-2.5 h-2.5" /></button></Badge>
           )}
+          {filters.datePosted !== "all" && (
+            <Badge variant="secondary" className="text-[10px] gap-1 pr-1">
+              {filters.datePosted === "24h" ? "Last 24h" : filters.datePosted === "week" ? "This week" : "This month"}
+              <button onClick={() => setFilters(f => ({ ...f, datePosted: "all" }))} className="ml-0.5 hover:text-destructive"><X className="w-2.5 h-2.5" /></button>
+            </Badge>
+          )}
         </div>
       )}
 
@@ -265,9 +292,22 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                     </div>
 
                     <div className="flex items-center gap-1.5 mt-3.5 flex-wrap">
-                      <Button size="sm" variant={isApplied ? "secondary" : "default"} onClick={() => handleApply(job)} disabled={isApplied || isApplying} className="h-9 text-xs px-3.5 gap-1.5">
-                        {isApplied ? <><Send className="w-3 h-3" />Applied</> : isApplying ? <><Loader2 className="w-3 h-3 animate-spin" />Applying...</> : <><Send className="w-3 h-3" />Apply</>}
-                      </Button>
+                      {/* Apply is an <a> tag so the new-tab navigation fires as a direct user gesture
+                          (never blocked as popup). The async recordApplication fires alongside it. */}
+                      <a
+                        href={isApplied || isApplying ? undefined : (job.url || "#")}
+                        target={job.url ? "_blank" : undefined}
+                        rel="noopener noreferrer"
+                        onClick={(e) => {
+                          if (isApplied || isApplying) { e.preventDefault(); return; }
+                          handleApply(job);
+                        }}
+                        aria-label={isApplied ? "Already applied" : `Apply to ${job.title} at ${job.company}`}
+                      >
+                        <Button size="sm" variant={isApplied ? "secondary" : "default"} disabled={isApplied || isApplying} className="h-9 text-xs px-3.5 gap-1.5">
+                          {isApplied ? <><Send className="w-3 h-3" />Applied</> : isApplying ? <><Loader2 className="w-3 h-3 animate-spin" />Applying…</> : <><Send className="w-3 h-3" />View & Apply</>}
+                        </Button>
+                      </a>
                       <Button variant="outline" size="sm" onClick={() => handleTailor(job)} disabled={tailoringJobId === job.id} className="h-9 text-xs px-3.5 gap-1.5">
                         {tailoringJobId === job.id ? <><Loader2 className="w-3 h-3 animate-spin" />Tailoring...</> : <><PenTool className="w-3 h-3" />Tailor</>}
                       </Button>

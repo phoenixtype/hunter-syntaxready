@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, MapPin, Calendar, ExternalLink, Briefcase, LayoutGrid, List as ListIcon } from "lucide-react";
+import { Loader2, Calendar, ExternalLink, Briefcase, LayoutGrid, List as ListIcon, AlertCircle, StickyNote } from "lucide-react";
 import {
   Pagination,
   PaginationContent,
@@ -35,12 +35,23 @@ const getStage = (status: string): Stage => {
   return "applied";
 };
 
+// Safe date formatter — prevents "56 years ago" from null/invalid dates
+const safeFormatDistance = (dateStr: string | null | undefined): string => {
+  if (!dateStr) return "Recently";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "Recently";
+  return formatDistanceToNow(d, { addSuffix: true });
+};
+
 export const ApplicationsView = () => {
   const { session } = useAuth();
   const [applications, setApplications] = useState<ApplicationRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [viewMode, setViewMode] = useState<"board" | "list">("list");
   const [currentPage, setCurrentPage] = useState(1);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [noteInput, setNoteInput] = useState("");
   const ITEMS_PER_PAGE = 10;
 
   const fetchHistory = async () => {
@@ -48,13 +59,26 @@ export const ApplicationsView = () => {
       try {
         const history = await getApplicationHistory(session.user.id);
         setApplications(history);
+        setError(false);
       } catch (e) {
         console.error("Failed to load applications", e);
+        setError(true);
       } finally {
         setLoading(false);
       }
     } else {
       setLoading(false);
+    }
+  };
+
+  const handleSaveNote = async (appId: string) => {
+    try {
+      await updateApplicationStatus(appId, applications.find(a => a.id === appId)?.status || "applied", noteInput);
+      setApplications(prev => prev.map(app => app.id === appId ? { ...app, notes: noteInput } : app));
+      setEditingNoteId(null);
+      toast.success("Note saved");
+    } catch {
+      toast.error("Failed to save note");
     }
   };
 
@@ -78,6 +102,23 @@ export const ApplicationsView = () => {
     return (
       <div className="flex justify-center py-16">
         <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+          <AlertCircle className="w-6 h-6 text-destructive" />
+        </div>
+        <h3 className="font-semibold mb-1">Failed to load applications</h3>
+        <p className="text-sm text-muted-foreground mb-4 max-w-xs">
+          There was a problem fetching your application history. Check your connection and try again.
+        </p>
+        <button onClick={fetchHistory} className="text-sm text-primary hover:underline">
+          Try again
+        </button>
       </div>
     );
   }
@@ -167,9 +208,30 @@ export const ApplicationsView = () => {
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
-                        {app.applied_at ? formatDistanceToNow(new Date(app.applied_at), { addSuffix: true }) : "Recently"}
+                        {safeFormatDistance(app.applied_at)}
                       </span>
                     </div>
+
+                    {/* Notes */}
+                    {editingNoteId === app.id ? (
+                      <div className="mt-2 space-y-1">
+                        <textarea
+                          autoFocus
+                          value={noteInput}
+                          onChange={e => setNoteInput(e.target.value)}
+                          placeholder="Add a note..."
+                          className="w-full text-xs bg-muted border border-border rounded-lg px-2 py-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-primary min-h-[60px]"
+                        />
+                        <div className="flex gap-1.5">
+                          <button onClick={() => handleSaveNote(app.id)} className="text-[10px] text-primary font-medium hover:underline">Save</button>
+                          <button onClick={() => setEditingNoteId(null)} className="text-[10px] text-muted-foreground hover:underline">Cancel</button>
+                        </div>
+                      </div>
+                    ) : app.notes ? (
+                      <p className="mt-2 text-[10px] text-muted-foreground line-clamp-2 italic cursor-pointer hover:text-foreground" onClick={() => { setEditingNoteId(app.id); setNoteInput(app.notes || ""); }}>
+                        {app.notes}
+                      </p>
+                    ) : null}
 
                     <div className="flex items-center justify-between mt-3 gap-2">
                       <Select
@@ -189,11 +251,20 @@ export const ApplicationsView = () => {
                           <SelectItem value="declined">Declined</SelectItem>
                         </SelectContent>
                       </Select>
-                      {app.job_url && (
-                        <a href={app.job_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => { setEditingNoteId(app.id); setNoteInput(app.notes || ""); }}
+                          className="p-1 text-muted-foreground hover:text-primary transition-colors"
+                          title="Add note"
+                        >
+                          <StickyNote className="w-3 h-3" />
+                        </button>
+                        {app.job_url && (
+                          <a href={app.job_url} target="_blank" rel="noopener noreferrer" className="p-1 text-muted-foreground hover:text-primary transition-colors">
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
+                      </div>
                     </div>
                   </motion.div>
                 ))}
@@ -232,7 +303,7 @@ export const ApplicationsView = () => {
                           <span className="font-medium text-foreground/80">{app.company}</span>
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
-                            {app.applied_at ? formatDistanceToNow(new Date(app.applied_at), { addSuffix: true }) : "Recently"}
+                            {safeFormatDistance(app.applied_at)}
                           </span>
                         </div>
                       </div>

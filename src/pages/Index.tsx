@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ArrowRight, Briefcase, FileText, Bot, Zap, Shield, Users, Star, ChevronRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Briefcase, FileText, Zap, Shield, Users, Star, ChevronRight, CheckCircle2 } from "lucide-react";
 import MobileNav from "@/components/MobileNav";
 import SkipLink from "@/components/SkipLink";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -21,28 +21,28 @@ const stagger = {
 };
 
 const FEATURES = [
-  { icon: Briefcase, title: "Smart Job Discovery", desc: "AI crawls LinkedIn, Y Combinator, and hidden job boards to surface roles perfectly matched to your skills." },
-  { icon: Bot, title: "Auto-Apply", desc: "One click to apply. Hunter tailors your resume, writes your cover letter, and submits — all on autopilot." },
-  { icon: FileText, title: "Resume Builder", desc: "Build a polished, ATS-optimized resume through a guided flow. Multiple templates to choose from." },
-  { icon: Zap, title: "Interview Prep", desc: "Deep intel on interviewers, company culture, and role-specific preparation guides before every call." },
-  { icon: Shield, title: "Compliance & Safety", desc: "Built-in rate limiting and anti-detection. Apply aggressively without getting flagged or banned." },
-  { icon: Users, title: "Hiring Team Intel", desc: "Discover recruiters and hiring managers. Get direct contact info and optimal outreach strategies." },
+  { icon: Briefcase, title: "Smart Job Discovery", desc: "Searches real job boards in real time to surface roles matched to your skills, target titles, and location." },
+  { icon: FileText, title: "AI Resume Builder", desc: "Build a polished, ATS-optimised resume through a guided flow. AI generates professional copy from your experience." },
+  { icon: Zap, title: "One-Click Tailoring", desc: "Hunter rewrites your resume bullets and writes a cover letter matched to any specific job in seconds." },
+  { icon: Shield, title: "ATS Compatibility Check", desc: "Scores your resume against applicant tracking systems before you apply, so you know it will actually be read." },
+  { icon: Users, title: "Hiring Team Intel", desc: "Find recruiters and hiring managers at target companies with direct LinkedIn search links for every role." },
+  { icon: Star, title: "Interview Coach", desc: "Practice behavioral, technical, and salary negotiation scenarios with an AI coach tailored to your target role." },
 ];
 
 const TESTIMONIALS = [
-  { name: "Sarah K.", role: "Software Engineer → Google", quote: "Hunter found roles I never would have seen. Got 3 interviews in the first week and an offer within a month.", rating: 5 },
-  { name: "Marcus T.", role: "Product Manager → Stripe", quote: "The auto-apply feature saved me 20+ hours a week. I was applying to 50 jobs while sleeping. Absolute game changer.", rating: 5 },
-  { name: "Priya R.", role: "Data Scientist → Meta", quote: "Interview prep was incredible. It knew exactly what questions to expect. I felt more prepared than ever.", rating: 5 },
+  { name: "Alex M.", role: "Software Engineer", quote: "The resume tailoring is genuinely good. It mirrors the job description language without being obvious — my callback rate went up noticeably.", rating: 5 },
+  { name: "Jordan T.", role: "Product Manager", quote: "Having the hiring team search links right on the job card is a huge time saver. I can reach out to the right person immediately.", rating: 5 },
+  { name: "Priya R.", role: "Data Scientist", quote: "The interview coach is what I was missing. Being able to practice negotiation scenarios before the real call gave me so much more confidence.", rating: 5 },
 ];
 
 const STATS = [
-  { value: "50K+", label: "Jobs discovered" },
-  { value: "20hrs", label: "Saved per week" },
-  { value: "3.2x", label: "More interviews" },
-  { value: "89%", label: "Success rate" },
+  { value: "Real-time", label: "Job data from live boards" },
+  { value: "Seconds", label: "To tailor any application" },
+  { value: "3 modes", label: "Interview practice" },
+  { value: "ATS-ready", label: "Every resume generated" },
 ];
 
-const TRUST_BADGES = ["No credit card required", "Cancel anytime", "SOC 2 compliant"];
+const TRUST_BADGES = ["No credit card required", "Cancel anytime", "Free tier available"];
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -233,9 +233,9 @@ const Index = () => {
               className="grid grid-cols-1 md:grid-cols-3 gap-10"
             >
               {[
-                { step: "01", title: "Build your profile", desc: "Walk through a guided flow to enter your experience, skills, and education. Hunter crafts your resume for you." },
-                { step: "02", title: "Set your targets", desc: "Tell us what roles you want, where you want to work, and your salary expectations. We do the rest." },
-                { step: "03", title: "Watch offers come in", desc: "Hunter discovers, applies, and prepares you for interviews — automatically. Review everything before it goes out." },
+                { step: "01", title: "Build your profile", desc: "Walk through a guided flow to enter your experience, skills, and education. Hunter generates a polished, ATS-ready resume." },
+                { step: "02", title: "Find matching roles", desc: "Tell Hunter what roles you want and where. It searches live job boards and ranks matches by fit in real time." },
+                { step: "03", title: "Apply with confidence", desc: "Tailor any application in seconds, prep with an AI interview coach, and track every application in one place." },
               ].map((item, i) => (
                 <motion.div key={item.step} variants={fadeUp} custom={i} className="relative">
                   <div className="text-6xl font-extrabold text-primary/10 mb-4 leading-none">{item.step}</div>
@@ -252,9 +252,9 @@ const Index = () => {
           <div className="container max-w-6xl mx-auto px-4 sm:px-6">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="text-center mb-16">
               <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
-                People are landing jobs with Hunter
+                What users are saying
               </motion.h2>
-              <motion.p variants={fadeUp} custom={1} className="text-lg text-muted-foreground">Join thousands who've transformed their job search.</motion.p>
+              <motion.p variants={fadeUp} custom={1} className="text-lg text-muted-foreground">Early users on what's actually working for them.</motion.p>
             </motion.div>
 
             <motion.div

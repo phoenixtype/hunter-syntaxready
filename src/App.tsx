@@ -31,7 +31,14 @@ import Footer from "./components/Footer";
 import { runStartupValidation } from "./lib/env_validator";
 import { checkDatabaseHealth, logHealthStatus } from "./lib/database_health";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 60_000,
+    },
+  },
+});
 
 const AppInitializer = () => {
   useEffect(() => {

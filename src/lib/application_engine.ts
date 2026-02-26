@@ -37,25 +37,21 @@ export class ComplianceError extends Error {
 }
 
 /**
- * Apply to a job: compliance check → record in DB → redirect user to external job URL.
- * This is NOT a simulated/mocked flow — it logs a real application and opens the job page.
+ * Record a job application: compliance check → record in DB.
+ * Navigation to the job URL is handled by an <a> element in the UI — NOT window.open —
+ * so the browser never blocks the new tab as a popup.
  */
 export const simulateApplication = async (
-  job: JobOpportunity, 
+  job: JobOpportunity,
   onUpdate: (state: ApplicationState) => void,
   userId?: string,
   safeMode: boolean = true
 ) => {
     // 1. Compliance Check
     const compliance = await checkCompliance('APPLY', safeMode, job.url, userId);
-    
+
     if (!compliance.allowed) {
         throw new ComplianceError(compliance.reason);
-    }
-    
-    // 2. Record the compliance action
-    if (userId) {
-        await recordCompliantAction('APPLY', userId);
     }
 
     let state: ApplicationState = {
@@ -71,41 +67,26 @@ export const simulateApplication = async (
     };
 
     logActivity('Application', 'Started', `Applying to ${job.title} at ${job.company}`, 'action', userId);
+    update({ status: 'filling_form', progress: 40, logs: [...state.logs, "Preparing your application..."] });
 
-    update({ status: 'filling_form', progress: 25, logs: [...state.logs, "Preparing your application..."] });
+    // 2. Record compliance action + application in DB in parallel
+    await Promise.allSettled([
+        userId ? recordCompliantAction('APPLY', userId) : Promise.resolve(),
+        userId ? supabase.from('application_history').insert({
+            user_id: userId,
+            job_id: job.id,
+            job_title: job.title,
+            company: job.company,
+            job_url: job.url,
+            status: 'applied',
+            metadata: { source: job.source, salary_range: job.salary_range }
+        }) : Promise.resolve(),
+    ]);
 
-    // 3. Record application in database
-    if (userId) {
-        try {
-            update({ status: 'submitting', progress: 50, logs: [...state.logs, "Recording application..."] });
-            
-            await supabase
-                .from('application_history')
-                .insert({
-                    user_id: userId,
-                    job_id: job.id,
-                    job_title: job.title,
-                    company: job.company,
-                    job_url: job.url,
-                    status: 'applied',
-                    metadata: {
-                        source: job.source,
-                        salary_range: job.salary_range
-                    }
-                });
-        } catch (err) {
-            console.error('Failed to record application:', err);
-        }
-    }
-
-    // 4. Open the job URL for the user to complete the actual application
-    if (job.url) {
-        update({ progress: 75, logs: [...state.logs, "Opening job page in new tab..."] });
-        window.open(job.url, '_blank', 'noopener,noreferrer');
-    }
+    update({ status: 'submitting', progress: 80, logs: [...state.logs, "Application recorded!"] });
 
     logActivity('Application', 'Completed', `Recorded application to ${job.company}`, 'success', userId);
-    update({ status: 'applied', progress: 100, logs: [...state.logs, "Application recorded! Complete the application on the employer's site."] });
+    update({ status: 'applied', progress: 100, logs: [...state.logs, "Application saved. Complete it on the employer's site."] });
 };
 
 // Get application history

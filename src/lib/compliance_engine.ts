@@ -27,13 +27,21 @@ export const checkCompliance = async (
     userId?: string
 ): Promise<ComplianceCheck> => {
     
-    // 1. Check Blacklisted Domains
-    if (targetUrl && (targetUrl.includes('bad-site.com') || targetUrl.includes('scam'))) {
-        return {
-            allowed: false,
-            risk: 'CRITICAL',
-            reason: 'Target domain is flagged as unsafe or fraudulent.'
-        };
+    // 1. Check Blacklisted Domains — known scam aggregators and credential-harvesting sites
+    const BLOCKED_DOMAINS = [
+        'jobs2careers.com', 'nexxt.com', 'jooble.org',
+        'jobs-search.org', 'free-job-alerts.com', 'totaljobs.biz',
+        'careerbuilder.com.br', 'work-from-home-now.com',
+    ];
+    const BLOCKED_PATTERNS = ['scam', 'fraud', 'phish', 'pay-to-apply', 'get-rich-fast'];
+
+    if (targetUrl) {
+        const urlLower = targetUrl.toLowerCase();
+        const isDomainBlocked = BLOCKED_DOMAINS.some(d => urlLower.includes(d));
+        const isPatternBlocked = BLOCKED_PATTERNS.some(p => urlLower.includes(p));
+        if (isDomainBlocked || isPatternBlocked) {
+            return { allowed: false, risk: 'CRITICAL', reason: 'Target domain is flagged as unsafe or a known scam site.' };
+        }
     }
 
     // 2. Check Rate Limits from database

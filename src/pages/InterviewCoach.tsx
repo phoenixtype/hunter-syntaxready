@@ -1,9 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Send, Loader2, BrainCircuit, MessageSquare, Swords, HandCoins } from "lucide-react";
+import { Send, Loader2, BrainCircuit, MessageSquare, Swords, HandCoins, RotateCcw } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { useResume } from "@/hooks/useResume";
@@ -32,12 +32,50 @@ const InterviewCoach = () => {
   const jobCompany = searchParams.get("company") || "Target Company";
   const jobDescription = searchParams.get("desc") || "";
 
+  // Stable session key — scoped to user + job so sessions don't bleed between roles
+  const sessionKey = user ? `hunter_ic_${user.id}_${jobTitle}_${jobCompany}` : null;
+
   const [mode, setMode] = useState<Mode>("behavioral");
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [started, setStarted] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Restore persisted session on mount
+  useEffect(() => {
+    if (!sessionKey) return;
+    try {
+      const saved = localStorage.getItem(sessionKey);
+      if (saved) {
+        const { messages: savedMessages, mode: savedMode } = JSON.parse(saved);
+        if (savedMessages?.length > 0) {
+          setMessages(savedMessages);
+          setMode(savedMode || "behavioral");
+          setStarted(true);
+        }
+      }
+    } catch {
+      // ignore corrupt storage
+    }
+  }, [sessionKey]);
+
+  // Persist session whenever messages change
+  useEffect(() => {
+    if (!sessionKey || messages.length === 0) return;
+    try {
+      localStorage.setItem(sessionKey, JSON.stringify({ messages, mode }));
+    } catch {
+      // ignore storage quota errors
+    }
+  }, [messages, mode, sessionKey]);
+
+  const resetSession = useCallback(() => {
+    if (sessionKey) localStorage.removeItem(sessionKey);
+    setMessages([]);
+    setStarted(false);
+    setInput("");
+  }, [sessionKey]);
   
   const { canAccess } = useSubscription();
   const [showPricingModal, setShowPricingModal] = useState(false);
@@ -126,9 +164,21 @@ const InterviewCoach = () => {
         icon={<BrainCircuit className="w-4 h-4 text-primary" />}
         actions={
           started ? (
-            <Badge variant="outline" className="text-[10px] shrink-0">
-              {MODES.find(m => m.id === mode)?.label} · {jobTitle}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-[10px] shrink-0">
+                {MODES.find(m => m.id === mode)?.label} · {jobTitle}
+              </Badge>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={resetSession}
+                className="h-7 px-2 text-xs text-muted-foreground gap-1"
+                title="Start a new session"
+              >
+                <RotateCcw className="w-3 h-3" />
+                New Session
+              </Button>
+            </div>
           ) : undefined
         }
       />

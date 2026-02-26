@@ -270,20 +270,29 @@ Return a JSON array — one object per experience entry in the same order:
 Only include entries that have content to rewrite. Return the array and nothing else.`;
     }
 
-    const llmResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${geminiApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ]
-      }),
-    });
+    const llmController = new AbortController();
+    const llmTimeout = setTimeout(() => llmController.abort(), 45000);
+
+    let llmResponse: Response;
+    try {
+      llmResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${geminiApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gemini-2.5-flash',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ]
+        }),
+        signal: llmController.signal,
+      });
+    } finally {
+      clearTimeout(llmTimeout);
+    }
 
     if (!llmResponse.ok) {
       console.error('[GENERATE] AI generation failed');

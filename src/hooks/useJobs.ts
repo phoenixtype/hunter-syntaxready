@@ -27,7 +27,7 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
 
     // 2. Fetch and Sort/Match Jobs for current page
     const { isLoading: jobsLoading, refetch: refreshJobs } = useQuery({
-        queryKey: ['jobs', profile, page, searchQuery, locationQuery],
+        queryKey: ['jobs', profile, preferences, page, searchQuery, locationQuery],
         queryFn: async () => {
             const { jobs: rawJobs, totalCount } = await searchJobs(searchQuery, locationQuery, page - 1, PAGE_SIZE);
             setTotalPages(Math.max(1, Math.ceil(totalCount / PAGE_SIZE)));
@@ -39,12 +39,9 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
             }
 
             const weights = getOptimizedWeights();
-            const matches = await Promise.all(
-                rawJobs.map(async (job) => {
-                    const match = await calculateMatch(profile, job, weights);
-                    return { ...job, match } as EnrichedJob;
-                })
-            );
+            const matchPromises = rawJobs.map(job => calculateMatch(profile, job, weights));
+            const matchResults = await Promise.all(matchPromises);
+            const matches = rawJobs.map((job, i) => ({ ...job, match: matchResults[i] } as EnrichedJob));
 
             const sorted = matches
                 .sort((a, b) => (b.match?.overall_score ?? 0) - (a.match?.overall_score ?? 0));

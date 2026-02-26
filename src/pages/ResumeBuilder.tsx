@@ -13,16 +13,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   ArrowLeft, ArrowRight, X, Plus, User, Briefcase,
-  Sparkles, GraduationCap, FileText, Download, Loader2, Check, Layout, ChevronDown
+  Sparkles, GraduationCap, FileText, Download, Loader2, Check, Layout,
+  Printer, Eye, ShieldCheck
 } from "lucide-react";
-import { exportResumeToPdf, exportResumeToDocx } from "@/lib/pdf_export";
+import { exportResumeToDocx } from "@/lib/pdf_export";
+import { analyzeResumeForJob, ATSResult } from "@/lib/ats_engine";
 import PageHeader from "@/components/PageHeader";
 import DashboardSkeleton from "@/components/DashboardSkeleton";
 
@@ -73,6 +69,8 @@ const ResumeBuilder = () => {
   const [selectedTemplate, setSelectedTemplate] = useState("modern");
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
+  const [generatedHtml, setGeneratedHtml] = useState<string | null>(null);
+  const [atsResult, setAtsResult] = useState<ATSResult | null>(null);
   const [skillInput, setSkillInput] = useState("");
 
   const [formData, setFormData] = useState<CandidateProfile>({
@@ -170,30 +168,43 @@ const ResumeBuilder = () => {
       await saveCandidateProfile(user.id, formData);
       setGlobalProfile(formData);
 
-      // Call edge function to generate resume document
+      // Run ATS audit + edge function generation in parallel
       const { supabase } = await import("@/integrations/supabase/client");
       const { data: { session } } = await supabase.auth.getSession();
 
-      const { data, error } = await supabase.functions.invoke("generate-resume", {
-        body: {
-          profile: formData,
-          template: selectedTemplate,
-        },
-        headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
-      });
+      const [atsRes, genRes] = await Promise.allSettled([
+        analyzeResumeForJob(formData, ""),
+        supabase.functions.invoke("generate-resume", {
+          body: { profile: formData, template: selectedTemplate },
+          headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
+        }),
+      ]);
 
-      if (error) throw error;
+      if (atsRes.status === "fulfilled") setAtsResult(atsRes.value);
 
-      if (data?.content) {
+      if (genRes.status === "fulfilled" && genRes.value.data?.content) {
+        setGeneratedHtml(genRes.value.data.content);
         setGenerated(true);
-        toast.success("Resume ready — choose a format to download!");
+        toast.success("Resume ready — preview and download below!");
       } else {
-        throw new Error("No content returned");
+        throw new Error("Resume generation failed");
       }
     } catch (err) {
       toast.error("Resume generation failed", { description: "Your profile was saved. Please try generating again." });
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const handlePrintPdf = () => {
+    if (generatedHtml) {
+      const w = window.open("", "_blank");
+      if (w) {
+        w.document.write(generatedHtml);
+        w.document.close();
+        w.focus();
+        setTimeout(() => w.print(), 400);
+      }
     }
   };
 
@@ -513,90 +524,127 @@ const ResumeBuilder = () => {
 
           {/* GENERATE */}
           {currentStep === "generate" && (
-            <div className="animate-fade-in space-y-8 pt-8">
+            <div className="animate-fade-in space-y-6 pt-8">
               <div className="space-y-2 text-center">
                 <h2 className="text-2xl font-bold">Generate Your Resume</h2>
-                <p className="text-muted-foreground">Review your details and generate a polished, ATS-friendly resume.</p>
+                <p className="text-muted-foreground">AI will craft a polished, ATS-optimised resume from your profile.</p>
               </div>
 
-              {/* Summary preview */}
-              <Card className="border-border bg-card">
-                <CardContent className="p-6 space-y-4">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Name</span>
-                      <p className="font-medium">{formData.identity.name || "—"}</p>
+              {/* Profile summary */}
+              {!generated && (
+                <Card className="border-border bg-card">
+                  <CardContent className="p-6">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div><span className="text-muted-foreground">Name</span><p className="font-medium">{formData.identity.name || "—"}</p></div>
+                      <div><span className="text-muted-foreground">Email</span><p className="font-medium">{formData.identity.email || "—"}</p></div>
+                      <div><span className="text-muted-foreground">Experience</span><p className="font-medium">{formData.experience_atoms.length} position(s)</p></div>
+                      <div><span className="text-muted-foreground">Skills</span><p className="font-medium">{formData.skills.length} skill(s)</p></div>
+                      <div><span className="text-muted-foreground">Education</span><p className="font-medium">{formData.education.length} entry(ies)</p></div>
+                      <div><span className="text-muted-foreground">Template</span><p className="font-medium">{TEMPLATES.find(t => t.id === selectedTemplate)?.name}</p></div>
                     </div>
-                    <div>
-                      <span className="text-muted-foreground">Email</span>
-                      <p className="font-medium">{formData.identity.email || "—"}</p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* ATS Score */}
+              {atsResult && (
+                <Card className="border-primary/20 bg-primary/5">
+                  <CardContent className="p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-primary" />
+                        <span className="text-sm font-semibold">ATS Compatibility Score</span>
+                      </div>
+                      <span className={`text-2xl font-bold ${atsResult.score >= 70 ? "text-primary" : atsResult.score >= 50 ? "text-yellow-500" : "text-destructive"}`}>
+                        {atsResult.score}/100
+                      </span>
                     </div>
-                    <div>
-                      <span className="text-muted-foreground">Experience</span>
-                      <p className="font-medium">{formData.experience_atoms.length} position(s)</p>
+                    <div className="h-2 bg-muted rounded-full overflow-hidden mb-3">
+                      <div
+                        className={`h-full rounded-full transition-all duration-700 ${atsResult.score >= 70 ? "bg-primary" : atsResult.score >= 50 ? "bg-yellow-500" : "bg-destructive"}`}
+                        style={{ width: `${atsResult.score}%` }}
+                      />
                     </div>
-                    <div>
-                      <span className="text-muted-foreground">Education</span>
-                      <p className="font-medium">{formData.education.length} entry(ies)</p>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Skills</span>
-                      <p className="font-medium">{formData.skills.length} skill(s)</p>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Template</span>
-                      <p className="font-medium capitalize">{TEMPLATES.find(t => t.id === selectedTemplate)?.name}</p>
-                    </div>
+                    {atsResult.formatting_issues.length > 0 && (
+                      <ul className="text-xs text-muted-foreground space-y-1">
+                        {atsResult.formatting_issues.map((issue, i) => (
+                          <li key={i} className="flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 shrink-0" />
+                            {issue}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {atsResult.score >= 70 && (
+                      <p className="text-xs text-primary font-medium flex items-center gap-1.5">
+                        <Check className="w-3 h-3" /> Strong ATS visibility — your resume will parse correctly.
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Live HTML Preview */}
+              {generatedHtml && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>Resume preview — scroll to review</span>
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="border border-border rounded-xl overflow-hidden shadow-sm">
+                    <iframe
+                      srcDoc={generatedHtml}
+                      title="Resume Preview"
+                      className="w-full h-[600px] bg-white"
+                      sandbox="allow-same-origin"
+                    />
+                  </div>
+                </div>
+              )}
 
-              <div className="flex flex-col items-center gap-4">
-                <Button
-                  size="lg"
-                  onClick={handleGenerate}
-                  disabled={generating}
-                  className="w-full max-w-md h-14 text-base shadow-glow hover:shadow-glow-lg transition-all"
-                >
-                  {generating ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <FileText className="w-5 h-5 mr-2" />
-                      Generate Resume
-                    </>
-                  )}
-                </Button>
-
-                {generated && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="lg" className="w-full max-w-md h-14 text-base gap-2">
-                        <Download className="w-5 h-5" />
-                        Download Resume
-                        <ChevronDown className="w-4 h-4 opacity-70" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56">
-                      <DropdownMenuItem onClick={() => {
-                        exportResumeToPdf(formData);
-                        toast.success("PDF downloaded");
-                      }}>
-                        <FileText className="w-4 h-4 mr-2 text-red-500" />
-                        Download as PDF
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={async () => {
-                        await exportResumeToDocx(formData);
-                        toast.success("Word document downloaded");
-                      }}>
-                        <FileText className="w-4 h-4 mr-2 text-blue-500" />
-                        Download as DOCX
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+              {/* Actions */}
+              <div className="flex flex-col items-center gap-3">
+                {!generated ? (
+                  <Button
+                    size="lg"
+                    onClick={handleGenerate}
+                    disabled={generating}
+                    className="w-full max-w-md h-14 text-base shadow-glow hover:shadow-glow-lg transition-all"
+                  >
+                    {generating ? (
+                      <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Generating…</>
+                    ) : (
+                      <><Sparkles className="w-5 h-5 mr-2" />Generate Resume</>
+                    )}
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      size="lg"
+                      onClick={handlePrintPdf}
+                      className="w-full max-w-md h-14 text-base gap-2 shadow-glow hover:shadow-glow-lg"
+                    >
+                      <Printer className="w-5 h-5" />
+                      Save as PDF
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={async () => { await exportResumeToDocx(formData); toast.success("Word document downloaded"); }}
+                      className="w-full max-w-md h-14 text-base gap-2"
+                    >
+                      <Download className="w-5 h-5" />
+                      Download as DOCX
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => { setGenerated(false); setGeneratedHtml(null); setAtsResult(null); }}
+                      className="text-muted-foreground text-sm"
+                    >
+                      Regenerate
+                    </Button>
+                  </>
                 )}
               </div>
             </div>
