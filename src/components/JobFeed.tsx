@@ -11,6 +11,7 @@ import TailorResultSheet from "./TailorResultSheet";
 import { recordFeedback } from "@/lib/learning_engine";
 import { ExternalLink, Sparkles, RefreshCw, PenTool, Send, GraduationCap, X, Loader2, Globe, Search, MapPin, Building2, ChevronDown, ChevronUp } from "lucide-react";
 import { useEffect, useState, useMemo, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import JobFiltersBar, { JobFilters, DEFAULT_FILTERS, hasActiveFilters } from "./JobFiltersBar";
 import { toast } from "sonner";
 import InterviewPrepModal from "./InterviewPrep";
@@ -232,13 +233,22 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
 
       {/* Job Cards */}
       <div className="space-y-3">
-        {filteredJobs.map((job) => {
+        <AnimatePresence mode="popLayout">
+        {filteredJobs.map((job, idx) => {
           const isExpanded = expandedJob === job.id;
           const isApplied = appliedJobIds.has(job.id);
           const isApplying = activeApplication?.jobId === job.id;
 
           return (
-            <div key={job.id} className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 hover:shadow-sm transition-all duration-200">
+            <motion.div
+              key={job.id}
+              layout
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ duration: 0.3, delay: Math.min(idx * 0.04, 0.2) }}
+              className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 transition-all duration-200"
+            >
               <div className="p-4 sm:p-5">
                 <div className="flex items-start gap-3.5">
                   {/* Company Initial */}
@@ -359,9 +369,10 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                   )}
                 </div>
               )}
-            </div>
+            </motion.div>
           );
         })}
+        </AnimatePresence>
 
         {/* Empty */}
         {filteredJobs.length === 0 && !loading && (

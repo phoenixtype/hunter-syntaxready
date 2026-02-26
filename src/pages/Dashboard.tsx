@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import JobFeed from "@/components/JobFeed";
 import DashboardSkeleton from "@/components/DashboardSkeleton";
+import DashboardWelcome from "@/components/DashboardWelcome";
 import ThemeToggle from "@/components/ThemeToggle";
 import MobileNav from "@/components/MobileNav";
 import SkipLink from "@/components/SkipLink";
@@ -38,7 +39,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { profile, loading: resumeLoading, setProfile } = useResume();
   const { subscription, isLoading: subLoading } = useSubscription();
-  const { preferences, appCount, visibility, isLoading: dataLoading } = useDashboardData();
+  const { preferences, appCount, jobCount, visibility, isLoading: dataLoading } = useDashboardData();
 
   const [activeView, setActiveView] = useState<DashboardView>("jobs");
   const [showPostInterview, setShowPostInterview] = useState(false);
@@ -252,6 +253,7 @@ const Dashboard = () => {
           {/* Jobs View */}
           {activeView === "jobs" && (
             <WidgetErrorBoundary>
+              <DashboardWelcome profile={profile} preferences={preferences ?? null} jobCount={jobCount} appCount={appCount} />
               <JobFeed profile={profile} preferences={preferences} />
             </WidgetErrorBoundary>
           )}

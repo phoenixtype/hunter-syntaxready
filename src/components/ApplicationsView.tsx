@@ -7,6 +7,7 @@ import { getApplicationHistory, ApplicationRecord, updateApplicationStatus } fro
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 type Stage = "applied" | "interview" | "offer" | "rejected";
 
@@ -75,7 +76,7 @@ export const ApplicationsView = () => {
   }));
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold">Applications</h2>
@@ -115,9 +116,11 @@ export const ApplicationsView = () => {
               {/* Cards */}
               <div className="space-y-2">
                 {stage.apps.map((app) => (
-                  <div
+                   <motion.div
                     key={app.id}
-                    className="p-4 rounded-lg border border-border bg-card hover:border-primary/20 transition-colors group"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-4 rounded-xl border border-border bg-card hover:border-primary/20 hover:shadow-sm transition-all group"
                   >
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <div className="min-w-0">
@@ -157,7 +160,7 @@ export const ApplicationsView = () => {
                         </a>
                       )}
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
 
                 {stage.apps.length === 0 && (
@@ -170,6 +173,6 @@ export const ApplicationsView = () => {
           ))}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
