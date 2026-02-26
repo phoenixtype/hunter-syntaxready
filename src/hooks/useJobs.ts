@@ -48,7 +48,6 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
             );
 
             const sorted = matches
-                .filter(j => j.match && j.match.overall_score > 0)
                 .sort((a, b) => (b.match?.overall_score ?? 0) - (a.match?.overall_score ?? 0));
 
             setAllJobs(sorted);
