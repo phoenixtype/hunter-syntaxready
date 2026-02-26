@@ -7,6 +7,11 @@ export interface UserPreferences {
   remote_policy: 'remote' | 'hybrid' | 'onsite' | 'any';
   aggressiveness: number;
   safe_mode: boolean;
+  require_sponsorship: boolean;
+  has_clearance: boolean;
+  notice_period_days: number;
+  email_alerts_enabled: boolean;
+  sms_alerts_enabled: boolean;
 }
 
 const DEFAULT_PREFERENCES: UserPreferences = {
@@ -15,7 +20,12 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   locations: [],
   remote_policy: 'any',
   aggressiveness: 5,
-  safe_mode: true
+  safe_mode: true,
+  require_sponsorship: false,
+  has_clearance: false,
+  notice_period_days: 14,
+  email_alerts_enabled: false,
+  sms_alerts_enabled: false
 };
 
 export const getPreferences = async (userId: string): Promise<UserPreferences | null> => {
@@ -50,7 +60,12 @@ export const getPreferences = async (userId: string): Promise<UserPreferences | 
         ? data.remote_policy as UserPreferences['remote_policy'] 
         : 'any',
       aggressiveness: typeof data.aggressiveness === 'number' ? Math.max(1, Math.min(data.aggressiveness, 10)) : DEFAULT_PREFERENCES.aggressiveness,
-      safe_mode: typeof data.safe_mode === 'boolean' ? data.safe_mode : true
+      safe_mode: typeof data.safe_mode === 'boolean' ? data.safe_mode : true,
+      require_sponsorship: typeof data.require_sponsorship === 'boolean' ? data.require_sponsorship : false,
+      has_clearance: typeof data.has_clearance === 'boolean' ? data.has_clearance : false,
+      notice_period_days: typeof data.notice_period_days === 'number' ? data.notice_period_days : 14,
+      email_alerts_enabled: typeof data.email_alerts_enabled === 'boolean' ? data.email_alerts_enabled : false,
+      sms_alerts_enabled: typeof data.sms_alerts_enabled === 'boolean' ? data.sms_alerts_enabled : false
     };
   } catch (e) {
     console.error("Error in getPreferences:", e);
@@ -82,7 +97,12 @@ export const savePreferences = async (userId: string, prefs: UserPreferences): P
     aggressiveness: typeof prefs.aggressiveness === 'number' 
       ? Math.max(1, Math.min(prefs.aggressiveness, 10)) 
       : DEFAULT_PREFERENCES.aggressiveness,
-    safe_mode: typeof prefs.safe_mode === 'boolean' ? prefs.safe_mode : true
+    safe_mode: typeof prefs.safe_mode === 'boolean' ? prefs.safe_mode : true,
+    require_sponsorship: typeof prefs.require_sponsorship === 'boolean' ? prefs.require_sponsorship : false,
+    has_clearance: typeof prefs.has_clearance === 'boolean' ? prefs.has_clearance : false,
+    notice_period_days: typeof prefs.notice_period_days === 'number' ? prefs.notice_period_days : 14,
+    email_alerts_enabled: typeof prefs.email_alerts_enabled === 'boolean' ? prefs.email_alerts_enabled : false,
+    sms_alerts_enabled: typeof prefs.sms_alerts_enabled === 'boolean' ? prefs.sms_alerts_enabled : false
   };
   
   try {

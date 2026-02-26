@@ -13,6 +13,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { useResume } from "@/hooks/useResume";
 import { useAuth } from "@/hooks/useAuth";
 import { getPreferences, savePreferences, UserPreferences } from "@/lib/user_preferences";
+import { saveCandidateProfile } from "@/lib/resume_engine";
 
 const INTENSITY_LABELS: Record<number, string> = {
   1: "Very selective — few highly targeted roles",
@@ -78,6 +79,10 @@ const JobHuntPlanner = () => {
         setExpectedSalary(prefs.min_salary_usd?.toString() || "");
         if (prefs.aggressiveness) setIntensity([Math.min(7, prefs.aggressiveness)]);
         setSafeMode(prefs.safe_mode !== false);
+        setRequireSponsorship(prefs.require_sponsorship);
+        setHasClearance(prefs.has_clearance);
+        setExpectedSalary(prefs.min_salary_usd?.toString() || "");
+        setNoticePeriod(prefs.notice_period_days?.toString() || "14");
       }
       setLoading(false);
     };
@@ -95,7 +100,33 @@ const JobHuntPlanner = () => {
         min_salary_usd: parseInt(expectedSalary) || 100000,
         safe_mode: safeMode,
         aggressiveness: intensity[0],
+        require_sponsorship: requireSponsorship,
+        has_clearance: hasClearance,
+        notice_period_days: parseInt(noticePeriod) || 14,
+        email_alerts_enabled: undefined as any, // Preserve existing
+        sms_alerts_enabled: undefined as any  // Preserve existing
       });
+
+      // Save candidate profile details
+      let currentProfile = profile || {
+        identity: { name: fullName, email: user.email || "", links: [] },
+        skills: [],
+        experience_atoms: [],
+        education: []
+      };
+
+      currentProfile = {
+        ...currentProfile,
+        identity: {
+          name: fullName,
+          email: currentProfile.identity?.email || user.email || "",
+          phone: phone,
+          links: [linkedinUrl, portfolioUrl].filter(Boolean)
+        }
+      };
+      
+      await saveCandidateProfile(user.id, currentProfile);
+
       toast.success("Preferences saved!");
     } catch {
       toast.error("Failed to save preferences.");
