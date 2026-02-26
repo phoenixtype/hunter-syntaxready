@@ -55,8 +55,8 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
         staleTime: 1000 * 60 * 5
     });
 
-    // Reset to page 1 when search query changes
-    useCallback(() => {
+    // Reset to page 1 when search query or profile changes
+    useEffect(() => {
         setPage(1);
     }, [searchQuery, locationQuery, profile]);
 

@@ -324,7 +324,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
         </AnimatePresence>
 
         {/* Pagination */}
-        {totalPages > 1 && filteredJobs.length > 0 && !loading && (
+        {totalPages > 1 && !loading && (
           <div className="pt-6 pb-2">
             <Pagination>
               <PaginationContent>
@@ -405,6 +405,20 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                 <h3 className="font-semibold text-base">No jobs found yet</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">Click below to search for matching roles based on your profile.</p>
               </div>
+            )}
+            { (hasActiveFilters(filters) || searchQuery || locationQuery) && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => {
+                  setFilters(DEFAULT_FILTERS);
+                  setSearchQuery("");
+                  setLocationQuery("");
+                }}
+                className="mt-3"
+              >
+                Clear all filters
+              </Button>
             )}
             <Button size="sm" onClick={handleCrawl} disabled={crawling || !profile} className="mt-5 gap-1.5 px-5">
               {crawling ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Searching...</> : <><Globe className="w-3.5 h-3.5" />Find Jobs</>}

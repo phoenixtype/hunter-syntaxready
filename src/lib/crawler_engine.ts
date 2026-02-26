@@ -7,7 +7,7 @@ export interface JobOpportunity {
   location: string;
   salary_range: string;
   description: string;
-  source: 'Firecrawl' | 'Perplexity' | 'LinkedIn' | 'Direct';
+  source: 'Web' | 'Search' | 'LinkedIn' | 'Direct';
   freshness_score: number;
   credibility_score: number;
   url: string;
@@ -77,7 +77,7 @@ function mapJobRow(j: any): JobOpportunity {
     location: j.location || 'Unspecified',
     salary_range: j.salary_range || 'Not specified',
     description: j.description || '',
-    source: j.source as JobOpportunity['source'],
+    source: (j.source === 'Firecrawl' || j.source === 'Perplexity') ? 'Web' : (j.source === 'JSearch' ? 'Search' : j.source) as JobOpportunity['source'],
     freshness_score: Number(j.freshness_score) || 0.5,
     credibility_score: Number(j.credibility_score) || 0.8,
     url: j.url,
