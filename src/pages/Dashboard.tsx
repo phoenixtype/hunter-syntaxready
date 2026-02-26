@@ -1,4 +1,6 @@
 import { useState } from "react";
+import SEOHead from "@/components/SEOHead";
+import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { Link, useNavigate } from "react-router-dom";
 import { Briefcase, FileText, Search, Link2, Linkedin, MessageSquare, User, Settings, LogOut, Loader2, Zap, Bot, LayoutGrid, GraduationCap, Bell, FolderOpen, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -47,6 +49,9 @@ const Dashboard = () => {
   const [showResumeOptimizer, setShowResumeOptimizer] = useState(false);
   const [showLinkedIn, setShowLinkedIn] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
+
+  // Wire up realtime notifications
+  useRealtimeNotifications(user?.id);
 
   const handleSignOut = async () => {
     await signOut();
@@ -117,6 +122,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex" data-hide-footer>
+      <SEOHead title="Dashboard" description="Manage your job search, applications, and AI tools." path="/dashboard" noIndex />
       <SkipLink />
 
       {/* Desktop Sidebar */}

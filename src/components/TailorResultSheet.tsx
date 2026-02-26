@@ -27,8 +27,8 @@ const TailorResultSheet = ({ open, onClose, content, job }: TailorResultSheetPro
 
     const safeName = `${job.title}_${job.company}`.replace(/[^a-z0-9_]/gi, "_");
 
-    const handlePdf = () => {
-        exportResumeToPdf(content.resume, `${safeName}_resume.pdf`, { onePage: onePagePdf });
+    const handlePdf = async () => {
+        await exportResumeToPdf(content.resume, `${safeName}_resume.pdf`, { onePage: onePagePdf });
         toast.success("PDF downloaded");
     };
 

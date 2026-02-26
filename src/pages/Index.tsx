@@ -6,6 +6,7 @@ import SkipLink from "@/components/SkipLink";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
+import SEOHead from "@/components/SEOHead";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -49,6 +50,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
+      <SEOHead path="/" />
       <SkipLink />
 
       {/* Navigation */}
