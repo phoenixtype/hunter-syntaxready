@@ -256,20 +256,20 @@ const Dashboard = () => {
 
         {/* Content */}
         <main id="main-content" className="flex-1 p-4 sm:p-6 max-w-5xl w-full mx-auto">
-          {/* Jobs View */}
-          {activeView === "jobs" && (
+          {/* Jobs View — always mounted so job list and page state survive tab switches */}
+          <div className={activeView !== "jobs" ? "hidden" : ""}>
             <WidgetErrorBoundary>
               <DashboardWelcome profile={profile} preferences={preferences ?? null} jobCount={jobCount} appCount={appCount} />
               <JobFeed profile={profile} preferences={preferences} />
             </WidgetErrorBoundary>
-          )}
+          </div>
 
-          {/* Applications View */}
-          {activeView === "applications" && (
+          {/* Applications View — always mounted so application state survives tab switches */}
+          <div className={activeView !== "applications" ? "hidden" : ""}>
             <WidgetErrorBoundary>
               <ApplicationsView />
             </WidgetErrorBoundary>
-          )}
+          </div>
 
           {/* Notifications View */}
           {activeView === "notifications" && (

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { searchJobs, triggerJobCrawl, getJobCount, JobOpportunity, CrawlParams } from "@/lib/crawler_engine";
 import { CandidateProfile } from "@/lib/resume_engine";
 import { calculateMatch, MatchResult } from "@/lib/matching_engine";
@@ -16,8 +16,6 @@ const PAGE_SIZE = 20;
 export const useJobs = (profile: CandidateProfile | null, preferences?: UserPreferences | null, searchQuery?: string, locationQuery?: string) => {
     const queryClient = useQueryClient();
     const [page, setPage] = useState(1);
-    const [currentPageJobs, setCurrentPageJobs] = useState<EnrichedJob[]>([]);
-    const [totalPages, setTotalPages] = useState(1);
 
     // 1. Fetch Job Count
     const { data: jobCount = 0 } = useQuery({
@@ -25,17 +23,17 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
         queryFn: getJobCount
     });
 
-    // 2. Fetch and Sort/Match Jobs for current page
-    const { isLoading: jobsLoading, refetch: refreshJobs } = useQuery({
+    // 2. Fetch, match, and sort jobs — return everything from the query so
+    //    React Query's cache can restore it instantly on remount.
+    const { data, isLoading: jobsLoading, refetch: refreshJobs } = useQuery({
         queryKey: ['jobs', profile, preferences, page, searchQuery, locationQuery],
         queryFn: async () => {
             const { jobs: rawJobs, totalCount } = await searchJobs(searchQuery, locationQuery, page - 1, PAGE_SIZE);
-            setTotalPages(Math.max(1, Math.ceil(totalCount / PAGE_SIZE)));
+            const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
             if (!profile) {
                 const enriched = rawJobs.map(job => ({ ...job, match: undefined }));
-                setCurrentPageJobs(enriched);
-                return enriched;
+                return { jobs: enriched, totalPages };
             }
 
             const weights = getOptimizedWeights();
@@ -46,11 +44,15 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
             const sorted = matches
                 .sort((a, b) => (b.match?.overall_score ?? 0) - (a.match?.overall_score ?? 0));
 
-            setCurrentPageJobs(sorted);
-            return sorted;
+            return { jobs: sorted, totalPages };
         },
-        staleTime: 1000 * 60 * 5
+        staleTime: 1000 * 60 * 5,
+        // Keep showing previous page's data while next page loads — no flash of empty
+        placeholderData: keepPreviousData,
     });
+
+    const currentPageJobs: EnrichedJob[] = data?.jobs ?? [];
+    const totalPages: number = data?.totalPages ?? 1;
 
     // Reset to page 1 when search query or profile changes
     useEffect(() => {
