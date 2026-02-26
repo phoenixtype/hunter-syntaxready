@@ -1,54 +1,65 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Play, Settings2, User, Briefcase, FileText, Bot, Loader2, Save } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Search, Settings2, User, Briefcase, FileText, Loader2, Save, RefreshCw } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useResume } from "@/hooks/useResume";
 import { useAuth } from "@/hooks/useAuth";
 import { getPreferences, savePreferences, UserPreferences } from "@/lib/user_preferences";
 
-const AutoApplierSettings = () => {
+const INTENSITY_LABELS: Record<number, string> = {
+  1: "Very selective — few highly targeted roles",
+  2: "Selective — quality over quantity",
+  3: "Conservative — a handful per week",
+  4: "Moderate — steady weekly pipeline",
+  5: "Balanced — consistent flow of matches",
+  6: "Active — broad net across relevant roles",
+  7: "Aggressive — maximum job discovery",
+};
+
+const JobHuntPlanner = () => {
   const navigate = useNavigate();
   const { profile } = useResume();
   const { user } = useAuth();
   const [activeStep, setActiveStep] = useState(1);
-  const [isRunning, setIsRunning] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [searching, setSearching] = useState(false);
 
-  // Form state — pre-populated from profile & preferences
+  // Personal details
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [currentLocation, setCurrentLocation] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [portfolioUrl, setPortfolioUrl] = useState("");
 
+  // Search preferences
   const [jobTitles, setJobTitles] = useState("");
   const [locations, setLocations] = useState("");
   const [yearsExp, setYearsExp] = useState("");
   const [workSetup, setWorkSetup] = useState("any");
   const [blacklist, setBlacklist] = useState("");
 
+  // Application defaults
   const [requireSponsorship, setRequireSponsorship] = useState(false);
   const [hasClearance, setHasClearance] = useState(false);
   const [expectedSalary, setExpectedSalary] = useState("");
   const [noticePeriod, setNoticePeriod] = useState("14");
 
-  const [stealthMode, setStealthMode] = useState(true);
-  const [pauseBeforeSubmit, setPauseBeforeSubmit] = useState(false);
+  // Search intensity
+  const [intensity, setIntensity] = useState([5]);
+  const [safeMode, setSafeMode] = useState(true);
 
-  // Load data from profile and preferences
   useEffect(() => {
     if (!user) return;
 
-    // Pre-fill from candidate profile
     if (profile) {
       setFullName(profile.identity?.name || "");
       setPhone(profile.identity?.phone || "");
@@ -58,7 +69,6 @@ const AutoApplierSettings = () => {
       if (portfolio) setPortfolioUrl(portfolio);
     }
 
-    // Pre-fill from user preferences
     const loadPrefs = async () => {
       const prefs = await getPreferences(user.id);
       if (prefs) {
@@ -66,6 +76,8 @@ const AutoApplierSettings = () => {
         setLocations(prefs.locations?.join(", ") || "");
         setWorkSetup(prefs.remote_policy || "any");
         setExpectedSalary(prefs.min_salary_usd?.toString() || "");
+        if (prefs.aggressiveness) setIntensity([Math.min(7, prefs.aggressiveness)]);
+        setSafeMode(prefs.safe_mode !== false);
       }
       setLoading(false);
     };
@@ -76,33 +88,26 @@ const AutoApplierSettings = () => {
     if (!user) return;
     setSaving(true);
     try {
-      // Save preferences back to DB
       await savePreferences(user.id, {
         target_roles: jobTitles.split(",").map(s => s.trim()).filter(Boolean),
         locations: locations.split(",").map(s => s.trim()).filter(Boolean),
         remote_policy: workSetup as UserPreferences["remote_policy"],
         min_salary_usd: parseInt(expectedSalary) || 100000,
-        safe_mode: !stealthMode ? false : true,
-        aggressiveness: pauseBeforeSubmit ? 3 : 7,
+        safe_mode: safeMode,
+        aggressiveness: intensity[0],
       });
-      toast.success("All settings saved!");
+      toast.success("Preferences saved!");
     } catch {
-      toast.error("Failed to save settings.");
+      toast.error("Failed to save preferences.");
     } finally {
       setSaving(false);
     }
   };
 
-  const handleStartBot = async () => {
-    if (isRunning) {
-      setIsRunning(false);
-      toast.success("Auto-applier paused.");
-      return;
-    }
-    // Save settings first, then start crawling jobs based on preferences
+  const handleRefreshJobs = async () => {
     await handleSaveAll();
-    setIsRunning(true);
-    toast.success("Auto-applier started! Searching for matching jobs...");
+    setSearching(true);
+    toast.info("Searching for new job matches…");
     try {
       const { triggerJobCrawl } = await import("@/lib/crawler_engine");
       await triggerJobCrawl({
@@ -111,19 +116,20 @@ const AutoApplierSettings = () => {
         location: locations.split(",")[0]?.trim() || undefined,
         remotePolicy: workSetup,
       });
-      toast.success("Job search complete! Check your dashboard for new matches.");
+      toast.success("Job feed refreshed! Head to the Jobs tab for your latest matches.");
+      navigate("/dashboard");
     } catch {
       toast.error("Job search failed. Please try again.");
     } finally {
-      setIsRunning(false);
+      setSearching(false);
     }
   };
 
   const steps = [
     { num: 1, title: "Personal Details", icon: User },
-    { num: 2, title: "Search Preferences", icon: Briefcase },
-    { num: 3, title: "Questionnaires", icon: FileText },
-    { num: 4, title: "Bot Settings", icon: Settings2 },
+    { num: 2, title: "Job Preferences", icon: Briefcase },
+    { num: 3, title: "Application Defaults", icon: FileText },
+    { num: 4, title: "Search Settings", icon: Settings2 },
   ];
 
   if (loading) {
@@ -135,50 +141,55 @@ const AutoApplierSettings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background">
+    <div className="min-h-screen bg-background text-foreground">
       <PageHeader
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },
-          { label: "Auto-Applier" },
+          { label: "Job Hunt Planner" },
         ]}
-        icon={<Bot className="w-4 h-4 text-primary" />}
+        icon={<Search className="w-4 h-4 text-primary" />}
         actions={
-          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
-            <Badge variant={isRunning ? "default" : "secondary"} className={`text-xs ${isRunning ? 'bg-success/20 text-success border-success/50' : ''}`}>
-              {isRunning ? "Running" : "Idle"}
-            </Badge>
+          <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Button onClick={handleStartBot} size="sm" variant={isRunning ? "destructive" : "default"}>
-              {isRunning ? "Stop" : <><Play className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Start Agent</span></>}
+            <Button
+              onClick={handleRefreshJobs}
+              disabled={searching || saving}
+              size="sm"
+            >
+              {searching
+                ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Searching…</>
+                : <><RefreshCw className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Refresh Job Feed</span></>
+              }
             </Button>
           </div>
         }
       />
 
-      {/* Main Content */}
       <main className="container max-w-5xl mx-auto px-4 py-6 md:py-12 animate-fade-in">
-        <div className="mb-8 md:mb-10 text-center space-y-3 sm:space-y-4">
-          <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight">Configure Your <span className="text-primary">AI Job Hunter</span></h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-sm sm:text-lg">
-            Set your preferences once and let the bot apply to hundreds of jobs while you sleep.
+        <div className="mb-8 md:mb-10 text-center space-y-2">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
+            Job Hunt <span className="text-primary">Planner</span>
+          </h1>
+          <p className="text-muted-foreground max-w-xl mx-auto text-sm sm:text-base">
+            Set your preferences once. Hunter uses them to surface the most relevant jobs in your feed and tailor your applications.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8">
-          {/* Sidebar Steps - horizontal scroll on mobile */}
+          {/* Step sidebar */}
           <div className="md:col-span-1">
-            <div className="flex md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
+            <div className="flex md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0">
               {steps.map((step) => (
                 <button
                   key={step.num}
                   onClick={() => setActiveStep(step.num)}
-                  className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl text-left transition-all duration-300 shrink-0 md:shrink md:w-full ${
+                  className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl text-left transition-all duration-200 shrink-0 md:shrink md:w-full ${
                     activeStep === step.num
-                    ? "bg-primary/10 border-primary/30 border"
-                    : "hover:bg-muted border border-transparent opacity-70 hover:opacity-100"
+                      ? "bg-primary/10 border border-primary/30"
+                      : "hover:bg-muted border border-transparent opacity-70 hover:opacity-100"
                   }`}
                 >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium shrink-0 ${
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                     activeStep === step.num ? "bg-primary text-primary-foreground" : "bg-muted"
                   }`}>
                     <step.icon className="w-4 h-4" />
@@ -189,20 +200,22 @@ const AutoApplierSettings = () => {
             </div>
           </div>
 
-          {/* Config Forms */}
+          {/* Form */}
           <div className="md:col-span-3">
-            <Card className="border-border bg-card/50 backdrop-blur-md shadow-xl overflow-hidden">
+            <Card className="border-border bg-card/50 shadow-xl">
               <CardContent className="p-4 sm:p-8">
+
+                {/* Step 1: Personal Details */}
                 {activeStep === 1 && (
                   <div className="space-y-6 animate-fade-in">
                     <div>
-                      <h2 className="text-2xl font-semibold mb-1">Personal Details</h2>
-                      <p className="text-sm text-muted-foreground">Information used to fill out basic application forms.</p>
+                      <h2 className="text-xl font-semibold mb-0.5">Personal Details</h2>
+                      <p className="text-sm text-muted-foreground">Used to pre-fill basic fields when you apply to jobs.</p>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Full Name</Label>
-                        <Input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="John Doe" />
+                        <Input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Jane Smith" />
                       </div>
                       <div className="space-y-2">
                         <Label>Phone Number</Label>
@@ -213,31 +226,32 @@ const AutoApplierSettings = () => {
                         <Input value={currentLocation} onChange={e => setCurrentLocation(e.target.value)} placeholder="San Francisco, CA" />
                       </div>
                       <div className="space-y-2">
-                        <Label>LinkedIn Profile URL</Label>
-                        <Input value={linkedinUrl} onChange={e => setLinkedinUrl(e.target.value)} placeholder="https://linkedin.com/in/..." />
+                        <Label>LinkedIn URL</Label>
+                        <Input value={linkedinUrl} onChange={e => setLinkedinUrl(e.target.value)} placeholder="linkedin.com/in/janesmith" />
                       </div>
                       <div className="space-y-2 sm:col-span-2">
-                        <Label>Personal Website / Portfolio</Label>
-                        <Input value={portfolioUrl} onChange={e => setPortfolioUrl(e.target.value)} placeholder="https://..." />
+                        <Label>Portfolio / Website</Label>
+                        <Input value={portfolioUrl} onChange={e => setPortfolioUrl(e.target.value)} placeholder="janesmith.dev" />
                       </div>
                     </div>
                   </div>
                 )}
 
+                {/* Step 2: Job Preferences */}
                 {activeStep === 2 && (
                   <div className="space-y-6 animate-fade-in">
                     <div>
-                      <h2 className="text-2xl font-semibold mb-1">Search Preferences</h2>
-                      <p className="text-sm text-muted-foreground">Define what jobs the bot should target.</p>
+                      <h2 className="text-xl font-semibold mb-0.5">Job Preferences</h2>
+                      <p className="text-sm text-muted-foreground">What kinds of roles should Hunter surface for you?</p>
                     </div>
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label>Job Titles (comma separated)</Label>
-                        <Input value={jobTitles} onChange={e => setJobTitles(e.target.value)} placeholder="Software Engineer, Frontend Developer" />
+                        <Label>Target Job Titles <span className="text-muted-foreground font-normal">(comma-separated)</span></Label>
+                        <Input value={jobTitles} onChange={e => setJobTitles(e.target.value)} placeholder="Software Engineer, Full-Stack Developer, SWE" />
                       </div>
                       <div className="space-y-2">
-                        <Label>Locations (comma separated)</Label>
-                        <Input value={locations} onChange={e => setLocations(e.target.value)} placeholder="United States, Remote, New York" />
+                        <Label>Preferred Locations <span className="text-muted-foreground font-normal">(comma-separated)</span></Label>
+                        <Input value={locations} onChange={e => setLocations(e.target.value)} placeholder="San Francisco, CA, USA, Remote" />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
@@ -249,7 +263,7 @@ const AutoApplierSettings = () => {
                           <select
                             value={workSetup}
                             onChange={e => setWorkSetup(e.target.value)}
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                           >
                             <option value="remote">Remote Only</option>
                             <option value="hybrid">Hybrid</option>
@@ -259,36 +273,43 @@ const AutoApplierSettings = () => {
                         </div>
                       </div>
                       <div className="space-y-2 pt-4 border-t border-border">
-                        <Label className="text-destructive">Company Blacklist (Do not apply)</Label>
-                        <Input value={blacklist} onChange={e => setBlacklist(e.target.value)} placeholder="Crossover, Canonical, Revature" className="border-destructive/20 focus:border-destructive" />
+                        <Label className="text-destructive/80">Companies to Exclude</Label>
+                        <Input
+                          value={blacklist}
+                          onChange={e => setBlacklist(e.target.value)}
+                          placeholder="e.g. Crossover, Revature"
+                          className="border-destructive/20 focus:border-destructive/50"
+                        />
+                        <p className="text-xs text-muted-foreground">Hunter will deprioritize these companies in your feed.</p>
                       </div>
                     </div>
                   </div>
                 )}
 
+                {/* Step 3: Application Defaults */}
                 {activeStep === 3 && (
                   <div className="space-y-6 animate-fade-in">
                     <div>
-                      <h2 className="text-2xl font-semibold mb-1">Standard Questionnaires</h2>
-                      <p className="text-sm text-muted-foreground">Pre-fill answers to common ATS questions.</p>
+                      <h2 className="text-xl font-semibold mb-0.5">Application Defaults</h2>
+                      <p className="text-sm text-muted-foreground">Common answers to questions on job application forms.</p>
                     </div>
-                    <div className="space-y-5">
-                      <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-muted/30">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-muted/30">
                         <div>
-                          <Label className="text-base">Require Sponsorship?</Label>
-                          <p className="text-sm text-muted-foreground">Will you now or in the future require visa sponsorship?</p>
+                          <Label className="text-sm font-medium">Require Visa Sponsorship?</Label>
+                          <p className="text-xs text-muted-foreground mt-0.5">Will you now or in the future require work authorization?</p>
                         </div>
                         <Switch checked={requireSponsorship} onCheckedChange={setRequireSponsorship} />
                       </div>
-                      <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-muted/30">
+                      <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-muted/30">
                         <div>
-                          <Label className="text-base">Clearance</Label>
-                          <p className="text-sm text-muted-foreground">Do you possess an active security clearance?</p>
+                          <Label className="text-sm font-medium">Active Security Clearance</Label>
+                          <p className="text-xs text-muted-foreground mt-0.5">Do you hold a current government security clearance?</p>
                         </div>
                         <Switch checked={hasClearance} onCheckedChange={setHasClearance} />
                       </div>
                       <div className="space-y-2">
-                        <Label>Expected Salary (Numeric)</Label>
+                        <Label>Expected Annual Salary (USD)</Label>
                         <Input type="number" value={expectedSalary} onChange={e => setExpectedSalary(e.target.value)} placeholder="120000" />
                       </div>
                       <div className="space-y-2">
@@ -299,35 +320,56 @@ const AutoApplierSettings = () => {
                   </div>
                 )}
 
+                {/* Step 4: Search Settings */}
                 {activeStep === 4 && (
                   <div className="space-y-6 animate-fade-in">
                     <div>
-                      <h2 className="text-2xl font-semibold mb-1">Bot Behavior Configuration</h2>
-                      <p className="text-sm text-muted-foreground">Control how the automation engine operates.</p>
+                      <h2 className="text-xl font-semibold mb-0.5">Search Settings</h2>
+                      <p className="text-sm text-muted-foreground">Control how broadly Hunter searches for job matches.</p>
                     </div>
                     <div className="space-y-5">
-                      <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-muted/30">
-                        <div>
-                          <Label className="text-base">Stealth Mode</Label>
-                          <p className="text-sm text-muted-foreground">Run headless browser to avoid detection (Recommended).</p>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-baseline">
+                          <Label className="text-sm font-medium">Search Intensity</Label>
+                          <span className="text-xs font-medium text-primary tabular-nums">Level {intensity[0]}</span>
                         </div>
-                        <Switch checked={stealthMode} onCheckedChange={setStealthMode} />
+                        <Slider
+                          value={intensity}
+                          onValueChange={setIntensity}
+                          min={1}
+                          max={7}
+                          step={1}
+                        />
+                        <p className="text-sm text-muted-foreground">{INTENSITY_LABELS[intensity[0]]}</p>
+                        <p className="text-xs text-muted-foreground/70">Higher intensity means Hunter searches across more query variations and surfaces a broader range of matching roles.</p>
                       </div>
-                      <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-muted/30">
+
+                      <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-muted/30">
                         <div>
-                          <Label className="text-base">Pause Before Submission</Label>
-                          <p className="text-sm text-muted-foreground">Allow manual review of each application before it sends.</p>
+                          <Label className="text-sm font-medium">Conservative Matching</Label>
+                          <p className="text-xs text-muted-foreground mt-0.5">Only surface roles that closely match your target titles and required skills.</p>
                         </div>
-                        <Switch checked={pauseBeforeSubmit} onCheckedChange={setPauseBeforeSubmit} />
+                        <Switch checked={safeMode} onCheckedChange={setSafeMode} />
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Save Button — always visible */}
-                <div className="pt-6 mt-6 border-t border-border flex justify-end">
+                {/* Footer actions */}
+                <div className="pt-6 mt-6 border-t border-border flex items-center justify-between gap-3">
+                  <div className="flex gap-2">
+                    {activeStep > 1 && (
+                      <Button variant="ghost" size="sm" onClick={() => setActiveStep(s => s - 1)}>Back</Button>
+                    )}
+                    {activeStep < 4 && (
+                      <Button variant="outline" size="sm" onClick={() => setActiveStep(s => s + 1)}>Next</Button>
+                    )}
+                  </div>
                   <Button onClick={handleSaveAll} disabled={saving}>
-                    {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</> : <><Save className="w-4 h-4 mr-2" /> Save All Settings</>}
+                    {saving
+                      ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving…</>
+                      : <><Save className="w-4 h-4 mr-2" /> Save Preferences</>
+                    }
                   </Button>
                 </div>
               </CardContent>
@@ -339,4 +381,6 @@ const AutoApplierSettings = () => {
   );
 };
 
-export default AutoApplierSettings;
+export default JobHuntPlanner;
+// Route alias kept for backward compatibility with react-router imports
+export { JobHuntPlanner as AutoApplierSettings };

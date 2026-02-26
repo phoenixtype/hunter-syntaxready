@@ -92,7 +92,7 @@ const ApplicationWizard = () => {
             />
             <div className="container max-w-4xl mx-auto px-6 pt-8 pb-6 animate-fade-in-up">
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Targeted Application Wizard</h1>
-              <p className="text-muted-foreground text-lg mt-1">Paste a job link to generate a tailored strategy using Auto-Applier AI.</p>
+              <p className="text-muted-foreground text-lg mt-1">Paste a job link — Hunter scrapes the posting, tailors your resume, and writes your cover letter.</p>
             </div>
 
             <main className="container max-w-4xl mx-auto px-6 space-y-8 pb-12 animate-fade-in-up">
@@ -115,7 +115,7 @@ const ApplicationWizard = () => {
                                             Analyze with AI
                                         </Button>
                                     </div>
-                                    <p className="text-sm text-muted-foreground">The bot will instantly parse the JD to extract required skills, keywords, and compensation data.</p>
+                                    <p className="text-sm text-muted-foreground">Hunter scrapes the job page and uses AI to extract skills, keywords, and compensation data to tailor your application.</p>
                                 </div>
                             </form>
                         </CardContent>
@@ -217,33 +217,38 @@ const ApplicationWizard = () => {
                             <section className="space-y-4">
                                 <div className="flex items-center gap-2 px-2">
                                     <UserPlus className="w-5 h-5 text-primary" />
-                                    <h2 className="text-xl font-semibold">Recruiting Team</h2>
+                                    <h2 className="text-xl font-semibold">Find the Team on LinkedIn</h2>
                                 </div>
                                 <Card className="h-full border-border bg-card/50 backdrop-blur-md shadow-lg">
-                                    <CardContent className="p-6 space-y-6">
-                                        <p className="text-sm text-muted-foreground text-center bg-primary/10 text-primary border border-primary/20 rounded-lg p-3">Smart connections increase callback rates by 40%.</p>
-                                        <div className="space-y-3">
+                                    <CardContent className="p-6 space-y-4">
+                                        <p className="text-sm text-muted-foreground">
+                                            Use these searches to find real people at <strong>{job?.company}</strong> and reach out directly. A personal connection often gets your application noticed.
+                                        </p>
+                                        <div className="space-y-2.5">
                                             {recruiters.map((person, i) => (
                                                 <a
                                                     key={i}
                                                     href={person.profile_url}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="group flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl hover:bg-muted transition-all border border-border hover:border-primary/20"
+                                                    className="group flex items-center justify-between gap-4 p-3.5 rounded-xl hover:bg-muted transition-all border border-border hover:border-primary/20"
                                                 >
-                                                    <div className="flex items-center gap-4">
-                                                      <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-foreground font-bold group-hover:bg-primary/20 transition-colors">
-                                                          <Search className="w-5 h-5 group-hover:text-primary" />
+                                                    <div className="flex items-center gap-3">
+                                                      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                                          <Search className="w-4 h-4 text-primary" />
                                                       </div>
                                                       <div>
-                                                          <p className="font-semibold text-base group-hover:text-primary transition-colors">{person.name}</p>
-                                                          <p className="text-sm text-muted-foreground">{person.role}</p>
+                                                          <p className="font-medium text-sm group-hover:text-primary transition-colors">{person.name}</p>
+                                                          <p className="text-xs text-muted-foreground">{person.role}</p>
                                                       </div>
                                                     </div>
-                                                    <Button variant="secondary" size="sm" className="w-full sm:w-auto opacity-80 group-hover:opacity-100 transition-opacity">Connect</Button>
+                                                    <span className="text-xs text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity shrink-0">Search →</span>
                                                 </a>
                                             ))}
                                         </div>
+                                        <p className="text-xs text-muted-foreground/70 pt-1">
+                                            These open LinkedIn people searches. You'll need to be signed into LinkedIn to see results.
+                                        </p>
                                     </CardContent>
                                 </Card>
                             </section>

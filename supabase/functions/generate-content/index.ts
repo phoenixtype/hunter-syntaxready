@@ -241,6 +241,33 @@ Include: likely questions, STAR story prompts, and key talking points.`;
 Salary range listed: ${job.salary_range || 'Not specified'}
 Candidate skills: ${profile.skills?.slice(0, 5).map((s: { name: string }) => s.name).join(', ')}
 Provide: market rate analysis, negotiation leverage points, and recommended counter-offer strategy.`;
+    } else if (requestType === 'resume_rewrite') {
+      systemPrompt = `You are an expert resume writer. Rewrite the candidate's experience bullet points to be more impactful and targeted for the specific job. Rules:
+- Use strong action verbs (Led, Built, Reduced, Improved, Delivered, Designed, Scaled, Automated)
+- Quantify achievements with specific metrics where the original has numbers or you can reasonably infer them
+- Mirror keywords from the job description naturally
+- Keep each bullet concise (one line max)
+- Preserve the factual accuracy of the original — do not invent companies, roles, or results
+- Return ONLY a valid JSON array, no markdown, no explanation`;
+
+      userPrompt = `Rewrite the experience bullets for this candidate to better match the target job.
+
+TARGET JOB: ${job.title} at ${job.company}
+JOB DESCRIPTION: ${(job.description || '').substring(0, 600)}
+REQUIRED SKILLS: ${(job.tech_stack || []).join(', ')}
+
+CANDIDATE EXPERIENCE:
+${JSON.stringify(profile.experience_atoms?.slice(0, 3).map((e: { id: string; role: string; company: string; content: string }) => ({
+  id: e.id,
+  role: e.role,
+  company: e.company,
+  content: e.content
+})))}
+
+Return a JSON array — one object per experience entry in the same order:
+[{"id": "...", "rewritten_content": "• Rewritten bullet 1\\n• Rewritten bullet 2\\n• Rewritten bullet 3"}]
+
+Only include entries that have content to rewrite. Return the array and nothing else.`;
     }
 
     const llmResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {

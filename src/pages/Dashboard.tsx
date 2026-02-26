@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Briefcase, FileText, Search, Link2, Linkedin, MessageSquare, User, Settings, LogOut, Loader2, ChevronRight, Zap, Bot, LayoutGrid, GraduationCap, Bell, FolderOpen } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Briefcase, FileText, Search, Link2, Linkedin, MessageSquare, User, Settings, LogOut, Loader2, Zap, Bot, LayoutGrid, GraduationCap, Bell, FolderOpen, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -64,52 +64,52 @@ const Dashboard = () => {
 
   const tools = [
     {
-      icon: FileText,
-      title: "Resume Builder",
-      desc: "Build a polished, ATS-friendly resume",
-      action: () => navigate("/resume-builder"),
+      icon: GraduationCap,
+      title: "Interview Coach",
+      desc: "AI mock interviews, briefing dossiers & negotiation prep",
+      action: () => navigate("/interview-coach"),
       featured: true,
     },
     {
-      icon: Bot,
-      title: "Auto-Applier",
-      desc: "Mass-apply to jobs while you sleep",
-      action: () => navigate("/auto-applier-settings"),
+      icon: FileText,
+      title: "Resume Builder",
+      desc: "Build a polished, ATS-optimised resume",
+      action: () => navigate("/resume-builder"),
     },
     {
       icon: Search,
-      title: "Target Application",
-      desc: "Paste a job link for a full application",
+      title: "Application Wizard",
+      desc: "Paste a job URL — get a tailored resume & cover letter in seconds",
       action: () => navigate("/application-wizard"),
     },
     {
       icon: Link2,
       title: "Optimize for Job",
-      desc: "Get a tailored resume & cover letter for any job",
+      desc: "Tailor your resume & cover letter to any job description",
       action: () => setShowResumeOptimizer(true),
     },
     {
       icon: Linkedin,
       title: "LinkedIn Optimizer",
-      desc: "AI suggestions for your profile",
+      desc: "AI suggestions to sharpen your LinkedIn profile",
       action: () => setShowLinkedIn(true),
     },
     {
       icon: MessageSquare,
-      title: "Post-Interview",
-      desc: "Thank-you notes & negotiation",
+      title: "Post-Interview Tools",
+      desc: "Thank-you notes, offer evaluation & negotiation scripts",
       action: () => setShowPostInterview(true),
     },
     {
-      icon: GraduationCap,
-      title: "Interview Coach",
-      desc: "AI-powered mock interviews",
-      action: () => navigate("/interview-coach"),
+      icon: Bot,
+      title: "Job Hunt Planner",
+      desc: "Configure your search preferences and job feed intensity",
+      action: () => navigate("/auto-applier-settings"),
     },
     {
       icon: FolderOpen,
       title: "My Tailored Resumes",
-      desc: "View & download all your optimized resumes",
+      desc: "View & download all your AI-optimised resumes",
       action: () => navigate("/tailored-resumes"),
     },
   ];
@@ -119,51 +119,51 @@ const Dashboard = () => {
       <SkipLink />
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex flex-col w-[260px] border-r border-border bg-card h-screen sticky top-0">
+      <aside className="hidden lg:flex flex-col w-[272px] border-r border-border bg-card h-screen sticky top-0">
         {/* Logo */}
         <div className="h-16 flex items-center px-5 border-b border-border">
-          <Link to="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">H</span>
+          <Link to="/" className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-sm">
+              <span className="text-primary-foreground font-bold text-base">H</span>
             </div>
             <span className="text-lg font-bold tracking-tight">Hunter</span>
           </Link>
         </div>
 
         {/* User Card */}
-        <div className="px-4 py-5 border-b border-border">
+        <div className="px-4 py-4 border-b border-border">
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
+            <Avatar className="h-10 w-10 ring-2 ring-border">
               <AvatarImage src={user?.user_metadata?.avatar_url} />
-              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+              <AvatarFallback className="bg-primary/15 text-primary font-semibold text-sm">
                 {initials}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium truncate">
+              <p className="text-sm font-semibold truncate leading-tight">
                 {profile?.identity?.name || user?.email?.split('@')[0] || "Guest"}
               </p>
-              <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+              <p className="text-xs text-muted-foreground truncate mt-0.5">{user?.email}</p>
             </div>
           </div>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-1" aria-label="Dashboard navigation">
+        <nav className="flex-1 px-3 py-4 space-y-0.5" aria-label="Dashboard navigation">
           {NAV_ITEMS.map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveView(item.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all ${
                 activeView === item.id
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  ? "bg-primary/12 text-primary shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.15)]"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
               }`}
             >
-              <item.icon className="w-4 h-4" />
+              <item.icon className={`w-4 h-4 shrink-0 ${activeView === item.id ? "text-primary" : ""}`} />
               {item.label}
               {item.id === "applications" && appCount > 0 && (
-                <Badge variant="secondary" className="ml-auto text-[10px] h-5 min-w-[20px] flex items-center justify-center px-1.5">
+                <Badge variant="secondary" className="ml-auto text-[10px] h-5 min-w-[20px] flex items-center justify-center px-1.5 bg-primary/10 text-primary border-0">
                   {appCount}
                 </Badge>
               )}
@@ -172,24 +172,24 @@ const Dashboard = () => {
         </nav>
 
         {/* Sidebar Footer */}
-        <div className="px-3 py-4 border-t border-border space-y-1">
+        <div className="px-3 py-4 border-t border-border space-y-0.5">
           <Link
             to="/profile"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors"
           >
             <User className="w-4 h-4" />
             Profile
           </Link>
           <button
             onClick={() => setShowPreferences(true)}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors"
           >
             <Settings className="w-4 h-4" />
             Preferences
           </button>
           <button
             onClick={handleSignOut}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"
           >
             <LogOut className="w-4 h-4" />
             Sign out
@@ -200,24 +200,26 @@ const Dashboard = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Top Header */}
-        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border h-16 flex items-center justify-between px-4 sm:px-6">
+        <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-xl border-b border-border h-14 flex items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-4">
             {/* Mobile logo */}
-            <Link to="/" className="lg:hidden flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+            <Link to="/" className="lg:hidden flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-sm">
                 <span className="text-primary-foreground font-bold text-sm">H</span>
               </div>
             </Link>
-            <h1 className="text-lg font-semibold hidden sm:block capitalize">{activeView}</h1>
+            <h1 className="text-base font-semibold hidden sm:block text-foreground/80">
+              {NAV_ITEMS.find(n => n.id === activeView)?.label ?? activeView}
+            </h1>
           </div>
 
           <div className="flex items-center gap-2">
             {subscription?.tier !== SubscriptionTier.FREE && subscription?.tier ? (
-              <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">Pro</Badge>
+              <Badge className="bg-primary/10 text-primary border-primary/20 text-xs font-semibold">Pro</Badge>
             ) : (
-              <Button size="sm" variant="outline" onClick={() => setShowPricing(true)} className="text-xs h-8 hidden sm:flex">
-                <Zap className="w-3 h-3 mr-1.5" />
-                Upgrade
+              <Button size="sm" variant="outline" onClick={() => setShowPricing(true)} className="text-xs h-8 hidden sm:flex gap-1.5">
+                <Zap className="w-3 h-3" />
+                Upgrade to Pro
               </Button>
             )}
             <ThemeToggle />
@@ -271,36 +273,41 @@ const Dashboard = () => {
           {activeView === "tools" && (
             <div className="space-y-6 animate-fade-in">
               <div>
-                <h2 className="text-xl font-semibold mb-1">AI Tools</h2>
-                <p className="text-sm text-muted-foreground">Supercharge your job search with intelligent automation.</p>
+                <h2 className="text-xl font-bold mb-1">AI Tools</h2>
+                <p className="text-sm text-muted-foreground">Every tool you need to research, apply, and ace your interviews.</p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {tools.map((tool) => (
                   <button
                     key={tool.title}
                     onClick={tool.action}
-                    className={`group text-left p-5 rounded-xl border transition-all ${
+                    className={`group text-left p-5 rounded-xl border transition-all duration-200 ${
                       tool.featured
-                        ? "border-primary/30 bg-primary/5 hover:border-primary/50 hover:bg-primary/10"
-                        : "border-border bg-card hover:border-primary/20 hover:shadow-sm"
+                        ? "border-primary/25 bg-primary/5 hover:border-primary/40 hover:bg-primary/8 hover:shadow-sm"
+                        : "border-border bg-card hover:border-primary/25 hover:shadow-sm hover:bg-accent/30"
                     }`}
                   >
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${
-                      tool.featured ? "bg-primary/20" : "bg-muted"
+                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-4 ${
+                      tool.featured ? "bg-primary/15" : "bg-muted"
                     }`}>
-                      <tool.icon className={`w-5 h-5 ${tool.featured ? "text-primary" : "text-muted-foreground"}`} />
+                      <tool.icon className={`w-5 h-5 ${tool.featured ? "text-primary" : "text-muted-foreground group-hover:text-foreground transition-colors"}`} />
                     </div>
-                    <h3 className="text-sm font-semibold mb-1 group-hover:text-primary transition-colors">{tool.title}</h3>
+                    <h3 className="text-sm font-semibold mb-1.5 group-hover:text-primary transition-colors leading-tight">{tool.title}</h3>
                     <p className="text-xs text-muted-foreground leading-relaxed">{tool.desc}</p>
                   </button>
                 ))}
               </div>
 
               {!profile && (
-                <div className="p-4 rounded-lg bg-primary/5 border border-primary/10 text-sm text-muted-foreground">
-                  <strong className="text-foreground">Tip:</strong> Build your resume to unlock all AI-powered tools.
-                  <Link to="/resume-builder" className="text-primary font-medium ml-1 hover:underline">Build Resume →</Link>
+                <div className="p-4 rounded-xl bg-primary/5 border border-primary/15 text-sm text-muted-foreground flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                  </div>
+                  <span>
+                    <strong className="text-foreground">Tip:</strong> Build your profile to unlock all AI-powered tools.
+                    <Link to="/resume-builder" className="text-primary font-medium ml-1 hover:underline">Build Profile →</Link>
+                  </span>
                 </div>
               )}
             </div>

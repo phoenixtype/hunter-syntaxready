@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    /* Clean Professional Light Mode — Teal/Emerald */
+    /* Clean Professional Light Mode — Violet */
     --background: 0 0% 100%;
     --foreground: 220 20% 14%;
 
@@ -16,17 +16,17 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 14%;
 
-    --primary: 160 84% 39%;
+    --primary: 258 89% 62%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 160 20% 96%;
+    --secondary: 258 20% 97%;
     --secondary-foreground: 220 20% 14%;
 
     --muted: 220 14% 96%;
     --muted-foreground: 220 10% 46%;
 
-    --accent: 160 30% 94%;
-    --accent-foreground: 160 84% 30%;
+    --accent: 258 30% 95%;
+    --accent-foreground: 258 84% 40%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
@@ -39,64 +39,64 @@
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 160 84% 39%;
+    --ring: 258 89% 62%;
 
-    --radius: 0.625rem;
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 99%;
     --sidebar-foreground: 220 20% 14%;
-    --sidebar-primary: 160 84% 39%;
+    --sidebar-primary: 258 89% 62%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 160 20% 96%;
+    --sidebar-accent: 258 20% 97%;
     --sidebar-accent-foreground: 220 20% 14%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 160 84% 39%;
+    --sidebar-ring: 258 89% 62%;
   }
 
   .dark {
     /* Deep, refined dark mode */
-    --background: 224 28% 8%;
+    --background: 240 15% 6%;
     --foreground: 210 20% 95%;
 
-    --card: 224 25% 11%;
+    --card: 240 12% 9%;
     --card-foreground: 210 20% 95%;
 
-    --popover: 224 25% 11%;
+    --popover: 240 12% 9%;
     --popover-foreground: 210 20% 95%;
 
-    --primary: 160 72% 50%;
-    --primary-foreground: 224 28% 8%;
+    --primary: 258 85% 72%;
+    --primary-foreground: 240 15% 6%;
 
-    --secondary: 224 20% 15%;
+    --secondary: 240 10% 14%;
     --secondary-foreground: 210 20% 95%;
 
-    --muted: 224 20% 15%;
+    --muted: 240 10% 14%;
     --muted-foreground: 220 12% 55%;
 
-    --accent: 224 20% 18%;
-    --accent-foreground: 160 72% 60%;
+    --accent: 240 10% 17%;
+    --accent-foreground: 258 85% 78%;
 
     --destructive: 0 62% 40%;
     --destructive-foreground: 210 20% 95%;
 
     --success: 142 71% 45%;
-    --success-foreground: 224 28% 8%;
+    --success-foreground: 240 15% 6%;
 
     --warning: 38 92% 50%;
-    --warning-foreground: 224 28% 8%;
+    --warning-foreground: 240 15% 6%;
 
-    --border: 224 18% 18%;
-    --input: 224 18% 18%;
-    --ring: 160 72% 50%;
+    --border: 240 8% 17%;
+    --input: 240 8% 17%;
+    --ring: 258 85% 72%;
 
-    --sidebar-background: 224 28% 8%;
+    --sidebar-background: 240 15% 6%;
     --sidebar-foreground: 210 20% 95%;
-    --sidebar-primary: 160 72% 50%;
-    --sidebar-primary-foreground: 224 28% 8%;
-    --sidebar-accent: 224 20% 15%;
+    --sidebar-primary: 258 85% 72%;
+    --sidebar-primary-foreground: 240 15% 6%;
+    --sidebar-accent: 240 10% 14%;
     --sidebar-accent-foreground: 210 20% 95%;
-    --sidebar-border: 224 18% 18%;
-    --sidebar-ring: 160 72% 50%;
+    --sidebar-border: 240 8% 17%;
+    --sidebar-ring: 258 85% 72%;
   }
 }
 
@@ -196,3 +196,38 @@
 .text-responsive-xl { @apply text-xl sm:text-2xl md:text-3xl; }
 .text-responsive-2xl { @apply text-2xl sm:text-3xl md:text-4xl; }
 .text-responsive-3xl { @apply text-3xl sm:text-4xl md:text-5xl lg:text-6xl; }
+
+/* Card surface refinements */
+.card-hover {
+  @apply transition-all duration-200 hover:border-primary/25 hover:shadow-sm;
+}
+
+/* Eyebrow label — e.g. "Step 2 of 5", "About you" */
+.label-eyebrow {
+  @apply text-[11px] font-semibold text-primary uppercase tracking-widest;
+}
+
+/* Pill badge */
+.badge-pill {
+  @apply rounded-full px-3 py-0.5 text-xs font-medium;
+}
+
+/* Input focus enhancement */
+input:focus-visible, textarea:focus-visible, [data-radix-collection-item]:focus-visible {
+  @apply outline-none;
+}
+
+/* Sidebar nav item active indicator */
+.nav-active {
+  position: relative;
+}
+.nav-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 25%;
+  bottom: 25%;
+  width: 2.5px;
+  border-radius: 0 2px 2px 0;
+  background: hsl(var(--primary));
+}

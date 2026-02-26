@@ -4,18 +4,19 @@ import { CandidateProfile } from "./resume_engine";
 
 // ─── PDF (jsPDF text-based, fully ATS-parseable) ──────────────────────────────
 
-export const exportResumeToPdf = (profile: CandidateProfile, filename?: string) => {
+export const exportResumeToPdf = (profile: CandidateProfile, filename?: string, options?: { onePage?: boolean }) => {
     const doc = new jsPDF({ unit: "pt", format: "letter" });
     const PW = doc.internal.pageSize.getWidth();
     const PH = doc.internal.pageSize.getHeight();
-    const M = 54; // 0.75in margin
+    const onePage = options?.onePage ?? false;
+    const M = onePage ? 42 : 54;
     const CW = PW - 2 * M;
     let y = M;
 
-    const LH = 13.5;
-    const SMALL = 9.5;
-    const BODY = 10.5;
-    const H2 = 11;
+    const LH = onePage ? 12 : 13.5;
+    const SMALL = onePage ? 8.5 : 9.5;
+    const BODY = onePage ? 9.5 : 10.5;
+    const H2 = onePage ? 10 : 11;
 
     const checkPage = (needed = LH * 3) => {
         if (y + needed > PH - M) {
@@ -152,6 +153,14 @@ export const exportResumeToPdf = (profile: CandidateProfile, filename?: string) 
                 y
             );
             y += LH + 4;
+        }
+    }
+
+    // Trim to 1 page if requested
+    if (onePage) {
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let p = totalPages; p > 1; p--) {
+            doc.deletePage(p);
         }
     }
 

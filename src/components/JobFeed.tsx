@@ -183,19 +183,19 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
       {/* Search */}
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search jobs..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-10"
+            className="pl-10 h-11"
           />
         </div>
-        <Button variant="outline" size="sm" onClick={handleCrawl} disabled={crawling || loading} className="h-10 px-4 shrink-0">
-          {crawling ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />Searching...</> : <><Globe className="w-3.5 h-3.5 mr-1.5" />Find Jobs</>}
+        <Button variant="outline" size="sm" onClick={handleCrawl} disabled={crawling || loading} className="h-11 px-4 shrink-0 gap-1.5">
+          {crawling ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Searching...</> : <><Globe className="w-3.5 h-3.5" />Find Jobs</>}
         </Button>
         <JobFiltersBar filters={filters} onChange={setFilters} />
-        <Button variant="ghost" size="icon" onClick={() => { refreshJobs(); toast.info("Refreshing..."); }} disabled={loading || crawling} className="h-10 w-10 shrink-0">
+        <Button variant="ghost" size="icon" onClick={() => { refreshJobs(); toast.info("Refreshing..."); }} disabled={loading || crawling} className="h-11 w-11 shrink-0">
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
         </Button>
       </div>
@@ -238,79 +238,81 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
           const isApplying = activeApplication?.jobId === job.id;
 
           return (
-            <div key={job.id} className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/20 transition-all">
+            <div key={job.id} className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 hover:shadow-sm transition-all duration-200">
               <div className="p-4 sm:p-5">
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-3.5">
                   {/* Company Initial */}
-                  <div className="hidden sm:flex w-10 h-10 rounded-lg bg-muted items-center justify-center shrink-0">
-                    <span className="text-sm font-bold text-muted-foreground">{job.company[0]}</span>
+                  <div className="hidden sm:flex w-11 h-11 rounded-xl bg-primary/10 items-center justify-center shrink-0 border border-primary/10">
+                    <span className="text-sm font-bold text-primary">{job.company[0]}</span>
                   </div>
 
                   <div className="flex-1 min-w-0">
                     {/* Title row */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <h3 className="font-semibold text-sm sm:text-base truncate">{job.title}</h3>
+                        <h3 className="font-semibold text-base leading-snug truncate">{job.title}</h3>
                         <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1"><Building2 className="w-3 h-3" />{job.company}</span>
-                          {job.location && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{job.location}</span>}
+                          <span className="flex items-center gap-1.5"><Building2 className="w-3 h-3 shrink-0" />{job.company}</span>
+                          {job.location && <span className="flex items-center gap-1.5"><MapPin className="w-3 h-3 shrink-0" />{job.location}</span>}
                           {job.match && (
                             <span className="text-primary font-semibold">{job.match.overall_score}% match</span>
                           )}
                         </div>
                       </div>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive" onClick={() => handleDismiss(job)}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-muted-foreground/60 hover:text-destructive hover:bg-destructive/5" onClick={() => handleDismiss(job)}>
                         <X className="w-3.5 h-3.5" />
                       </Button>
                     </div>
 
                     {/* Description */}
-                    <p className="text-sm text-muted-foreground mt-2 line-clamp-2 leading-relaxed">{job.description}</p>
+                    <p className="text-sm text-muted-foreground mt-2.5 line-clamp-2 leading-relaxed">{job.description}</p>
 
                     {/* Tags */}
                     <div className="flex items-center gap-2 mt-3 flex-wrap">
-                      {job.salary_range && <span className="text-xs font-mono font-medium">{job.salary_range}</span>}
-                      <Badge variant="outline" className="text-[10px] font-normal">{job.source}</Badge>
+                      {job.salary_range && (
+                        <span className="text-xs font-mono font-semibold text-foreground/80 bg-muted px-2 py-0.5 rounded-md">{job.salary_range}</span>
+                      )}
+                      <Badge variant="outline" className="text-[10px] font-medium rounded-full">{job.source}</Badge>
                       {job.freshness_score > 0.9 && (
-                        <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px]">
-                          <Sparkles className="w-2.5 h-2.5 mr-0.5" /> New
+                        <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px] rounded-full gap-0.5">
+                          <Sparkles className="w-2.5 h-2.5" /> New
                         </Badge>
                       )}
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 mt-3 flex-wrap">
+                    <div className="flex items-center gap-1.5 mt-3.5 flex-wrap">
                       <Button
                         size="sm"
                         variant={isApplied ? "secondary" : "default"}
                         onClick={() => handleApply(job)}
                         disabled={isApplied || isApplying}
-                        className="h-8 text-xs"
+                        className="h-9 text-xs px-3.5 gap-1.5"
                       >
-                        {isApplied ? <><Send className="w-3 h-3 mr-1.5" />Applied</> : isApplying ? <><Loader2 className="w-3 h-3 mr-1.5 animate-spin" />Applying...</> : <><Send className="w-3 h-3 mr-1.5" />Apply</>}
+                        {isApplied ? <><Send className="w-3 h-3" />Applied</> : isApplying ? <><Loader2 className="w-3 h-3 animate-spin" />Applying...</> : <><Send className="w-3 h-3" />Apply</>}
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleTailor(job)}
                         disabled={tailoringJobId === job.id}
-                        className="h-8 text-xs"
+                        className="h-9 text-xs px-3.5 gap-1.5"
                       >
                         {tailoringJobId === job.id
-                          ? <><Loader2 className="w-3 h-3 mr-1.5 animate-spin" />Tailoring...</>
-                          : <><PenTool className="w-3 h-3 mr-1.5" />Tailor</>
+                          ? <><Loader2 className="w-3 h-3 animate-spin" />Tailoring...</>
+                          : <><PenTool className="w-3 h-3" />Tailor</>
                         }
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => navigate(`/interview-coach?title=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}&desc=${encodeURIComponent(job.description?.substring(0, 500) || '')}`)} className="h-8 text-xs">
-                        <GraduationCap className="w-3 h-3 mr-1.5" />Prep
+                      <Button variant="ghost" size="sm" onClick={() => navigate(`/interview-coach?title=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}&desc=${encodeURIComponent(job.description?.substring(0, 500) || '')}`)} className="h-9 text-xs px-3 gap-1.5">
+                        <GraduationCap className="w-3 h-3" />Prep
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleExpandJob(job.id)} className="h-8 text-xs ml-auto">
-                        {isExpanded ? <ChevronUp className="w-3 h-3 mr-1" /> : <ChevronDown className="w-3 h-3 mr-1" />}
+                      <Button variant="ghost" size="sm" onClick={() => handleExpandJob(job.id)} className="h-9 text-xs px-3 gap-1 ml-auto">
+                        {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                         Intel
                       </Button>
                       {job.url && (
                         <a href={job.url} target="_blank" rel="noopener noreferrer">
-                          <Button variant="ghost" size="icon" className="h-8 w-8"><ExternalLink className="w-3.5 h-3.5" /></Button>
+                          <Button variant="ghost" size="icon" className="h-9 w-9"><ExternalLink className="w-3.5 h-3.5" /></Button>
                         </a>
                       )}
                     </div>
@@ -332,27 +334,27 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
 
               {/* Intel Section */}
               {isExpanded && (
-                <div className="border-t border-border p-4 bg-muted/30 animate-fade-in">
-                  <h4 className="text-[10px] uppercase font-bold text-muted-foreground mb-3">Hiring Team</h4>
+                <div className="border-t border-border p-4 sm:p-5 bg-muted/20 animate-fade-in">
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-3">Hiring Team</p>
                   {stakeholders[job.id] ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {stakeholders[job.id].map((person, i) => (
                         <a key={i} href={person.profile_url} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center gap-3 p-3 rounded-lg bg-card hover:bg-accent transition-colors border border-border">
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold shrink-0">
+                          className="flex items-center gap-3 p-3 rounded-xl bg-card hover:bg-accent/60 transition-colors border border-border/60">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold shrink-0 border border-primary/10">
                             {person.name?.[0] || '?'}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="text-xs font-medium truncate">{person.name}</p>
-                            <p className="text-[10px] text-muted-foreground truncate">{person.role}</p>
+                            <p className="text-xs font-semibold truncate">{person.name}</p>
+                            <p className="text-[10px] text-muted-foreground truncate mt-0.5">{person.role}</p>
                           </div>
-                          <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0" />
+                          <ExternalLink className="w-3 h-3 text-muted-foreground/60 shrink-0" />
                         </a>
                       ))}
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Loader2 className="w-3 h-3 animate-spin" /> Loading...
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" /> Finding hiring team...
                     </div>
                   )}
                 </div>
@@ -363,35 +365,36 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
 
         {/* Empty */}
         {filteredJobs.length === 0 && !loading && (
-          <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-border rounded-xl">
-            <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mb-4">
-              <Search className="w-6 h-6 text-muted-foreground" />
+          <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-border rounded-2xl bg-muted/20">
+            <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-5">
+              <Search className="w-7 h-7 text-muted-foreground/60" />
             </div>
             {!profile ? (
-              <div className="max-w-xs space-y-2">
-                <h3 className="font-semibold">Build your profile to start</h3>
-                <p className="text-sm text-muted-foreground">Complete onboarding or use the Resume Builder so Hunter can find matching jobs.</p>
+              <div className="max-w-[260px] space-y-2">
+                <h3 className="font-semibold text-base">Build your profile first</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">Complete onboarding so Hunter can find matching jobs for you.</p>
               </div>
             ) : !preferences?.target_roles?.length ? (
-              <div className="max-w-xs space-y-2">
-                <h3 className="font-semibold">Set your preferences</h3>
-                <p className="text-sm text-muted-foreground">Add target roles and locations to start finding jobs.</p>
+              <div className="max-w-[260px] space-y-2">
+                <h3 className="font-semibold text-base">Set your preferences</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">Add target roles and locations to start finding jobs.</p>
               </div>
             ) : (
-              <div className="max-w-xs space-y-2">
-                <h3 className="font-semibold">No jobs found yet</h3>
-                <p className="text-sm text-muted-foreground">Click below to search for matching roles.</p>
+              <div className="max-w-[260px] space-y-2">
+                <h3 className="font-semibold text-base">No jobs found yet</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">Click below to search for matching roles based on your profile.</p>
               </div>
             )}
-            <Button variant="outline" size="sm" onClick={handleCrawl} disabled={crawling || !profile} className="mt-4">
-              {crawling ? <><Loader2 className="w-3 h-3 mr-1.5 animate-spin" />Searching...</> : <><Globe className="w-3 h-3 mr-1.5" />Find Jobs</>}
+            <Button size="sm" onClick={handleCrawl} disabled={crawling || !profile} className="mt-5 gap-1.5 px-5">
+              {crawling ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Searching...</> : <><Globe className="w-3.5 h-3.5" />Find Jobs</>}
             </Button>
           </div>
         )}
 
         {loading && (
-          <div className="flex justify-center py-16">
-            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <Loader2 className="w-6 h-6 animate-spin text-primary/60" />
+            <p className="text-xs text-muted-foreground">Loading jobs...</p>
           </div>
         )}
       </div>

@@ -15,55 +15,82 @@ export const generateTailoredContent = async (
   const { data: { session } } = await supabase.auth.getSession();
   const authHeader = session ? { Authorization: `Bearer ${session.access_token}` } : {};
 
-  const { data: coverLetterData, error: coverLetterError } = await supabase.functions.invoke('generate-content', {
-    body: { profile, job, type: 'cover_letter' },
-    headers: authHeader
-  });
+  // Run cover letter + resume rewrite in parallel for speed
+  const [coverLetterResult, rewriteResult] = await Promise.allSettled([
+    supabase.functions.invoke('generate-content', {
+      body: { profile, job, type: 'cover_letter' },
+      headers: authHeader,
+    }),
+    supabase.functions.invoke('generate-content', {
+      body: { profile, job, type: 'resume_rewrite' },
+      headers: authHeader,
+    }),
+  ]);
+
+  const coverLetterData = coverLetterResult.status === 'fulfilled' ? coverLetterResult.value.data : null;
+  const coverLetterError = coverLetterResult.status === 'fulfilled' ? coverLetterResult.value.error : null;
 
   if (coverLetterError) {
     console.error('Cover letter generation error:', coverLetterError);
-    throw new Error(coverLetterError.message || 'Failed to generate cover letter');
   }
 
-  const { data: optimizationData, error: optimizationError } = await supabase.functions.invoke('generate-content', {
-    body: { profile, job, type: 'resume_optimization' },
-    headers: authHeader
-  });
+  const rewriteData = rewriteResult.status === 'fulfilled' ? rewriteResult.value.data : null;
 
-  if (optimizationError) {
-    console.error('Resume optimization error:', optimizationError);
-  }
-
-  const changesReceived: string[] = [];
-  if (optimizationData?.content) {
-    const suggestions = optimizationData.content.split('\n')
-      .map((line: string) => line.trim())
-      .filter((line: string) => /^[-•*\d+\.\)]/.test(line) && line.length > 10)
-      .slice(0, 5)
-      .map((line: string) => line.replace(/^[-•*\d+\.\)]+\s*/, '').trim())
-      .filter((line: string) => line.length > 0);
-    changesReceived.push(...suggestions);
-  }
-
+  // Deep-clone the profile so we never mutate the original
   const tailoredResume = JSON.parse(JSON.stringify(profile)) as CandidateProfile;
-  const jobKeywords = (job.tech_stack || []).slice(0, 5);
+  const changesSummary: string[] = [];
 
+  // Apply AI-rewritten bullets to experience atoms
+  if (rewriteData?.content) {
+    try {
+      const rewrites: Array<{ id: string; rewritten_content: string }> = JSON.parse(rewriteData.content);
+      let rewriteCount = 0;
+      rewrites.forEach(rewrite => {
+        if (!rewrite.id || !rewrite.rewritten_content) return;
+        const atomIdx = tailoredResume.experience_atoms.findIndex(a => a.id === rewrite.id);
+        if (atomIdx >= 0) {
+          tailoredResume.experience_atoms[atomIdx] = {
+            ...tailoredResume.experience_atoms[atomIdx],
+            content: rewrite.rewritten_content,
+          };
+          rewriteCount++;
+        }
+      });
+      if (rewriteCount > 0) {
+        changesSummary.push(`Rewrote ${rewriteCount} experience section${rewriteCount > 1 ? 's' : ''} to match ${job.company}'s language and keywords`);
+      }
+    } catch (err) {
+      console.warn('Failed to parse resume_rewrite response, skipping bullet rewrites:', err);
+    }
+  }
+
+  // Merge job keywords into skills (only ones not already present)
+  const jobKeywords = (job.tech_stack || []).slice(0, 5);
+  const newSkills: string[] = [];
   jobKeywords.forEach(keyword => {
-    if (keyword && !tailoredResume.skills.find(s =>
-      s.name.toLowerCase() === keyword.toLowerCase()
-    )) {
+    if (keyword && !tailoredResume.skills.find(s => s.name.toLowerCase() === keyword.toLowerCase())) {
       tailoredResume.skills.push({
         name: keyword,
         proficiency: 0.7,
-        evidence: [`Inferred from ${job.company} requirements`]
+        evidence: [`Required for ${job.company} role`],
       });
+      newSkills.push(keyword);
     }
   });
+
+  if (newSkills.length > 0) {
+    changesSummary.push(`Added ${newSkills.length} skill${newSkills.length > 1 ? 's' : ''} from job requirements: ${newSkills.join(', ')}`);
+  }
+
+  // Always add a summary note about ATS tailoring
+  if (job.tech_stack && job.tech_stack.length > 0) {
+    changesSummary.push(`Resume is ATS-optimised for ${job.title} at ${job.company}`);
+  }
 
   return {
     resume: tailoredResume,
     coverLetter: coverLetterData?.content || generateFallbackCoverLetter(profile, job),
-    changes_summary: changesReceived
+    changes_summary: changesSummary,
   };
 };
 

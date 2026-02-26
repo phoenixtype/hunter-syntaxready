@@ -21,13 +21,14 @@ const TailorResultSheet = ({ open, onClose, content, job }: TailorResultSheetPro
     const [showCoverLetter, setShowCoverLetter] = useState(false);
     const [copied, setCopied] = useState(false);
     const [downloadingDocx, setDownloadingDocx] = useState(false);
+    const [onePagePdf, setOnePagePdf] = useState(false);
 
     if (!content || !job) return null;
 
     const safeName = `${job.title}_${job.company}`.replace(/[^a-z0-9_]/gi, "_");
 
     const handlePdf = () => {
-        exportResumeToPdf(content.resume, `${safeName}_resume.pdf`);
+        exportResumeToPdf(content.resume, `${safeName}_resume.pdf`, { onePage: onePagePdf });
         toast.success("PDF downloaded");
     };
 
@@ -80,6 +81,17 @@ const TailorResultSheet = ({ open, onClose, content, job }: TailorResultSheetPro
                         </div>
                     </div>
                 )}
+
+                {/* 1-page toggle */}
+                <label className="flex items-center gap-2.5 mb-4 cursor-pointer select-none w-fit">
+                    <div
+                        onClick={() => setOnePagePdf(v => !v)}
+                        className={`relative w-9 h-5 rounded-full transition-colors ${onePagePdf ? "bg-primary" : "bg-muted-foreground/30"}`}
+                    >
+                        <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${onePagePdf ? "translate-x-4" : "translate-x-0"}`} />
+                    </div>
+                    <span className="text-sm text-muted-foreground">Fit to 1 page</span>
+                </label>
 
                 {/* Download buttons */}
                 <div className="grid grid-cols-2 gap-3 mb-5">
