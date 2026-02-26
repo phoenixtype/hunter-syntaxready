@@ -158,7 +158,7 @@ export const exportResumeToPdf = (profile: CandidateProfile, filename?: string, 
 
     // Trim to 1 page if requested
     if (onePage) {
-        const totalPages = doc.internal.getNumberOfPages();
+        const totalPages = (doc.internal as any).getNumberOfPages?.() ?? (doc as any).getNumberOfPages?.() ?? 1;
         for (let p = totalPages; p > 1; p--) {
             doc.deletePage(p);
         }

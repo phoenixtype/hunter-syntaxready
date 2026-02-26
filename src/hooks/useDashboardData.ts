@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getApplicationCount } from "@/lib/application_engine";
+import { getJobCount } from "@/lib/crawler_engine";
 import { getPreferences, UserPreferences } from "@/lib/user_preferences";
 import { calculateVisibilityScore, VisibilityScore } from "@/lib/visibility_engine";
 import { fetchLogsFromDatabase } from "@/lib/activity_logger";
@@ -28,6 +29,13 @@ export const useDashboardData = () => {
         enabled: !!userId
     });
 
+    // 2b. Job Count
+    const { data: jobCount, isLoading: jobCountLoading } = useQuery<number>({
+        queryKey: ['jobCount'],
+        queryFn: () => getJobCount(),
+        staleTime: 1000 * 60 * 2
+    });
+
     // 3. Visibility Score (Dependent on Profile)
     const { data: visibility, isLoading: visibilityLoading } = useQuery<VisibilityScore | null>({
         queryKey: ['visibilityScore', profile], // Recalculate if profile changes
@@ -52,11 +60,12 @@ export const useDashboardData = () => {
         gcTime: Infinity // Keep this result forever so it doesn't re-run unreasonably
     });
 
-    const isLoading = prefsLoading || countLoading || visibilityLoading;
+    const isLoading = prefsLoading || countLoading || visibilityLoading || jobCountLoading;
 
     return {
         preferences,
         appCount: appCount || 0,
+        jobCount: jobCount || 0,
         visibility,
         isLoading
     };
