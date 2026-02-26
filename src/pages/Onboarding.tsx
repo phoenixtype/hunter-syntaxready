@@ -6,7 +6,6 @@ import { savePreferences, UserPreferences } from "@/lib/user_preferences";
 import { CandidateProfile, saveCandidateProfile, ExperienceAtom, Education, Skill } from "@/lib/resume_engine";
 import { triggerJobCrawl } from "@/lib/crawler_engine";
 
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,8 +16,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import LocationPicker from "@/components/LocationPicker";
 import { Progress } from "@/components/ui/progress";
 import {
-  Loader2, ArrowLeft, ArrowRight, Upload, PenLine, X, Plus,
-  User, Briefcase, Sparkles, GraduationCap, Target, Check
+  Loader2, ArrowLeft, ArrowRight, PenLine, X, Plus,
+  User, Briefcase, Sparkles, GraduationCap, Target, Check,
 } from "lucide-react";
 
 const UNIVERSITIES = [
@@ -26,7 +25,7 @@ const UNIVERSITIES = [
   "Brown University", "California Institute of Technology", "Carnegie Mellon University",
   "Case Western Reserve University", "Coding Bootcamp", "Columbia University",
   "Concordia University", "Cornell University", "Dalhousie University", "Dartmouth College",
-  "Duke University", "Ed.D.", "Emory University", "ETH Zurich", "Flatiron School",
+  "Duke University", "Emory University", "ETH Zurich", "Flatiron School",
   "General Assembly", "Georgetown University", "Georgia Institute of Technology",
   "Hack Reactor", "Harvard University", "HEC Paris", "Imperial College London",
   "Indiana University", "INSEAD", "Ironhack", "Johns Hopkins University",
@@ -65,12 +64,12 @@ const DEGREES = [
 const GRAD_YEARS = Array.from({ length: 2031 - 1960 + 1 }, (_, i) => String(2031 - i));
 
 const STEPS = [
-  { id: "method", label: "Start", icon: Sparkles },
-  { id: "identity", label: "You", icon: User },
-  { id: "experience", label: "Experience", icon: Briefcase },
-  { id: "skills", label: "Skills", icon: Sparkles },
-  { id: "education", label: "Education", icon: GraduationCap },
-  { id: "preferences", label: "Preferences", icon: Target },
+  { id: "method",     label: "Welcome",     icon: Sparkles,     desc: "" },
+  { id: "identity",   label: "About you",   icon: User,         desc: "Contact info & summary" },
+  { id: "experience", label: "Experience",  icon: Briefcase,    desc: "Work history & achievements" },
+  { id: "skills",     label: "Skills",      icon: Sparkles,     desc: "Technical & soft skills" },
+  { id: "education",  label: "Education",   icon: GraduationCap,desc: "Degrees & field of study" },
+  { id: "preferences",label: "Preferences", icon: Target,       desc: "Target roles & locations" },
 ] as const;
 
 type StepId = typeof STEPS[number]["id"];
@@ -81,6 +80,24 @@ const emptyProfile: CandidateProfile = {
   experience_atoms: [],
   education: [],
 };
+
+// ── Step header badge ────────────────────────────────────────────────────────
+function StepBadge({ stepId, stepIndex, total }: { stepId: StepId; stepIndex: number; total: number }) {
+  const step = STEPS.find(s => s.id === stepId)!;
+  const Icon = step.icon;
+  return (
+    <div className="flex items-center gap-3 pt-8 mb-5">
+      <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+        <Icon className="w-4 h-4 text-primary" />
+      </div>
+      <span className="text-xs font-semibold text-primary/70 uppercase tracking-widest">
+        Step {stepIndex} of {total - 1}
+      </span>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 const Onboarding = () => {
   const { user, loading: authLoading } = useAuth();
@@ -107,7 +124,7 @@ const Onboarding = () => {
   }, [user]);
 
   const stepIndex = STEPS.findIndex(s => s.id === currentStep);
-  const progressPercent = ((stepIndex) / (STEPS.length - 1)) * 100;
+  const progressPercent = (stepIndex / (STEPS.length - 1)) * 100;
 
   const goNext = () => {
     const idx = STEPS.findIndex(s => s.id === currentStep);
@@ -117,7 +134,6 @@ const Onboarding = () => {
     const idx = STEPS.findIndex(s => s.id === currentStep);
     if (idx > 0) setCurrentStep(STEPS[idx - 1].id);
   };
-
 
   const handleFinish = async () => {
     if (!user) return;
@@ -137,7 +153,7 @@ const Onboarding = () => {
         keywords: keywords.length > 0 ? keywords : undefined,
         targetRoles: roles.length > 0 ? roles : undefined,
         location: locations.length > 0 ? locations.join(", ") : undefined,
-        remotePolicy: remotePolicy,
+        remotePolicy,
       }).catch(() => {});
       toast.success("You're all set!");
       navigate("/dashboard");
@@ -152,10 +168,13 @@ const Onboarding = () => {
   const addExperience = () =>
     setProfile(p => ({
       ...p,
-      experience_atoms: [...p.experience_atoms, { id: crypto.randomUUID(), company: "", role: "", duration: "", content: "", keywords: [] }],
+      experience_atoms: [
+        ...p.experience_atoms,
+        { id: crypto.randomUUID(), company: "", role: "", duration: "", content: "", keywords: [] },
+      ],
     }));
 
-  const updateExperience = (idx: number, field: keyof ExperienceAtom, value: any) =>
+  const updateExperience = (idx: number, field: keyof ExperienceAtom, value: string) =>
     setProfile(p => {
       const atoms = [...p.experience_atoms];
       atoms[idx] = { ...atoms[idx], [field]: value };
@@ -175,27 +194,27 @@ const Onboarding = () => {
     setProfile(p => ({ ...p, skills: p.skills.filter((_, i) => i !== idx) }));
 
   const addEducation = () =>
-    setProfile(p => ({ ...p, education: [...p.education, { school: "", degree: "", year: "" }] }));
+    setProfile(p => ({ ...p, education: [...p.education, { school: "", degree: "", field: "", year: "" }] }));
 
-  const updateEducation = (idx: number, field: keyof Education, value: string) =>
+  const updateEducation = (idx: number, key: keyof Education, value: string) =>
     setProfile(p => {
       const edu = [...p.education];
-      edu[idx] = { ...edu[idx], [field]: value };
+      edu[idx] = { ...edu[idx], [key]: value };
       return { ...p, education: edu };
     });
 
   const removeEducation = (idx: number) =>
     setProfile(p => ({ ...p, education: p.education.filter((_, i) => i !== idx) }));
 
-  const canFinish = roles.length > 0 || profile.experience_atoms.length > 0;
-
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Sticky header — progress bar + navigation */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
+
+      {/* ── Sticky top nav ─────────────────────────────────────────────── */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-b border-border">
         <Progress value={progressPercent} className="h-0.5 rounded-none bg-muted [&>div]:bg-primary" />
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
-          {/* Left: back / dashboard */}
+
+          {/* Left */}
           {currentStep === "method" ? (
             <button
               onClick={() => navigate("/dashboard")}
@@ -212,21 +231,28 @@ const Onboarding = () => {
             </button>
           )}
 
-          {/* Center: step dots */}
-          <div className="flex items-center gap-1.5">
-            {STEPS.map((s, i) => (
-              <div
-                key={s.id}
-                className={`rounded-full transition-all ${
-                  i < stepIndex ? "w-2 h-2 bg-primary" :
-                  i === stepIndex ? "w-2.5 h-2.5 bg-primary" :
-                  "w-2 h-2 bg-muted"
-                }`}
-              />
-            ))}
+          {/* Center — step label + dots */}
+          <div className="flex flex-col items-center gap-0.5">
+            {currentStep !== "method" && (
+              <span className="text-xs font-semibold text-foreground/70">
+                {STEPS[stepIndex].label}
+              </span>
+            )}
+            <div className="flex items-center gap-1.5">
+              {STEPS.map((s, i) => (
+                <div
+                  key={s.id}
+                  className={`rounded-full transition-all duration-300 ${
+                    i < stepIndex  ? "w-2 h-2 bg-primary/60" :
+                    i === stepIndex ? "w-2.5 h-2.5 bg-primary" :
+                    "w-2 h-2 bg-muted"
+                  }`}
+                />
+              ))}
+            </div>
           </div>
 
-          {/* Right: continue / finish / skip */}
+          {/* Right */}
           {currentStep === "method" ? (
             <div className="w-20" />
           ) : currentStep === "preferences" ? (
@@ -242,61 +268,92 @@ const Onboarding = () => {
         </div>
       </div>
 
-      <div className="pt-16 pb-16 px-4">
+      <div className="pt-14 pb-16 px-4">
         <div className="max-w-2xl mx-auto">
 
-          {/* METHOD */}
+          {/* ── METHOD / WELCOME ─────────────────────────────────────── */}
           {currentStep === "method" && (
-            <div className="animate-fade-in space-y-8 text-center pt-12">
-              <div className="space-y-3">
-                <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Let's build your profile</h1>
-                <p className="text-muted-foreground text-lg max-w-md mx-auto">We'll walk you through a few quick steps to get started.</p>
+            <div className="animate-fade-in pt-12">
+              {/* Hero */}
+              <div className="text-center space-y-3 mb-10">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+                  <Sparkles className="w-7 h-7 text-primary" />
+                </div>
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Build your profile</h1>
+                <p className="text-muted-foreground max-w-xs mx-auto text-sm leading-relaxed">
+                  5 quick steps — Hunter uses your profile to find and tailor jobs just for you.
+                </p>
               </div>
-              <div className="grid gap-4 max-w-md mx-auto pt-4">
-                <button
+
+              {/* Step preview list */}
+              <div className="max-w-sm mx-auto space-y-1 mb-10">
+                {STEPS.filter(s => s.id !== "method").map((s, i) => {
+                  const Icon = s.icon;
+                  return (
+                    <div key={s.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors group">
+                      <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <Icon className="w-3.5 h-3.5 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm font-medium text-foreground">{s.label}</span>
+                        <span className="text-xs text-muted-foreground ml-2">{s.desc}</span>
+                      </div>
+                      <div className="w-4 h-4 rounded-full border-2 border-border shrink-0 opacity-50" />
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="flex justify-center">
+                <Button
+                  size="lg"
                   onClick={() => setCurrentStep("identity")}
-                  className="group flex items-center gap-4 p-5 rounded-xl border border-border bg-card hover:border-primary/30 transition-all text-left"
+                  className="gap-2 h-12 px-10 shadow-sm"
                 >
-                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <PenLine className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-semibold group-hover:text-primary transition-colors">Get Started</p>
-                    <p className="text-sm text-muted-foreground">Fill in your details step by step</p>
-                  </div>
-                  <ArrowRight className="w-4 h-4 ml-auto text-muted-foreground" />
-                </button>
+                  Get started <ArrowRight className="w-4 h-4" />
+                </Button>
               </div>
             </div>
           )}
 
-          {/* IDENTITY */}
+          {/* ── IDENTITY ─────────────────────────────────────────────── */}
           {currentStep === "identity" && (
-            <IdentityStep profile={profile} setProfile={setProfile} />
+            <>
+              <StepBadge stepId="identity" stepIndex={stepIndex} total={STEPS.length} />
+              <IdentityStep profile={profile} setProfile={setProfile} />
+            </>
           )}
 
-          {/* EXPERIENCE */}
+          {/* ── EXPERIENCE ───────────────────────────────────────────── */}
           {currentStep === "experience" && (
-            <div className="animate-fade-in space-y-8 pt-8">
-              <div className="space-y-2">
+            <div className="animate-fade-in">
+              <StepBadge stepId="experience" stepIndex={stepIndex} total={STEPS.length} />
+              <div className="space-y-1 mb-6">
                 <h2 className="text-2xl font-bold">Work experience</h2>
-                <p className="text-muted-foreground">Add your most relevant positions.</p>
+                <p className="text-muted-foreground text-sm">Add your most relevant positions.</p>
               </div>
               <div className="space-y-4">
                 {profile.experience_atoms.map((exp, idx) => (
                   <div key={exp.id || idx} className="p-5 rounded-xl border border-border bg-card space-y-4 animate-fade-in-up">
                     <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Job title</Label>
-                          <Input value={exp.role} onChange={e => updateExperience(idx, "role", e.target.value)} placeholder="Software Engineer" />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Company</Label>
-                          <Input value={exp.company} onChange={e => updateExperience(idx, "company", e.target.value)} placeholder="Acme Inc." />
-                        </div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-bold text-primary/60 bg-primary/10 rounded-md px-2 py-0.5">
+                          #{idx + 1}
+                        </span>
                       </div>
-                      <button onClick={() => removeExperience(idx)} className="p-1.5 text-muted-foreground hover:text-destructive mt-5"><X className="w-4 h-4" /></button>
+                      <button onClick={() => removeExperience(idx)} className="p-1.5 text-muted-foreground hover:text-destructive transition-colors">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Job title</Label>
+                        <Input value={exp.role} onChange={e => updateExperience(idx, "role", e.target.value)} placeholder="Software Engineer" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Company</Label>
+                        <Input value={exp.company} onChange={e => updateExperience(idx, "company", e.target.value)} placeholder="Acme Inc." />
+                      </div>
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs text-muted-foreground">Duration</Label>
@@ -308,83 +365,119 @@ const Onboarding = () => {
                     </div>
                   </div>
                 ))}
-                <button onClick={addExperience} className="w-full flex items-center justify-center gap-2 py-4 rounded-xl border-2 border-dashed border-border hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all">
-                  <Plus className="w-5 h-5" /> Add Position
+                <button
+                  onClick={addExperience}
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-xl border-2 border-dashed border-border hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all"
+                >
+                  <Plus className="w-4 h-4" />
+                  {profile.experience_atoms.length === 0 ? "Add your first position" : "Add another position"}
                 </button>
               </div>
             </div>
           )}
 
-          {/* SKILLS */}
-          {currentStep === "skills" && <SkillsStep skills={profile.skills} onAdd={addSkill} onRemove={removeSkill} />}
+          {/* ── SKILLS ───────────────────────────────────────────────── */}
+          {currentStep === "skills" && (
+            <>
+              <StepBadge stepId="skills" stepIndex={stepIndex} total={STEPS.length} />
+              <SkillsStep skills={profile.skills} onAdd={addSkill} onRemove={removeSkill} />
+            </>
+          )}
 
-          {/* EDUCATION */}
+          {/* ── EDUCATION ────────────────────────────────────────────── */}
           {currentStep === "education" && (
-            <div className="animate-fade-in space-y-8 pt-8">
-              <div className="space-y-2">
+            <div className="animate-fade-in">
+              <StepBadge stepId="education" stepIndex={stepIndex} total={STEPS.length} />
+              <div className="space-y-1 mb-6">
                 <h2 className="text-2xl font-bold">Education</h2>
-                <p className="text-muted-foreground">Add your degrees and certifications.</p>
+                <p className="text-muted-foreground text-sm">Add your degrees and certifications.</p>
               </div>
               <div className="space-y-4">
                 {profile.education.map((edu, idx) => (
                   <div key={idx} className="p-5 rounded-xl border border-border bg-card space-y-4 animate-fade-in-up">
                     <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 space-y-4">
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">School</Label>
-                          <SchoolCombobox value={edu.school} onChange={v => updateEducation(idx, "school", v)} />
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground">Degree</Label>
-                            <Select value={edu.degree} onValueChange={v => updateEducation(idx, "degree", v)}>
-                              <SelectTrigger className="h-10">
-                                <SelectValue placeholder="Select degree" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {DEGREES.map(d => (
-                                  <SelectItem key={d} value={d}>{d}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground">Graduation Year</Label>
-                            <Select value={edu.year} onValueChange={v => updateEducation(idx, "year", v)}>
-                              <SelectTrigger className="h-10">
-                                <SelectValue placeholder="Year" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {GRAD_YEARS.map(y => (
-                                  <SelectItem key={y} value={y}>{y}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
+                      <span className="text-xs font-bold text-primary/60 bg-primary/10 rounded-md px-2 py-0.5">
+                        #{idx + 1}
+                      </span>
+                      <button onClick={() => removeEducation(idx)} className="p-1.5 text-muted-foreground hover:text-destructive transition-colors">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* School */}
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">School / Institution</Label>
+                      <SchoolCombobox value={edu.school} onChange={v => updateEducation(idx, "school", v)} />
+                    </div>
+
+                    {/* Degree + Field of Study */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Degree</Label>
+                        <Select value={edu.degree} onValueChange={v => updateEducation(idx, "degree", v)}>
+                          <SelectTrigger className="h-10">
+                            <SelectValue placeholder="Select degree" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {DEGREES.map(d => (
+                              <SelectItem key={d} value={d}>{d}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
-                      <button onClick={() => removeEducation(idx)} className="p-1.5 text-muted-foreground hover:text-destructive mt-5"><X className="w-4 h-4" /></button>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">
+                          Field of Study <span className="font-normal">(optional)</span>
+                        </Label>
+                        <Input
+                          value={edu.field || ""}
+                          onChange={e => updateEducation(idx, "field", e.target.value)}
+                          placeholder="e.g. Computer Science"
+                          className="h-10"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Graduation year */}
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Graduation Year</Label>
+                      <Select value={edu.year} onValueChange={v => updateEducation(idx, "year", v)}>
+                        <SelectTrigger className="h-10 max-w-[160px]">
+                          <SelectValue placeholder="Year" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {GRAD_YEARS.map(y => (
+                            <SelectItem key={y} value={y}>{y}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 ))}
-                <button onClick={addEducation} className="w-full flex items-center justify-center gap-2 py-4 rounded-xl border-2 border-dashed border-border hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all">
-                  <Plus className="w-5 h-5" /> Add Education
+                <button
+                  onClick={addEducation}
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-xl border-2 border-dashed border-border hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all"
+                >
+                  <Plus className="w-4 h-4" />
+                  {profile.education.length === 0 ? "Add your first degree" : "Add another degree"}
                 </button>
               </div>
             </div>
           )}
 
-          {/* PREFERENCES */}
+          {/* ── PREFERENCES ──────────────────────────────────────────── */}
           {currentStep === "preferences" && (
-            <div className="animate-fade-in space-y-8 pt-8">
-              <div className="space-y-2">
+            <div className="animate-fade-in">
+              <StepBadge stepId="preferences" stepIndex={stepIndex} total={STEPS.length} />
+              <div className="space-y-1 mb-6">
                 <h2 className="text-2xl font-bold">Job preferences</h2>
-                <p className="text-muted-foreground">What are you looking for?</p>
+                <p className="text-muted-foreground text-sm">What are you looking for?</p>
               </div>
               <div className="space-y-8">
+
                 {/* Target Roles */}
                 <div className="space-y-3">
-                  <Label className="text-base font-medium">Target Roles</Label>
+                  <Label className="text-sm font-semibold">Target Roles</Label>
                   <div className="flex flex-wrap gap-2 min-h-[36px]">
                     {roles.map((role, i) => (
                       <Badge key={i} variant="secondary" className="pl-3 pr-1.5 py-1.5 gap-1 text-sm bg-primary/10 text-primary border-primary/20">
@@ -417,7 +510,7 @@ const Onboarding = () => {
                 {/* Salary */}
                 <div className="space-y-4">
                   <div className="flex justify-between items-baseline">
-                    <Label className="text-base font-medium">Minimum Base Salary</Label>
+                    <Label className="text-sm font-semibold">Minimum Base Salary</Label>
                     <span className="text-lg font-mono font-semibold">${salary[0].toLocaleString()}</span>
                   </div>
                   <Slider value={salary} onValueChange={setSalary} min={30000} max={500000} step={5000} />
@@ -425,13 +518,13 @@ const Onboarding = () => {
 
                 {/* Locations */}
                 <div className="space-y-3">
-                  <Label className="text-base font-medium">Preferred Locations</Label>
+                  <Label className="text-sm font-semibold">Preferred Locations</Label>
                   <LocationPicker locations={locations} onChange={setLocations} />
                 </div>
 
                 {/* Remote Policy */}
                 <div className="space-y-3">
-                  <Label className="text-base font-medium">Remote Policy</Label>
+                  <Label className="text-sm font-semibold">Work Style</Label>
                   <div className="grid grid-cols-4 gap-2">
                     {(["remote", "hybrid", "onsite", "any"] as const).map(mode => (
                       <button
@@ -440,8 +533,8 @@ const Onboarding = () => {
                         onClick={() => setRemotePolicy(mode)}
                         className={`h-11 rounded-lg text-sm font-medium border transition-all ${
                           remotePolicy === mode
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-card border-border hover:border-primary/30 text-muted-foreground"
+                            ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                            : "bg-card border-border hover:border-primary/40 text-muted-foreground"
                         }`}
                       >
                         {mode.charAt(0).toUpperCase() + mode.slice(1)}
@@ -453,7 +546,7 @@ const Onboarding = () => {
                 {/* Aggressiveness */}
                 <div className="space-y-4">
                   <div className="flex justify-between items-baseline">
-                    <Label className="text-base font-medium">Search Intensity</Label>
+                    <Label className="text-sm font-semibold">Search Intensity</Label>
                     <span className="text-sm text-muted-foreground font-mono">Level {aggressiveness[0]}</span>
                   </div>
                   <Slider value={aggressiveness} onValueChange={setAggressiveness} min={1} max={10} step={1} />
@@ -462,23 +555,20 @@ const Onboarding = () => {
               </div>
             </div>
           )}
+
         </div>
       </div>
-
     </div>
   );
 };
 
+// ── IdentityStep ──────────────────────────────────────────────────────────────
 function IdentityStep({ profile, setProfile }: { profile: CandidateProfile; setProfile: React.Dispatch<React.SetStateAction<CandidateProfile>> }) {
   const links = profile.identity.links || [];
-  // Slots: 0 = LinkedIn, 1 = GitHub, 2 = Portfolio
   const getLink = (i: number) => links[i] || "";
   const setLink = (i: number, val: string) => {
     const next = [...links];
     next[i] = val;
-    // Remove trailing empty slots but keep structure
-    const trimmed = next.map(l => l.trim()).filter((l, idx) => l || idx < i);
-    // Rebuild sparse array preserving position
     const rebuilt: string[] = [];
     if (next[0]?.trim()) rebuilt[0] = next[0].trim();
     if (next[1]?.trim()) rebuilt[1] = next[1].trim();
@@ -486,15 +576,32 @@ function IdentityStep({ profile, setProfile }: { profile: CandidateProfile; setP
     setProfile(p => ({ ...p, identity: { ...p.identity, links: rebuilt.filter(Boolean) } }));
   };
 
-  // Summary stored on profile.summary via identity JSONB (handled in saveCandidateProfile)
   const summary = profile.summary || "";
   const setSummary = (val: string) => setProfile(p => ({ ...p, summary: val }));
 
+  // Derive initials for avatar preview
+  const name = profile.identity.name;
+  const initials = name.trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase() || "").join("");
+
   return (
-    <div className="animate-fade-in space-y-6 pt-8">
+    <div className="animate-fade-in space-y-6">
+      {/* Avatar / name preview */}
+      {name && (
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/40 border border-border">
+          <div className="h-11 w-11 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+            <span className="text-sm font-bold text-primary">{initials || "?"}</span>
+          </div>
+          <div className="min-w-0">
+            <p className="font-semibold text-sm truncate">{name}</p>
+            <p className="text-xs text-muted-foreground truncate">{profile.identity.email || "Add your email below"}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Header */}
       <div className="space-y-1">
         <h2 className="text-2xl font-bold">About you</h2>
-        <p className="text-muted-foreground">Your contact details and professional presence.</p>
+        <p className="text-muted-foreground text-sm">Your contact details and professional presence.</p>
       </div>
 
       {/* Core contact */}
@@ -502,16 +609,32 @@ function IdentityStep({ profile, setProfile }: { profile: CandidateProfile; setP
         <div className="grid sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Full Name</Label>
-            <Input value={profile.identity.name} onChange={e => setProfile(p => ({ ...p, identity: { ...p.identity, name: e.target.value } }))} placeholder="Jane Smith" className="h-11" />
+            <Input
+              value={profile.identity.name}
+              onChange={e => setProfile(p => ({ ...p, identity: { ...p.identity, name: e.target.value } }))}
+              placeholder="Jane Smith"
+              className="h-11"
+            />
           </div>
           <div className="space-y-2">
             <Label>Email</Label>
-            <Input value={profile.identity.email} onChange={e => setProfile(p => ({ ...p, identity: { ...p.identity, email: e.target.value } }))} placeholder="jane@example.com" type="email" className="h-11" />
+            <Input
+              value={profile.identity.email}
+              onChange={e => setProfile(p => ({ ...p, identity: { ...p.identity, email: e.target.value } }))}
+              placeholder="jane@example.com"
+              type="email"
+              className="h-11"
+            />
           </div>
         </div>
         <div className="space-y-2">
           <Label>Phone <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
-          <Input value={profile.identity.phone || ""} onChange={e => setProfile(p => ({ ...p, identity: { ...p.identity, phone: e.target.value } }))} placeholder="+1 (555) 000-0000" className="h-11" />
+          <Input
+            value={profile.identity.phone || ""}
+            onChange={e => setProfile(p => ({ ...p, identity: { ...p.identity, phone: e.target.value } }))}
+            placeholder="+1 (555) 000-0000"
+            className="h-11"
+          />
         </div>
       </div>
 
@@ -553,19 +676,21 @@ function IdentityStep({ profile, setProfile }: { profile: CandidateProfile; setP
   );
 }
 
+// ── SkillsStep ────────────────────────────────────────────────────────────────
 function SkillsStep({ skills, onAdd, onRemove }: { skills: Skill[]; onAdd: (name: string) => void; onRemove: (idx: number) => void }) {
   const [input, setInput] = useState("");
   const SUGGESTED = ["JavaScript", "TypeScript", "React", "Node.js", "Python", "SQL", "AWS", "Docker", "Kubernetes", "Go", "Java", "Figma", "GraphQL", "REST APIs", "Git", "CI/CD", "Agile", "Leadership"];
   const unusedSuggestions = SUGGESTED.filter(s => !skills.some(sk => sk.name.toLowerCase() === s.toLowerCase()));
 
   return (
-    <div className="animate-fade-in space-y-8 pt-8">
-      <div className="space-y-2">
+    <div className="animate-fade-in space-y-6">
+      <div className="space-y-1">
         <h2 className="text-2xl font-bold">Skills</h2>
-        <p className="text-muted-foreground">Add your technical and professional skills.</p>
+        <p className="text-muted-foreground text-sm">Add your technical and professional skills.</p>
       </div>
-      {skills.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+
+      {skills.length > 0 ? (
+        <div className="flex flex-wrap gap-2 p-4 rounded-xl bg-muted/30 border border-border min-h-[60px]">
           {skills.map((s, i) => (
             <Badge key={i} variant="secondary" className="pl-3 pr-1.5 py-1.5 gap-1 text-sm bg-primary/10 text-primary border-primary/20 animate-scale-in">
               {s.name}
@@ -573,7 +698,13 @@ function SkillsStep({ skills, onAdd, onRemove }: { skills: Skill[]; onAdd: (name
             </Badge>
           ))}
         </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center p-8 rounded-xl border-2 border-dashed border-border text-center">
+          <Sparkles className="w-8 h-8 text-muted-foreground/40 mb-2" />
+          <p className="text-sm text-muted-foreground">No skills yet — add some below or pick from suggestions</p>
+        </div>
       )}
+
       <div className="flex gap-2">
         <Input
           value={input}
@@ -586,12 +717,17 @@ function SkillsStep({ skills, onAdd, onRemove }: { skills: Skill[]; onAdd: (name
           <Plus className="w-5 h-5" />
         </Button>
       </div>
+
       {unusedSuggestions.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Quick add</p>
           <div className="flex flex-wrap gap-2">
             {unusedSuggestions.map(s => (
-              <button key={s} onClick={() => onAdd(s)} className="px-3 py-2 text-sm rounded-lg border border-dashed border-border hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all">
+              <button
+                key={s}
+                onClick={() => onAdd(s)}
+                className="px-3 py-1.5 text-sm rounded-lg border border-dashed border-border hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all"
+              >
                 + {s}
               </button>
             ))}
@@ -602,6 +738,7 @@ function SkillsStep({ skills, onAdd, onRemove }: { skills: Skill[]; onAdd: (name
   );
 }
 
+// ── SchoolCombobox ────────────────────────────────────────────────────────────
 function SchoolCombobox({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const [open, setOpen] = useState(false);
   const filtered = value.length > 1

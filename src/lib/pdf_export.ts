@@ -140,7 +140,8 @@ export const exportResumeToPdf = (profile: CandidateProfile, filename?: string) 
             doc.setFont("helvetica", "bold");
             doc.setFontSize(BODY);
             doc.setTextColor(15, 15, 15);
-            doc.text(edu.degree || "", M, y);
+            const degreeDisplay = [edu.degree, edu.field].filter(Boolean).join(" — ");
+            doc.text(degreeDisplay || "", M, y);
             y += LH - 1;
             doc.setFont("helvetica", "italic");
             doc.setFontSize(SMALL);
@@ -273,7 +274,7 @@ export const exportResumeToDocx = async (profile: CandidateProfile, filename?: s
     if (education.length > 0) {
         sections.push(sectionHeading("Education"));
         for (const edu of education) {
-            sections.push(body(edu.degree || "", { bold: true }));
+            sections.push(body([edu.degree, edu.field].filter(Boolean).join(" — ") || "", { bold: true }));
             sections.push(
                 body([edu.school, edu.year].filter(Boolean).join("  ·  "), { italic: true, size: 18, color: "555555" })
             );

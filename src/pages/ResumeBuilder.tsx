@@ -140,7 +140,7 @@ const ResumeBuilder = () => {
     setFormData(p => ({ ...p, experience_atoms: p.experience_atoms.filter((_, i) => i !== idx) }));
 
   const addEducation = () =>
-    setFormData(p => ({ ...p, education: [...p.education, { school: "", degree: "", year: "" }] }));
+    setFormData(p => ({ ...p, education: [...p.education, { school: "", degree: "", field: "", year: "" }] }));
 
   const updateEducation = (idx: number, field: keyof Education, value: string) =>
     setFormData(p => {
@@ -382,7 +382,11 @@ const ResumeBuilder = () => {
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-1">
                               <Label className="text-xs text-muted-foreground">Degree</Label>
-                              <Input value={edu.degree} onChange={e => updateEducation(idx, "degree", e.target.value)} placeholder="B.S. Computer Science" />
+                              <Input value={edu.degree} onChange={e => updateEducation(idx, "degree", e.target.value)} placeholder="B.S." />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs text-muted-foreground">Field of Study</Label>
+                              <Input value={edu.field || ""} onChange={e => updateEducation(idx, "field", e.target.value)} placeholder="Computer Science" />
                             </div>
                             <div className="space-y-1">
                               <Label className="text-xs text-muted-foreground">Year</Label>

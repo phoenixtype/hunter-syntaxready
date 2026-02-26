@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 export interface Education {
   school: string;
   degree: string;
+  field?: string;  // Field of study / Major
   year: string;
 }
 
