@@ -13,12 +13,56 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import LocationPicker from "@/components/LocationPicker";
 import { Progress } from "@/components/ui/progress";
 import {
   Loader2, ArrowLeft, ArrowRight, Upload, PenLine, X, Plus,
   User, Briefcase, Sparkles, GraduationCap, Target, Check
 } from "lucide-react";
+
+const UNIVERSITIES = [
+  "App Academy", "Australian National University", "Boston College", "Boston University",
+  "Brown University", "California Institute of Technology", "Carnegie Mellon University",
+  "Case Western Reserve University", "Coding Bootcamp", "Columbia University",
+  "Concordia University", "Cornell University", "Dalhousie University", "Dartmouth College",
+  "Duke University", "Ed.D.", "Emory University", "ETH Zurich", "Flatiron School",
+  "General Assembly", "Georgetown University", "Georgia Institute of Technology",
+  "Hack Reactor", "Harvard University", "HEC Paris", "Imperial College London",
+  "Indiana University", "INSEAD", "Ironhack", "Johns Hopkins University",
+  "King's College London", "Lambda School", "Le Wagon", "London School of Economics",
+  "McGill University", "McMaster University", "Michigan State University", "MIT",
+  "National University of Singapore", "New York University", "North Carolina State University",
+  "Northwestern University", "Ohio State University", "Peking University", "Penn State University",
+  "Princeton University", "Purdue University", "Queen's University", "Rice University",
+  "Rutgers University", "Seoul National University", "Simon Fraser University",
+  "Stanford University", "Technical University of Munich", "Texas A&M University",
+  "Tsinghua University", "Tufts University", "Tulane University", "UC Berkeley",
+  "UCLA", "University College London", "University of Alberta", "University of Amsterdam",
+  "University of Arizona", "University of British Columbia", "University of Calgary",
+  "University of Cambridge", "University of Chicago", "University of Colorado Boulder",
+  "University of Edinburgh", "University of Florida", "University of Georgia",
+  "University of Illinois Urbana-Champaign", "University of Leeds",
+  "University of Manchester", "University of Maryland", "University of Melbourne",
+  "University of Michigan", "University of Minnesota", "University of North Carolina Chapel Hill",
+  "University of Notre Dame", "University of Ottawa", "University of Oxford",
+  "University of Pennsylvania", "University of Rochester", "University of Sheffield",
+  "University of Southern California", "University of Sydney", "University of Texas at Austin",
+  "University of Tokyo", "University of Toronto", "University of Virginia",
+  "University of Warwick", "University of Washington", "University of Waterloo",
+  "University of Wisconsin-Madison", "Vanderbilt University", "Virginia Tech",
+  "Wake Forest University", "Western University", "Yale University", "York University",
+];
+
+const DEGREES = [
+  "B.S.", "B.A.", "B.Eng.", "B.B.A.", "B.Tech", "B.Com.",
+  "M.S.", "M.A.", "M.Eng.", "M.B.A.", "M.Sc.", "M.Phil.",
+  "Ph.D.", "J.D.", "M.D.", "D.Eng.",
+  "Associate's Degree", "High School Diploma / GED",
+  "Certificate", "Bootcamp / Coding School",
+];
+
+const GRAD_YEARS = Array.from({ length: 2031 - 1960 + 1 }, (_, i) => String(2031 - i));
 
 const STEPS = [
   { id: "method", label: "Start", icon: Sparkles },
@@ -288,16 +332,34 @@ const Onboarding = () => {
                       <div className="flex-1 space-y-4">
                         <div className="space-y-1">
                           <Label className="text-xs text-muted-foreground">School</Label>
-                          <Input value={edu.school} onChange={e => updateEducation(idx, "school", e.target.value)} placeholder="MIT" />
+                          <SchoolCombobox value={edu.school} onChange={v => updateEducation(idx, "school", v)} />
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-1">
                             <Label className="text-xs text-muted-foreground">Degree</Label>
-                            <Input value={edu.degree} onChange={e => updateEducation(idx, "degree", e.target.value)} placeholder="B.S. Computer Science" />
+                            <Select value={edu.degree} onValueChange={v => updateEducation(idx, "degree", v)}>
+                              <SelectTrigger className="h-10">
+                                <SelectValue placeholder="Select degree" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {DEGREES.map(d => (
+                                  <SelectItem key={d} value={d}>{d}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
                           <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground">Year</Label>
-                            <Input value={edu.year} onChange={e => updateEducation(idx, "year", e.target.value)} placeholder="2020" />
+                            <Label className="text-xs text-muted-foreground">Graduation Year</Label>
+                            <Select value={edu.year} onValueChange={v => updateEducation(idx, "year", v)}>
+                              <SelectTrigger className="h-10">
+                                <SelectValue placeholder="Year" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {GRAD_YEARS.map(y => (
+                                  <SelectItem key={y} value={y}>{y}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
                         </div>
                       </div>
@@ -534,6 +596,40 @@ function SkillsStep({ skills, onAdd, onRemove }: { skills: Skill[]; onAdd: (name
               </button>
             ))}
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SchoolCombobox({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const filtered = value.length > 1
+    ? UNIVERSITIES.filter(u => u.toLowerCase().includes(value.toLowerCase())).slice(0, 8)
+    : [];
+
+  return (
+    <div className="relative">
+      <Input
+        value={value}
+        onChange={e => { onChange(e.target.value); setOpen(true); }}
+        onFocus={() => value.length > 1 && setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 100)}
+        placeholder="Search or type school name"
+        className="h-10"
+      />
+      {open && filtered.length > 0 && (
+        <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-52 overflow-y-auto">
+          {filtered.map(u => (
+            <button
+              key={u}
+              type="button"
+              className="w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+              onMouseDown={e => { e.preventDefault(); onChange(u); setOpen(false); }}
+            >
+              {u}
+            </button>
+          ))}
         </div>
       )}
     </div>

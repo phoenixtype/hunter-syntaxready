@@ -3,11 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { CandidateProfile } from "@/lib/resume_engine";
-import { exportResumeToPdf } from "@/lib/pdf_export";
+import { exportResumeToPdf, exportResumeToDocx } from "@/lib/pdf_export";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { FileDown, Trash2, ArrowLeft, FileText, Building2, Loader2, Calendar, Copy, Check } from "lucide-react";
+import { FileDown, Trash2, FileText, Building2, Loader2, Calendar, Copy, Check, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import PageHeader from "@/components/PageHeader";
@@ -64,9 +70,16 @@ const TailoredResumes = () => {
     setLoading(false);
   };
 
-  const handleDownload = (resume: TailoredResume) => {
-    exportResumeToPdf(resume.tailored_profile, resume.cover_letter);
-    toast.success("Download started — use Print → Save as PDF");
+  const handleDownloadPdf = (resume: TailoredResume) => {
+    const name = `${resume.job_title}_${resume.company}`.replace(/[^a-z0-9_]/gi, "_");
+    exportResumeToPdf(resume.tailored_profile, `${name}_resume.pdf`);
+    toast.success("PDF downloaded");
+  };
+
+  const handleDownloadDocx = async (resume: TailoredResume) => {
+    const name = `${resume.job_title}_${resume.company}`.replace(/[^a-z0-9_]/gi, "_");
+    await exportResumeToDocx(resume.tailored_profile, `${name}_resume.docx`);
+    toast.success("Word document downloaded");
   };
 
   const handleCopyCoverLetter = async (resume: TailoredResume) => {
@@ -169,10 +182,25 @@ const TailoredResumes = () => {
                     </div>
 
                     <div className="flex flex-col gap-2 shrink-0">
-                      <Button size="sm" onClick={() => handleDownload(resume)} className="gap-1.5">
-                        <FileDown className="w-3.5 h-3.5" />
-                        Download
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" className="gap-1.5">
+                            <FileDown className="w-3.5 h-3.5" />
+                            Download
+                            <ChevronDown className="w-3 h-3 opacity-70" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleDownloadPdf(resume)}>
+                            <FileText className="w-3.5 h-3.5 mr-2 text-red-500" />
+                            Download as PDF
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDownloadDocx(resume)}>
+                            <FileText className="w-3.5 h-3.5 mr-2 text-blue-500" />
+                            Download as DOCX
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                       <Button
                         variant="outline"
                         size="sm"

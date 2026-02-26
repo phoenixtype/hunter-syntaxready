@@ -13,9 +13,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   ArrowLeft, ArrowRight, X, Plus, User, Briefcase,
-  Sparkles, GraduationCap, FileText, Download, Loader2, Check, Layout
+  Sparkles, GraduationCap, FileText, Download, Loader2, Check, Layout, ChevronDown
 } from "lucide-react";
+import { exportResumeToPdf, exportResumeToDocx } from "@/lib/pdf_export";
 import PageHeader from "@/components/PageHeader";
 import DashboardSkeleton from "@/components/DashboardSkeleton";
 
@@ -65,7 +72,7 @@ const ResumeBuilder = () => {
   const [currentStep, setCurrentStep] = useState<StepId>("personal");
   const [selectedTemplate, setSelectedTemplate] = useState("modern");
   const [generating, setGenerating] = useState(false);
-  const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
+  const [generated, setGenerated] = useState(false);
   const [skillInput, setSkillInput] = useState("");
 
   const [formData, setFormData] = useState<CandidateProfile>({
@@ -178,10 +185,8 @@ const ResumeBuilder = () => {
       if (error) throw error;
 
       if (data?.content) {
-        const blob = new Blob([data.content], { type: "text/html" });
-        const url = URL.createObjectURL(blob);
-        setGeneratedUrl(url);
-        toast.success("Resume generated successfully!");
+        setGenerated(true);
+        toast.success("Resume ready — choose a format to download!");
       } else {
         throw new Error("No content returned");
       }
@@ -562,16 +567,32 @@ const ResumeBuilder = () => {
                   )}
                 </Button>
 
-                {generatedUrl && (
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={() => window.open(generatedUrl, "_blank")}
-                    className="w-full max-w-md h-14 text-base"
-                  >
-                    <Download className="w-5 h-5 mr-2" />
-                    Download Resume
-                  </Button>
+                {generated && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="lg" className="w-full max-w-md h-14 text-base gap-2">
+                        <Download className="w-5 h-5" />
+                        Download Resume
+                        <ChevronDown className="w-4 h-4 opacity-70" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56">
+                      <DropdownMenuItem onClick={() => {
+                        exportResumeToPdf(formData);
+                        toast.success("PDF downloaded");
+                      }}>
+                        <FileText className="w-4 h-4 mr-2 text-red-500" />
+                        Download as PDF
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={async () => {
+                        await exportResumeToDocx(formData);
+                        toast.success("Word document downloaded");
+                      }}>
+                        <FileText className="w-4 h-4 mr-2 text-blue-500" />
+                        Download as DOCX
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
               </div>
             </div>
