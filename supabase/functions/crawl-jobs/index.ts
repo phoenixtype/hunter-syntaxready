@@ -105,7 +105,7 @@ const TECH_KEYWORDS = [
 ];
 
 const KEYWORD_REGEX = new RegExp(
-  `\\b(${TECH_KEYWORDS.map(k => k.replace('.', '\\.')).join('|')})\\b`,
+  `\\b(${TECH_KEYWORDS.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`,
   'gi'
 );
 
