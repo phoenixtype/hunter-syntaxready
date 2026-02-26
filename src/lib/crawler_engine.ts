@@ -87,17 +87,17 @@ function mapJobRow(j: any): JobOpportunity {
 }
 
 // Search jobs from database with pagination
-export const searchJobs = async (query?: string, location?: string, page = 0, pageSize = 20): Promise<{ jobs: JobOpportunity[]; hasMore: boolean }> => {
+export const searchJobs = async (query?: string, location?: string, page = 0, pageSize = 20): Promise<{ jobs: JobOpportunity[]; totalCount: number }> => {
   try {
     const from = page * pageSize;
     const to = from + pageSize; // fetch one extra to check hasMore
 
     let queryBuilder = supabase
       .from('job_listings')
-      .select('*')
+      .select('*', { count: 'exact' })
       .order('freshness_score', { ascending: false })
       .order('created_at', { ascending: false })
-      .range(from, to);
+      .range(from, to - 1); // Exact size since we have count
 
     if (query && query.trim()) {
       const sanitizedQuery = escapeLikePattern(query.trim().slice(0, 100));
@@ -111,21 +111,19 @@ export const searchJobs = async (query?: string, location?: string, page = 0, pa
       queryBuilder = queryBuilder.ilike('location', `%${sanitizedLocation}%`);
     }
 
-    const { data, error } = await queryBuilder;
+    const { data, count, error } = await queryBuilder;
 
     if (error) {
       console.error('Search error:', error);
-      return { jobs: [], hasMore: false };
+      return { jobs: [], totalCount: 0 };
     }
 
-    const rows = data || [];
-    const hasMore = rows.length > pageSize;
-    const jobs = rows.slice(0, pageSize).map(mapJobRow);
+    const jobs = (data || []).map(mapJobRow);
 
-    return { jobs, hasMore };
+    return { jobs, totalCount: count || 0 };
   } catch (err) {
     console.error('Search error:', err);
-    return { jobs: [], hasMore: false };
+    return { jobs: [], totalCount: 0 };
   }
 };
 

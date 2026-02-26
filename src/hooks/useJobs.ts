@@ -15,9 +15,9 @@ const PAGE_SIZE = 20;
 
 export const useJobs = (profile: CandidateProfile | null, preferences?: UserPreferences | null, searchQuery?: string, locationQuery?: string) => {
     const queryClient = useQueryClient();
-    const [page, setPage] = useState(0);
-    const [allJobs, setAllJobs] = useState<EnrichedJob[]>([]);
-    const [hasMore, setHasMore] = useState(true);
+    const [page, setPage] = useState(1);
+    const [currentPageJobs, setCurrentPageJobs] = useState<EnrichedJob[]>([]);
+    const [totalPages, setTotalPages] = useState(1);
 
     // 1. Fetch Job Count
     const { data: jobCount = 0 } = useQuery({
@@ -25,17 +25,16 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
         queryFn: getJobCount
     });
 
-    // 2. Fetch and Sort/Match Jobs (page 0 initially)
+    // 2. Fetch and Sort/Match Jobs for current page
     const { isLoading: jobsLoading, refetch: refreshJobs } = useQuery({
-        queryKey: ['jobs', profile, 0, searchQuery, locationQuery],
+        queryKey: ['jobs', profile, page, searchQuery, locationQuery],
         queryFn: async () => {
-            const { jobs: rawJobs, hasMore: more } = await searchJobs(searchQuery, locationQuery, 0, PAGE_SIZE);
-            setHasMore(more);
+            const { jobs: rawJobs, totalCount } = await searchJobs(searchQuery, locationQuery, page - 1, PAGE_SIZE);
+            setTotalPages(Math.max(1, Math.ceil(totalCount / PAGE_SIZE)));
 
             if (!profile) {
                 const enriched = rawJobs.map(job => ({ ...job, match: undefined }));
-                setAllJobs(enriched);
-                setPage(0);
+                setCurrentPageJobs(enriched);
                 return enriched;
             }
 
@@ -50,35 +49,16 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
             const sorted = matches
                 .sort((a, b) => (b.match?.overall_score ?? 0) - (a.match?.overall_score ?? 0));
 
-            setAllJobs(sorted);
-            setPage(0);
+            setCurrentPageJobs(sorted);
             return sorted;
         },
         staleTime: 1000 * 60 * 5
     });
 
-    // 3. Load more
-    const loadMore = useCallback(async () => {
-        const nextPage = page + 1;
-        const { jobs: rawJobs, hasMore: more } = await searchJobs(searchQuery, locationQuery, nextPage, PAGE_SIZE);
-        setHasMore(more);
-
-        let enriched: EnrichedJob[];
-        if (profile) {
-            const weights = getOptimizedWeights();
-            enriched = await Promise.all(
-                rawJobs.map(async (job) => {
-                    const match = await calculateMatch(profile, job, weights);
-                    return { ...job, match } as EnrichedJob;
-                })
-            );
-        } else {
-            enriched = rawJobs.map(job => ({ ...job, match: undefined }));
-        }
-
-        setAllJobs(prev => [...prev, ...enriched]);
-        setPage(nextPage);
-    }, [page, profile, searchQuery, locationQuery]);
+    // Reset to page 1 when search query changes
+    useCallback(() => {
+        setPage(1);
+    }, [searchQuery, locationQuery, profile]);
 
     // 4. Crawl Mutation
     const { mutate: crawl, isPending: isCrawling } = useMutation({
@@ -118,13 +98,14 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
     });
 
     return {
-        jobs: allJobs,
+        jobs: currentPageJobs,
         jobCount,
-        loading: jobsLoading,
+        loading: jobsLoading || isCrawling,
         crawling: isCrawling,
         refreshJobs,
-        crawl,
-        loadMore,
-        hasMore,
+        crawl: (extra?: string[]) => crawl(extra),
+        page,
+        setPage,
+        totalPages
     };
 };

@@ -18,6 +18,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { Stakeholder } from "@/lib/recruiter_engine";
 import { useJobs } from "@/hooks/useJobs";
 import { UserPreferences } from "@/lib/user_preferences";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface JobFeedProps {
   profile: CandidateProfile | null;
@@ -29,7 +38,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [locationQuery, setLocationQuery] = useState("");
-  const { jobs, jobCount, loading, crawling, refreshJobs, crawl, loadMore, hasMore } = useJobs(profile, preferences, searchQuery, locationQuery);
+  const { jobs, jobCount, loading, crawling, refreshJobs, crawl, page: currentPage, setPage, totalPages } = useJobs(profile, preferences, searchQuery, locationQuery);
   const [filters, setFilters] = useState<JobFilters>(DEFAULT_FILTERS);
   const [activeApplication, setActiveApplication] = useState<ApplicationState | null>(null);
   const [stakeholders, setStakeholders] = useState<Record<string, Stakeholder[]>>({});
@@ -148,11 +157,6 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
     toast.info(profile ? "Searching for matching roles..." : "Starting job search...");
     const extra = searchQuery.trim() ? searchQuery.trim().split(/\s+/) : undefined;
     crawl(extra);
-  };
-
-  const handleLoadMore = async () => {
-    setLoadingMore(true);
-    try { await loadMore(); } finally { setLoadingMore(false); }
   };
 
   return (
@@ -304,12 +308,64 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
         })}
         </AnimatePresence>
 
-        {/* Load More */}
-        {hasMore && filteredJobs.length > 0 && !loading && (
-          <div className="flex justify-center pt-2">
-            <Button variant="outline" size="sm" onClick={handleLoadMore} disabled={loadingMore} className="gap-1.5">
-              {loadingMore ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Loading...</> : "Load more jobs"}
-            </Button>
+        {/* Pagination */}
+        {totalPages > 1 && filteredJobs.length > 0 && !loading && (
+          <div className="pt-6 pb-2">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    href="#" 
+                    onClick={(e) => { e.preventDefault(); setPage(Math.max(1, currentPage - 1)); }}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: totalPages }).map((_, i) => {
+                  const p = i + 1;
+                  // Show first page, last page, current page, and pages immediately surrounding current
+                  if (
+                    p === 1 || 
+                    p === totalPages || 
+                    (p >= currentPage - 1 && p <= currentPage + 1)
+                  ) {
+                    return (
+                      <PaginationItem key={p}>
+                        <PaginationLink 
+                          href="#"
+                          isActive={currentPage === p}
+                          onClick={(e) => { e.preventDefault(); setPage(p); }}
+                        >
+                          {p}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  }
+                  
+                  // Show ellipsis for gaps
+                  if (
+                    (p === 2 && currentPage > 3) ||
+                    (p === totalPages - 1 && currentPage < totalPages - 2)
+                  ) {
+                    return (
+                      <PaginationItem key={p}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    );
+                  }
+                  
+                  return null;
+                })}
+
+                <PaginationItem>
+                  <PaginationNext 
+                    href="#" 
+                    onClick={(e) => { e.preventDefault(); setPage(Math.min(totalPages, currentPage + 1)); }}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           </div>
         )}
 
