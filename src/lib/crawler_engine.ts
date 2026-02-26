@@ -87,7 +87,7 @@ function mapJobRow(j: any): JobOpportunity {
 }
 
 // Search jobs from database with pagination
-export const searchJobs = async (query?: string, page = 0, pageSize = 20): Promise<{ jobs: JobOpportunity[]; hasMore: boolean }> => {
+export const searchJobs = async (query?: string, location?: string, page = 0, pageSize = 20): Promise<{ jobs: JobOpportunity[]; hasMore: boolean }> => {
   try {
     const from = page * pageSize;
     const to = from + pageSize; // fetch one extra to check hasMore
@@ -104,6 +104,11 @@ export const searchJobs = async (query?: string, page = 0, pageSize = 20): Promi
       queryBuilder = queryBuilder.or(
         `title.ilike.%${sanitizedQuery}%,company.ilike.%${sanitizedQuery}%,description.ilike.%${sanitizedQuery}%`
       );
+    }
+
+    if (location && location.trim()) {
+      const sanitizedLocation = escapeLikePattern(location.trim().slice(0, 100));
+      queryBuilder = queryBuilder.ilike('location', `%${sanitizedLocation}%`);
     }
 
     const { data, error } = await queryBuilder;

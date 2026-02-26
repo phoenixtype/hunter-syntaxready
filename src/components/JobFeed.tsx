@@ -27,8 +27,9 @@ interface JobFeedProps {
 const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { jobs, jobCount, loading, crawling, refreshJobs, crawl, loadMore, hasMore } = useJobs(profile, preferences);
   const [searchQuery, setSearchQuery] = useState("");
+  const [locationQuery, setLocationQuery] = useState("");
+  const { jobs, jobCount, loading, crawling, refreshJobs, crawl, loadMore, hasMore } = useJobs(profile, preferences, searchQuery, locationQuery);
   const [filters, setFilters] = useState<JobFilters>(DEFAULT_FILTERS);
   const [activeApplication, setActiveApplication] = useState<ApplicationState | null>(null);
   const [stakeholders, setStakeholders] = useState<Record<string, Stakeholder[]>>({});
@@ -42,15 +43,6 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   const filteredJobs = useMemo(() => {
     let result = jobs.filter(job => !dismissedJobIds.has(job.id));
 
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(job =>
-        job.title.toLowerCase().includes(q) ||
-        job.company.toLowerCase().includes(q) ||
-        job.description.toLowerCase().includes(q) ||
-        job.location.toLowerCase().includes(q)
-      );
-    }
 
     if (filters.workMode !== "all") {
       result = result.filter(job => {
@@ -167,9 +159,13 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
     <div className="space-y-4 animate-fade-in">
       {/* Search */}
       <div className="flex items-center gap-2">
-        <div className="relative flex-1">
+        <div className="relative flex-[2]">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Search jobs..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 h-11" />
+        </div>
+        <div className="relative flex-1">
+          <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input placeholder="Location..." value={locationQuery} onChange={(e) => setLocationQuery(e.target.value)} className="pl-10 h-11" />
         </div>
         <Button variant="outline" size="sm" onClick={handleCrawl} disabled={crawling || loading} className="h-11 px-4 shrink-0 gap-1.5">
           {crawling ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Searching...</> : <><Globe className="w-3.5 h-3.5" />Find Jobs</>}

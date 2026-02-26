@@ -13,7 +13,7 @@ export interface EnrichedJob extends JobOpportunity {
 
 const PAGE_SIZE = 20;
 
-export const useJobs = (profile: CandidateProfile | null, preferences?: UserPreferences | null) => {
+export const useJobs = (profile: CandidateProfile | null, preferences?: UserPreferences | null, searchQuery?: string, locationQuery?: string) => {
     const queryClient = useQueryClient();
     const [page, setPage] = useState(0);
     const [allJobs, setAllJobs] = useState<EnrichedJob[]>([]);
@@ -27,9 +27,9 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
 
     // 2. Fetch and Sort/Match Jobs (page 0 initially)
     const { isLoading: jobsLoading, refetch: refreshJobs } = useQuery({
-        queryKey: ['jobs', profile, 0],
+        queryKey: ['jobs', profile, 0, searchQuery, locationQuery],
         queryFn: async () => {
-            const { jobs: rawJobs, hasMore: more } = await searchJobs(undefined, 0, PAGE_SIZE);
+            const { jobs: rawJobs, hasMore: more } = await searchJobs(searchQuery, locationQuery, 0, PAGE_SIZE);
             setHasMore(more);
 
             if (!profile) {
@@ -60,7 +60,7 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
     // 3. Load more
     const loadMore = useCallback(async () => {
         const nextPage = page + 1;
-        const { jobs: rawJobs, hasMore: more } = await searchJobs(undefined, nextPage, PAGE_SIZE);
+        const { jobs: rawJobs, hasMore: more } = await searchJobs(searchQuery, locationQuery, nextPage, PAGE_SIZE);
         setHasMore(more);
 
         let enriched: EnrichedJob[];
@@ -78,7 +78,7 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
 
         setAllJobs(prev => [...prev, ...enriched]);
         setPage(nextPage);
-    }, [page, profile]);
+    }, [page, profile, searchQuery, locationQuery]);
 
     // 4. Crawl Mutation
     const { mutate: crawl, isPending: isCrawling } = useMutation({

@@ -216,7 +216,7 @@ function mapJSearchJob(item: JSearchJob): Record<string, unknown> {
     company,
     location,
     salary_range,
-    description: description.substring(0, 800),
+    description: description.substring(0, 15000),
     source: 'JSearch',
     freshness_score: calculateFreshnessFromTimestamp(item.job_posted_at_timestamp || 0),
     credibility_score: 0.92,
@@ -272,7 +272,7 @@ Return a JSON object:
 - company: company name (if only an aggregator name like Glassdoor/Indeed, return "Unknown Company")
 - location: location or "Remote"
 - salary_range: salary if mentioned, else "Not specified"
-- description: brief job description (max 300 chars)
+- description: detailed description of the role, including responsibilities and requirements
 - tech_stack: array of required skills/technologies
 - posted_at: when posted e.g. "2 days ago"
 - valid: false if this is a search results page or aggregation page, not a single job posting
@@ -281,7 +281,7 @@ Return only valid JSON, no markdown.
 
 Title: ${rawJob.title}
 URL: ${rawJob.url}
-Content: ${rawJob.content.substring(0, 3000)}`
+Content: ${rawJob.content.substring(0, 15000)}`
           }]
         }],
         generationConfig: { responseMimeType: 'application/json' }
