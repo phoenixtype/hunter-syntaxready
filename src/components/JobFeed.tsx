@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CandidateProfile } from "@/lib/resume_engine";
 import { EnrichedJob } from "@/hooks/useJobs";
-import { generateTailoredContent } from "@/lib/writer_engine";
+import { generateTailoredContent, TailoredContent } from "@/lib/writer_engine";
 import { simulateApplication, ApplicationState, ComplianceError, getApplicationHistory } from "@/lib/application_engine";
-import { exportResumeToPdf } from "@/lib/pdf_export";
 import { saveTailoredResume } from "@/lib/tailored_resume_store";
+import TailorResultSheet from "./TailorResultSheet";
 import { recordFeedback } from "@/lib/learning_engine";
 import { ExternalLink, Sparkles, RefreshCw, PenTool, Send, GraduationCap, X, Loader2, Globe, Search, MapPin, Building2, ChevronDown, ChevronUp } from "lucide-react";
 import { useEffect, useState, useMemo, useCallback } from "react";
@@ -36,6 +36,8 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set());
   const [dismissedJobIds, setDismissedJobIds] = useState<Set<string>>(new Set());
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
+  const [tailoringJobId, setTailoringJobId] = useState<string | null>(null);
+  const [tailorResult, setTailorResult] = useState<{ content: TailoredContent; job: { title: string; company: string } } | null>(null);
 
   const filteredJobs = useMemo(() => {
     let result = jobs.filter(job => !dismissedJobIds.has(job.id));
@@ -158,20 +160,15 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
       toast.error("Build your profile first.", { description: "Use the Resume Builder to create your profile before tailoring." });
       return;
     }
-    toast.info("Optimizing resume...");
+    setTailoringJobId(job.id);
     try {
       const content = await generateTailoredContent(profile, job);
       await saveTailoredResume(content, { title: job.title, company: job.company, url: job.url });
-      toast.success("Resume optimized & saved!", {
-        description: content.changes_summary[0],
-        action: {
-          label: "Download PDF",
-          onClick: () => exportResumeToPdf(content.resume, content.coverLetter)
-        },
-        duration: 10000
-      });
+      setTailorResult({ content, job: { title: job.title, company: job.company } });
     } catch {
       toast.error("Tailoring failed.");
+    } finally {
+      setTailoringJobId(null);
     }
   };
 
@@ -292,8 +289,17 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                       >
                         {isApplied ? <><Send className="w-3 h-3 mr-1.5" />Applied</> : isApplying ? <><Loader2 className="w-3 h-3 mr-1.5 animate-spin" />Applying...</> : <><Send className="w-3 h-3 mr-1.5" />Apply</>}
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleTailor(job)} className="h-8 text-xs">
-                        <PenTool className="w-3 h-3 mr-1.5" />Tailor
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleTailor(job)}
+                        disabled={tailoringJobId === job.id}
+                        className="h-8 text-xs"
+                      >
+                        {tailoringJobId === job.id
+                          ? <><Loader2 className="w-3 h-3 mr-1.5 animate-spin" />Tailoring...</>
+                          : <><PenTool className="w-3 h-3 mr-1.5" />Tailor</>
+                        }
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => navigate(`/interview-coach?title=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}&desc=${encodeURIComponent(job.description?.substring(0, 500) || '')}`)} className="h-8 text-xs">
                         <GraduationCap className="w-3 h-3 mr-1.5" />Prep
@@ -391,6 +397,13 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
       </div>
 
       {prepJob && <InterviewPrepModal isOpen={!!prepJob} onClose={() => setPrepJob(null)} job={prepJob} />}
+
+      <TailorResultSheet
+        open={!!tailorResult}
+        onClose={() => setTailorResult(null)}
+        content={tailorResult?.content ?? null}
+        job={tailorResult?.job ?? null}
+      />
     </div>
   );
 };
