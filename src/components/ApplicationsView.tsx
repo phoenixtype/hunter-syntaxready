@@ -2,7 +2,16 @@ import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, MapPin, Calendar, ExternalLink, Briefcase } from "lucide-react";
+import { Loader2, MapPin, Calendar, ExternalLink, Briefcase, LayoutGrid, List as ListIcon } from "lucide-react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { getApplicationHistory, ApplicationRecord, updateApplicationStatus } from "@/lib/application_engine";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
@@ -30,6 +39,9 @@ export const ApplicationsView = () => {
   const { session } = useAuth();
   const [applications, setApplications] = useState<ApplicationRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<"board" | "list">("board");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   const fetchHistory = async () => {
     if (session?.user?.id) {
@@ -77,7 +89,7 @@ export const ApplicationsView = () => {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-semibold">Applications</h2>
           <p className="text-sm text-muted-foreground">
@@ -86,6 +98,29 @@ export const ApplicationsView = () => {
               : "No applications yet. Start applying to jobs!"}
           </p>
         </div>
+        
+        {applications.length > 0 && (
+          <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border border-border/50">
+            <Button
+              variant={viewMode === "board" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("board")}
+              className={`h-8 px-3 text-xs ${viewMode === "board" ? "shadow-sm font-medium" : "text-muted-foreground"}`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5 mr-1.5" />
+              Board
+            </Button>
+            <Button
+              variant={viewMode === "list" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => { setViewMode("list"); setCurrentPage(1); }}
+              className={`h-8 px-3 text-xs ${viewMode === "list" ? "shadow-sm font-medium" : "text-muted-foreground"}`}
+            >
+              <ListIcon className="w-3.5 h-3.5 mr-1.5" />
+              List
+            </Button>
+          </div>
+        )}
       </div>
 
       {applications.length === 0 ? (
@@ -98,7 +133,7 @@ export const ApplicationsView = () => {
             Head to the Jobs tab to discover and apply to roles. Your applications will appear here.
           </p>
         </div>
-      ) : (
+      ) : viewMode === "board" ? (
         /* Kanban Board */
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           {grouped.map((stage) => (
@@ -171,6 +206,133 @@ export const ApplicationsView = () => {
               </div>
             </div>
           ))}
+        </div>
+      ) : (
+        /* List View */
+        <div className="space-y-4">
+          <div className="grid gap-3">
+            {applications
+              .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+              .map((app) => {
+                const stageInfo = STAGES.find(s => s.id === getStage(app.status)) || STAGES[0];
+                return (
+                  <motion.div
+                    key={app.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-border bg-card hover:border-primary/20 hover:shadow-sm transition-all"
+                  >
+                    <div className="flex-1 min-w-0 flex items-start sm:items-center gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 border border-primary/10">
+                        <span className="text-sm font-bold text-primary">{app.company[0]}</span>
+                      </div>
+                      <div className="grid gap-1">
+                        <h4 className="text-sm font-medium truncate">{app.job_title}</h4>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
+                          <span className="font-medium text-foreground/80">{app.company}</span>
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {app.applied_at ? formatDistanceToNow(new Date(app.applied_at), { addSuffix: true }) : "Recently"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 sm:shrink-0">
+                      <Select
+                        value={app.status}
+                        onValueChange={(val) => handleStatusChange(app.id, val)}
+                      >
+                        <SelectTrigger className={`h-8 text-xs w-[130px] border-border ${stageInfo.color}`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="applied">Applied</SelectItem>
+                          <SelectItem value="screening">Screening</SelectItem>
+                          <SelectItem value="interview">Interview</SelectItem>
+                          <SelectItem value="offer">Offer</SelectItem>
+                          <SelectItem value="accepted">Accepted</SelectItem>
+                          <SelectItem value="rejected">Rejected</SelectItem>
+                          <SelectItem value="declined">Declined</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary transition-colors" asChild>
+                        {app.job_url ? (
+                          <a href={app.job_url} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        ) : (
+                          <span className="opacity-50 cursor-not-allowed">
+                            <ExternalLink className="w-4 h-4" />
+                          </span>
+                        )}
+                      </Button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+          </div>
+
+          {/* Pagination Controls */}
+          {Math.ceil(applications.length / ITEMS_PER_PAGE) > 1 && (
+            <div className="pt-4 pb-2">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      href="#" 
+                      onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.max(1, p - 1)); }}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: Math.ceil(applications.length / ITEMS_PER_PAGE) }).map((_, i) => {
+                    const page = i + 1;
+                    const totalPages = Math.ceil(applications.length / ITEMS_PER_PAGE);
+                    if (
+                      page === 1 || 
+                      page === totalPages || 
+                      (page >= currentPage - 1 && page <= currentPage + 1)
+                    ) {
+                      return (
+                        <PaginationItem key={page}>
+                          <PaginationLink 
+                            href="#"
+                            isActive={currentPage === page}
+                            onClick={(e) => { e.preventDefault(); setCurrentPage(page); }}
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    }
+                    if (
+                      (page === 2 && currentPage > 3) ||
+                      (page === totalPages - 1 && currentPage < totalPages - 2)
+                    ) {
+                      return (
+                        <PaginationItem key={page}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      );
+                    }
+                    return null;
+                  })}
+
+                  <PaginationItem>
+                    <PaginationNext 
+                      href="#" 
+                      onClick={(e) => { 
+                        e.preventDefault(); 
+                        setCurrentPage(p => Math.min(Math.ceil(applications.length / ITEMS_PER_PAGE), p + 1)); 
+                      }}
+                      className={currentPage === Math.ceil(applications.length / ITEMS_PER_PAGE) ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </div>
       )}
     </motion.div>
