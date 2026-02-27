@@ -61,11 +61,11 @@ export const getPreferences = async (userId: string): Promise<UserPreferences | 
         : 'any',
       aggressiveness: typeof data.aggressiveness === 'number' ? Math.max(1, Math.min(data.aggressiveness, 10)) : DEFAULT_PREFERENCES.aggressiveness,
       safe_mode: typeof data.safe_mode === 'boolean' ? data.safe_mode : true,
-      require_sponsorship: typeof data.require_sponsorship === 'boolean' ? data.require_sponsorship : false,
-      has_clearance: typeof data.has_clearance === 'boolean' ? data.has_clearance : false,
-      notice_period_days: typeof data.notice_period_days === 'number' ? data.notice_period_days : 14,
-      email_alerts_enabled: typeof data.email_alerts_enabled === 'boolean' ? data.email_alerts_enabled : false,
-      sms_alerts_enabled: typeof data.sms_alerts_enabled === 'boolean' ? data.sms_alerts_enabled : false
+      require_sponsorship: typeof (data as any).require_sponsorship === 'boolean' ? (data as any).require_sponsorship : false,
+      has_clearance: typeof (data as any).has_clearance === 'boolean' ? (data as any).has_clearance : false,
+      notice_period_days: typeof (data as any).notice_period_days === 'number' ? (data as any).notice_period_days : 14,
+      email_alerts_enabled: typeof (data as any).email_alerts_enabled === 'boolean' ? (data as any).email_alerts_enabled : false,
+      sms_alerts_enabled: typeof (data as any).sms_alerts_enabled === 'boolean' ? (data as any).sms_alerts_enabled : false
     };
   } catch (e) {
     console.error("Error in getPreferences:", e);

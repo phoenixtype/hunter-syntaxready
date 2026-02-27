@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import SEOHead from "@/components/SEOHead";
 
 const Privacy = () => {
   return (
     <div className="min-h-screen bg-background text-foreground bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
+      <SEOHead title="Privacy Policy" description="How Hunter AI collects, uses, and protects your personal data." path="/privacy" />
       <div className="container max-w-3xl mx-auto px-6 py-16">
         <Link to="/">
           <Button variant="ghost" size="sm" className="mb-8 hover:bg-white/10 transition-colors">

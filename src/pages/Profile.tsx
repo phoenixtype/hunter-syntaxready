@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useResume } from "@/hooks/useResume";
+import SEOHead from "@/components/SEOHead";
 import { saveCandidateProfile, CandidateProfile, ExperienceAtom, Education, Skill } from "@/lib/resume_engine";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -165,6 +166,7 @@ const Profile = () => {
 
     return (
         <div className="min-h-screen bg-background text-foreground bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background pb-20">
+            <SEOHead title="Profile" description="Manage your candidate profile, experience, and skills." path="/profile" noIndex />
             <PageHeader
                 breadcrumbs={[
                     { label: "Dashboard", href: "/dashboard" },

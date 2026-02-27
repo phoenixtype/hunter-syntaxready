@@ -10,7 +10,7 @@ interface Props {
   preferences: UserPreferences | null;
   jobCount: number;
   appCount: number;
-  onSetView?: (view: string) => void;
+  onSetView?: (view: "jobs" | "applications" | "tools" | "settings") => void;
 }
 
 const DashboardWelcome = ({ profile, preferences, jobCount, appCount, onSetView }: Props) => {
@@ -32,7 +32,7 @@ const DashboardWelcome = ({ profile, preferences, jobCount, appCount, onSetView 
       label: "Set job preferences",
       benefit: "See only the roles that fit your goals and salary",
       done: !!(preferences?.target_roles?.length),
-      action: () => onSetView?.("preferences") ?? navigate("/auto-applier-settings"),
+      action: () => navigate("/auto-applier-settings"),
       cta: "Set Preferences",
     },
     {

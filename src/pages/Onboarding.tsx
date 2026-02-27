@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import SEOHead from "@/components/SEOHead";
 import { toast } from "sonner";
 import { savePreferences, UserPreferences } from "@/lib/user_preferences";
 import { CandidateProfile, saveCandidateProfile, ExperienceAtom, Education, Skill } from "@/lib/resume_engine";
@@ -197,6 +198,11 @@ const Onboarding = () => {
         remote_policy: remotePolicy,
         aggressiveness: aggressiveness[0],
         safe_mode: true,
+        require_sponsorship: false,
+        has_clearance: false,
+        notice_period_days: 14,
+        email_alerts_enabled: false,
+        sms_alerts_enabled: false,
       });
       const keywords = profile.skills.slice(0, 5).map(s => s.name).filter(Boolean);
       triggerJobCrawl({
@@ -261,6 +267,7 @@ const Onboarding = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-start sm:justify-center py-8 px-4">
+      <SEOHead title="Onboarding" description="Set up your Hunter AI profile and job search preferences." path="/onboarding" noIndex />
       <div className="w-full max-w-[580px]">
 
         {/* Logo mark */}

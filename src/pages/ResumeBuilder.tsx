@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useResume } from "@/hooks/useResume";
+import SEOHead from "@/components/SEOHead";
 import { saveCandidateProfile, CandidateProfile, ExperienceAtom, Education, Skill } from "@/lib/resume_engine";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -229,6 +230,7 @@ const ResumeBuilder = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <SEOHead title="Resume Builder" description="Build and optimize your professional resume with AI assistance." path="/resume-builder" noIndex />
       <PageHeader
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },

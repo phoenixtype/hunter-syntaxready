@@ -268,7 +268,7 @@ const Dashboard = () => {
           {/* Jobs View — always mounted so job list and page state survive tab switches */}
           <div className={activeView !== "jobs" ? "hidden" : ""}>
             <WidgetErrorBoundary>
-              <DashboardWelcome profile={profile} preferences={preferences ?? null} jobCount={jobCount} appCount={appCount} onSetView={setActiveView} />
+              <DashboardWelcome profile={profile} preferences={preferences ?? null} jobCount={jobCount} appCount={appCount} onSetView={(v) => setActiveView(v as DashboardView)} />
               <JobFeed profile={profile} preferences={preferences} />
             </WidgetErrorBoundary>
           </div>

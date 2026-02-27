@@ -486,13 +486,18 @@ export type Database = {
           aggressiveness: number | null
           alert_frequency: string | null
           created_at: string
+          email_alerts_enabled: boolean | null
           experience_level: string | null
+          has_clearance: boolean | null
           id: string
           locations: string[] | null
           min_salary_usd: number | null
+          notice_period_days: number | null
           remote_policy: string | null
+          require_sponsorship: boolean | null
           safe_mode: boolean | null
           search_intent: string | null
+          sms_alerts_enabled: boolean | null
           target_roles: string[] | null
           updated_at: string
           user_id: string
@@ -501,13 +506,18 @@ export type Database = {
           aggressiveness?: number | null
           alert_frequency?: string | null
           created_at?: string
+          email_alerts_enabled?: boolean | null
           experience_level?: string | null
+          has_clearance?: boolean | null
           id?: string
           locations?: string[] | null
           min_salary_usd?: number | null
+          notice_period_days?: number | null
           remote_policy?: string | null
+          require_sponsorship?: boolean | null
           safe_mode?: boolean | null
           search_intent?: string | null
+          sms_alerts_enabled?: boolean | null
           target_roles?: string[] | null
           updated_at?: string
           user_id: string
@@ -516,13 +526,18 @@ export type Database = {
           aggressiveness?: number | null
           alert_frequency?: string | null
           created_at?: string
+          email_alerts_enabled?: boolean | null
           experience_level?: string | null
+          has_clearance?: boolean | null
           id?: string
           locations?: string[] | null
           min_salary_usd?: number | null
+          notice_period_days?: number | null
           remote_policy?: string | null
+          require_sponsorship?: boolean | null
           safe_mode?: boolean | null
           search_intent?: string | null
+          sms_alerts_enabled?: boolean | null
           target_roles?: string[] | null
           updated_at?: string
           user_id?: string

@@ -36,6 +36,7 @@ import { FileDown, Trash2, FileText, Building2, Loader2, Calendar, Copy, Check, 
 import { toast } from "sonner";
 import { format } from "date-fns";
 import PageHeader from "@/components/PageHeader";
+import SEOHead from "@/components/SEOHead";
 
 interface TailoredResume {
   id: string;
@@ -122,6 +123,7 @@ const TailoredResumes = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead title="Tailored Resumes" description="View and download your AI-optimized resumes and cover letters." path="/tailored-resumes" noIndex />
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         <PageHeader
           breadcrumbs={[
