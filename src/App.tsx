@@ -27,6 +27,7 @@ import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { PublicRoute } from "./components/auth/PublicRoute";
 import FloatingThemeToggle from "./components/FloatingThemeToggle";
+import CommandPalette from "./components/CommandPalette";
 import Footer from "./components/Footer";
 import { runStartupValidation } from "./lib/env_validator";
 import { checkDatabaseHealth, logHealthStatus } from "./lib/database_health";
@@ -67,6 +68,7 @@ const App = () => (
               <AppInitializer />
               <ScrollToTop />
               <FloatingThemeToggle />
+              <CommandPalette />
               <div className="flex flex-col min-h-screen">
                 <div className="flex-1">
                   <Routes>
