@@ -24,10 +24,11 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import WidgetErrorBoundary from "@/components/WidgetErrorBoundary";
 import { ApplicationsView } from "@/components/ApplicationsView";
-import PreferencesModal from "@/components/PreferencesModal";
 import NotificationSettings from "@/components/NotificationSettings";
+import ProfilePanel from "@/components/ProfilePanel";
+import PreferencesPanel from "@/components/PreferencesPanel";
 
-type DashboardView = "jobs" | "applications" | "tools" | "notifications";
+type DashboardView = "jobs" | "applications" | "tools" | "notifications" | "profile" | "preferences";
 
 const NAV_ITEMS = [
   { id: "jobs" as const, label: "Jobs", icon: Briefcase },
@@ -48,7 +49,6 @@ const Dashboard = () => {
   const [showPricing, setShowPricing] = useState(false);
   const [showResumeOptimizer, setShowResumeOptimizer] = useState(false);
   const [showLinkedIn, setShowLinkedIn] = useState(false);
-  const [showPreferences, setShowPreferences] = useState(false);
 
   // Wire up realtime notifications
   useRealtimeNotifications(user?.id);
@@ -180,18 +180,26 @@ const Dashboard = () => {
 
         {/* Sidebar Footer */}
         <div className="px-3 py-4 border-t border-border space-y-0.5">
-          <Link
-            to="/profile"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors"
-          >
-            <User className="w-4 h-4" />
-            Profile
-          </Link>
           <button
-            onClick={() => setShowPreferences(true)}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors"
+            onClick={() => setActiveView("profile")}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              activeView === "profile"
+                ? "bg-primary/12 text-primary shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.15)]"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
+            }`}
           >
-            <Settings className="w-4 h-4" />
+            <User className={`w-4 h-4 shrink-0 ${activeView === "profile" ? "text-primary" : ""}`} />
+            Profile
+          </button>
+          <button
+            onClick={() => setActiveView("preferences")}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              activeView === "preferences"
+                ? "bg-primary/12 text-primary shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.15)]"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
+            }`}
+          >
+            <Settings className={`w-4 h-4 shrink-0 ${activeView === "preferences" ? "text-primary" : ""}`} />
             Preferences
           </button>
           <button
@@ -216,7 +224,8 @@ const Dashboard = () => {
               </div>
             </Link>
             <h1 className="text-base font-semibold hidden sm:block text-foreground/80">
-              {NAV_ITEMS.find(n => n.id === activeView)?.label ?? activeView}
+              {NAV_ITEMS.find(n => n.id === activeView)?.label
+                ?? (activeView === "profile" ? "Profile" : activeView === "preferences" ? "Preferences" : activeView)}
             </h1>
           </div>
 
@@ -259,7 +268,7 @@ const Dashboard = () => {
           {/* Jobs View — always mounted so job list and page state survive tab switches */}
           <div className={activeView !== "jobs" ? "hidden" : ""}>
             <WidgetErrorBoundary>
-              <DashboardWelcome profile={profile} preferences={preferences ?? null} jobCount={jobCount} appCount={appCount} />
+              <DashboardWelcome profile={profile} preferences={preferences ?? null} jobCount={jobCount} appCount={appCount} onSetView={setActiveView} />
               <JobFeed profile={profile} preferences={preferences} />
             </WidgetErrorBoundary>
           </div>
@@ -270,6 +279,24 @@ const Dashboard = () => {
               <ApplicationsView />
             </WidgetErrorBoundary>
           </div>
+
+          {/* Profile View */}
+          {activeView === "profile" && (
+            <WidgetErrorBoundary>
+              <ProfilePanel profile={profile} />
+            </WidgetErrorBoundary>
+          )}
+
+          {/* Preferences View */}
+          {activeView === "preferences" && (
+            <WidgetErrorBoundary>
+              <div className="max-w-lg space-y-1">
+                <h2 className="text-xl font-bold">Job Preferences</h2>
+                <p className="text-sm text-muted-foreground mb-6">Configure what kinds of jobs Hunter surfaces for you.</p>
+                <PreferencesPanel preferences={preferences ?? null} />
+              </div>
+            </WidgetErrorBoundary>
+          )}
 
           {/* Notifications View */}
           {activeView === "notifications" && (
@@ -328,7 +355,6 @@ const Dashboard = () => {
       <PricingModal isOpen={showPricing} onClose={() => setShowPricing(false)} />
       <JobUrlOptimizer isOpen={showResumeOptimizer} onClose={() => setShowResumeOptimizer(false)} profile={profile} />
       <LinkedInOptimizer isOpen={showLinkedIn} onClose={() => setShowLinkedIn(false)} profile={profile} />
-      <PreferencesModal isOpen={showPreferences} onClose={() => setShowPreferences(false)} preferences={preferences ?? null} />
     </div>
   );
 };
