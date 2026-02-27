@@ -98,30 +98,82 @@ function mapJobRow(j: any): JobOpportunity {
   };
 }
 
-// Search jobs from database with pagination
-export const searchJobs = async (query?: string, location?: string, page = 0, pageSize = 20): Promise<{ jobs: JobOpportunity[]; totalCount: number }> => {
+export interface SearchJobsOptions {
+  query?: string;
+  location?: string;
+  page?: number;
+  pageSize?: number;
+  /** User's saved preferred locations — used when no manual location is typed */
+  preferenceLocations?: string[];
+  /** User's target roles — used when no manual search query is typed */
+  preferenceRoles?: string[];
+  /** User's remote policy — influences location filter */
+  remotePolicy?: string;
+}
+
+// Search jobs from database with pagination, filtered to the user's preferences
+export const searchJobs = async (
+  queryOrOptions?: string | SearchJobsOptions,
+  location?: string,
+  page = 0,
+  pageSize = 20,
+  preferenceLocations?: string[],
+  preferenceRoles?: string[],
+  remotePolicy?: string,
+): Promise<{ jobs: JobOpportunity[]; totalCount: number }> => {
+  // Support both old positional signature and new options object
+  let query: string | undefined;
+  if (typeof queryOrOptions === 'object' && queryOrOptions !== null) {
+    ({ query, location, page = 0, pageSize = 20, preferenceLocations, preferenceRoles, remotePolicy } = queryOrOptions);
+  } else {
+    query = queryOrOptions;
+  }
+
   try {
     const from = page * pageSize;
-    const to = from + pageSize; // fetch one extra to check hasMore
+    const to = from + pageSize;
 
     let queryBuilder = supabase
       .from('job_listings')
       .select('*', { count: 'exact' })
       .order('freshness_score', { ascending: false })
       .order('created_at', { ascending: false })
-      .range(from, to - 1); // Exact size since we have count
+      .range(from, to - 1);
 
+    // ── Role / keyword filter ─────────────────────────────────────────────
+    // Manual search query wins; fall back to preference roles.
     if (query && query.trim()) {
-      const sanitizedQuery = escapeLikePattern(query.trim().slice(0, 100));
+      const sq = escapeLikePattern(query.trim().slice(0, 100));
       queryBuilder = queryBuilder.or(
-        `title.ilike.%${sanitizedQuery}%,company.ilike.%${sanitizedQuery}%,description.ilike.%${sanitizedQuery}%`
+        `title.ilike.%${sq}%,company.ilike.%${sq}%,description.ilike.%${sq}%`
       );
+    } else if (preferenceRoles && preferenceRoles.length > 0) {
+      const roleFilter = preferenceRoles
+        .slice(0, 5)
+        .map(r => `title.ilike.%${escapeLikePattern(r.trim().slice(0, 100))}%`)
+        .join(',');
+      queryBuilder = queryBuilder.or(roleFilter);
     }
 
+    // ── Location filter ───────────────────────────────────────────────────
+    // Manual location wins; fall back to preference locations.
     if (location && location.trim()) {
-      const sanitizedLocation = escapeLikePattern(location.trim().slice(0, 100));
-      queryBuilder = queryBuilder.ilike('location', `%${sanitizedLocation}%`);
+      const sl = escapeLikePattern(location.trim().slice(0, 100));
+      queryBuilder = queryBuilder.ilike('location', `%${sl}%`);
+    } else if (preferenceLocations && preferenceLocations.length > 0) {
+      // Build: (pref_loc_1 OR pref_loc_2 OR ... OR remote) depending on policy
+      const locFilters = preferenceLocations
+        .map(l => `location.ilike.%${escapeLikePattern(l.trim().slice(0, 100))}%`)
+        .join(',');
+      // Include remote jobs unless the user explicitly wants onsite-only
+      const includeRemote = remotePolicy !== 'onsite';
+      const remoteClause = includeRemote ? ',location.ilike.%remote%' : '';
+      queryBuilder = queryBuilder.or(`${locFilters}${remoteClause}`);
+    } else if (remotePolicy === 'remote') {
+      // No location preference set but user wants remote-only
+      queryBuilder = queryBuilder.ilike('location', '%remote%');
     }
+    // If no location filter at all → show all jobs (fallback for users with no prefs)
 
     const { data, count, error } = await queryBuilder;
 
@@ -130,9 +182,7 @@ export const searchJobs = async (query?: string, location?: string, page = 0, pa
       return { jobs: [], totalCount: 0 };
     }
 
-    const jobs = (data || []).map(mapJobRow);
-
-    return { jobs, totalCount: count || 0 };
+    return { jobs: (data || []).map(mapJobRow), totalCount: count || 0 };
   } catch (err) {
     console.error('Search error:', err);
     return { jobs: [], totalCount: 0 };

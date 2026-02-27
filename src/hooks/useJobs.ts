@@ -28,7 +28,17 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
     const { data, isLoading: jobsLoading, refetch: refreshJobs } = useQuery({
         queryKey: ['jobs', profile, preferences, page, searchQuery, locationQuery],
         queryFn: async () => {
-            const { jobs: rawJobs, totalCount } = await searchJobs(searchQuery, locationQuery, page - 1, PAGE_SIZE);
+            const { jobs: rawJobs, totalCount } = await searchJobs(
+                searchQuery,
+                locationQuery,
+                page - 1,
+                PAGE_SIZE,
+                // Pass preference locations/roles so the DB query filters by them
+                // when the user hasn't typed a manual search or location.
+                preferences?.locations,
+                preferences?.target_roles,
+                preferences?.remote_policy,
+            );
             const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
             if (!profile) {
