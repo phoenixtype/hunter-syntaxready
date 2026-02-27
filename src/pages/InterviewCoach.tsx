@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Send, Loader2, BrainCircuit, MessageSquare, Swords, HandCoins, RotateCcw } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
+import SEOHead from "@/components/SEOHead";
 import { useAuth } from "@/hooks/useAuth";
 import { useResume } from "@/hooks/useResume";
 import { supabase } from "@/integrations/supabase/client";
@@ -156,6 +157,7 @@ const InterviewCoach = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col" data-hide-footer>
+      <SEOHead title="Interview Coach" description="Practice interviews with AI-powered coaching and real-time feedback." path="/interview-coach" noIndex />
       <PageHeader
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },

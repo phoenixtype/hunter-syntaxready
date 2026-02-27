@@ -49,6 +49,11 @@ const PreferencesPanel = ({ preferences, onSaved }: PreferencesPanelProps) => {
                 remote_policy: remotePolicy,
                 aggressiveness: aggressiveness[0],
                 safe_mode: true,
+                require_sponsorship: false,
+                has_clearance: false,
+                notice_period_days: 14,
+                email_alerts_enabled: false,
+                sms_alerts_enabled: false,
             });
             queryClient.invalidateQueries({ queryKey: ['preferences'] });
             toast.success("Preferences saved!");
