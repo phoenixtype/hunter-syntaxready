@@ -217,10 +217,13 @@ const Onboarding = () => {
   const stepIndex = STEPS.findIndex(s => s.id === currentStep);
   const progressPercent = (stepIndex / (STEPS.length - 1)) * 100;
 
-  // Persist current step to localStorage whenever it changes
+  // Persist current step to localStorage, but only after initial data has loaded
+  // (prevents the default "method" from overwriting the restored step on first render)
   useEffect(() => {
-    if (user) localStorage.setItem(`hunter_onboarding_step_${user.id}`, currentStep);
-  }, [currentStep, user]);
+    if (user && !dataLoading) {
+      localStorage.setItem(`hunter_onboarding_step_${user.id}`, currentStep);
+    }
+  }, [currentStep, user, dataLoading]);
 
   // Build the current payload to save
   const buildPayloads = () => {
