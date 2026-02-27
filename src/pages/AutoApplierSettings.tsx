@@ -11,6 +11,8 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 import ThemeToggle from "@/components/ThemeToggle";
+import LocationPicker from "@/components/LocationPicker";
+import SingleLocationPicker from "@/components/SingleLocationPicker";
 import { useResume } from "@/hooks/useResume";
 import { useAuth } from "@/hooks/useAuth";
 import { getPreferences, savePreferences, UserPreferences } from "@/lib/user_preferences";
@@ -44,7 +46,7 @@ const JobHuntPlanner = () => {
 
   // Search preferences
   const [jobTitles, setJobTitles] = useState("");
-  const [locations, setLocations] = useState("");
+  const [locations, setLocations] = useState<string[]>([]);
   const [yearsExp, setYearsExp] = useState("");
   const [workSetup, setWorkSetup] = useState("any");
   const [blacklist, setBlacklist] = useState("");
@@ -65,6 +67,7 @@ const JobHuntPlanner = () => {
     if (profile) {
       setFullName(profile.identity?.name || "");
       setPhone(profile.identity?.phone || "");
+      setCurrentLocation(profile.identity?.location || "");
       const linkedin = profile.identity?.links?.find((l: string) => l.includes("linkedin"));
       if (linkedin) setLinkedinUrl(linkedin);
       const portfolio = profile.identity?.links?.find((l: string) => !l.includes("linkedin") && !l.includes("github"));
@@ -75,7 +78,7 @@ const JobHuntPlanner = () => {
       const prefs = await getPreferences(user.id);
       if (prefs) {
         setJobTitles(prefs.target_roles?.join(", ") || "");
-        setLocations(prefs.locations?.join(", ") || "");
+        setLocations(prefs.locations || []);
         setWorkSetup(prefs.remote_policy || "any");
         setExpectedSalary(prefs.min_salary_usd?.toString() || "");
         if (prefs.aggressiveness) setIntensity([Math.min(7, prefs.aggressiveness)]);
@@ -96,7 +99,7 @@ const JobHuntPlanner = () => {
     try {
       await savePreferences(user.id, {
         target_roles: jobTitles.split(",").map(s => s.trim()).filter(Boolean),
-        locations: locations.split(",").map(s => s.trim()).filter(Boolean),
+        locations,
         remote_policy: workSetup as UserPreferences["remote_policy"],
         min_salary_usd: parseInt(expectedSalary) || 100000,
         safe_mode: safeMode,
@@ -122,10 +125,11 @@ const JobHuntPlanner = () => {
           name: fullName,
           email: currentProfile.identity?.email || user.email || "",
           phone: phone,
+          location: currentLocation,
           links: [linkedinUrl, portfolioUrl].filter(Boolean)
         }
       };
-      
+
       await saveCandidateProfile(user.id, currentProfile);
 
       toast.success("Preferences saved!");
@@ -145,7 +149,7 @@ const JobHuntPlanner = () => {
       await triggerJobCrawl({
         keywords: jobTitles.split(",").map(s => s.trim()).filter(Boolean),
         targetRoles: jobTitles.split(",").map(s => s.trim()).filter(Boolean),
-        location: locations.split(",")[0]?.trim() || undefined,
+        location: locations[0] || currentLocation || undefined,
         remotePolicy: workSetup,
       });
       toast.success("Job feed refreshed! Head to the Jobs tab for your latest matches.");
@@ -254,15 +258,15 @@ const JobHuntPlanner = () => {
                         <Label>Phone Number</Label>
                         <Input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1 234 567 8900" />
                       </div>
-                      <div className="space-y-2">
+                      <div className="space-y-2 sm:col-span-2">
                         <Label>Current Location</Label>
-                        <Input value={currentLocation} onChange={e => setCurrentLocation(e.target.value)} placeholder="San Francisco, CA" />
+                        <SingleLocationPicker value={currentLocation} onChange={setCurrentLocation} />
                       </div>
                       <div className="space-y-2">
                         <Label>LinkedIn URL</Label>
                         <Input value={linkedinUrl} onChange={e => setLinkedinUrl(e.target.value)} placeholder="linkedin.com/in/janesmith" />
                       </div>
-                      <div className="space-y-2 sm:col-span-2">
+                      <div className="space-y-2">
                         <Label>Portfolio / Website</Label>
                         <Input value={portfolioUrl} onChange={e => setPortfolioUrl(e.target.value)} placeholder="janesmith.dev" />
                       </div>
@@ -283,8 +287,8 @@ const JobHuntPlanner = () => {
                         <Input value={jobTitles} onChange={e => setJobTitles(e.target.value)} placeholder="Software Engineer, Full-Stack Developer, SWE" />
                       </div>
                       <div className="space-y-2">
-                        <Label>Preferred Locations <span className="text-muted-foreground font-normal">(comma-separated)</span></Label>
-                        <Input value={locations} onChange={e => setLocations(e.target.value)} placeholder="San Francisco, CA, USA, Remote" />
+                        <Label>Preferred Locations</Label>
+                        <LocationPicker locations={locations} onChange={setLocations} />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">

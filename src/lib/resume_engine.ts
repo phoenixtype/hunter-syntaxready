@@ -28,6 +28,7 @@ export interface CandidateProfile {
     name: string;
     email: string;
     phone?: string;
+    location?: string;
     links: string[];
   };
   skills: Skill[];
@@ -385,13 +386,17 @@ export const getCandidateProfile = async (userId: string): Promise<CandidateProf
       return null;
     }
 
-    // Parse identity with better defaults
+    // Parse identity — spread raw JSONB first so all hidden _fields (set during
+    // onboarding: _gender, _work_auth, _age, _search_status, _exp_level, _job_values, _summary)
+    // are preserved when the profile is loaded then saved again from Profile.tsx.
     const identity = data.identity as any;
     const profileIdentity = {
+      ...identity,                                    // keep all _underscore fields
       name: identity?.name || 'Unknown Candidate',
       email: identity?.email || '',
       phone: identity?.phone || '',
-      links: identity?.links || []
+      location: identity?.location || '',
+      links: Array.isArray(identity?.links) ? identity.links : []
     };
 
     return {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import SingleLocationPicker from "@/components/SingleLocationPicker";
 import { useAuth } from "@/hooks/useAuth";
 import { useResume } from "@/hooks/useResume";
 import SEOHead from "@/components/SEOHead";
@@ -15,6 +16,21 @@ import { toast } from "sonner";
 import { Plus, Trash2, Save, Loader2, X, Edit2, Eye, Ban } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import DashboardSkeleton from "@/components/DashboardSkeleton";
+
+function handleBulletKeyDown(
+  e: React.KeyboardEvent<HTMLTextAreaElement>,
+  value: string,
+  setter: (val: string) => void
+) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    const { selectionStart, selectionEnd } = e.currentTarget;
+    const newVal = value.substring(0, selectionStart) + "\n• " + value.substring(selectionEnd);
+    setter(newVal);
+    const newPos = selectionStart + 3;
+    setTimeout(() => e.currentTarget.setSelectionRange(newPos, newPos), 0);
+  }
+}
 
 const Profile = () => {
     const navigate = useNavigate();
@@ -237,6 +253,12 @@ const Profile = () => {
                                         <Label className="text-muted-foreground">Phone</Label>
                                         <p className="text-lg font-medium">{formData.identity.phone || "Not set"}</p>
                                     </div>
+                                    {formData.identity.location && (
+                                        <div>
+                                            <Label className="text-muted-foreground">Current Location</Label>
+                                            <p className="text-lg font-medium">{formData.identity.location}</p>
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
                         </section>
@@ -281,10 +303,12 @@ const Profile = () => {
                             <div className="grid gap-4">
                                 {formData.education.map((edu, idx) => (
                                     <Card key={idx} className="border-border bg-card/50 backdrop-blur-md shadow-lg hover:border-primary/30 transition-all hover:translate-y-[-2px]">
-                                        <CardContent className="p-6 flex justify-between items-center">
+                                        <CardContent className="p-6 flex justify-between items-start">
                                             <div>
                                                 <h3 className="font-semibold">{edu.school}</h3>
-                                                <p className="text-sm text-muted-foreground">{edu.degree}</p>
+                                                <p className="text-sm text-muted-foreground">
+                                                    {edu.degree}{edu.field ? ` — ${edu.field}` : ""}
+                                                </p>
                                             </div>
                                             <Badge variant="outline">{edu.year}</Badge>
                                         </CardContent>
@@ -365,6 +389,13 @@ const Profile = () => {
                                                 />
                                             </div>
                                         </div>
+                                        <div className="space-y-2">
+                                            <Label>Current Location</Label>
+                                            <SingleLocationPicker
+                                                value={formData.identity.location || ""}
+                                                onChange={(loc) => updateIdentity("location", loc)}
+                                            />
+                                        </div>
                                     </CardContent>
                                 </Card>
                             </section>
@@ -432,8 +463,9 @@ const Profile = () => {
                                                 <Textarea
                                                     value={exp.content}
                                                     onChange={(e) => updateExperience(index, "content", e.target.value)}
+                                                    onKeyDown={(e) => handleBulletKeyDown(e, exp.content, (val) => updateExperience(index, "content", val))}
                                                     className="min-h-[100px] bg-background/50 border-border focus:border-primary rounded-xl resize-y"
-                                                    placeholder="Describe your responsibilities and achievements..."
+                                                    placeholder="• Led a team of 5 engineers…&#10;• Improved performance by 30%&#10;&#10;Press Enter to add a new bullet."
                                                 />
                                             </CardContent>
                                         </Card>
@@ -466,7 +498,7 @@ const Profile = () => {
                                                             value={edu.degree}
                                                             onChange={(e) => updateEducation(index, "degree", e.target.value)}
                                                             className="text-sm bg-transparent flex-1"
-                                                            placeholder="Degree"
+                                                            placeholder="Degree (e.g. B.S.)"
                                                         />
                                                         <Input
                                                             value={edu.year}
@@ -475,6 +507,12 @@ const Profile = () => {
                                                             placeholder="Year"
                                                         />
                                                     </div>
+                                                    <Input
+                                                        value={edu.field || ""}
+                                                        onChange={(e) => updateEducation(index, "field", e.target.value)}
+                                                        className="text-sm bg-transparent"
+                                                        placeholder="Program of Study / Course (e.g. Computer Science)"
+                                                    />
                                                 </div>
                                                 <Button
                                                     variant="ghost"

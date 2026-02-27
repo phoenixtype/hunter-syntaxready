@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import SingleLocationPicker from "@/components/SingleLocationPicker";
 import { useAuth } from "@/hooks/useAuth";
 import SEOHead from "@/components/SEOHead";
 import { toast } from "sonner";
@@ -130,6 +131,21 @@ const emptyProfile: CandidateProfile = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+
+function handleBulletKeyDown(
+  e: React.KeyboardEvent<HTMLTextAreaElement>,
+  value: string,
+  setter: (val: string) => void
+) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    const { selectionStart, selectionEnd } = e.currentTarget;
+    const newVal = value.substring(0, selectionStart) + "\n• " + value.substring(selectionEnd);
+    setter(newVal);
+    const newPos = selectionStart + 3;
+    setTimeout(() => e.currentTarget.setSelectionRange(newPos, newPos), 0);
+  }
+}
 
 const Onboarding = () => {
   const { user, loading: authLoading } = useAuth();
@@ -541,7 +557,13 @@ const Onboarding = () => {
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">Key responsibilities</Label>
-                        <Textarea value={exp.content} onChange={e => updateExperience(idx, "content", e.target.value)} placeholder="• Led a team of 5 engineers..." className="min-h-[90px] resize-y" />
+                        <Textarea
+                          value={exp.content}
+                          onChange={e => updateExperience(idx, "content", e.target.value)}
+                          onKeyDown={e => handleBulletKeyDown(e, exp.content, val => updateExperience(idx, "content", val))}
+                          placeholder={"• Led a team of 5 engineers…\n• Improved performance by 30%\n\nPress Enter to add a new bullet."}
+                          className="min-h-[90px] resize-y"
+                        />
                       </div>
                     </div>
                   ))}
@@ -847,6 +869,13 @@ function IdentityStep({ profile, setProfile }: { profile: CandidateProfile; setP
             onChange={e => setProfile(p => ({ ...p, identity: { ...p.identity, phone: e.target.value } }))}
             placeholder="+1 (555) 000-0000"
             className="h-11"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Current Location <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
+          <SingleLocationPicker
+            value={profile.identity.location || ""}
+            onChange={loc => setProfile(p => ({ ...p, identity: { ...p.identity, location: loc } }))}
           />
         </div>
       </div>

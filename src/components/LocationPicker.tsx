@@ -1,53 +1,12 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { Country, State, City } from "country-state-city";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { X, Plus } from "lucide-react";
 
-const COUNTRIES = [
-  "USA", "Canada", "UK", "Australia", "Germany", "France",
-  "Ireland", "Netherlands", "Singapore", "India", "New Zealand", "Other",
-];
-
-const US_STATES = [
-  { value: "AL", label: "Alabama" }, { value: "AK", label: "Alaska" },
-  { value: "AZ", label: "Arizona" }, { value: "AR", label: "Arkansas" },
-  { value: "CA", label: "California" }, { value: "CO", label: "Colorado" },
-  { value: "CT", label: "Connecticut" }, { value: "DE", label: "Delaware" },
-  { value: "DC", label: "Dist. of Columbia" }, { value: "FL", label: "Florida" },
-  { value: "GA", label: "Georgia" }, { value: "HI", label: "Hawaii" },
-  { value: "ID", label: "Idaho" }, { value: "IL", label: "Illinois" },
-  { value: "IN", label: "Indiana" }, { value: "IA", label: "Iowa" },
-  { value: "KS", label: "Kansas" }, { value: "KY", label: "Kentucky" },
-  { value: "LA", label: "Louisiana" }, { value: "ME", label: "Maine" },
-  { value: "MD", label: "Maryland" }, { value: "MA", label: "Massachusetts" },
-  { value: "MI", label: "Michigan" }, { value: "MN", label: "Minnesota" },
-  { value: "MS", label: "Mississippi" }, { value: "MO", label: "Missouri" },
-  { value: "MT", label: "Montana" }, { value: "NE", label: "Nebraska" },
-  { value: "NV", label: "Nevada" }, { value: "NH", label: "New Hampshire" },
-  { value: "NJ", label: "New Jersey" }, { value: "NM", label: "New Mexico" },
-  { value: "NY", label: "New York" }, { value: "NC", label: "North Carolina" },
-  { value: "ND", label: "North Dakota" }, { value: "OH", label: "Ohio" },
-  { value: "OK", label: "Oklahoma" }, { value: "OR", label: "Oregon" },
-  { value: "PA", label: "Pennsylvania" }, { value: "RI", label: "Rhode Island" },
-  { value: "SC", label: "South Carolina" }, { value: "SD", label: "South Dakota" },
-  { value: "TN", label: "Tennessee" }, { value: "TX", label: "Texas" },
-  { value: "UT", label: "Utah" }, { value: "VT", label: "Vermont" },
-  { value: "VA", label: "Virginia" }, { value: "WA", label: "Washington" },
-  { value: "WV", label: "West Virginia" }, { value: "WI", label: "Wisconsin" },
-  { value: "WY", label: "Wyoming" },
-];
-
-const CA_PROVINCES = [
-  { value: "AB", label: "Alberta" }, { value: "BC", label: "British Columbia" },
-  { value: "MB", label: "Manitoba" }, { value: "NB", label: "New Brunswick" },
-  { value: "NL", label: "Newfoundland and Labrador" }, { value: "NS", label: "Nova Scotia" },
-  { value: "NT", label: "Northwest Territories" }, { value: "NU", label: "Nunavut" },
-  { value: "ON", label: "Ontario" }, { value: "PE", label: "Prince Edward Island" },
-  { value: "QC", label: "Quebec" }, { value: "SK", label: "Saskatchewan" },
-  { value: "YT", label: "Yukon" },
-];
+const ALL_COUNTRIES = Country.getAllCountries();
 
 interface LocationPickerProps {
   locations: string[];
@@ -55,71 +14,112 @@ interface LocationPickerProps {
 }
 
 const LocationPicker = ({ locations, onChange }: LocationPickerProps) => {
-  const [country, setCountry] = useState("USA");
-  const [stateOrProvince, setStateOrProvince] = useState("");
+  const [countryCode, setCountryCode] = useState("US");
+  const [stateCode, setStateCode] = useState("");
   const [city, setCity] = useState("");
+  const [cityQuery, setCityQuery] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
 
-  const showSubdivision = country === "USA" || country === "Canada";
-  const subdivisions = country === "USA" ? US_STATES : CA_PROVINCES;
-  const subdivisionPlaceholder = country === "USA" ? "State" : "Province";
+  const states = useMemo(() => State.getStatesOfCountry(countryCode), [countryCode]);
+  const hasStates = states.length > 0;
 
-  const handleCountryChange = (val: string) => {
-    setCountry(val);
-    setStateOrProvince("");
+  const citySuggestions = useMemo(() => {
+    if (!cityQuery || cityQuery.length < 2) return [];
+    const source = stateCode
+      ? City.getCitiesOfState(countryCode, stateCode)
+      : City.getCitiesOfCountry(countryCode) || [];
+    return source
+      .filter(c => c.name.toLowerCase().startsWith(cityQuery.toLowerCase()))
+      .slice(0, 10);
+  }, [cityQuery, countryCode, stateCode]);
+
+  const handleCountryChange = (iso: string) => {
+    setCountryCode(iso);
+    setStateCode("");
+    setCity("");
+    setCityQuery("");
   };
 
   const addLocation = () => {
-    const parts = [city.trim(), stateOrProvince, country].filter(Boolean);
+    const countryName = ALL_COUNTRIES.find(c => c.isoCode === countryCode)?.name || countryCode;
+    const stateName = states.find(s => s.isoCode === stateCode)?.name || stateCode;
+    const parts = [city.trim(), stateName, countryName].filter(Boolean);
     const formatted = parts.join(", ");
     if (!formatted || locations.includes(formatted)) return;
     onChange([...locations, formatted]);
     setCity("");
-    setStateOrProvince("");
+    setCityQuery("");
+    setStateCode("");
   };
 
-  const removeLocation = (loc: string) => {
-    onChange(locations.filter(l => l !== loc));
-  };
+  const removeLocation = (loc: string) => onChange(locations.filter(l => l !== loc));
 
-  const canAdd = city.trim().length > 0 && locations.length < 10;
+  const canAdd = (city.trim().length > 0 || !hasStates) && locations.length < 10 && countryCode;
 
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
         {/* Country */}
-        <Select value={country} onValueChange={handleCountryChange}>
-          <SelectTrigger className="w-[130px] h-9 text-sm">
-            <SelectValue />
+        <Select value={countryCode} onValueChange={handleCountryChange}>
+          <SelectTrigger className="w-[155px] h-9 text-sm">
+            <SelectValue placeholder="Country" />
           </SelectTrigger>
-          <SelectContent>
-            {COUNTRIES.map(c => (
-              <SelectItem key={c} value={c}>{c}</SelectItem>
+          <SelectContent className="max-h-72">
+            {ALL_COUNTRIES.map(c => (
+              <SelectItem key={c.isoCode} value={c.isoCode}>
+                {c.flag} {c.name}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
-        {/* State / Province (USA + Canada only) */}
-        {showSubdivision && (
-          <Select value={stateOrProvince} onValueChange={setStateOrProvince}>
-            <SelectTrigger className="w-[140px] h-9 text-sm">
-              <SelectValue placeholder={subdivisionPlaceholder} />
+        {/* State / Province */}
+        {hasStates && (
+          <Select value={stateCode} onValueChange={v => { setStateCode(v); setCity(""); setCityQuery(""); }}>
+            <SelectTrigger className="w-[150px] h-9 text-sm">
+              <SelectValue placeholder="State / Province" />
             </SelectTrigger>
-            <SelectContent>
-              {subdivisions.map(s => (
-                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+            <SelectContent className="max-h-72">
+              {states.map(s => (
+                <SelectItem key={s.isoCode} value={s.isoCode}>
+                  {s.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         )}
 
-        {/* City */}
-        <Input
-          value={city}
-          onChange={e => setCity(e.target.value)}
-          onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); if (canAdd) addLocation(); } }}
-          placeholder="City"
-          className="flex-1 min-w-[120px] h-9 text-sm"
-        />
+        {/* City — combobox */}
+        <div className="relative flex-1 min-w-[110px]">
+          <Input
+            value={cityQuery}
+            onChange={e => { setCityQuery(e.target.value); setCity(e.target.value); setShowDropdown(true); }}
+            onFocus={() => cityQuery.length >= 2 && setShowDropdown(true)}
+            onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
+            onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); if (canAdd) addLocation(); } }}
+            placeholder="City"
+            className="h-9 text-sm"
+          />
+          {showDropdown && citySuggestions.length > 0 && (
+            <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-52 overflow-y-auto">
+              {citySuggestions.map(c => (
+                <button
+                  key={`${c.name}-${c.stateCode}`}
+                  type="button"
+                  onMouseDown={e => {
+                    e.preventDefault();
+                    setCity(c.name);
+                    setCityQuery(c.name);
+                    setShowDropdown(false);
+                  }}
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                >
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Add */}
         <Button
