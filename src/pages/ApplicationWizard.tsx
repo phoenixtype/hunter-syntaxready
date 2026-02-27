@@ -82,7 +82,7 @@ const ApplicationWizard = () => {
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
+        <div className="min-h-screen bg-background text-foreground">
             <PageHeader
               breadcrumbs={[
                 { label: "Dashboard", href: "/dashboard" },
@@ -91,16 +91,16 @@ const ApplicationWizard = () => {
               icon={<Briefcase className="w-4 h-4 text-primary" />}
             />
             <div className="container max-w-4xl mx-auto px-6 pt-8 pb-6 animate-fade-in-up">
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Targeted Application Wizard</h1>
-              <p className="text-muted-foreground text-lg mt-1">Paste a job link — Hunter scrapes the posting, tailors your resume, and writes your cover letter.</p>
+              <h1 className="text-2xl font-bold tracking-tight">Targeted Application Wizard</h1>
+              <p className="text-muted-foreground text-sm mt-1">Paste a job link — Hunter scrapes the posting, tailors your resume, and writes your cover letter.</p>
             </div>
 
             <main className="container max-w-4xl mx-auto px-6 space-y-8 pb-12 animate-fade-in-up">
 
                 {/* INPUT STEP */}
                 {step === 'input' && (
-                    <Card className="border-border bg-card/50 backdrop-blur-md shadow-xl">
-                        <CardContent className="p-8 md:p-10">
+                    <Card className="border-border bg-card shadow-sm">
+                        <CardContent className="p-5 sm:p-6">
                             <form onSubmit={handleAnalyze} className="space-y-6">
                                 <div className="space-y-4">
                                     <label className="text-base font-medium">Job URL (LinkedIn, Indeed, Company Site)</label>
@@ -109,9 +109,9 @@ const ApplicationWizard = () => {
                                             value={url}
                                             onChange={(e) => setUrl(e.target.value)}
                                             placeholder="https://www.linkedin.com/jobs/view/..."
-                                            className="h-14 text-lg bg-background/50 border-border focus:border-primary"
+                                            className="border-border focus:border-primary"
                                         />
-                                        <Button type="submit" disabled={!url} size="lg" className="h-14 px-8 text-lg font-medium shadow-glow hover:shadow-glow-lg transition-all rounded-xl whitespace-nowrap">
+                                        <Button type="submit" disabled={!url} size="lg" className="whitespace-nowrap">
                                             Analyze with AI
                                         </Button>
                                     </div>
@@ -125,7 +125,7 @@ const ApplicationWizard = () => {
                 {/* LOADING STEPS */}
                 {(step === 'analyzing' || step === 'generating') && (
                     <div className="flex flex-col items-center justify-center py-20 space-y-4">
-                        <Loader2 className="w-12 h-12 animate-spin text-primary" />
+                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
                         <h2 className="text-xl font-semibold">
                             {step === 'analyzing' ? "Analyzing Job Details..." : "Tailoring Your Resume..."}
                         </h2>
@@ -143,11 +143,11 @@ const ApplicationWizard = () => {
                                 <FileCheck className="w-5 h-5 text-primary" />
                                 <h2 className="text-xl font-semibold">Parsed Extracted Strategy</h2>
                             </div>
-                            <Card className="border-border bg-card/50 backdrop-blur-md shadow-lg overflow-hidden">
-                                <div className="bg-gradient-to-r from-primary/20 via-primary/5 to-transparent p-6 border-b border-border flex justify-between items-start">
+                            <Card className="border-border bg-card shadow-sm overflow-hidden">
+                                <div className="p-5 border-b border-border flex justify-between items-start">
                                     <div>
-                                        <h3 className="text-2xl font-bold tracking-tight text-foreground">{job.title}</h3>
-                                        <p className="text-lg text-primary font-medium mt-1">{job.company}</p>
+                                        <h3 className="text-xl font-bold tracking-tight text-foreground">{job.title}</h3>
+                                        <p className="text-sm text-primary font-medium mt-1">{job.company}</p>
                                     </div>
                                     <Badge variant="outline" className="bg-background/80 backdrop-blur-sm border-border text-xs px-3 py-1 text-muted-foreground">{job.source}</Badge>
                                 </div>
@@ -176,11 +176,11 @@ const ApplicationWizard = () => {
                                     <FileText className="w-5 h-5 text-primary" />
                                     <h2 className="text-xl font-semibold">Application Assets</h2>
                                 </div>
-                                <Card className="h-full border-border bg-card/50 backdrop-blur-md shadow-lg">
+                                <Card className="h-full border-border bg-card shadow-sm">
                                     <CardContent className="p-6 space-y-6">
                                         <div className="space-y-3">
-                                            <div className="flex items-center gap-2 font-medium text-lg">
-                                                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                                            <div className="flex items-center gap-2 font-medium">
+                                                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                                                   <FileCheck className="w-4 h-4" />
                                                 </div>
                                                 Tailored Resume
@@ -191,12 +191,12 @@ const ApplicationWizard = () => {
                                                     <p key={i} className="text-sm text-muted-foreground pl-3">{change}</p>
                                                 ))}
                                             </div>
-                                            <Button className="w-full mt-4 shadow-glow" onClick={() => navigate('/resume-builder')}>Open Resume Builder</Button>
+                                            <Button className="w-full mt-4" onClick={() => navigate('/resume-builder')}>Open Resume Builder</Button>
                                         </div>
 
                                         <div className="pt-6 border-t border-border space-y-3">
-                                            <div className="flex items-center gap-2 font-medium text-lg">
-                                                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                                            <div className="flex items-center gap-2 font-medium">
+                                                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                                                   <FileText className="w-4 h-4" />
                                                 </div>
                                                 Cover Letter
@@ -219,7 +219,7 @@ const ApplicationWizard = () => {
                                     <UserPlus className="w-5 h-5 text-primary" />
                                     <h2 className="text-xl font-semibold">Find the Team on LinkedIn</h2>
                                 </div>
-                                <Card className="h-full border-border bg-card/50 backdrop-blur-md shadow-lg">
+                                <Card className="h-full border-border bg-card shadow-sm">
                                     <CardContent className="p-6 space-y-4">
                                         <p className="text-sm text-muted-foreground">
                                             Use these searches to find real people at <strong>{job?.company}</strong> and reach out directly. A personal connection often gets your application noticed.

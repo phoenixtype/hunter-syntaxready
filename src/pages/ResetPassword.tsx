@@ -82,17 +82,17 @@ const ResetPassword = () => {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
         <div className="w-full max-w-md">
-          <div className="bg-card/50 backdrop-blur-xl border border-border shadow-2xl rounded-2xl p-8 md:p-12 space-y-6 text-center">
-            <h1 className="text-2xl font-semibold tracking-tight">Invalid or Expired Link</h1>
+          <div className="bg-card border border-border shadow-sm rounded-xl p-6 sm:p-8 space-y-6 text-center">
+            <h1 className="text-2xl font-bold tracking-tight">Invalid or Expired Link</h1>
             <p className="text-muted-foreground text-sm">
               This password reset link is no longer valid. Please request a new one.
             </p>
             <div className="space-y-3 pt-4">
               <Link to="/forgot-password">
-                <Button className="w-full h-12 rounded-xl">Request New Link</Button>
+                <Button size="lg" className="w-full">Request New Link</Button>
               </Link>
               <Link to="/login">
-                <Button variant="outline" className="w-full h-12 rounded-xl mt-2">Back to Login</Button>
+                <Button variant="outline" size="lg" className="w-full mt-2">Back to Login</Button>
               </Link>
             </div>
           </div>
@@ -105,11 +105,11 @@ const ResetPassword = () => {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
         <div className="w-full max-w-md">
-          <div className="bg-card/50 backdrop-blur-xl border border-border shadow-2xl rounded-2xl p-8 md:p-12 space-y-6 text-center">
-            <div className="w-20 h-20 mx-auto rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center">
-              <CheckCircle2 className="w-10 h-10 text-primary" />
+          <div className="bg-card border border-border shadow-sm rounded-xl p-6 sm:p-8 space-y-6 text-center">
+            <div className="w-14 h-14 mx-auto rounded-xl bg-primary/10 flex items-center justify-center">
+              <CheckCircle2 className="w-7 h-7 text-primary" />
             </div>
-            <h1 className="text-2xl font-semibold tracking-tight">Password Updated!</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Password Updated!</h1>
             <p className="text-muted-foreground text-sm">Redirecting you to your dashboard...</p>
             <Loader2 className="w-5 h-5 mx-auto animate-spin text-muted-foreground" />
           </div>
@@ -126,9 +126,9 @@ const ResetPassword = () => {
           Back to Login
         </Link>
 
-        <div className="bg-card/50 backdrop-blur-xl border border-border shadow-2xl rounded-2xl p-8 md:p-12 space-y-8">
-          <div className="space-y-2 text-center">
-            <h1 className="text-3xl font-semibold tracking-tight">Set New Password</h1>
+        <div className="bg-card border border-border shadow-sm rounded-xl p-6 sm:p-8 space-y-6">
+          <div className="space-y-1.5 text-center">
+            <h1 className="text-2xl font-bold tracking-tight">Set New Password</h1>
             <p className="text-muted-foreground text-sm">Enter your new password below.</p>
           </div>
 
@@ -140,7 +140,7 @@ const ResetPassword = () => {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter new password"
-                  className="h-12 pr-10"
+                  className="pr-10"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
@@ -160,7 +160,6 @@ const ResetPassword = () => {
                 id="confirmPassword"
                 type={showPassword ? "text" : "password"}
                 placeholder="Confirm new password"
-                className="h-12"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={isLoading}
@@ -169,7 +168,7 @@ const ResetPassword = () => {
             <p className="text-xs text-muted-foreground">
               8+ characters with uppercase, lowercase, numbers, and symbols
             </p>
-            <Button type="submit" className="w-full h-12 rounded-xl" disabled={isLoading}>
+            <Button type="submit" size="lg" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

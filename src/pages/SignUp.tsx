@@ -72,10 +72,10 @@ const SignUp = () => {
           Back to Home
         </Link>
 
-        <div className="bg-card/50 backdrop-blur-xl border border-border shadow-2xl rounded-2xl p-8 md:p-12 space-y-8">
-          <div className="space-y-2 text-center">
-            <h1 className="text-3xl font-semibold tracking-tight">Create an account</h1>
-            <p className="text-muted-foreground text-sm">Start your autonomous job search today</p>
+        <div className="bg-card border border-border shadow-sm rounded-xl p-6 sm:p-8 space-y-6">
+          <div className="space-y-1.5 text-center">
+            <h1 className="text-2xl font-bold tracking-tight">Create an account</h1>
+            <p className="text-muted-foreground text-sm">Start your job search with Hunter</p>
           </div>
 
           <form className="space-y-4" onSubmit={handleSubmit}>
@@ -87,7 +87,7 @@ const SignUp = () => {
                 id="fullName"
                 type="text"
                 placeholder="John Doe"
-                className="h-12"
+                className=""
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 disabled={isLoading}
@@ -101,7 +101,7 @@ const SignUp = () => {
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                className="h-12"
+                className=""
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
@@ -116,7 +116,7 @@ const SignUp = () => {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Create a strong password"
-                  className="h-12 pr-10"
+                  className="pr-10"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
@@ -155,7 +155,8 @@ const SignUp = () => {
             </div>
             <Button
               type="submit"
-              className="w-full h-12 sm:h-14 text-base font-medium rounded-xl shadow-glow hover:shadow-glow-lg transition-all"
+              size="lg"
+              className="w-full"
               disabled={isLoading}
             >
               {isLoading ? (

@@ -63,10 +63,10 @@ const Login = () => {
           Back to Home
         </Link>
 
-        <div className="bg-card/50 backdrop-blur-xl border border-border shadow-2xl rounded-2xl p-6 sm:p-8 md:p-12 space-y-6 sm:space-y-8">
-          <div className="space-y-2 text-center">
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Welcome back</h1>
-            <p className="text-muted-foreground text-sm">Enter your credentials to access your agent</p>
+        <div className="bg-card border border-border shadow-sm rounded-xl p-6 sm:p-8 space-y-6">
+          <div className="space-y-1.5 text-center">
+            <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
+            <p className="text-muted-foreground text-sm">Sign in to continue to Hunter</p>
           </div>
 
           <form className="space-y-4" onSubmit={handleSubmit}>
@@ -78,7 +78,6 @@ const Login = () => {
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                className="h-12"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
@@ -102,7 +101,7 @@ const Login = () => {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
-                  className="h-12 pr-10"
+                  className="pr-10"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
@@ -119,7 +118,8 @@ const Login = () => {
             </div>
             <Button
               type="submit"
-              className="w-full h-12 sm:h-14 text-base font-medium rounded-xl shadow-glow hover:shadow-glow-lg transition-all"
+              size="lg"
+              className="w-full"
               disabled={isLoading}
             >
               {isLoading ? (

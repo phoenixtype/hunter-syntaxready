@@ -7,7 +7,6 @@ import { exportResumeToPdf, exportResumeToDocx } from "@/lib/pdf_export";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Badge } from "@/components/ui/badge";
 import {
   Pagination,
   PaginationContent,
@@ -17,7 +16,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   DropdownMenu,
   DropdownMenuContent,

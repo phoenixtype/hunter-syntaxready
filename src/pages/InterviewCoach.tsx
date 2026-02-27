@@ -186,8 +186,8 @@ const InterviewCoach = () => {
       {/* Content */}
       {!started ? (
         <div className="flex-1 flex flex-col items-center justify-center p-6 max-w-lg mx-auto text-center">
-          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
-            <BrainCircuit className="w-8 h-8 text-primary" />
+          <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
+            <BrainCircuit className="w-7 h-7 text-primary" />
           </div>
           <h2 className="text-2xl font-bold mb-2">Interview Practice</h2>
           <p className="text-muted-foreground mb-8">
@@ -247,7 +247,7 @@ const InterviewCoach = () => {
           </div>
 
           {/* Input */}
-          <div className="border-t border-border p-3 bg-background">
+          <div className="border-t border-border p-4 bg-background">
             <form
               onSubmit={(e) => {
                 e.preventDefault();

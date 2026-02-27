@@ -220,7 +220,7 @@ const JobHuntPlanner = () => {
                       : "hover:bg-muted border border-transparent opacity-70 hover:opacity-100"
                   }`}
                 >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                     activeStep === step.num ? "bg-primary text-primary-foreground" : "bg-muted"
                   }`}>
                     <step.icon className="w-4 h-4" />
@@ -233,8 +233,8 @@ const JobHuntPlanner = () => {
 
           {/* Form */}
           <div className="md:col-span-3">
-            <Card className="border-border bg-card/50 shadow-xl">
-              <CardContent className="p-4 sm:p-8">
+            <Card className="border-border bg-card shadow-sm">
+              <CardContent className="p-5 sm:p-6">
 
                 {/* Step 1: Personal Details */}
                 {activeStep === 1 && (
