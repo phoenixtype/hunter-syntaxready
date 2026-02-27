@@ -3,6 +3,7 @@ import { Country, State, City } from "country-state-city";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { parseLocationString, buildLocationString } from "@/lib/location_data";
+import { CountryCombobox } from "@/components/CountryCombobox";
 
 interface SingleLocationPickerProps {
   value: string;
@@ -19,10 +20,7 @@ const SingleLocationPicker = ({ value, onChange }: SingleLocationPickerProps) =>
     const match = ALL_COUNTRIES.find(c => c.name === parsed.country || c.isoCode === parsed.country);
     return match?.isoCode || "";
   });
-  const [stateCode, setStateCode] = useState<string>(() => {
-    if (!parsed.state) return "";
-    return parsed.state;
-  });
+  const [stateCode, setStateCode] = useState<string>(() => parsed.state || "");
   const [city, setCity] = useState(parsed.city);
   const [cityQuery, setCityQuery] = useState(parsed.city);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -71,19 +69,13 @@ const SingleLocationPicker = ({ value, onChange }: SingleLocationPickerProps) =>
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
-        {/* Country */}
-        <Select value={countryCode} onValueChange={handleCountryChange}>
-          <SelectTrigger className="w-[160px] h-10 text-sm">
-            <SelectValue placeholder="Country" />
-          </SelectTrigger>
-          <SelectContent className="max-h-72">
-            {ALL_COUNTRIES.map(c => (
-              <SelectItem key={c.isoCode} value={c.isoCode}>
-                {c.flag} {c.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {/* Country — searchable combobox */}
+        <CountryCombobox
+          value={countryCode}
+          onChange={handleCountryChange}
+          className="w-[180px]"
+          inputClassName="h-10 text-sm"
+        />
 
         {/* State / Province */}
         {hasStates && (

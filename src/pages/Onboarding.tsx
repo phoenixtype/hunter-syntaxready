@@ -4,8 +4,8 @@ import SingleLocationPicker from "@/components/SingleLocationPicker";
 import { useAuth } from "@/hooks/useAuth";
 import SEOHead from "@/components/SEOHead";
 import { toast } from "sonner";
-import { savePreferences, UserPreferences } from "@/lib/user_preferences";
-import { CandidateProfile, saveCandidateProfile, ExperienceAtom, Education, Skill } from "@/lib/resume_engine";
+import { savePreferences, getPreferences, UserPreferences } from "@/lib/user_preferences";
+import { CandidateProfile, saveCandidateProfile, getCandidateProfile, ExperienceAtom, Education, Skill } from "@/lib/resume_engine";
 import { triggerJobCrawl } from "@/lib/crawler_engine";
 
 import { Button } from "@/components/ui/button";
@@ -151,6 +151,7 @@ const Onboarding = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
+  const [dataLoading, setDataLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState<StepId>("method");
   const [profile, setProfile] = useState<CandidateProfile>({ ...emptyProfile });
 
@@ -174,14 +175,92 @@ const Onboarding = () => {
     if (!authLoading && !user) navigate("/login");
   }, [user, authLoading, navigate]);
 
+  // On mount: restore saved step + load existing data from DB
   useEffect(() => {
-    if (user?.email && !profile.identity.email) {
-      setProfile(prev => ({ ...prev, identity: { ...prev.identity, email: user.email! } }));
+    if (!user) return;
+
+    // Restore step from localStorage
+    const savedStep = localStorage.getItem(`hunter_onboarding_step_${user.id}`);
+    if (savedStep && STEPS.some(s => s.id === savedStep)) {
+      setCurrentStep(savedStep as StepId);
     }
+
+    // Load existing profile + preferences from DB to pre-populate
+    Promise.all([
+      getCandidateProfile(user.id).catch(() => null),
+      getPreferences(user.id).catch(() => null),
+    ]).then(([existingProfile, prefs]) => {
+      if (existingProfile) {
+        setProfile(existingProfile);
+        // Extract hidden identity extras
+        const id = existingProfile.identity as Record<string, unknown>;
+        if (id._gender) setGender(id._gender as "male" | "female");
+        if (id._work_auth) setWorkAuth(id._work_auth as string);
+        if (id._age) setAge(id._age as string);
+        if (id._search_status) setSearchStatus(id._search_status as "actively" | "open" | "exploring");
+        if (id._exp_level) setExperienceLevel(id._exp_level as string);
+        if (Array.isArray(id._job_values)) setJobValues(id._job_values as string[]);
+      } else if (user.email) {
+        // First time — seed email from auth
+        setProfile(prev => ({ ...prev, identity: { ...prev.identity, email: user.email! } }));
+      }
+      if (prefs) {
+        setRoles(prefs.target_roles);
+        setSalary([prefs.min_salary_usd]);
+        setLocations(prefs.locations);
+        setRemotePolicy(prefs.remote_policy);
+        setAggressiveness([prefs.aggressiveness]);
+      }
+    }).finally(() => setDataLoading(false));
   }, [user]);
 
   const stepIndex = STEPS.findIndex(s => s.id === currentStep);
   const progressPercent = (stepIndex / (STEPS.length - 1)) * 100;
+
+  // Persist current step to localStorage whenever it changes
+  useEffect(() => {
+    if (user) localStorage.setItem(`hunter_onboarding_step_${user.id}`, currentStep);
+  }, [currentStep, user]);
+
+  // Build the current payload to save
+  const buildPayloads = () => {
+    const identityWithExtras = {
+      ...profile.identity,
+      ...(gender && { _gender: gender }),
+      ...(workAuth && { _work_auth: workAuth }),
+      ...(age && { _age: age }),
+      _search_status: searchStatus,
+      ...(experienceLevel && { _exp_level: experienceLevel }),
+      ...(jobValues.length && { _job_values: jobValues }),
+    } as CandidateProfile["identity"];
+
+    const profilePayload: CandidateProfile = { ...profile, identity: identityWithExtras };
+
+    const prefsPayload: UserPreferences = {
+      target_roles: roles,
+      min_salary_usd: salary[0],
+      locations,
+      remote_policy: remotePolicy,
+      aggressiveness: aggressiveness[0],
+      safe_mode: true,
+      require_sponsorship: false,
+      has_clearance: false,
+      notice_period_days: 14,
+      email_alerts_enabled: false,
+      sms_alerts_enabled: false,
+    };
+
+    return { profilePayload, prefsPayload };
+  };
+
+  const saveProgress = async () => {
+    if (!user) return;
+    const { profilePayload, prefsPayload } = buildPayloads();
+    await Promise.all([
+      saveCandidateProfile(user.id, profilePayload),
+      savePreferences(user.id, prefsPayload),
+    ]);
+  };
 
   const goNext = () => {
     const idx = STEPS.findIndex(s => s.id === currentStep);
@@ -192,34 +271,17 @@ const Onboarding = () => {
     if (idx > 0) setCurrentStep(STEPS[idx - 1].id);
   };
 
+  // Auto-save on every Continue click, then advance
+  const handleNext = async () => {
+    saveProgress().catch(e => console.warn("Auto-save failed:", e)); // non-blocking
+    goNext();
+  };
+
   const handleFinish = async () => {
     if (!user) return;
     setSaving(true);
     try {
-      const identityWithExtras = {
-        ...profile.identity,
-        ...(gender && { _gender: gender }),
-        ...(workAuth && { _work_auth: workAuth }),
-        ...(age && { _age: age }),
-        _search_status: searchStatus,
-        ...(experienceLevel && { _exp_level: experienceLevel }),
-        ...(jobValues.length && { _job_values: jobValues }),
-      } as CandidateProfile["identity"];
-
-      await saveCandidateProfile(user.id, { ...profile, identity: identityWithExtras });
-      await savePreferences(user.id, {
-        target_roles: roles,
-        min_salary_usd: salary[0],
-        locations,
-        remote_policy: remotePolicy,
-        aggressiveness: aggressiveness[0],
-        safe_mode: true,
-        require_sponsorship: false,
-        has_clearance: false,
-        notice_period_days: 14,
-        email_alerts_enabled: false,
-        sms_alerts_enabled: false,
-      });
+      await saveProgress();
       const keywords = profile.skills.slice(0, 5).map(s => s.name).filter(Boolean);
       triggerJobCrawl({
         keywords: keywords.length > 0 ? keywords : undefined,
@@ -227,6 +289,8 @@ const Onboarding = () => {
         location: locations.length > 0 ? locations.join(", ") : undefined,
         remotePolicy,
       }).catch(() => {});
+      // Clear persisted step so next visit starts fresh
+      localStorage.removeItem(`hunter_onboarding_step_${user.id}`);
       toast.success("You're all set!");
       navigate("/dashboard");
     } catch (err) {
@@ -280,6 +344,14 @@ const Onboarding = () => {
 
   const toggleJobValue = (val: string) =>
     setJobValues(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]);
+
+  if (authLoading || dataLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-start sm:justify-center py-8 px-4">
@@ -791,7 +863,7 @@ const Onboarding = () => {
                   {saving ? "Saving…" : "Complete setup"}
                 </Button>
               ) : (
-                <Button onClick={goNext} className="gap-2 px-6">
+                <Button onClick={handleNext} className="gap-2 px-6">
                   Continue <ArrowRight className="w-4 h-4" />
                 </Button>
               )}

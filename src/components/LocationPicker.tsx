@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { X, Plus } from "lucide-react";
+import { CountryCombobox } from "@/components/CountryCombobox";
 
 const ALL_COUNTRIES = Country.getAllCountries();
 
@@ -59,19 +60,13 @@ const LocationPicker = ({ locations, onChange }: LocationPickerProps) => {
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
-        {/* Country */}
-        <Select value={countryCode} onValueChange={handleCountryChange}>
-          <SelectTrigger className="w-[155px] h-9 text-sm">
-            <SelectValue placeholder="Country" />
-          </SelectTrigger>
-          <SelectContent className="max-h-72">
-            {ALL_COUNTRIES.map(c => (
-              <SelectItem key={c.isoCode} value={c.isoCode}>
-                {c.flag} {c.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {/* Country — searchable combobox */}
+        <CountryCombobox
+          value={countryCode}
+          onChange={handleCountryChange}
+          className="w-[175px]"
+          inputClassName="h-9 text-sm"
+        />
 
         {/* State / Province */}
         {hasStates && (
