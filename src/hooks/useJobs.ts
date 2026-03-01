@@ -47,12 +47,14 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
             }
 
             const weights = getOptimizedWeights();
-            const matchPromises = rawJobs.map(job => calculateMatch(profile, job, weights));
+            const matchPromises = rawJobs.map(job => calculateMatch(profile, job, weights, preferences));
             const matchResults = await Promise.all(matchPromises);
             const matches = rawJobs.map((job, i) => ({ ...job, match: matchResults[i] } as EnrichedJob));
 
+            // Sort by match score, then filter out very low relevance jobs (< 20%)
             const sorted = matches
-                .sort((a, b) => (b.match?.overall_score ?? 0) - (a.match?.overall_score ?? 0));
+                .sort((a, b) => (b.match?.overall_score ?? 0) - (a.match?.overall_score ?? 0))
+                .filter(job => (job.match?.overall_score ?? 0) >= 20);
 
             return { jobs: sorted, totalPages };
         },
