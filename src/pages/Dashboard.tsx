@@ -230,6 +230,16 @@ const Dashboard = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
+              className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground bg-muted/60 hover:bg-muted border border-border rounded-lg px-2.5 py-1.5 transition-colors"
+            >
+              <Search className="w-3 h-3" />
+              <span>Search…</span>
+              <kbd className="ml-1 pointer-events-none inline-flex h-5 select-none items-center gap-0.5 rounded border border-border bg-background px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+                ⌘K
+              </kbd>
+            </button>
             {subscription?.tier !== SubscriptionTier.FREE && subscription?.tier ? (
               <Badge className="bg-primary/10 text-primary border-primary/20 text-xs font-semibold">Pro</Badge>
             ) : (
