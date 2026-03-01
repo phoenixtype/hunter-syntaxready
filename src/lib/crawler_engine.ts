@@ -126,7 +126,7 @@ export const searchJobs = async (
   if (typeof queryOrOptions === 'object' && queryOrOptions !== null) {
     ({ query, location, page = 0, pageSize = 20, preferenceLocations, preferenceRoles, remotePolicy } = queryOrOptions);
   } else {
-    query = queryOrOptions;
+    query = queryOrOptions as string | undefined;
   }
 
   try {
