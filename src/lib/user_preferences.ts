@@ -5,6 +5,7 @@ export interface UserPreferences {
   min_salary_usd: number;
   locations: string[];
   remote_policy: 'remote' | 'hybrid' | 'onsite' | 'any';
+  experience_level: string;
   aggressiveness: number;
   safe_mode: boolean;
   require_sponsorship: boolean;
@@ -19,6 +20,7 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   min_salary_usd: 100000,
   locations: [],
   remote_policy: 'any',
+  experience_level: 'mid',
   aggressiveness: 5,
   safe_mode: true,
   require_sponsorship: false,
@@ -59,6 +61,7 @@ export const getPreferences = async (userId: string): Promise<UserPreferences | 
       remote_policy: ['remote', 'hybrid', 'onsite', 'any'].includes(data.remote_policy) 
         ? data.remote_policy as UserPreferences['remote_policy'] 
         : 'any',
+      experience_level: typeof (data as any).experience_level === 'string' ? (data as any).experience_level : 'mid',
       aggressiveness: typeof data.aggressiveness === 'number' ? Math.max(1, Math.min(data.aggressiveness, 10)) : DEFAULT_PREFERENCES.aggressiveness,
       safe_mode: typeof data.safe_mode === 'boolean' ? data.safe_mode : true,
       require_sponsorship: typeof (data as any).require_sponsorship === 'boolean' ? (data as any).require_sponsorship : false,

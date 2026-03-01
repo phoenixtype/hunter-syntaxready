@@ -102,13 +102,14 @@ const JobHuntPlanner = () => {
         locations,
         remote_policy: workSetup as UserPreferences["remote_policy"],
         min_salary_usd: parseInt(expectedSalary) || 100000,
+        experience_level: 'mid',
         safe_mode: safeMode,
         aggressiveness: intensity[0],
         require_sponsorship: requireSponsorship,
         has_clearance: hasClearance,
         notice_period_days: parseInt(noticePeriod) || 14,
-        email_alerts_enabled: undefined as any, // Preserve existing
-        sms_alerts_enabled: undefined as any  // Preserve existing
+        email_alerts_enabled: undefined as any,
+        sms_alerts_enabled: undefined as any
       });
 
       // Save candidate profile details

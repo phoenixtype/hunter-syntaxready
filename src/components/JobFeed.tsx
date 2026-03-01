@@ -273,7 +273,11 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                         <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1.5"><Building2 className="w-3 h-3 shrink-0" />{job.company}</span>
                           {job.location && <span className="flex items-center gap-1.5"><MapPin className="w-3 h-3 shrink-0" />{job.location}</span>}
-                          {job.match && <span className="text-primary font-semibold">{job.match.overall_score}% match</span>}
+                          {job.match && (
+                            <span className={`font-semibold ${job.match.overall_score >= 70 ? 'text-primary' : job.match.overall_score >= 40 ? 'text-yellow-500' : 'text-muted-foreground'}`}>
+                              {job.match.overall_score}% match
+                            </span>
+                          )}
                         </div>
                       </div>
                       <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-muted-foreground/60 hover:text-destructive hover:bg-destructive/5" onClick={() => handleDismiss(job)}>

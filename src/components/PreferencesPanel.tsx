@@ -47,6 +47,7 @@ const PreferencesPanel = ({ preferences, onSaved }: PreferencesPanelProps) => {
                 min_salary_usd: salary[0],
                 locations,
                 remote_policy: remotePolicy,
+                experience_level: 'mid',
                 aggressiveness: aggressiveness[0],
                 safe_mode: true,
                 require_sponsorship: false,
