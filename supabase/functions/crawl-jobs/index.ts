@@ -151,7 +151,7 @@ async function jsearchFetch(apiKey: string, query: string, remoteOnly: boolean):
   try {
     const params = new URLSearchParams({
       query,
-      num_pages: '1',
+      num_pages: '2',
       date_posted: 'month',
     });
     if (remoteOnly) params.set('remote_jobs_only', 'true');
@@ -378,7 +378,7 @@ serve(async (req) => {
     console.log('[AUTH] User:', user.id);
 
     const body = await req.json();
-    const { keywords, url, location, remotePolicy, targetRoles } = body;
+    const { keywords, url, location, locations, remotePolicy, targetRoles } = body;
 
     const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
@@ -413,31 +413,36 @@ serve(async (req) => {
 
       const searchRoles  = Array.isArray(targetRoles) ? targetRoles.filter(Boolean).map(String) : [];
       const searchKws    = Array.isArray(keywords) ? keywords.filter(Boolean).map(String) : [];
-      const searchLoc    = typeof location === 'string' ? location : '';
+      // Prefer the new locations array; fall back to a single location string for backward compat
+      const searchLocs: string[] = Array.isArray(locations) && locations.length > 0
+        ? locations.filter(Boolean).map(String).slice(0, 2)
+        : (typeof location === 'string' && location.trim() ? [location.trim()] : []);
       const isRemote     = remotePolicy === 'remote';
 
-      // Build 1–3 queries: primary role + location, role + keywords, or broad keywords
-      const queries: string[] = [];
       const primaryRole = searchRoles[0] || 'software engineer';
-      const locationSuffix = searchLoc ? ` ${searchLoc}` : '';
+      const queries: string[] = [];
 
-      // Query 1: Role + Location
-      queries.push(`${primaryRole}${locationSuffix}`.trim());
-
-      // Query 2: Mixed role + top keywords
-      if (searchKws.length > 0) {
-        const keywordsForQuery = searchKws.slice(0, 3).join(' ');
-        queries.push(`${primaryRole} ${keywordsForQuery}${locationSuffix}`.trim());
+      // For each preferred location, build a "role + location" query + optional keywords query
+      // If no location preference, build queries without location suffix
+      const effectiveLocs = searchLocs.length > 0 ? searchLocs : [''];
+      for (const loc of effectiveLocs) {
+        const locSuffix = loc ? ` ${loc}` : '';
+        // Role + location
+        queries.push(`${primaryRole}${locSuffix}`.trim());
+        // Role + top keywords + location (only for first location to stay under quota)
+        if (loc === effectiveLocs[0] && searchKws.length > 0) {
+          const keywordsForQuery = searchKws.slice(0, 3).join(' ');
+          queries.push(`${primaryRole} ${keywordsForQuery}${locSuffix}`.trim());
+        }
       }
 
-      // Query 3: Alternative role or keywords only
-      if (searchRoles[1]) {
-        queries.push(`${searchRoles[1]}${locationSuffix}`.trim());
-      } else if (searchKws.length >= 4) {
-        queries.push(`${searchKws.slice(3, 6).join(' ')}${locationSuffix}`.trim());
+      // Alternative role query (without extra location, deduplication handles overlap)
+      if (searchRoles[1] && queries.length < 4) {
+        const locSuffix = searchLocs[0] ? ` ${searchLocs[0]}` : '';
+        queries.push(`${searchRoles[1]}${locSuffix}`.trim());
       }
 
-      console.log(`[JSEARCH] Running ${queries.length} queries`);
+      console.log(`[JSEARCH] Running ${queries.length} queries for locations: ${searchLocs.join(', ') || '(any)'}`);
 
       const searchResults = await Promise.allSettled(
         queries.map(q => jsearchFetch(jsearchApiKey, q, isRemote))

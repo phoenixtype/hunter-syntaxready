@@ -88,7 +88,7 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
 
             if (preferences) {
                 params.targetRoles = preferences.target_roles;
-                params.location = preferences.locations?.join(', ');
+                params.locations = preferences.locations?.slice(0, 3);
                 params.remotePolicy = preferences.remote_policy;
             }
 

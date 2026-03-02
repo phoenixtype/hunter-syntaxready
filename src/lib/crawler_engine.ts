@@ -19,6 +19,7 @@ export interface CrawlParams {
   keywords?: string[];
   targetRoles?: string[];
   location?: string;
+  locations?: string[];
   remotePolicy?: string;
   url?: string;
 }
@@ -40,6 +41,7 @@ export const triggerJobCrawl = async (
         keywords: params.keywords,
         targetRoles: params.targetRoles,
         location: params.location,
+        locations: params.locations,
         remotePolicy: params.remotePolicy,
         url: params.url,
       },
