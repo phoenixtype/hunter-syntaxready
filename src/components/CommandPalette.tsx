@@ -167,7 +167,7 @@ const CommandPalette = () => {
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder="Type a command or search…" />
+      <CommandInput placeholder="Type a command or search..." className="focus:ring-0 focus:outline-none" />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
 
