@@ -106,14 +106,14 @@ const ApplicationWizard = () => {
                             <form onSubmit={handleAnalyze} className="space-y-6">
                                 <div className="space-y-4">
                                     <label className="text-base font-medium">Job URL (LinkedIn, Indeed, Company Site)</label>
-                                    <div className="flex flex-col sm:flex-row gap-4">
+                                    <div className="flex flex-col gap-3">
                                         <Input
                                             value={url}
                                             onChange={(e) => setUrl(e.target.value)}
                                             placeholder="https://www.linkedin.com/jobs/view/..."
-                                            className="border-border focus:border-primary"
+                                            className="h-12 border-border focus:border-primary text-base"
                                         />
-                                        <Button type="submit" disabled={!url} size="lg" className="whitespace-nowrap">
+                                        <Button type="submit" disabled={!url} size="lg" className="w-full h-12 text-base font-semibold">
                                             Analyze with AI
                                         </Button>
                                     </div>

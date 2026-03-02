@@ -1,7 +1,15 @@
 import { Link, useLocation } from "react-router-dom";
 
 /** Pages where the footer is suppressed (full-screen layouts with their own chrome) */
-const HIDDEN_FOOTER_PATHS = ["/dashboard", "/interview-coach"];
+const HIDDEN_FOOTER_PATHS = [
+  "/dashboard", 
+  "/interview-coach", 
+  "/resume-builder", 
+  "/application-wizard", 
+  "/auto-applier-settings", 
+  "/onboarding",
+  "/tailored-resumes"
+];
 
 const Footer = () => {
   const { pathname } = useLocation();

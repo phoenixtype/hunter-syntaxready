@@ -310,8 +310,6 @@ const Onboarding = () => {
       require_sponsorship: false,
       has_clearance: false,
       notice_period_days: 14,
-      email_alerts_enabled: false,
-      sms_alerts_enabled: false,
     };
 
     return { profilePayload, prefsPayload };
@@ -916,21 +914,21 @@ const Onboarding = () => {
 
           {/* ── Card footer navigation ─────────────────────────────────── */}
           {currentStep !== "method" && (
-            <div className="px-6 sm:px-8 pt-4 pb-6 flex items-center justify-between border-t border-border/40 mt-5">
+            <div className="sticky bottom-0 z-20 px-6 sm:px-8 py-4 flex items-center justify-between border-t border-border/40 bg-background/80 backdrop-blur-sm -mx-6 sm:-mx-8 safe-area-inset-bottom">
               <Button
                 variant="ghost"
                 onClick={goBack}
-                className="gap-1.5 text-muted-foreground hover:text-foreground"
+                className="gap-1.5 text-muted-foreground hover:text-foreground h-11"
               >
                 <ArrowLeft className="w-4 h-4" /> Back
               </Button>
               {currentStep === "preferences" ? (
-                <Button onClick={handleFinish} disabled={saving} className="gap-2 px-6">
+                <Button onClick={handleFinish} disabled={saving} className="gap-2 px-6 h-11">
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                   {saving ? "Saving…" : "Complete setup"}
                 </Button>
               ) : (
-                <Button onClick={handleNext} className="gap-2 px-6">
+                <Button onClick={handleNext} className="gap-2 px-6 h-11">
                   Continue <ArrowRight className="w-4 h-4" />
                 </Button>
               )}

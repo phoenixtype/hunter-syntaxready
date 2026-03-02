@@ -108,8 +108,6 @@ const JobHuntPlanner = () => {
         require_sponsorship: requireSponsorship,
         has_clearance: hasClearance,
         notice_period_days: parseInt(noticePeriod) || 14,
-        email_alerts_enabled: undefined as any,
-        sms_alerts_enabled: undefined as any
       });
 
       // Save candidate profile details

@@ -13,6 +13,7 @@ export interface UserPreferences {
   notice_period_days: number;
   email_alerts_enabled: boolean;
   sms_alerts_enabled: boolean;
+  tracker_view: 'board' | 'list';
 }
 
 const DEFAULT_PREFERENCES: UserPreferences = {
@@ -27,7 +28,8 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   has_clearance: false,
   notice_period_days: 14,
   email_alerts_enabled: false,
-  sms_alerts_enabled: false
+  sms_alerts_enabled: false,
+  tracker_view: 'list'
 };
 
 export const getPreferences = async (userId: string): Promise<UserPreferences | null> => {
@@ -68,7 +70,8 @@ export const getPreferences = async (userId: string): Promise<UserPreferences | 
       has_clearance: typeof (data as any).has_clearance === 'boolean' ? (data as any).has_clearance : false,
       notice_period_days: typeof (data as any).notice_period_days === 'number' ? (data as any).notice_period_days : 14,
       email_alerts_enabled: typeof (data as any).email_alerts_enabled === 'boolean' ? (data as any).email_alerts_enabled : false,
-      sms_alerts_enabled: typeof (data as any).sms_alerts_enabled === 'boolean' ? (data as any).sms_alerts_enabled : false
+      sms_alerts_enabled: typeof (data as any).sms_alerts_enabled === 'boolean' ? (data as any).sms_alerts_enabled : false,
+      tracker_view: (['board', 'list'].includes((data as any).tracker_view)) ? (data as any).tracker_view as 'board' | 'list' : 'list'
     };
   } catch (e) {
     console.error("Error in getPreferences:", e);
@@ -108,13 +111,31 @@ export const savePreferences = async (userId: string, prefs: UserPreferences): P
     has_clearance: typeof prefs.has_clearance === 'boolean' ? prefs.has_clearance : false,
     notice_period_days: typeof prefs.notice_period_days === 'number' ? prefs.notice_period_days : 14,
     email_alerts_enabled: typeof prefs.email_alerts_enabled === 'boolean' ? prefs.email_alerts_enabled : false,
-    sms_alerts_enabled: typeof prefs.sms_alerts_enabled === 'boolean' ? prefs.sms_alerts_enabled : false
+    sms_alerts_enabled: typeof prefs.sms_alerts_enabled === 'boolean' ? prefs.sms_alerts_enabled : false,
+    tracker_view: ['board', 'list'].includes(prefs.tracker_view) ? prefs.tracker_view : 'list'
   };
   
   try {
+    // Fetch existing preferences to merge
+    const { data: existingData } = await supabase
+      .from('user_preferences')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    const mergedPrefs = {
+      user_id: userId,
+      ...existingData,
+      ...sanitizedPrefs,
+      // Ensure we don't accidentally unset fields that might be missing in the input prefs
+      email_alerts_enabled: prefs.email_alerts_enabled !== undefined ? sanitizedPrefs.email_alerts_enabled : existingData?.email_alerts_enabled ?? false,
+      sms_alerts_enabled: prefs.sms_alerts_enabled !== undefined ? sanitizedPrefs.sms_alerts_enabled : existingData?.sms_alerts_enabled ?? false,
+      tracker_view: prefs.tracker_view !== undefined ? sanitizedPrefs.tracker_view : existingData?.tracker_view ?? 'list'
+    };
+
     const { error } = await supabase
       .from('user_preferences')
-      .upsert(sanitizedPrefs, { onConflict: 'user_id' });
+      .upsert(mergedPrefs, { onConflict: 'user_id' });
 
     if (error) {
       console.error("Error saving preferences:", error.message);

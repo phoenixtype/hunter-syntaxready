@@ -255,26 +255,38 @@ const Dashboard = () => {
           </div>
         </header>
 
-        {/* Mobile Tab Bar */}
-        <div className="lg:hidden flex border-b border-border bg-background">
+        {/* Mobile Tab Bar - Fixed Bottom */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 flex border-t border-border bg-background/95 backdrop-blur-md safe-area-inset-bottom">
           {NAV_ITEMS.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveView(item.id)}
-              className={`flex-1 flex flex-col items-center gap-1 py-3 text-xs font-medium transition-colors border-b-2 ${
+              onClick={() => {
+                setActiveView(item.id);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className={`flex-1 flex flex-col items-center gap-1.5 py-2.5 text-[10px] font-medium transition-all ${
                 activeView === item.id
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground"
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <item.icon className="w-4 h-4" />
-              {item.label}
+              <div className={`p-1 rounded-lg transition-colors ${activeView === item.id ? "bg-primary/10" : "group-hover:bg-muted"}`}>
+                <item.icon className="w-5 h-5" />
+              </div>
+              <span className="truncate">{item.label}</span>
+              {activeView === item.id && (
+                <motion.div 
+                  layoutId="activeTab" 
+                  className="absolute bottom-0 w-8 h-0.5 bg-primary rounded-full" 
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                />
+              )}
             </button>
           ))}
         </div>
 
         {/* Content */}
-        <main id="main-content" className="flex-1 p-4 sm:p-6 max-w-5xl w-full mx-auto">
+        <main id="main-content" className="flex-1 p-4 sm:p-6 max-w-5xl w-full mx-auto pb-24 lg:pb-6">
           {/* Jobs View — always mounted so job list and page state survive tab switches */}
           <div className={activeView !== "jobs" ? "hidden" : ""}>
             <WidgetErrorBoundary>

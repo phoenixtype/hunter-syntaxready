@@ -1,0 +1,17 @@
+{
+  "name": "Hunter AI",
+  "short_name": "Hunter",
+  "description": "Your Career, Autopilot. Autonomous job discovery and applications.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#7c3aed",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

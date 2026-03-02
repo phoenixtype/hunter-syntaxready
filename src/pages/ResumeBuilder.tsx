@@ -656,7 +656,7 @@ const ResumeBuilder = () => {
 
       {/* Bottom Navigation */}
       {currentStep !== "generate" && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-t border-border">
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-t border-border pb-safe safe-area-inset-bottom">
           <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
             <Button
               variant="ghost"

@@ -13,6 +13,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { getApplicationHistory, ApplicationRecord, updateApplicationStatus } from "@/lib/application_engine";
+import { getPreferences, savePreferences } from "@/lib/user_preferences";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
@@ -48,9 +49,7 @@ export const ApplicationsView = () => {
   const [applications, setApplications] = useState<ApplicationRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [viewMode, setViewMode] = useState<"board" | "list">(() =>
-    (localStorage.getItem("hunter_tracker_view") as "board" | "list") || "list"
-  );
+  const [viewMode, setViewMode] = useState<"board" | "list">("list");
   const [currentPage, setCurrentPage] = useState(1);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [noteInput, setNoteInput] = useState("");
@@ -60,6 +59,10 @@ export const ApplicationsView = () => {
     if (session?.user?.id) {
       try {
         const history = await getApplicationHistory(session.user.id);
+        const prefs = await getPreferences(session.user.id);
+        if (prefs?.tracker_view) {
+          setViewMode(prefs.tracker_view);
+        }
         setApplications(history);
         setError(false);
       } catch (e) {
@@ -70,6 +73,21 @@ export const ApplicationsView = () => {
       }
     } else {
       setLoading(false);
+    }
+  };
+
+  const toggleViewMode = async (mode: "board" | "list") => {
+    setViewMode(mode);
+    if (session?.user?.id) {
+      try {
+        const currentPrefs = await getPreferences(session.user.id);
+        await savePreferences(session.user.id, {
+          ...(currentPrefs || {}),
+          tracker_view: mode
+        } as any);
+      } catch (e) {
+        console.error("Failed to save view mode preference", e);
+      }
     }
   };
 
@@ -147,7 +165,7 @@ export const ApplicationsView = () => {
             <Button
               variant={viewMode === "board" ? "secondary" : "ghost"}
               size="sm"
-              onClick={() => { setViewMode("board"); localStorage.setItem("hunter_tracker_view", "board"); }}
+              onClick={() => toggleViewMode("board")}
               className={`h-8 px-3 text-xs ${viewMode === "board" ? "shadow-sm font-medium" : "text-muted-foreground"}`}
             >
               <LayoutGrid className="w-3.5 h-3.5 mr-1.5" />
@@ -156,7 +174,7 @@ export const ApplicationsView = () => {
             <Button
               variant={viewMode === "list" ? "secondary" : "ghost"}
               size="sm"
-              onClick={() => { setViewMode("list"); setCurrentPage(1); localStorage.setItem("hunter_tracker_view", "list"); }}
+              onClick={() => { toggleViewMode("list"); setCurrentPage(1); }}
               className={`h-8 px-3 text-xs ${viewMode === "list" ? "shadow-sm font-medium" : "text-muted-foreground"}`}
             >
               <ListIcon className="w-3.5 h-3.5 mr-1.5" />

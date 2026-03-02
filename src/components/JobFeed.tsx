@@ -206,23 +206,27 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
 
   return (
     <div className="space-y-4 animate-fade-in">
-      {/* Search */}
-      <div className="flex items-center gap-2">
-        <div className="relative flex-[2]">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Search jobs..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 h-11" />
+      {/* Search & Actions */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+        <div className="flex flex-col sm:flex-row flex-1 gap-2">
+          <div className="relative flex-[2]">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input placeholder="Search jobs..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 h-12 sm:h-11 text-base sm:text-sm" />
+          </div>
+          <div className="relative flex-1">
+            <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input placeholder="Location..." value={locationQuery} onChange={(e) => setLocationQuery(e.target.value)} className="pl-10 h-12 sm:h-11 text-base sm:text-sm" />
+          </div>
         </div>
-        <div className="relative flex-1">
-          <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Location..." value={locationQuery} onChange={(e) => setLocationQuery(e.target.value)} className="pl-10 h-11" />
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleCrawl} disabled={crawling || loading} className="flex-1 sm:flex-none h-12 sm:h-11 px-4 shrink-0 gap-1.5 font-semibold sm:font-medium">
+            {crawling ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Searching...</> : <><Globe className="w-3.5 h-3.5" />Find Jobs</>}
+          </Button>
+          <JobFiltersBar filters={filters} onChange={setFilters} />
+          <Button variant="ghost" size="icon" onClick={() => { refreshJobs(); toast.info("Refreshing..."); }} disabled={loading || crawling} className="h-12 w-12 sm:h-11 sm:w-11 shrink-0 bg-muted/30">
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+          </Button>
         </div>
-        <Button variant="outline" size="sm" onClick={handleCrawl} disabled={crawling || loading} className="h-11 px-4 shrink-0 gap-1.5">
-          {crawling ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Searching...</> : <><Globe className="w-3.5 h-3.5" />Find Jobs</>}
-        </Button>
-        <JobFiltersBar filters={filters} onChange={setFilters} />
-        <Button variant="ghost" size="icon" onClick={() => { refreshJobs(); toast.info("Refreshing..."); }} disabled={loading || crawling} className="h-11 w-11 shrink-0">
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-        </Button>
       </div>
 
       {/* Active filter badges */}
@@ -318,37 +322,32 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-1.5 mt-3.5 flex-wrap">
-                      {/* Apply is an <a> tag so the new-tab navigation fires as a direct user gesture
-                          (never blocked as popup). The async recordApplication fires alongside it. */}
+                    <div className="flex items-center gap-2 mt-4 flex-wrap">
                       <a
                         href={isApplied || isApplying ? undefined : (job.url || "#")}
                         target={job.url ? "_blank" : undefined}
                         rel="noopener noreferrer"
+                        className="flex-1 min-w-[140px]"
                         onClick={(e) => {
                           if (isApplied || isApplying) { e.preventDefault(); return; }
                           handleApply(job);
                         }}
-                        aria-label={isApplied ? "Already applied" : `Apply to ${job.title} at ${job.company}`}
                       >
-                        <Button size="sm" variant={isApplied ? "secondary" : "default"} disabled={isApplied || isApplying} className="h-9 text-xs px-3.5 gap-1.5">
-                          {isApplied ? <><Send className="w-3 h-3" />Applied</> : isApplying ? <><Loader2 className="w-3 h-3 animate-spin" />Applying…</> : <><Send className="w-3 h-3" />View & Apply</>}
+                        <Button size="sm" variant={isApplied ? "secondary" : "default"} disabled={isApplied || isApplying} className="w-full h-10 text-xs px-3.5 gap-1.5 font-semibold">
+                          {isApplied ? <><Send className="w-3 h-3" />Applied</> : isApplying ? <><Loader2 className="w-3 h-3 animate-spin" />Applying…</> : <><Send className="w-3 h-3" />Apply Now</>}
                         </Button>
                       </a>
-                      <Button variant="outline" size="sm" onClick={() => handleTailor(job)} disabled={tailoringJobId === job.id} className="h-9 text-xs px-3.5 gap-1.5">
+                      <Button variant="outline" size="sm" onClick={() => handleTailor(job)} disabled={tailoringJobId === job.id} className="flex-1 min-w-[100px] h-10 text-xs px-3.5 gap-1.5">
                         {tailoringJobId === job.id ? <><Loader2 className="w-3 h-3 animate-spin" />Tailoring...</> : <><PenTool className="w-3 h-3" />Tailor</>}
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => navigate(`/interview-coach?title=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}&desc=${encodeURIComponent(job.description?.substring(0, 500) || '')}`)} className="h-9 text-xs px-3 gap-1.5">
-                        <GraduationCap className="w-3 h-3" />Prep
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleExpandJob(job.id)} className="h-9 text-xs px-3 gap-1 ml-auto">
-                        {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}Intel
-                      </Button>
-                      {job.url && (
-                        <a href={job.url} target="_blank" rel="noopener noreferrer">
-                          <Button variant="ghost" size="icon" className="h-9 w-9"><ExternalLink className="w-3.5 h-3.5" /></Button>
-                        </a>
-                      )}
+                      <div className="flex gap-2 w-full sm:w-auto">
+                        <Button variant="ghost" size="sm" onClick={() => navigate(`/interview-coach?title=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}&desc=${encodeURIComponent(job.description?.substring(0, 500) || '')}`)} className="flex-1 sm:flex-none h-10 text-xs px-3 gap-1.5 bg-muted/30">
+                          <GraduationCap className="w-3 h-3" />Prep
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleExpandJob(job.id)} className="flex-1 sm:flex-none h-10 text-xs px-3 gap-1 bg-muted/30">
+                          {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}Intel
+                        </Button>
+                      </div>
                     </div>
 
                     {isApplying && activeApplication && (
