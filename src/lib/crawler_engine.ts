@@ -148,11 +148,24 @@ export const searchJobs = async (
         `title.ilike.%${sq}%,company.ilike.%${sq}%,description.ilike.%${sq}%`
       );
     } else if (preferenceRoles && preferenceRoles.length > 0) {
-      const roleFilter = preferenceRoles
-        .slice(0, 5)
-        .map(r => `title.ilike.%${escapeLikePattern(r.trim().slice(0, 100))}%`)
-        .join(',');
-      queryBuilder = queryBuilder.or(roleFilter);
+      // Use individual significant words from roles for broader matching
+      // e.g. "Senior Frontend Engineer" → match titles containing "Frontend" or "Engineer"
+      const significantWords = new Set<string>();
+      const stopWords = new Set(['senior', 'junior', 'lead', 'staff', 'principal', 'mid', 'entry', 'level', 'i', 'ii', 'iii', 'iv', 'v', 'the', 'a', 'an', 'and', 'or', 'of', 'in', 'at', 'for']);
+      for (const role of preferenceRoles.slice(0, 5)) {
+        for (const word of role.trim().split(/\s+/)) {
+          if (word.length > 2 && !stopWords.has(word.toLowerCase())) {
+            significantWords.add(word);
+          }
+        }
+      }
+      if (significantWords.size > 0) {
+        const roleFilter = Array.from(significantWords)
+          .slice(0, 8)
+          .map(w => `title.ilike.%${escapeLikePattern(w.slice(0, 50))}%`)
+          .join(',');
+        queryBuilder = queryBuilder.or(roleFilter);
+      }
     }
 
     // ── Location filter ───────────────────────────────────────────────────
@@ -161,14 +174,15 @@ export const searchJobs = async (
       const sl = escapeLikePattern(location.trim().slice(0, 100));
       queryBuilder = queryBuilder.ilike('location', `%${sl}%`);
     } else if (preferenceLocations && preferenceLocations.length > 0) {
-      // Build: (pref_loc_1 OR pref_loc_2 OR ... OR remote) depending on policy
+      // Build: (pref_loc_1 OR pref_loc_2 OR ... OR remote OR unspecified) depending on policy
       const locFilters = preferenceLocations
         .map(l => `location.ilike.%${escapeLikePattern(l.trim().slice(0, 100))}%`)
         .join(',');
       // Include remote jobs unless the user explicitly wants onsite-only
       const includeRemote = remotePolicy !== 'onsite';
       const remoteClause = includeRemote ? ',location.ilike.%remote%' : '';
-      queryBuilder = queryBuilder.or(`${locFilters}${remoteClause}`);
+      // Also include jobs with "Unspecified" location so they aren't hidden
+      queryBuilder = queryBuilder.or(`${locFilters}${remoteClause},location.eq.Unspecified`);
     } else if (remotePolicy === 'remote') {
       // No location preference set but user wants remote-only
       queryBuilder = queryBuilder.ilike('location', '%remote%');
