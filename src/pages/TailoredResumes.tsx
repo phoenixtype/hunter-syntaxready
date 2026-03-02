@@ -111,13 +111,10 @@ const TailoredResumes = () => {
     if (error) {
       toast.error("Failed to delete");
     } else {
-      setResumes((prev) => {
-        const next = prev.filter((r) => r.id !== deleteId);
-        // If we just deleted the last item on the current page, go back one page
-        const newTotalPages = Math.ceil(next.length / ITEMS_PER_PAGE);
-        if (currentPage > newTotalPages && newTotalPages > 0) setCurrentPage(newTotalPages);
-        return next;
-      });
+      const next = resumes.filter((r) => r.id !== deleteId);
+      const newTotalPages = Math.ceil(next.length / ITEMS_PER_PAGE);
+      if (currentPage > newTotalPages && newTotalPages > 0) setCurrentPage(newTotalPages);
+      setResumes(next);
       toast.success("Resume deleted");
     }
     setDeleteId(null);

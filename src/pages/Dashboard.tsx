@@ -28,6 +28,7 @@ import ProfilePanel from "@/components/ProfilePanel";
 import PreferencesPanel from "@/components/PreferencesPanel";
 
 type DashboardView = "jobs" | "applications" | "tools" | "notifications" | "profile" | "preferences";
+const VALID_DASHBOARD_VIEWS: DashboardView[] = ["jobs", "applications", "tools", "notifications", "profile", "preferences"];
 
 const NAV_ITEMS = [
   { id: "jobs" as const, label: "Jobs", icon: Briefcase },
@@ -45,7 +46,7 @@ const Dashboard = () => {
 
   const [activeView, setActiveView] = useState<DashboardView>(() => {
     const saved = localStorage.getItem("hunter_dashboard_view");
-    return (saved as DashboardView) || "jobs";
+    return VALID_DASHBOARD_VIEWS.includes(saved as DashboardView) ? (saved as DashboardView) : "jobs";
   });
 
   useEffect(() => {
