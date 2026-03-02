@@ -66,7 +66,39 @@ const Profile = () => {
         }
         // Priority 3: Explicitly update formData when profile changes after a save (handled by handleSave)
         // We remove the overly aggressive auto-update that was causing state loss
-    }, [profile, user?.id, location.state]);
+    }, [profile, user?.id, location.state, formData]);
+
+    // Auto-save draft to localStorage (debounced)
+    useEffect(() => {
+        if (!user?.id || mode !== 'edit' || !formData) return;
+
+        const timer = setTimeout(() => {
+            localStorage.setItem(`hunter_profile_draft_${user.id}`, JSON.stringify(formData));
+            console.log("[PROFILE] Draft saved to localStorage");
+        }, 2000);
+
+        return () => clearTimeout(timer);
+    }, [formData, mode, user?.id]);
+
+    // Check for draft on mount or mode change
+    useEffect(() => {
+        if (!user?.id || mode !== 'edit' || !formData) return;
+
+        const savedDraft = localStorage.getItem(`hunter_profile_draft_${user.id}`);
+        if (savedDraft) {
+            try {
+                const draft = JSON.parse(savedDraft);
+                // Simple heuristic: if draft name/email/etc differs from current formData, offer to restore or just notify
+                // For now, we'll just check if it's different and maybe log it or auto-restore if formData is "clean"
+                if (JSON.stringify(draft) !== JSON.stringify(profile)) {
+                    // console.log("[PROFILE] Local draft detected, could restore...");
+                    // toast.info("Found an unsaved draft from your last visit");
+                }
+            } catch (e) {
+                console.error("Failed to parse profile draft", e);
+            }
+        }
+    }, [mode, user?.id, formData, profile]);
 
     const handleSave = async () => {
         if (!user || !formData) return;
@@ -74,6 +106,7 @@ const Profile = () => {
         setIsSaving(true);
         try {
             await saveCandidateProfile(user.id, formData);
+            localStorage.removeItem(`hunter_profile_draft_${user.id}`);
             setProfile(formData); // Update global context
             toast.success("Profile updated successfully!");
             setMode('view'); // Return to view mode
@@ -89,6 +122,9 @@ const Profile = () => {
         // Reset data and go back to view
         if (profile) {
             setFormData(JSON.parse(JSON.stringify(profile)));
+        }
+        if (user?.id) {
+            localStorage.removeItem(`hunter_profile_draft_${user.id}`);
         }
         setMode('view');
     };

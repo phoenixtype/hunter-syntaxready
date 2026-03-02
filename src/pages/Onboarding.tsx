@@ -217,9 +217,37 @@ const Onboarding = () => {
         setExperienceLevel(prefs.experience_level || "");
         setAggressiveness([prefs.aggressiveness]);
       }
+
+      // Check for local draft - if it exists and is newer than the DB profile update, we can offer to restore
+      // For simplicity in onboarding, we'll auto-restore if DB profile is empty but draft exists
+      const savedDraft = localStorage.getItem(`hunter_onboarding_draft_${user.id}`);
+      if (savedDraft) {
+        try {
+          const draft = JSON.parse(savedDraft);
+          // If DB profile is basic but draft has data, auto-restore
+          const isDbProfileEmpty = !existingProfile || (existingProfile.experience_atoms.length === 0 && existingProfile.skills.length === 0);
+          if (isDbProfileEmpty && draft.profile) {
+            console.log("[ONBOARDING] Restoring draft from localStorage");
+            setProfile(draft.profile);
+            if (draft.preferences) {
+              setRoles(draft.preferences.target_roles || []);
+              setSalary([draft.preferences.min_salary_usd || 100000]);
+              setLocations(draft.preferences.locations || []);
+              setRemotePolicy(draft.preferences.remote_policy || "any");
+              setExperienceLevel(draft.preferences.experience_level || "");
+              setAggressiveness([draft.preferences.aggressiveness || 5]);
+            }
+            if (draft.step) setCurrentStep(draft.step);
+            toast.info("Resumed from your last session");
+          }
+        } catch (e) {
+          console.error("Failed to parse onboarding draft", e);
+        }
+      }
+
       dataLoaded.current = true;
     }).finally(() => setDataLoading(false));
-  }, [user?.id]);
+  }, [user?.id, user?.email]);
 
   const stepIndex = STEPS.findIndex(s => s.id === currentStep);
   const progressPercent = (stepIndex / (STEPS.length - 1)) * 100;
@@ -230,7 +258,32 @@ const Onboarding = () => {
     if (user && !dataLoading) {
       localStorage.setItem(`hunter_onboarding_step_${user.id}`, currentStep);
     }
-  }, [currentStep, user?.id, dataLoading]);
+  }, [currentStep, user, dataLoading]);
+
+  // Auto-save draft to localStorage (debounced)
+  useEffect(() => {
+    if (!user?.id || dataLoading) return;
+
+    const timer = setTimeout(() => {
+      const draft = {
+        profile,
+        preferences: {
+          target_roles: roles,
+          min_salary_usd: salary[0],
+          locations,
+          remote_policy: remotePolicy,
+          experience_level: experienceLevel,
+          aggressiveness: aggressiveness[0],
+        },
+        step: currentStep,
+        updatedAt: Date.now()
+      };
+      localStorage.setItem(`hunter_onboarding_draft_${user.id}`, JSON.stringify(draft));
+      console.log("[ONBOARDING] Draft saved to localStorage");
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [profile, roles, salary, locations, remotePolicy, experienceLevel, aggressiveness, currentStep, user?.id, dataLoading]);
 
   // Build the current payload to save
   const buildPayloads = () => {
@@ -300,8 +353,9 @@ const Onboarding = () => {
         location: locations.length > 0 ? locations.join(", ") : undefined,
         remotePolicy,
       }).catch(() => {});
-      // Clear persisted step so next visit starts fresh
+      // Clear persisted step and draft so next visit starts fresh
       localStorage.removeItem(`hunter_onboarding_step_${user.id}`);
+      localStorage.removeItem(`hunter_onboarding_draft_${user.id}`);
       queryClient.invalidateQueries({ queryKey: ['preferences'] });
       queryClient.invalidateQueries({ queryKey: ['candidate_profile'] });
       toast.success("You're all set!");
