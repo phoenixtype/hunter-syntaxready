@@ -10,7 +10,7 @@ interface Props {
   preferences: UserPreferences | null;
   jobCount: number;
   appCount: number;
-  onSetView?: (view: "jobs" | "applications" | "tools" | "settings") => void;
+  onSetView?: (view: "jobs" | "applications" | "tools" | "preferences") => void;
 }
 
 const DashboardWelcome = ({ profile, preferences, jobCount, appCount, onSetView }: Props) => {
@@ -32,7 +32,7 @@ const DashboardWelcome = ({ profile, preferences, jobCount, appCount, onSetView 
       label: "Set job preferences",
       benefit: "See only the roles that fit your goals and salary",
       done: !!(preferences?.target_roles?.length),
-      action: () => navigate("/auto-applier-settings"),
+      action: () => onSetView?.("preferences"),
       cta: "Set Preferences",
     },
     {
@@ -40,16 +40,16 @@ const DashboardWelcome = ({ profile, preferences, jobCount, appCount, onSetView 
       label: "Discover jobs",
       benefit: "Browse AI-curated listings matched to your skills",
       done: jobCount > 0,
-      action: null,
-      cta: null,
+      action: () => onSetView?.("jobs"),
+      cta: "Browse Jobs",
     },
     {
       icon: Send,
       label: "Apply to your first role",
-      benefit: "Track every application in your personal pipeline",
+      benefit: "Track every application in your personal Tracker",
       done: appCount > 0,
-      action: null,
-      cta: null,
+      action: () => onSetView?.("jobs"),
+      cta: "Find a Role",
     },
   ];
 

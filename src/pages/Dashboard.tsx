@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SEOHead from "@/components/SEOHead";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { Link, useNavigate } from "react-router-dom";
-import { Briefcase, FileText, Search, Link2, Linkedin, MessageSquare, User, Settings, LogOut, Loader2, Zap, Bot, LayoutGrid, GraduationCap, Bell, FolderOpen, Sparkles } from "lucide-react";
+import { Briefcase, FileText, Search, Linkedin, MessageSquare, User, Settings, LogOut, Zap, Bot, LayoutGrid, GraduationCap, Bell, FolderOpen, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -18,7 +18,6 @@ import { useResume } from "@/hooks/useResume";
 import { SubscriptionTier } from "@/lib/subscription";
 import PostInterviewModal from "@/components/PostInterviewModal";
 import PricingModal from "@/components/PricingModal";
-import JobUrlOptimizer from "@/components/JobUrlOptimizer";
 import LinkedInOptimizer from "@/components/LinkedInOptimizer";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useDashboardData } from "@/hooks/useDashboardData";
@@ -32,7 +31,7 @@ type DashboardView = "jobs" | "applications" | "tools" | "notifications" | "prof
 
 const NAV_ITEMS = [
   { id: "jobs" as const, label: "Jobs", icon: Briefcase },
-  { id: "applications" as const, label: "Applications", icon: FileText },
+  { id: "applications" as const, label: "Tracker", icon: FileText },
   { id: "tools" as const, label: "Tools", icon: LayoutGrid },
   { id: "notifications" as const, label: "Alerts", icon: Bell },
 ];
@@ -44,10 +43,16 @@ const Dashboard = () => {
   const { subscription, isLoading: subLoading } = useSubscription();
   const { preferences, appCount, jobCount, visibility, isLoading: dataLoading } = useDashboardData();
 
-  const [activeView, setActiveView] = useState<DashboardView>("jobs");
+  const [activeView, setActiveView] = useState<DashboardView>(() => {
+    const saved = localStorage.getItem("hunter_dashboard_view");
+    return (saved as DashboardView) || "jobs";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("hunter_dashboard_view", activeView);
+  }, [activeView]);
   const [showPostInterview, setShowPostInterview] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
-  const [showResumeOptimizer, setShowResumeOptimizer] = useState(false);
   const [showLinkedIn, setShowLinkedIn] = useState(false);
 
   // Wire up realtime notifications
@@ -87,12 +92,6 @@ const Dashboard = () => {
       title: "Application Wizard",
       desc: "Paste a job URL — get a tailored resume & cover letter in seconds",
       action: () => navigate("/application-wizard"),
-    },
-    {
-      icon: Link2,
-      title: "Optimize for Job",
-      desc: "Tailor your resume & cover letter to any job description",
-      action: () => setShowResumeOptimizer(true),
     },
     {
       icon: Linkedin,
@@ -363,7 +362,6 @@ const Dashboard = () => {
       {/* Modals */}
       <PostInterviewModal isOpen={showPostInterview} onClose={() => setShowPostInterview(false)} companyName="" profile={profile} />
       <PricingModal isOpen={showPricing} onClose={() => setShowPricing(false)} />
-      <JobUrlOptimizer isOpen={showResumeOptimizer} onClose={() => setShowResumeOptimizer(false)} profile={profile} />
       <LinkedInOptimizer isOpen={showLinkedIn} onClose={() => setShowLinkedIn(false)} profile={profile} />
     </div>
   );

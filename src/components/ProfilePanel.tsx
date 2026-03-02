@@ -60,7 +60,7 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
     const strength = getProfileStrength(profile);
 
     const initials = profile?.identity?.name
-        ? profile.identity.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+        ? profile.identity.name.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase()
         : '?';
 
     const circumference = 2 * Math.PI * 28;

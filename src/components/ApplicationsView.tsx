@@ -48,7 +48,9 @@ export const ApplicationsView = () => {
   const [applications, setApplications] = useState<ApplicationRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [viewMode, setViewMode] = useState<"board" | "list">("list");
+  const [viewMode, setViewMode] = useState<"board" | "list">(() =>
+    (localStorage.getItem("hunter_tracker_view") as "board" | "list") || "list"
+  );
   const [currentPage, setCurrentPage] = useState(1);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [noteInput, setNoteInput] = useState("");
@@ -132,11 +134,11 @@ export const ApplicationsView = () => {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold">Applications</h2>
+          <h2 className="text-xl font-semibold">Job Tracker</h2>
           <p className="text-sm text-muted-foreground">
             {applications.length > 0
-              ? `Tracking ${applications.length} application${applications.length > 1 ? "s" : ""}`
-              : "No applications yet. Start applying to jobs!"}
+              ? `Tracking ${applications.length} role${applications.length > 1 ? "s" : ""} · click a status to update`
+              : "Mark jobs as applied from the Jobs tab to start tracking"}
           </p>
         </div>
         
@@ -145,7 +147,7 @@ export const ApplicationsView = () => {
             <Button
               variant={viewMode === "board" ? "secondary" : "ghost"}
               size="sm"
-              onClick={() => setViewMode("board")}
+              onClick={() => { setViewMode("board"); localStorage.setItem("hunter_tracker_view", "board"); }}
               className={`h-8 px-3 text-xs ${viewMode === "board" ? "shadow-sm font-medium" : "text-muted-foreground"}`}
             >
               <LayoutGrid className="w-3.5 h-3.5 mr-1.5" />
@@ -154,7 +156,7 @@ export const ApplicationsView = () => {
             <Button
               variant={viewMode === "list" ? "secondary" : "ghost"}
               size="sm"
-              onClick={() => { setViewMode("list"); setCurrentPage(1); }}
+              onClick={() => { setViewMode("list"); setCurrentPage(1); localStorage.setItem("hunter_tracker_view", "list"); }}
               className={`h-8 px-3 text-xs ${viewMode === "list" ? "shadow-sm font-medium" : "text-muted-foreground"}`}
             >
               <ListIcon className="w-3.5 h-3.5 mr-1.5" />
@@ -169,9 +171,9 @@ export const ApplicationsView = () => {
           <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mb-4">
             <Briefcase className="w-6 h-6 text-muted-foreground" />
           </div>
-          <h3 className="font-semibold mb-1">No applications yet</h3>
+          <h3 className="font-semibold mb-1">Nothing tracked yet</h3>
           <p className="text-sm text-muted-foreground max-w-xs">
-            Head to the Jobs tab to discover and apply to roles. Your applications will appear here.
+            When you click <strong>View &amp; Apply</strong> on a job, it'll show up here so you can track its progress.
           </p>
         </div>
       ) : viewMode === "board" ? (
@@ -295,7 +297,7 @@ export const ApplicationsView = () => {
                   >
                     <div className="flex-1 min-w-0 flex items-start sm:items-center gap-4">
                       <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 border border-primary/10">
-                        <span className="text-sm font-bold text-primary">{app.company[0]}</span>
+                        <span className="text-sm font-bold text-primary">{app.company?.[0]?.toUpperCase() ?? "?"}</span>
                       </div>
                       <div className="grid gap-1">
                         <h4 className="text-sm font-medium truncate">{app.job_title}</h4>
@@ -309,35 +311,62 @@ export const ApplicationsView = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 sm:shrink-0">
-                      <Select
-                        value={app.status}
-                        onValueChange={(val) => handleStatusChange(app.id, val)}
-                      >
-                        <SelectTrigger className={`h-8 text-xs w-[130px] border-border ${stageInfo.color}`}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="applied">Applied</SelectItem>
-                          <SelectItem value="screening">Screening</SelectItem>
-                          <SelectItem value="interview">Interview</SelectItem>
-                          <SelectItem value="offer">Offer</SelectItem>
-                          <SelectItem value="accepted">Accepted</SelectItem>
-                          <SelectItem value="rejected">Rejected</SelectItem>
-                          <SelectItem value="declined">Declined</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary transition-colors" asChild>
+                    <div className="flex flex-col gap-2 sm:shrink-0">
+                      <div className="flex items-center gap-2">
+                        <Select
+                          value={app.status}
+                          onValueChange={(val) => handleStatusChange(app.id, val)}
+                        >
+                          <SelectTrigger className={`h-8 text-xs w-[130px] border-border ${stageInfo.color}`}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="applied">Applied</SelectItem>
+                            <SelectItem value="screening">Screening</SelectItem>
+                            <SelectItem value="interview">Interview</SelectItem>
+                            <SelectItem value="offer">Offer</SelectItem>
+                            <SelectItem value="accepted">Accepted</SelectItem>
+                            <SelectItem value="rejected">Rejected</SelectItem>
+                            <SelectItem value="declined">Declined</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <button
+                          onClick={() => { setEditingNoteId(app.id); setNoteInput(app.notes || ""); }}
+                          className={`p-1.5 rounded-md transition-colors ${app.notes ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+                          title={app.notes ? "View/edit note" : "Add note"}
+                        >
+                          <StickyNote className="w-4 h-4" />
+                        </button>
                         {app.job_url ? (
-                          <a href={app.job_url} target="_blank" rel="noopener noreferrer">
+                          <a href={app.job_url} target="_blank" rel="noopener noreferrer" className="p-1.5 text-muted-foreground hover:text-primary transition-colors rounded-md">
                             <ExternalLink className="w-4 h-4" />
                           </a>
                         ) : (
-                          <span className="opacity-50 cursor-not-allowed">
+                          <span className="p-1.5 opacity-30 cursor-not-allowed">
                             <ExternalLink className="w-4 h-4" />
                           </span>
                         )}
-                      </Button>
+                      </div>
+                      {editingNoteId === app.id && (
+                        <div className="space-y-1 w-full sm:w-[220px]">
+                          <textarea
+                            autoFocus
+                            value={noteInput}
+                            onChange={e => setNoteInput(e.target.value)}
+                            placeholder="Add a note..."
+                            className="w-full text-xs bg-muted border border-border rounded-lg px-2 py-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-primary min-h-[56px]"
+                          />
+                          <div className="flex gap-2">
+                            <button onClick={() => handleSaveNote(app.id)} className="text-[11px] text-primary font-medium hover:underline">Save</button>
+                            <button onClick={() => setEditingNoteId(null)} className="text-[11px] text-muted-foreground hover:underline">Cancel</button>
+                          </div>
+                        </div>
+                      )}
+                      {app.notes && editingNoteId !== app.id && (
+                        <p className="text-[11px] text-muted-foreground italic line-clamp-1 w-full sm:w-[220px] cursor-pointer hover:text-foreground" onClick={() => { setEditingNoteId(app.id); setNoteInput(app.notes || ""); }}>
+                          {app.notes}
+                        </p>
+                      )}
                     </div>
                   </motion.div>
                 );

@@ -111,7 +111,13 @@ const TailoredResumes = () => {
     if (error) {
       toast.error("Failed to delete");
     } else {
-      setResumes((prev) => prev.filter((r) => r.id !== deleteId));
+      setResumes((prev) => {
+        const next = prev.filter((r) => r.id !== deleteId);
+        // If we just deleted the last item on the current page, go back one page
+        const newTotalPages = Math.ceil(next.length / ITEMS_PER_PAGE);
+        if (currentPage > newTotalPages && newTotalPages > 0) setCurrentPage(newTotalPages);
+        return next;
+      });
       toast.success("Resume deleted");
     }
     setDeleteId(null);
@@ -148,7 +154,7 @@ const TailoredResumes = () => {
             </div>
             <h3 className="font-semibold mb-1">No tailored resumes yet</h3>
             <p className="text-sm text-muted-foreground max-w-xs">
-              Use the "Tailor" button on any job card or the "Optimize for Job" tool to generate your first optimized resume.
+              Hit the <strong>Tailor</strong> button on any job card or use the <strong>Application Wizard</strong> to generate your first AI-optimised resume.
             </p>
             <Button variant="outline" size="sm" className="mt-4" onClick={() => navigate("/dashboard")}>
               Go to Dashboard

@@ -43,11 +43,22 @@ export const generateTailoredContent = async (
   // Apply AI-rewritten bullets to experience atoms
   if (rewriteData?.content) {
     try {
-      const rewrites: Array<{ id: string; rewritten_content: string }> = JSON.parse(rewriteData.content);
+      // Strip markdown code fences the AI sometimes adds (```json ... ```)
+      const rawJson = rewriteData.content
+        .replace(/^```(?:json)?\s*/i, '')
+        .replace(/\s*```\s*$/, '')
+        .trim();
+      const rewrites: Array<{ id: string; rewritten_content: string }> = JSON.parse(rawJson);
       let rewriteCount = 0;
-      rewrites.forEach(rewrite => {
-        if (!rewrite.id || !rewrite.rewritten_content) return;
-        const atomIdx = tailoredResume.experience_atoms.findIndex(a => a.id === rewrite.id);
+      rewrites.forEach((rewrite, idx) => {
+        if (!rewrite.rewritten_content) return;
+        // Try ID match first; fall back to positional match so atoms without IDs still get rewritten
+        let atomIdx = rewrite.id
+          ? tailoredResume.experience_atoms.findIndex(a => a.id === rewrite.id)
+          : -1;
+        if (atomIdx < 0 && idx < tailoredResume.experience_atoms.length) {
+          atomIdx = idx;
+        }
         if (atomIdx >= 0) {
           tailoredResume.experience_atoms[atomIdx] = {
             ...tailoredResume.experience_atoms[atomIdx],

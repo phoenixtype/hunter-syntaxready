@@ -94,9 +94,12 @@ export const savePreferences = async (userId: string, prefs: UserPreferences): P
     locations: Array.isArray(prefs.locations) 
       ? prefs.locations.slice(0, 20).map(l => String(l).slice(0, 100)) 
       : [],
-    remote_policy: ['remote', 'hybrid', 'onsite', 'any'].includes(prefs.remote_policy) 
-      ? prefs.remote_policy 
+    remote_policy: ['remote', 'hybrid', 'onsite', 'any'].includes(prefs.remote_policy)
+      ? prefs.remote_policy
       : 'any',
+    experience_level: typeof prefs.experience_level === 'string'
+      ? prefs.experience_level.slice(0, 50)
+      : 'mid',
     aggressiveness: typeof prefs.aggressiveness === 'number' 
       ? Math.max(1, Math.min(prefs.aggressiveness, 10)) 
       : DEFAULT_PREFERENCES.aggressiveness,

@@ -174,14 +174,14 @@ const PreferencesPanel = ({ preferences, onSaved }: PreferencesPanelProps) => {
                 </div>
                 <Slider value={aggressiveness} onValueChange={setAggressiveness} min={1} max={10} step={1} />
                 <p className="text-xs text-muted-foreground">
-                    Higher = more search passes and broader results. Lower = more selective.
+                    Higher = broader search with more results. Lower = tighter focus on exact matches.
                 </p>
             </div>
 
             <div className="flex justify-end pt-2">
                 <Button onClick={handleSave} disabled={saving} className="gap-2">
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    {saving ? "Saving..." : "Save Preferences"}
+                    {saving ? "Saving…" : "Save Preferences"}
                 </Button>
             </div>
         </div>

@@ -657,23 +657,34 @@ const ResumeBuilder = () => {
       {/* Bottom Navigation */}
       {currentStep !== "generate" && (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-t border-border">
-          <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
             <Button
               variant="ghost"
               onClick={() => stepIndex > 0 ? goBack() : navigate("/dashboard")}
-              className="gap-2"
+              className="gap-2 shrink-0"
             >
               <ArrowLeft className="w-4 h-4" />
               {stepIndex > 0 ? "Back" : "Dashboard"}
             </Button>
-            <Button
-              onClick={goNext}
-              disabled={!canProceed()}
-              className="gap-2 shadow-glow hover:shadow-glow-lg transition-all"
-            >
-              Continue
-              <ArrowRight className="w-4 h-4" />
-            </Button>
+            <div className="flex flex-col items-end gap-1 min-w-0">
+              {!canProceed() && (
+                <p className="text-xs text-muted-foreground text-right">
+                  {currentStep === "personal"
+                    ? "Name and email are required"
+                    : currentStep === "skills"
+                    ? "Add at least one skill to continue"
+                    : null}
+                </p>
+              )}
+              <Button
+                onClick={goNext}
+                disabled={!canProceed()}
+                className="gap-2 shadow-glow hover:shadow-glow-lg transition-all"
+              >
+                Continue
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
       )}

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Send, Loader2, BrainCircuit, MessageSquare, Swords, HandCoins, RotateCcw } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
@@ -29,8 +30,8 @@ const InterviewCoach = () => {
   const { user } = useAuth();
   const { profile } = useResume();
 
-  const jobTitle = searchParams.get("title") || "Software Engineer";
-  const jobCompany = searchParams.get("company") || "Target Company";
+  const [jobTitle, setJobTitle] = useState(searchParams.get("title") || "");
+  const [jobCompany, setJobCompany] = useState(searchParams.get("company") || "");
   const jobDescription = searchParams.get("desc") || "";
 
   // Stable session key — scoped to user + job so sessions don't bleed between roles
@@ -115,7 +116,10 @@ const InterviewCoach = () => {
         setMessages([{ role: "assistant", content: data.message }]);
       }
     } catch (err) {
-      toast.error("Failed to start interview session");
+      toast.error("Couldn't start session", {
+        description: "Check your connection and try again.",
+        action: { label: "Retry", onClick: () => startInterview(selectedMode) },
+      });
       console.error(err);
       setStarted(false);
     } finally {
@@ -192,16 +196,39 @@ const InterviewCoach = () => {
             <BrainCircuit className="w-7 h-7 text-primary" />
           </div>
           <h2 className="text-2xl font-bold mb-2">Interview Practice</h2>
-          <p className="text-muted-foreground mb-8">
-            Practice for <span className="font-semibold text-foreground">{jobTitle}</span> at{" "}
-            <span className="font-semibold text-foreground">{jobCompany}</span>. Choose a mode:
+          <p className="text-muted-foreground mb-6">
+            Tell us what role you're preparing for, then pick a mode to begin.
           </p>
+
+          {/* Role & Company inputs */}
+          <div className="w-full space-y-3 mb-8 text-left">
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Your Role</Label>
+              <Input
+                value={jobTitle}
+                onChange={e => setJobTitle(e.target.value)}
+                placeholder="e.g. Product Manager, Data Analyst…"
+                className="h-10"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Target Company <span className="text-muted-foreground font-normal">(optional)</span></Label>
+              <Input
+                value={jobCompany}
+                onChange={e => setJobCompany(e.target.value)}
+                placeholder="e.g. Stripe, Google…"
+                className="h-10"
+              />
+            </div>
+          </div>
+
           <div className="grid gap-3 w-full">
             {MODES.map((m) => (
               <button
                 key={m.id}
                 onClick={() => startInterview(m.id)}
-                className="flex items-center gap-4 p-4 rounded-xl border border-border bg-card hover:border-primary/30 hover:bg-primary/5 transition-all text-left"
+                disabled={!jobTitle.trim()}
+                className="flex items-center gap-4 p-4 rounded-xl border border-border bg-card hover:border-primary/30 hover:bg-primary/5 transition-all text-left disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <m.icon className="w-5 h-5 text-primary" />
@@ -213,6 +240,9 @@ const InterviewCoach = () => {
               </button>
             ))}
           </div>
+          {!jobTitle.trim() && (
+            <p className="text-xs text-muted-foreground mt-3">Enter your role above to unlock practice modes.</p>
+          )}
         </div>
       ) : (
         <>

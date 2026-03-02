@@ -45,7 +45,12 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   const [activeApplication, setActiveApplication] = useState<ApplicationState | null>(null);
   const [stakeholders, setStakeholders] = useState<Record<string, Stakeholder[]>>({});
   const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set());
-  const [dismissedJobIds, setDismissedJobIds] = useState<Set<string>>(new Set());
+  const [dismissedJobIds, setDismissedJobIds] = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem("hunter_dismissed_jobs");
+      return saved ? new Set<string>(JSON.parse(saved)) : new Set<string>();
+    } catch { return new Set<string>(); }
+  });
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [tailoringJobId, setTailoringJobId] = useState<string | null>(null);
   const [tailorResult, setTailorResult] = useState<{ content: TailoredContent; job: { title: string; company: string } } | null>(null);
@@ -152,8 +157,12 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   };
 
   const handleDismiss = async (job: EnrichedJob) => {
-    setDismissedJobIds(prev => new Set(prev).add(job.id));
-    toast("Job dismissed");
+    setDismissedJobIds(prev => {
+      const next = new Set(prev).add(job.id);
+      try { localStorage.setItem("hunter_dismissed_jobs", JSON.stringify([...next])); } catch { /* ignore quota */ }
+      return next;
+    });
+    toast("Job hidden", { description: "It won't show again on this device." });
     recordFeedback({ jobId: job.id, action: 'DISMISS', timestamp: Date.now(), jobMetadata: { skills: [], company: job.company, source: job.source } });
   };
 
@@ -183,7 +192,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
       await saveTailoredResume(content, { title: job.title, company: job.company, url: job.url });
       setTailorResult({ content, job: { title: job.title, company: job.company } });
     } catch {
-      toast.error("Tailoring failed.");
+      toast.error("Tailoring failed", { description: "Try again — this is usually a temporary issue.", action: { label: "Retry", onClick: () => handleTailor(job) } });
     } finally {
       setTailoringJobId(null);
     }
@@ -282,7 +291,13 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                           <span className="flex items-center gap-1.5"><Building2 className="w-3 h-3 shrink-0" />{job.company}</span>
                           {job.location && <span className="flex items-center gap-1.5"><MapPin className="w-3 h-3 shrink-0" />{job.location}</span>}
                           {job.match && (
-                            <span className={`font-semibold ${job.match.overall_score >= 70 ? 'text-primary' : job.match.overall_score >= 40 ? 'text-yellow-500' : 'text-muted-foreground'}`}>
+                            <span className={`inline-flex items-center font-semibold text-[11px] px-1.5 py-0.5 rounded-full border ${
+                              job.match.overall_score >= 70
+                                ? 'bg-primary/10 text-primary border-primary/20'
+                                : job.match.overall_score >= 40
+                                ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20'
+                                : 'bg-muted text-muted-foreground border-border'
+                            }`}>
                               {job.match.overall_score}% match
                             </span>
                           )}
@@ -381,9 +396,9 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
             <Pagination>
               <PaginationContent>
                 <PaginationItem>
-                  <PaginationPrevious 
-                    href="#" 
-                    onClick={(e) => { e.preventDefault(); setPage(Math.max(1, currentPage - 1)); }}
+                  <PaginationPrevious
+                    href="#"
+                    onClick={(e) => { e.preventDefault(); setPage(Math.max(1, currentPage - 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                     className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
                   />
                 </PaginationItem>
@@ -401,7 +416,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                         <PaginationLink 
                           href="#"
                           isActive={currentPage === p}
-                          onClick={(e) => { e.preventDefault(); setPage(p); }}
+                          onClick={(e) => { e.preventDefault(); setPage(p); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                         >
                           {p}
                         </PaginationLink>
@@ -427,7 +442,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                 <PaginationItem>
                   <PaginationNext 
                     href="#" 
-                    onClick={(e) => { e.preventDefault(); setPage(Math.min(totalPages, currentPage + 1)); }}
+                    onClick={(e) => { e.preventDefault(); setPage(Math.min(totalPages, currentPage + 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                     className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
                   />
                 </PaginationItem>

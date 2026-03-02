@@ -228,7 +228,7 @@ export const calculateMatch = async (
   }
 
   return {
-    overall_score: Math.round(overall),
+    overall_score: Math.min(100, Math.round(overall)),
     skill_match: Math.round(skillScore),
     culture_fit: Math.round(cultureScore),
     location_match: Math.round(locationScore),
