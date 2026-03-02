@@ -115,7 +115,7 @@
     overscroll-behavior: none;
   }
 
-  @media (pointer: coarse) {
+  @media (pointer: coarse) and (max-width: 1023px) {
     button,
     [role="button"],
     a,
