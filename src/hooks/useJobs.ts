@@ -43,7 +43,7 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
 
             if (!profile) {
                 const enriched = rawJobs.map(job => ({ ...job, match: undefined }));
-                return { jobs: enriched, totalPages };
+                return { jobs: enriched, totalPages, filteredJobCount: totalCount };
             }
 
             const weights = getOptimizedWeights();
@@ -55,7 +55,7 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
             const sorted = matches
                 .sort((a, b) => (b.match?.overall_score ?? 0) - (a.match?.overall_score ?? 0));
 
-            return { jobs: sorted, totalPages };
+            return { jobs: sorted, totalPages, filteredJobCount: totalCount };
         },
         staleTime: 1000 * 60 * 5,
         placeholderData: keepPreviousData,
@@ -63,6 +63,7 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
 
     const currentPageJobs: EnrichedJob[] = data?.jobs ?? [];
     const totalPages: number = data?.totalPages ?? 1;
+    const filteredJobCount: number = data?.filteredJobCount ?? 0;
 
     // Reset to page 1 when search query or profile changes
     useEffect(() => {
@@ -109,6 +110,7 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
     return {
         jobs: currentPageJobs,
         jobCount,
+        filteredJobCount,
         loading: jobsLoading || isCrawling,
         crawling: isCrawling,
         refreshJobs,

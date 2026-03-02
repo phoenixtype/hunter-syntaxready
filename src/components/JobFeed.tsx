@@ -40,7 +40,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [locationQuery, setLocationQuery] = useState("");
-  const { jobs, jobCount, loading, crawling, refreshJobs, crawl, page: currentPage, setPage, totalPages } = useJobs(profile, preferences, searchQuery, locationQuery);
+  const { jobs, jobCount, filteredJobCount, loading, crawling, refreshJobs, crawl, page: currentPage, setPage, totalPages } = useJobs(profile, preferences, searchQuery, locationQuery);
   const [filters, setFilters] = useState<JobFilters>(DEFAULT_FILTERS);
   const [activeApplication, setActiveApplication] = useState<ApplicationState | null>(null);
   const [stakeholders, setStakeholders] = useState<Record<string, Stakeholder[]>>({});
@@ -240,7 +240,15 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
 
       {/* Count */}
       <p className="text-xs text-muted-foreground">
-        {loading ? 'Loading...' : hasActiveFilters(filters) || searchQuery ? `${filteredJobs.length} of ${jobCount} jobs` : `${jobCount} jobs found`}
+        {loading
+          ? 'Loading...'
+          : hasActiveFilters(filters) || searchQuery
+            ? `${filteredJobs.length} of ${filteredJobCount} jobs`
+            : filteredJobCount > 0
+              ? `${filteredJobCount} jobs found`
+              : jobCount > 0
+                ? `0 jobs matching your preferences (${jobCount} total in database — click Find Jobs)`
+                : 'No jobs yet — click Find Jobs to search'}
       </p>
 
       {/* Job Cards */}
@@ -443,6 +451,11 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
               <div className="max-w-[260px] space-y-2">
                 <h3 className="font-semibold text-base">Set your preferences</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">Add target roles and locations to start finding jobs.</p>
+              </div>
+            ) : jobCount > 0 && filteredJobCount === 0 ? (
+              <div className="max-w-[280px] space-y-2">
+                <h3 className="font-semibold text-base">No jobs match your preferences</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">There are {jobCount} jobs in the database but none match your locations or target roles. Click Find Jobs to fetch fresh ones.</p>
               </div>
             ) : (
               <div className="max-w-[260px] space-y-2">
