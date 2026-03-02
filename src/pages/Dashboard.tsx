@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 import JobFeed from "@/components/JobFeed";
 import DashboardSkeleton from "@/components/DashboardSkeleton";
 import DashboardWelcome from "@/components/DashboardWelcome";

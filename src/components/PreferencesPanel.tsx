@@ -55,6 +55,9 @@ const PreferencesPanel = ({ preferences, onSaved }: PreferencesPanelProps) => {
                 require_sponsorship: false,
                 has_clearance: false,
                 notice_period_days: 14,
+                email_alerts_enabled: preferences?.email_alerts_enabled ?? false,
+                sms_alerts_enabled: preferences?.sms_alerts_enabled ?? false,
+                tracker_view: preferences?.tracker_view ?? 'list',
             });
             queryClient.invalidateQueries({ queryKey: ['preferences'] });
             toast.success("Preferences saved!");

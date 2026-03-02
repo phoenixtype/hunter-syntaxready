@@ -138,6 +138,19 @@ export const savePreferences = async (userId: string, prefs: UserPreferences): P
       .upsert(mergedPrefs, { onConflict: 'user_id' });
 
     if (error) {
+      // If the error is about the tracker_view column not existing, retry without it
+      if (error.message?.includes('tracker_view')) {
+        console.warn('tracker_view column not found, retrying without it');
+        const { tracker_view, ...prefsWithoutTracker } = mergedPrefs;
+        const { error: retryError } = await supabase
+          .from('user_preferences')
+          .upsert(prefsWithoutTracker, { onConflict: 'user_id' });
+        if (retryError) {
+          console.error("Error saving preferences (retry):", retryError.message);
+          throw retryError;
+        }
+        return;
+      }
       console.error("Error saving preferences:", error.message);
       throw error;
     }
