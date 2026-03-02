@@ -130,6 +130,13 @@
     outline: none;
   }
 
+  [cmdk-input]:focus,
+  [cmdk-input]:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+    --tw-ring-shadow: none !important;
+  }
+
   .touch-manipulation {
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
