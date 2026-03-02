@@ -173,18 +173,27 @@ export const searchJobs = async (
     // ── Location filter ───────────────────────────────────────────────────
     // Manual location wins; fall back to preference locations.
     if (location && location.trim()) {
-      const sl = escapeLikePattern(location.trim().slice(0, 100));
+      // Use .ilike() directly (not inside .or()) so commas in the value are safe
+      const sl = escapeLikePattern(location.trim().split(/,\s*/)[0].slice(0, 50));
       queryBuilder = queryBuilder.ilike('location', `%${sl}%`);
     } else if (preferenceLocations && preferenceLocations.length > 0) {
-      // Build: (pref_loc_1 OR pref_loc_2 OR ... OR remote OR unspecified) depending on policy
-      const locFilters = preferenceLocations
-        .map(l => `location.ilike.%${escapeLikePattern(l.trim().slice(0, 100))}%`)
+      // PostgREST .or() uses commas as clause delimiters, so location strings like
+      // "Toronto, Ontario, Canada" must be split into comma-free individual terms.
+      // Strategy: use the city (first part) and country (last part) separately.
+      const locTerms = new Set<string>();
+      for (const l of preferenceLocations) {
+        const parts = l.trim().split(/,\s*/);
+        if (parts[0]) locTerms.add(escapeLikePattern(parts[0].slice(0, 50)));
+        if (parts.length > 1) locTerms.add(escapeLikePattern(parts[parts.length - 1].slice(0, 50)));
+      }
+      const locFilters = Array.from(locTerms)
+        .map(t => `location.ilike.%${t}%`)
         .join(',');
       // Include remote jobs unless the user explicitly wants onsite-only
       const includeRemote = remotePolicy !== 'onsite';
       const remoteClause = includeRemote ? ',location.ilike.%remote%' : '';
-      // Also include jobs with "Unspecified" location so they aren't hidden
-      queryBuilder = queryBuilder.or(`${locFilters}${remoteClause},location.eq.Unspecified`);
+      // Also include jobs with no specific location
+      queryBuilder = queryBuilder.or(`${locFilters}${remoteClause},location.ilike.%unspecified%,location.ilike.%not specified%`);
     } else if (remotePolicy === 'remote') {
       // No location preference set but user wants remote-only
       queryBuilder = queryBuilder.ilike('location', '%remote%');
