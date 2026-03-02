@@ -33,10 +33,10 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
                 locationQuery,
                 page - 1,
                 PAGE_SIZE,
-                // Pass preference locations/roles so the DB query filters by them
-                // when the user hasn't typed a manual search or location.
                 preferences?.locations,
-                preferences?.target_roles,
+                // Only apply role filtering at DB level when user has an active search query
+                // otherwise let the matching engine handle relevance scoring
+                searchQuery ? undefined : preferences?.target_roles,
                 preferences?.remote_policy,
             );
             const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
@@ -51,15 +51,13 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
             const matchResults = await Promise.all(matchPromises);
             const matches = rawJobs.map((job, i) => ({ ...job, match: matchResults[i] } as EnrichedJob));
 
-            // Sort by match score, then filter out very low relevance jobs (< 20%)
+            // Sort by match score — only filter out truly irrelevant jobs (banned companies etc = score 0)
             const sorted = matches
-                .sort((a, b) => (b.match?.overall_score ?? 0) - (a.match?.overall_score ?? 0))
-                .filter(job => (job.match?.overall_score ?? 0) >= 20);
+                .sort((a, b) => (b.match?.overall_score ?? 0) - (a.match?.overall_score ?? 0));
 
             return { jobs: sorted, totalPages };
         },
         staleTime: 1000 * 60 * 5,
-        // Keep showing previous page's data while next page loads — no flash of empty
         placeholderData: keepPreviousData,
     });
 
