@@ -26,6 +26,7 @@ const PreferencesPanel = ({ preferences, onSaved }: PreferencesPanelProps) => {
     const [salary, setSalary] = useState([100000]);
     const [locations, setLocations] = useState<string[]>([]);
     const [remotePolicy, setRemotePolicy] = useState<UserPreferences["remote_policy"]>("any");
+    const [experienceLevel, setExperienceLevel] = useState<string>("mid");
     const [aggressiveness, setAggressiveness] = useState([5]);
 
     useEffect(() => {
@@ -34,6 +35,7 @@ const PreferencesPanel = ({ preferences, onSaved }: PreferencesPanelProps) => {
             setSalary([preferences.min_salary_usd || 100000]);
             setLocations(preferences.locations || []);
             setRemotePolicy(preferences.remote_policy || "any");
+            setExperienceLevel(preferences.experience_level || "mid");
             setAggressiveness([preferences.aggressiveness || 5]);
         }
     }, [preferences]);
@@ -47,7 +49,7 @@ const PreferencesPanel = ({ preferences, onSaved }: PreferencesPanelProps) => {
                 min_salary_usd: salary[0],
                 locations,
                 remote_policy: remotePolicy,
-                experience_level: 'mid',
+                experience_level: experienceLevel,
                 aggressiveness: aggressiveness[0],
                 safe_mode: true,
                 require_sponsorship: false,
@@ -141,7 +143,30 @@ const PreferencesPanel = ({ preferences, onSaved }: PreferencesPanelProps) => {
                 </div>
             </div>
 
-            {/* Aggressiveness */}
+            {/* Experience Level */}
+            <div className="space-y-2">
+                <Label className="text-sm font-medium">Experience Level</Label>
+                <div className="grid grid-cols-4 gap-1.5">
+                    {(["entry", "mid", "senior", "lead"] as const).map(level => (
+                        <button
+                            key={level}
+                            type="button"
+                            onClick={() => setExperienceLevel(level)}
+                            className={`h-9 rounded-lg text-xs font-medium border transition-all ${
+                                experienceLevel === level
+                                    ? "bg-primary text-primary-foreground border-primary"
+                                    : "border-border hover:border-primary/50 hover:bg-accent/50"
+                            }`}
+                        >
+                            {level.charAt(0).toUpperCase() + level.slice(1)}
+                        </button>
+                    ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                    Jobs matching your level are ranked higher in the feed.
+                </p>
+            </div>
+
             <div className="space-y-3">
                 <div className="flex justify-between items-baseline">
                     <Label className="text-sm font-medium">Search Intensity</Label>
