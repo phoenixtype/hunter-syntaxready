@@ -25,42 +25,51 @@ const TIER_FEATURES: Record<SubscriptionTier, Feature[]> = {
 };
 
 export const getSubscription = async (): Promise<UserSubscription> => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return {
-        tier: SubscriptionTier.FREE,
-        features: [],
-        usage: { applications_this_month: 0, applications_limit: 20 }
-    };
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return {
+            tier: SubscriptionTier.FREE,
+            features: [],
+            usage: { applications_this_month: 0, applications_limit: 20 }
+        };
 
-    const { data: subData } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .eq('status', 'active')
-        .maybeSingle();
+        const { data: subData } = await supabase
+            .from('subscriptions')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .eq('status', 'active')
+            .maybeSingle();
 
-    const tier = (subData?.tier as SubscriptionTier) || SubscriptionTier.FREE;
+        const tier = (subData?.tier as SubscriptionTier) || SubscriptionTier.FREE;
 
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
-    
-    const { count: applicationsCount } = await supabase
-        .from('application_history')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', session.user.id)
-        .gte('applied_at', startOfMonth.toISOString());
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+        
+        const { count: applicationsCount } = await supabase
+            .from('application_history')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', session.user.id)
+            .gte('applied_at', startOfMonth.toISOString());
 
-    const usage = {
-        applications_this_month: applicationsCount || 0,
-        applications_limit: tier === SubscriptionTier.FREE ? 20 : 9999
-    };
+        const usage = {
+            applications_this_month: applicationsCount || 0,
+            applications_limit: tier === SubscriptionTier.FREE ? 20 : 9999
+        };
 
-    return {
-        tier,
-        features: TIER_FEATURES[tier],
-        usage
-    };
+        return {
+            tier,
+            features: TIER_FEATURES[tier],
+            usage
+        };
+    } catch (err) {
+        console.error('Failed to fetch subscription:', err);
+        return {
+            tier: SubscriptionTier.FREE,
+            features: [],
+            usage: { applications_this_month: 0, applications_limit: 20 }
+        };
+    }
 };
 
 /**

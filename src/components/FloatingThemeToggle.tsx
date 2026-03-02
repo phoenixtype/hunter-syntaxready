@@ -13,7 +13,7 @@ const FloatingThemeToggle = () => {
 
     return (
         <div className="fixed bottom-6 right-6 z-50 animate-fade-in">
-            <div className="bg-background/80 backdrop-blur-md border border-border shadow-lg rounded-full p-2">
+            <div className="bg-background/80 backdrop-blur-md border border-border shadow-lg rounded-full p-2" aria-label="Toggle color theme">
                 <ThemeToggle />
             </div>
         </div>

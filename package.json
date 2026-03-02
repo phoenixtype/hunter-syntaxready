@@ -1,7 +1,15 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "hunter-ai",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "The agentic AI career platform that autonomously manages job discovery, applications, and interview prep.",
+  "author": "Hunter AI <engineering@hunter-ai.app>",
+  "license": "UNLICENSED",
+  "homepage": "https://hunter-ai.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/phoenixtype/hunter-syntaxready.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -76,18 +76,6 @@ function mapJobRow(j: any): JobOpportunity {
     id: j.id,
     title: j.title,
     company: j.company,
-    /*
-    ### 1. Job Source Visibility & Types
-    - **Generic Labels**: Internal service names like `Firecrawl` and `Perplexity` are now labeled as `Web` in the UI. `JSearch` is labeled as `Search`.
-    - **Reasoning Consistency**: Updated the matching engine's reasoning logic to use these same user-friendly labels.
-    - **System Integrity**: Updated `JobOpportunity` types to correctly handle `JSearch` results from the backend while maintaining clean user-facing labels.
-
-    ### 2. Search Result Quality
-    - **Improved Queries**: Refined the JSearch query construction in the edge function to use professional titles and combined keywords. This ensures much higher quality and more relevant search results compared to the previous single-word snippets.
-
-    ### 3. Dashboard UX & Pagination Improvements
-    - **Visibility**: Pagination controls now remain visible even if filters result in 0 matches on the current page, provided other pages exist.
-    */
     location: j.location || 'Unspecified',
     salary_range: j.salary_range || 'Not specified',
     description: j.description || '',

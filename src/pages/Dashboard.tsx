@@ -257,10 +257,12 @@ const Dashboard = () => {
         </header>
 
         {/* Mobile Tab Bar - Fixed Bottom */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 flex border-t border-border bg-background/95 backdrop-blur-md safe-area-inset-bottom">
+        <nav role="navigation" aria-label="Main navigation" className="lg:hidden fixed bottom-0 left-0 right-0 z-50 flex border-t border-border bg-background/95 backdrop-blur-md safe-area-inset-bottom">
           {NAV_ITEMS.map((item) => (
             <button
               key={item.id}
+              aria-label={item.label}
+              aria-current={activeView === item.id ? "page" : undefined}
               onClick={() => {
                 setActiveView(item.id);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -284,7 +286,7 @@ const Dashboard = () => {
               )}
             </button>
           ))}
-        </div>
+        </nav>
 
         {/* Content */}
         <main id="main-content" className="flex-1 p-4 sm:p-6 max-w-5xl w-full mx-auto pb-24 lg:pb-6">

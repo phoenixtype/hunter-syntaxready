@@ -104,7 +104,7 @@ export const getApplicationHistory = async (userId: string): Promise<Application
             return [];
         }
 
-        return (data as unknown as ApplicationRecord[]) || [];
+        return (data || []) as ApplicationRecord[];
     } catch (err) {
         console.error('Error fetching application history:', err);
         return [];
@@ -117,13 +117,14 @@ export const updateApplicationStatus = async (
     status: string,
     notes?: string
 ): Promise<void> => {
-    try {
-        await supabase
-            .from('application_history')
-            .update({ status, notes })
-            .eq('id', applicationId);
-    } catch (err) {
-        console.error('Error updating application status:', err);
+    const { error } = await supabase
+        .from('application_history')
+        .update({ status, notes })
+        .eq('id', applicationId);
+
+    if (error) {
+        console.error('Error updating application status:', error);
+        throw new Error(error.message || 'Failed to update application status');
     }
 };
 

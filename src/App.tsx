@@ -2,7 +2,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { HelmetProvider } from "react-helmet-async";
 import ScrollToTop from "@/components/ScrollToTop";
 import { AuthProvider } from "@/hooks/useAuth";
@@ -13,11 +13,6 @@ import SignUp from "./pages/SignUp";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
-import ApplicationWizard from "./pages/ApplicationWizard";
-import AutoApplierSettings from "./pages/AutoApplierSettings";
-import InterviewCoach from "./pages/InterviewCoach";
-import ResumeBuilder from "./pages/ResumeBuilder";
-import TailoredResumes from "./pages/TailoredResumes";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -31,6 +26,14 @@ import CommandPalette from "./components/CommandPalette";
 import Footer from "./components/Footer";
 import { runStartupValidation } from "./lib/env_validator";
 import { checkDatabaseHealth, logHealthStatus } from "./lib/database_health";
+import PageLoader from "./components/PageLoader";
+
+// Lazy-load heavy tool pages — reduces initial bundle by ~40%
+const ApplicationWizard = lazy(() => import("./pages/ApplicationWizard"));
+const AutoApplierSettings = lazy(() => import("./pages/AutoApplierSettings"));
+const InterviewCoach = lazy(() => import("./pages/InterviewCoach"));
+const ResumeBuilder = lazy(() => import("./pages/ResumeBuilder"));
+const TailoredResumes = lazy(() => import("./pages/TailoredResumes"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -71,25 +74,27 @@ const App = () => (
               <CommandPalette />
               <div className="flex flex-col min-h-screen">
                 <div className="flex-1">
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-                    <Route path="/signup" element={<PublicRoute><SignUp /></PublicRoute>} />
-                    <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-                    <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                    <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                    <Route path="/application-wizard" element={<ProtectedRoute><ApplicationWizard /></ProtectedRoute>} />
-                    <Route path="/auto-applier-settings" element={<ProtectedRoute><AutoApplierSettings /></ProtectedRoute>} />
-                    <Route path="/interview-coach" element={<ProtectedRoute><InterviewCoach /></ProtectedRoute>} />
-                    <Route path="/resume-builder" element={<ProtectedRoute><ResumeBuilder /></ProtectedRoute>} />
-                    <Route path="/tailored-resumes" element={<ProtectedRoute><TailoredResumes /></ProtectedRoute>} />
-                    <Route path="/privacy" element={<Privacy />} />
-                    <Route path="/terms" element={<Terms />} />
-                    <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
-                    <Route path="/verify-email" element={<EmailVerification />} />
-                    <Route path="/reset-password" element={<ResetPassword />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
+                  <Suspense fallback={<PageLoader />}>
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+                      <Route path="/signup" element={<PublicRoute><SignUp /></PublicRoute>} />
+                      <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+                      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                      <Route path="/application-wizard" element={<ProtectedRoute><ApplicationWizard /></ProtectedRoute>} />
+                      <Route path="/auto-applier-settings" element={<ProtectedRoute><AutoApplierSettings /></ProtectedRoute>} />
+                      <Route path="/interview-coach" element={<ProtectedRoute><InterviewCoach /></ProtectedRoute>} />
+                      <Route path="/resume-builder" element={<ProtectedRoute><ResumeBuilder /></ProtectedRoute>} />
+                      <Route path="/tailored-resumes" element={<ProtectedRoute><TailoredResumes /></ProtectedRoute>} />
+                      <Route path="/privacy" element={<Privacy />} />
+                      <Route path="/terms" element={<Terms />} />
+                      <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+                      <Route path="/verify-email" element={<EmailVerification />} />
+                      <Route path="/reset-password" element={<ResetPassword />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </Suspense>
                 </div>
                 <Footer />
               </div>

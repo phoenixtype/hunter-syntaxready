@@ -69,9 +69,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setSession(null);
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.warn('Sign out request failed (possibly offline):', err);
+    } finally {
+      setUser(null);
+      setSession(null);
+      // Clean up any cached user data
+      try {
+        localStorage.removeItem('hunter_dashboard_view');
+      } catch { /* localStorage may be unavailable */ }
+    }
   };
 
   return (

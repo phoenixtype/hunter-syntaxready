@@ -16,21 +16,40 @@ export default defineConfig(({ mode }) => ({
     },
     dedupe: ["react", "react-dom", "react/jsx-runtime"],
   },
+  define: {
+    __APP_VERSION__: JSON.stringify(process.env.npm_package_version || "1.0.0"),
+  },
   optimizeDeps: {
     include: ["@tanstack/react-query", "react", "react-dom"],
   },
+  esbuild:
+    mode === "production"
+      ? {
+          drop: ["console", "debugger"],
+        }
+      : undefined,
   build: {
+    sourcemap: mode !== "production",
     rollupOptions: {
       output: {
         manualChunks: {
-          // Separate vendor libraries
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // Core React vendor
+          "react-vendor": ["react", "react-dom", "react-router-dom"],
           // UI component library
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-slot'],
+          "ui-vendor": [
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-dropdown-menu",
+            "@radix-ui/react-slot",
+          ],
+          // Animation library
+          "animation-vendor": ["framer-motion"],
+          // Chart library
+          "chart-vendor": ["recharts"],
+          // PDF/document libraries
+          "document-vendor": ["jspdf"],
         },
       },
     },
-    // Increase chunk size warning limit since we're intentionally splitting
     chunkSizeWarningLimit: 600,
   },
 }));
