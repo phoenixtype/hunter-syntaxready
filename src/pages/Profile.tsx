@@ -59,17 +59,14 @@ const Profile = () => {
             // Clear navigation state to prevent reload issues
             window.history.replaceState({}, document.title);
         }
-        // Priority 2: Use existing profile from database
+        // Priority 2: Use existing profile from database (only if not already editing)
         else if (profile && !formData) {
             console.log("[PROFILE] Initializing with existing profile from database:", profile.identity.name);
             setFormData(JSON.parse(JSON.stringify(profile))); // Deep copy
         }
-        // Priority 3: Update formData when profile changes (e.g., after save)
-        else if (profile && formData && profile.identity.name !== formData.identity.name) {
-            console.log("[PROFILE] Updating formData with refreshed profile:", profile.identity.name);
-            setFormData(JSON.parse(JSON.stringify(profile)));
-        }
-    }, [profile, location.state]);
+        // Priority 3: Explicitly update formData when profile changes after a save (handled by handleSave)
+        // We remove the overly aggressive auto-update that was causing state loss
+    }, [profile, user?.id, location.state]);
 
     const handleSave = async () => {
         if (!user || !formData) return;

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import SingleLocationPicker from "@/components/SingleLocationPicker";
 import { useAuth } from "@/hooks/useAuth";
 import SEOHead from "@/components/SEOHead";
@@ -150,8 +151,10 @@ function handleBulletKeyDown(
 const Onboarding = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
+  const dataLoaded = useRef(false);
   const [currentStep, setCurrentStep] = useState<StepId>("method");
   const [profile, setProfile] = useState<CandidateProfile>({ ...emptyProfile });
 
@@ -177,15 +180,17 @@ const Onboarding = () => {
 
   // On mount: restore saved step + load existing data from DB
   useEffect(() => {
-    if (!user) return;
-
     // Restore step from localStorage
     const savedStep = localStorage.getItem(`hunter_onboarding_step_${user.id}`);
     if (savedStep && STEPS.some(s => s.id === savedStep)) {
       setCurrentStep(savedStep as StepId);
     }
+  }, [user?.id]); // Only run when user ID actually changes
 
-    // Load existing profile + preferences from DB to pre-populate
+  // Load existing profile + preferences from DB to pre-populate
+  useEffect(() => {
+    if (!user?.id || dataLoaded.current) return;
+
     Promise.all([
       getCandidateProfile(user.id).catch(() => null),
       getPreferences(user.id).catch(() => null),
@@ -209,10 +214,12 @@ const Onboarding = () => {
         setSalary([prefs.min_salary_usd]);
         setLocations(prefs.locations);
         setRemotePolicy(prefs.remote_policy);
+        setExperienceLevel(prefs.experience_level || "");
         setAggressiveness([prefs.aggressiveness]);
       }
+      dataLoaded.current = true;
     }).finally(() => setDataLoading(false));
-  }, [user]);
+  }, [user?.id]);
 
   const stepIndex = STEPS.findIndex(s => s.id === currentStep);
   const progressPercent = (stepIndex / (STEPS.length - 1)) * 100;
@@ -223,7 +230,7 @@ const Onboarding = () => {
     if (user && !dataLoading) {
       localStorage.setItem(`hunter_onboarding_step_${user.id}`, currentStep);
     }
-  }, [currentStep, user, dataLoading]);
+  }, [currentStep, user?.id, dataLoading]);
 
   // Build the current payload to save
   const buildPayloads = () => {
@@ -244,7 +251,7 @@ const Onboarding = () => {
       min_salary_usd: salary[0],
       locations,
       remote_policy: remotePolicy,
-      experience_level: 'mid',
+      experience_level: experienceLevel || 'mid',
       aggressiveness: aggressiveness[0],
       safe_mode: true,
       require_sponsorship: false,
@@ -295,6 +302,8 @@ const Onboarding = () => {
       }).catch(() => {});
       // Clear persisted step so next visit starts fresh
       localStorage.removeItem(`hunter_onboarding_step_${user.id}`);
+      queryClient.invalidateQueries({ queryKey: ['preferences'] });
+      queryClient.invalidateQueries({ queryKey: ['candidate_profile'] });
       toast.success("You're all set!");
       navigate("/dashboard");
     } catch (err) {
