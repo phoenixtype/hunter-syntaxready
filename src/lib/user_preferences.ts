@@ -130,7 +130,7 @@ export const savePreferences = async (userId: string, prefs: UserPreferences): P
       // Ensure we don't accidentally unset fields that might be missing in the input prefs
       email_alerts_enabled: prefs.email_alerts_enabled !== undefined ? sanitizedPrefs.email_alerts_enabled : existingData?.email_alerts_enabled ?? false,
       sms_alerts_enabled: prefs.sms_alerts_enabled !== undefined ? sanitizedPrefs.sms_alerts_enabled : existingData?.sms_alerts_enabled ?? false,
-      tracker_view: prefs.tracker_view !== undefined ? sanitizedPrefs.tracker_view : existingData?.tracker_view ?? 'list'
+      tracker_view: prefs.tracker_view !== undefined ? sanitizedPrefs.tracker_view : (existingData as any)?.tracker_view ?? 'list'
     };
 
     const { error } = await supabase
