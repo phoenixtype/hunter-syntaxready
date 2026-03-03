@@ -49,7 +49,7 @@ const Index = () => {
   const isAuthenticated = !loading && !!user;
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans">
+    <div className="min-h-screen overflow-x-hidden bg-background text-foreground font-sans">
       <SEOHead path="/" />
       <SkipLink />
 
