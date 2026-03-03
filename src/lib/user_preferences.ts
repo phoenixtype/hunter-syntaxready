@@ -33,7 +33,6 @@ const DEFAULT_PREFERENCES: UserPreferences = {
 };
 
 export const getPreferences = async (userId: string): Promise<UserPreferences | null> => {
-  // Validate userId to prevent injection
   if (!userId || typeof userId !== 'string' || userId.length > 128) {
     console.error("Invalid userId provided");
     return null;
@@ -48,7 +47,6 @@ export const getPreferences = async (userId: string): Promise<UserPreferences | 
 
     if (error) {
       console.warn("Error fetching preferences:", error.message);
-      // Don't fall back to localStorage for security - could be tampered with
       return null;
     }
 
@@ -60,18 +58,19 @@ export const getPreferences = async (userId: string): Promise<UserPreferences | 
       target_roles: Array.isArray(data.target_roles) ? data.target_roles.slice(0, 20) : [],
       min_salary_usd: typeof data.min_salary_usd === 'number' ? Math.max(0, Math.min(data.min_salary_usd, 10000000)) : DEFAULT_PREFERENCES.min_salary_usd,
       locations: Array.isArray(data.locations) ? data.locations.slice(0, 20) : [],
-      remote_policy: ['remote', 'hybrid', 'onsite', 'any'].includes(data.remote_policy) 
+      remote_policy: ['remote', 'hybrid', 'onsite', 'any'].includes(data.remote_policy ?? '') 
         ? data.remote_policy as UserPreferences['remote_policy'] 
         : 'any',
-      experience_level: typeof (data as any).experience_level === 'string' ? (data as any).experience_level : 'mid',
+      experience_level: typeof data.experience_level === 'string' ? data.experience_level : 'mid',
       aggressiveness: typeof data.aggressiveness === 'number' ? Math.max(1, Math.min(data.aggressiveness, 10)) : DEFAULT_PREFERENCES.aggressiveness,
       safe_mode: typeof data.safe_mode === 'boolean' ? data.safe_mode : true,
-      require_sponsorship: typeof (data as any).require_sponsorship === 'boolean' ? (data as any).require_sponsorship : false,
-      has_clearance: typeof (data as any).has_clearance === 'boolean' ? (data as any).has_clearance : false,
-      notice_period_days: typeof (data as any).notice_period_days === 'number' ? (data as any).notice_period_days : 14,
-      email_alerts_enabled: typeof (data as any).email_alerts_enabled === 'boolean' ? (data as any).email_alerts_enabled : false,
-      sms_alerts_enabled: typeof (data as any).sms_alerts_enabled === 'boolean' ? (data as any).sms_alerts_enabled : false,
-      tracker_view: (['board', 'list'].includes((data as any).tracker_view)) ? (data as any).tracker_view as 'board' | 'list' : 'list'
+      require_sponsorship: typeof data.require_sponsorship === 'boolean' ? data.require_sponsorship : false,
+      has_clearance: typeof data.has_clearance === 'boolean' ? data.has_clearance : false,
+      notice_period_days: typeof data.notice_period_days === 'number' ? data.notice_period_days : 14,
+      email_alerts_enabled: typeof data.email_alerts_enabled === 'boolean' ? data.email_alerts_enabled : false,
+      sms_alerts_enabled: typeof data.sms_alerts_enabled === 'boolean' ? data.sms_alerts_enabled : false,
+      // tracker_view is app-only (not in DB), default to 'list'
+      tracker_view: 'list'
     };
   } catch (e) {
     console.error("Error in getPreferences:", e);
@@ -80,13 +79,12 @@ export const getPreferences = async (userId: string): Promise<UserPreferences | 
 };
 
 export const savePreferences = async (userId: string, prefs: UserPreferences): Promise<void> => {
-  // Validate userId
   if (!userId || typeof userId !== 'string' || userId.length > 128) {
     throw new Error("Invalid userId");
   }
   
-  // Sanitize and validate preferences before saving
-  const sanitizedPrefs = {
+  // Build the DB payload — omit tracker_view since it's not a DB column
+  const dbPayload = {
     user_id: userId,
     target_roles: Array.isArray(prefs.target_roles) 
       ? prefs.target_roles.slice(0, 20).map(r => String(r).slice(0, 100)) 
@@ -112,45 +110,14 @@ export const savePreferences = async (userId: string, prefs: UserPreferences): P
     notice_period_days: typeof prefs.notice_period_days === 'number' ? prefs.notice_period_days : 14,
     email_alerts_enabled: typeof prefs.email_alerts_enabled === 'boolean' ? prefs.email_alerts_enabled : false,
     sms_alerts_enabled: typeof prefs.sms_alerts_enabled === 'boolean' ? prefs.sms_alerts_enabled : false,
-    tracker_view: ['board', 'list'].includes(prefs.tracker_view) ? prefs.tracker_view : 'list'
   };
   
   try {
-    // Fetch existing preferences to merge
-    const { data: existingData } = await supabase
-      .from('user_preferences')
-      .select('*')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    const mergedPrefs = {
-      user_id: userId,
-      ...existingData,
-      ...sanitizedPrefs,
-      // Ensure we don't accidentally unset fields that might be missing in the input prefs
-      email_alerts_enabled: prefs.email_alerts_enabled !== undefined ? sanitizedPrefs.email_alerts_enabled : existingData?.email_alerts_enabled ?? false,
-      sms_alerts_enabled: prefs.sms_alerts_enabled !== undefined ? sanitizedPrefs.sms_alerts_enabled : existingData?.sms_alerts_enabled ?? false,
-      tracker_view: prefs.tracker_view !== undefined ? sanitizedPrefs.tracker_view : (existingData as any)?.tracker_view ?? 'list'
-    };
-
     const { error } = await supabase
       .from('user_preferences')
-      .upsert(mergedPrefs, { onConflict: 'user_id' });
+      .upsert(dbPayload, { onConflict: 'user_id' });
 
     if (error) {
-      // If the error is about the tracker_view column not existing, retry without it
-      if (error.message?.includes('tracker_view')) {
-        console.warn('tracker_view column not found, retrying without it');
-        const { tracker_view, ...prefsWithoutTracker } = mergedPrefs;
-        const { error: retryError } = await supabase
-          .from('user_preferences')
-          .upsert(prefsWithoutTracker, { onConflict: 'user_id' });
-        if (retryError) {
-          console.error("Error saving preferences (retry):", retryError.message);
-          throw retryError;
-        }
-        return;
-      }
       console.error("Error saving preferences:", error.message);
       throw error;
     }

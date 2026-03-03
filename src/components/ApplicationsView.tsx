@@ -13,7 +13,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { getApplicationHistory, ApplicationRecord, updateApplicationStatus } from "@/lib/application_engine";
-import { getPreferences, savePreferences } from "@/lib/user_preferences";
+
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
@@ -49,7 +49,9 @@ export const ApplicationsView = () => {
   const [applications, setApplications] = useState<ApplicationRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [viewMode, setViewMode] = useState<"board" | "list">("list");
+  const [viewMode, setViewMode] = useState<"board" | "list">(() => {
+    try { return (localStorage.getItem("hunter_tracker_view") as "board" | "list") || "list"; } catch { return "list"; }
+  });
   const [currentPage, setCurrentPage] = useState(1);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [noteInput, setNoteInput] = useState("");
@@ -59,10 +61,6 @@ export const ApplicationsView = () => {
     if (session?.user?.id) {
       try {
         const history = await getApplicationHistory(session.user.id);
-        const prefs = await getPreferences(session.user.id);
-        if (prefs?.tracker_view) {
-          setViewMode(prefs.tracker_view);
-        }
         setApplications(history);
         setError(false);
       } catch (e) {
@@ -76,19 +74,9 @@ export const ApplicationsView = () => {
     }
   };
 
-  const toggleViewMode = async (mode: "board" | "list") => {
+  const toggleViewMode = (mode: "board" | "list") => {
     setViewMode(mode);
-    if (session?.user?.id) {
-      try {
-        const currentPrefs = await getPreferences(session.user.id);
-        await savePreferences(session.user.id, {
-          ...(currentPrefs || {}),
-          tracker_view: mode
-        } as any);
-      } catch (e) {
-        console.error("Failed to save view mode preference", e);
-      }
-    }
+    try { localStorage.setItem("hunter_tracker_view", mode); } catch { /* ignore */ }
   };
 
   const handleSaveNote = async (appId: string) => {
