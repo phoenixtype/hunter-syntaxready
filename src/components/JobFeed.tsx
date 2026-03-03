@@ -327,24 +327,24 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                         href={isApplied || isApplying ? undefined : (job.url || "#")}
                         target={job.url ? "_blank" : undefined}
                         rel="noopener noreferrer"
-                        className="flex-1 min-w-[140px]"
+                        className="w-full sm:w-auto"
                         onClick={(e) => {
                           if (isApplied || isApplying) { e.preventDefault(); return; }
                           handleApply(job);
                         }}
                       >
-                        <Button size="sm" variant={isApplied ? "secondary" : "default"} disabled={isApplied || isApplying} className="w-full h-10 text-xs px-3.5 gap-1.5 font-semibold">
+                        <Button size="sm" variant={isApplied ? "secondary" : "default"} disabled={isApplied || isApplying} className="w-full sm:w-auto h-9 text-xs px-4 gap-1.5 font-semibold">
                           {isApplied ? <><Send className="w-3 h-3" />Applied</> : isApplying ? <><Loader2 className="w-3 h-3 animate-spin" />Applying…</> : <><Send className="w-3 h-3" />Apply Now</>}
                         </Button>
                       </a>
-                      <Button variant="outline" size="sm" onClick={() => handleTailor(job)} disabled={tailoringJobId === job.id} className="flex-1 min-w-[100px] h-10 text-xs px-3.5 gap-1.5">
+                      <Button variant="outline" size="sm" onClick={() => handleTailor(job)} disabled={tailoringJobId === job.id} className="w-full sm:w-auto h-9 text-xs px-4 gap-1.5">
                         {tailoringJobId === job.id ? <><Loader2 className="w-3 h-3 animate-spin" />Tailoring...</> : <><PenTool className="w-3 h-3" />Tailor</>}
                       </Button>
-                      <div className="flex gap-2 w-full sm:w-auto">
-                        <Button variant="ghost" size="sm" onClick={() => navigate(`/interview-coach?title=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}&desc=${encodeURIComponent(job.description?.substring(0, 500) || '')}`)} className="flex-1 sm:flex-none h-10 text-xs px-3 gap-1.5 bg-muted/30">
+                      <div className="flex gap-2 w-full sm:w-auto sm:ml-auto">
+                        <Button variant="ghost" size="sm" onClick={() => navigate(`/interview-coach?title=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}&desc=${encodeURIComponent(job.description?.substring(0, 500) || '')}`)} className="flex-1 sm:flex-none h-9 text-xs px-3 gap-1.5 bg-muted/30">
                           <GraduationCap className="w-3 h-3" />Prep
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleExpandJob(job.id)} className="flex-1 sm:flex-none h-10 text-xs px-3 gap-1 bg-muted/30">
+                        <Button variant="ghost" size="sm" onClick={() => handleExpandJob(job.id)} className="flex-1 sm:flex-none h-9 text-xs px-3 gap-1 bg-muted/30">
                           {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}Intel
                         </Button>
                       </div>
