@@ -108,13 +108,17 @@
   html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
-    overflow-x: hidden;
   }
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
     overscroll-behavior: none;
+  }
+
+  #root {
     overflow-x: hidden;
+    position: relative;
+    min-height: 100vh;
   }
 
   @media (pointer: coarse) and (max-width: 1023px) {
