@@ -140,7 +140,7 @@ const Index = () => {
                 <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">autopilot.</span>
               </motion.h1>
 
-              <motion.p variants={fadeUp} custom={2} className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              <motion.p variants={fadeUp} custom={2} className="text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed px-2">
                 Hunter discovers hidden opportunities, tailors every application to beat ATS filters, and preps you for interviews — so you focus on what matters.
               </motion.p>
 
