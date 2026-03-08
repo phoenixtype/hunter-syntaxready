@@ -142,7 +142,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
 
                                         {/* Evaluation Criteria */}
                                         <section className="space-y-4">
-                                            <h3 className="text-lg font-semibold flex items-center gap-2">
+                                             <h3 className="text-sm font-semibold flex items-center gap-2">
                                                 <Target className="w-5 h-5 text-foreground" />
                                                 Likely Appraisal Criteria
                                             </h3>
