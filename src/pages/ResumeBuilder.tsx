@@ -627,7 +627,7 @@ const ResumeBuilder = () => {
                       <ul className="text-xs text-muted-foreground space-y-1">
                         {atsResult.formatting_issues.map((issue, i) => (
                           <li key={i} className="flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 shrink-0" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-warning shrink-0" />
                             {issue}
                           </li>
                         ))}
