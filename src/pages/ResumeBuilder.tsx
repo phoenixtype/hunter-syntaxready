@@ -619,7 +619,7 @@ const ResumeBuilder = () => {
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden mb-3">
                       <div
-                        className={`h-full rounded-full transition-all duration-700 ${atsResult.score >= 70 ? "bg-primary" : atsResult.score >= 50 ? "bg-yellow-500" : "bg-destructive"}`}
+                        className={`h-full rounded-full transition-all duration-700 ${atsResult.score >= 70 ? "bg-primary" : atsResult.score >= 50 ? "bg-warning" : "bg-destructive"}`}
                         style={{ width: `${atsResult.score}%` }}
                       />
                     </div>
