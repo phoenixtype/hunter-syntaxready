@@ -132,7 +132,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                                 </h3>
                                                 <div className="space-y-3">
                                                     {material.company_profile.recent_news.map((news, i) => (
-                                                        <div key={i} className="p-3 text-sm rounded-lg bg-secondary border border-border">
+                                                        <div key={i} className="p-3 text-sm rounded-xl bg-secondary border border-border">
                                                             {news}
                                                         </div>
                                                     ))}
