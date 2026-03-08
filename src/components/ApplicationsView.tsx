@@ -409,9 +409,10 @@ export const ApplicationsView = () => {
             ) : null}
           </DragOverlay>
         </DndContext>
+        </motion.div>
       ) : (
         /* List View */
-        <div className="space-y-4">
+        <motion.div key="list" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }} className="space-y-4">
           <div className="grid gap-3">
             {applications
               .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
