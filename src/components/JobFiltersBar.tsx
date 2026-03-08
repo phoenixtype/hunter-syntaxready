@@ -40,11 +40,19 @@ const DATE_POSTED_OPTIONS: { value: DatePosted; label: string }[] = [
   { value: "month", label: "This month" },
 ];
 
+const JOB_TYPES: { value: JobType; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "fulltime", label: "Full-time" },
+  { value: "contract", label: "Contract" },
+  { value: "parttime", label: "Part-time" },
+];
+
 export const DEFAULT_FILTERS: JobFilters = {
   workMode: "all",
   experienceLevel: "all",
   minSalary: 0,
   datePosted: "all",
+  jobType: "all",
 };
 
 interface JobFiltersBarProps {
