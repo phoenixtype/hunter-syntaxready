@@ -61,6 +61,10 @@ serve(async (req) => {
       compact: 'Dense single-page layout, smaller font sizes (11px body), narrow margins, maximum information density, no wasted space',
       elegant: 'Refined serif typography (Playfair Display feel), subtle gold (#b8860b) underline accents, generous whitespace, academic/consulting',
       bold: 'High-contrast layout, oversized name (36px+), bold color blocks (#e11d48 rose), strong visual hierarchy, attention-grabbing',
+      nordic: 'Scandinavian minimalism, extremely generous whitespace, light steel blue accents (#94a3b8), soft gray text (#475569), no borders just spacing, clean sans-serif (system-ui), airy and calm',
+      editorial: 'Magazine/editorial style, elegant serif headings (Georgia or Playfair Display), thin hairline dividers (#d4d4d4), small caps for section headers, slightly wider letter-spacing, refined understated elegance',
+      luxe: 'Premium dark background (#18181b) with gold (#d4a853) and warm white (#fafaf9) text, elegant serif name, generous padding, subtle letter-spacing, high-end executive presence, reversed color scheme',
+      swiss: 'International Typographic Style / Swiss grid, strong left-aligned hierarchy, Helvetica/system-ui, red accent (#dc2626) for name or section rules only, mathematical spacing (8px grid), no decorative elements, pure structure',
     };
     const templateStyle = TEMPLATE_STYLES[template] || TEMPLATE_STYLES.modern;
 
