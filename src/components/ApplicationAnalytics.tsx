@@ -95,7 +95,7 @@ export default function ApplicationAnalytics({ applications }: Props) {
       {/* Metric cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {metrics.map((m) => (
-          <div key={m.label} className="rounded-xl border border-border bg-card/60 p-3 text-center space-y-1">
+          <div key={m.label} className="rounded-xl border border-border bg-card p-4 text-center space-y-1">
             <m.icon className="w-4 h-4 text-primary mx-auto" />
             <div className="text-xl font-bold">{m.value}{m.suffix}</div>
             <div className="text-[10px] text-muted-foreground">{m.label}</div>
