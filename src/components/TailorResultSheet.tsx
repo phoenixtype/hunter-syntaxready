@@ -88,7 +88,7 @@ const TailorResultSheet = ({ open, onClose, content, job }: TailorResultSheetPro
                         onClick={() => setOnePagePdf(v => !v)}
                         className={`relative w-9 h-5 rounded-full transition-colors ${onePagePdf ? "bg-primary" : "bg-muted-foreground/30"}`}
                     >
-                        <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${onePagePdf ? "translate-x-4" : "translate-x-0"}`} />
+                        <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-background shadow-sm transition-transform ${onePagePdf ? "translate-x-4" : "translate-x-0"}`} />
                     </div>
                     <span className="text-sm text-muted-foreground">Fit to 1 page</span>
                 </label>
