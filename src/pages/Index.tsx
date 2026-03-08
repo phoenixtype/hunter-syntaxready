@@ -119,7 +119,7 @@ const Index = () => {
 
       <main id="main-content">
         {/* Hero */}
-        <section className="pt-32 sm:pt-40 pb-20 md:pb-28 relative overflow-hidden">
+        <section className="pt-28 sm:pt-40 pb-16 md:pb-28 relative overflow-hidden">
           <div className="absolute inset-0 -z-10">
             <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[600px] rounded-full bg-primary/5 blur-[120px]" />
           </div>
