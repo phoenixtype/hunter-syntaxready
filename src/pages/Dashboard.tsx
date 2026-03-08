@@ -342,20 +342,24 @@ const Dashboard = () => {
 
         {/* Content */}
         <main id="main-content" className="flex-1 p-4 sm:p-6 max-w-5xl w-full mx-auto pb-24 lg:pb-6">
-          {/* Jobs */}
-          <div className={activeView !== "jobs" ? "hidden" : ""}>
-            <WidgetErrorBoundary>
-              <DashboardWelcome profile={profile} preferences={preferences ?? null} jobCount={jobCount} appCount={appCount} onSetView={(v) => setActiveView(v as DashboardView)} />
-              <JobFeed profile={profile} preferences={preferences} />
-            </WidgetErrorBoundary>
-          </div>
+          {/* Jobs - lazy init */}
+          {visitedTabs.has("jobs") && (
+            <div className={activeView !== "jobs" ? "hidden" : ""}>
+              <WidgetErrorBoundary>
+                <DashboardWelcome profile={profile} preferences={preferences ?? null} jobCount={jobCount} appCount={appCount} onSetView={(v) => setActiveView(v as DashboardView)} />
+                <JobFeed profile={profile} preferences={preferences} />
+              </WidgetErrorBoundary>
+            </div>
+          )}
 
-          {/* Applications */}
-          <div className={activeView !== "applications" ? "hidden" : ""}>
-            <WidgetErrorBoundary>
-              <ApplicationsView />
-            </WidgetErrorBoundary>
-          </div>
+          {/* Applications - lazy init */}
+          {visitedTabs.has("applications") && (
+            <div className={activeView !== "applications" ? "hidden" : ""}>
+              <WidgetErrorBoundary>
+                <ApplicationsView />
+              </WidgetErrorBoundary>
+            </div>
+          )}
 
           {/* Settings (merged Profile + Preferences) */}
           {activeView === "settings" && (

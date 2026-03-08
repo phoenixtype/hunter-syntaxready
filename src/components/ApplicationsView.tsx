@@ -349,6 +349,9 @@ export const ApplicationsView = () => {
       {/* Pipeline Summary */}
       {applications.length > 0 && <PipelineSummary counts={pipelineCounts} />}
 
+      {/* Analytics */}
+      {applications.length > 0 && <ApplicationAnalytics applications={applications} />}
+
       {applications.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mb-4">

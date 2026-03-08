@@ -184,10 +184,20 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
                     <div className="space-y-1.5 pt-1">
                         <p className="text-xs font-medium text-muted-foreground">Quick wins to improve your match rate:</p>
                         {strength.tips.map((tip, i) => (
-                            <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <button
+                                key={i}
+                                onClick={() => {
+                                    if (tip.includes("experience") || tip.includes("role")) navigate("/resume-builder?section=experience");
+                                    else if (tip.includes("skill")) navigate("/resume-builder?section=skills");
+                                    else if (tip.includes("education")) navigate("/resume-builder?section=education");
+                                    else if (tip.includes("summary")) navigate("/resume-builder?section=summary");
+                                    else navigate("/resume-builder");
+                                }}
+                                className="flex items-center gap-2 text-xs text-muted-foreground hover:text-primary transition-colors w-full text-left group"
+                            >
                                 <AlertCircle className="w-3 h-3 text-amber-500 shrink-0" />
-                                {tip}
-                            </div>
+                                <span className="group-hover:underline">{tip}</span>
+                            </button>
                         ))}
                     </div>
                 )}
