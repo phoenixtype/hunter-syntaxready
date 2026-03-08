@@ -207,7 +207,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                                 </div>
                                                 <div className="grid gap-2">
                                                     {material.red_flags_to_watch.map((flag, i) => (
-                                                        <div key={i} className="p-4 rounded-lg bg-destructive/5 border border-destructive/10 text-sm text-destructive">
+                                                        <div key={i} className="p-4 rounded-xl bg-destructive/5 border border-destructive/10 text-sm text-destructive">
                                                             {flag}
                                                         </div>
                                                     ))}
