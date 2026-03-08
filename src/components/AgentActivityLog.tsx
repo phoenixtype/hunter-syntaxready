@@ -35,7 +35,7 @@ export const AgentActivityLog = () => {
     };
 
     return (
-        <div className="rounded-lg border border-border bg-card overflow-hidden flex flex-col h-[300px] animate-fade-in">
+        <div className="rounded-xl border border-border bg-card overflow-hidden flex flex-col h-[300px] animate-fade-in">
             <div className="p-4 border-b border-border flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <Terminal className="w-4 h-4 text-foreground" />

@@ -336,7 +336,7 @@ const Index = () => {
                   key={t.name}
                   variants={fadeUp}
                   custom={i}
-                  className="p-6 rounded-2xl border border-border bg-card hover:border-primary/20 transition-colors"
+                  className="p-6 rounded-xl border border-border bg-card hover:border-primary/20 transition-colors"
                 >
                   <div className="flex gap-0.5 mb-4">
                     {Array.from({ length: t.rating }).map((_, j) => (

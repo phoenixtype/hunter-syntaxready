@@ -392,7 +392,7 @@ export const ApplicationsView = () => {
                   ))}
 
                   {stage.apps.length === 0 && (
-                    <div className="p-6 rounded-lg border border-dashed border-border text-center">
+                    <div className="p-6 rounded-xl border border-dashed border-border text-center">
                       <p className="text-xs text-muted-foreground">Drop here</p>
                     </div>
                   )}

@@ -232,7 +232,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                                 <h3 className="text-sm font-semibold">Behavioral & Leadership</h3>
                                                 <div className="space-y-3">
                                                     {material.behavioral_questions.map((q, i) => (
-                                                        <div key={i} className="p-4 rounded-lg bg-secondary border border-border text-sm leading-relaxed">
+                                                        <div key={i} className="p-4 rounded-xl bg-secondary border border-border text-sm leading-relaxed">
                                                             {q}
                                                         </div>
                                                     ))}
