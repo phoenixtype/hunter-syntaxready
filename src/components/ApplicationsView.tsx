@@ -544,7 +544,7 @@ export const ApplicationsView = () => {
               </Pagination>
             </div>
           )}
-        </div>
+        </motion.div>
       )}
       </AnimatePresence>
 
