@@ -52,11 +52,17 @@ serve(async (req) => {
       });
     }
 
-    const templateStyle = template === 'classic' 
-      ? 'Clean, traditional, serif headings, simple borders, professional corporate look'
-      : template === 'executive'
-      ? 'Bold, authoritative, dark header section, large name, gold accents, executive presence'
-      : 'Sleek, minimal, sans-serif, teal accent color (#0d9488), modern tech industry style';
+    const TEMPLATE_STYLES: Record<string, string> = {
+      classic: 'Clean, traditional, serif headings (Georgia), simple gray borders, professional corporate look, conservative spacing',
+      modern: 'Sleek, minimal, sans-serif, teal accent color (#0d9488), modern tech industry style, clean lines',
+      executive: 'Bold, authoritative, dark navy header section (#1e293b), large name, gold accents (#d4a853), executive presence',
+      creative: 'Two-column layout with a colored sidebar (#7c3aed light purple), skills/contact in sidebar, main content on right, creative feel',
+      technical: 'Monospace font accents for tech stack (Fira Code), green accent (#059669), code-block style skill tags, engineer-focused',
+      compact: 'Dense single-page layout, smaller font sizes (11px body), narrow margins, maximum information density, no wasted space',
+      elegant: 'Refined serif typography (Playfair Display feel), subtle gold (#b8860b) underline accents, generous whitespace, academic/consulting',
+      bold: 'High-contrast layout, oversized name (36px+), bold color blocks (#e11d48 rose), strong visual hierarchy, attention-grabbing',
+    };
+    const templateStyle = TEMPLATE_STYLES[template] || TEMPLATE_STYLES.modern;
 
     const systemPrompt = `You are an expert resume designer. Generate a complete, ATS-friendly HTML resume document. 
 The HTML must be self-contained with inline CSS styles. Use clean, professional formatting.
