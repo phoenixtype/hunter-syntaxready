@@ -251,7 +251,7 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
                     <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Experience</h2>
                     <div className="space-y-2">
                         {profile.experience_atoms.slice(0, 4).map((exp, i) => (
-                            <div key={i} className="flex items-start gap-3 p-3 rounded-xl border border-border bg-card/30 hover:border-primary/20 transition-colors">
+                            <div key={i} className="flex items-start gap-3 p-4 rounded-xl border border-border bg-card hover:border-primary/20 transition-colors">
                                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
                                     <Briefcase className="w-4 h-4 text-primary" />
                                 </div>
