@@ -202,7 +202,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                             </div>
 
                                             <div className="space-y-4">
-                                                <div className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                                                <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                                                     <AlertTriangle className="w-5 h-5" /> Risk Analysis
                                                 </div>
                                                 <div className="grid gap-2">
