@@ -189,7 +189,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                     <TabsContent value="culture" className="mt-0 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
                                         <div className="grid md:grid-cols-2 gap-6">
                                             <div className="space-y-4">
-                                                <div className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                                                 <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                                                     <BookOpen className="w-5 h-5" /> Official Values
                                                 </div>
                                                 <div className="grid gap-2">
