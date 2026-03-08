@@ -352,8 +352,9 @@ export const ApplicationsView = () => {
       {/* Analytics */}
       {applications.length > 0 && <ApplicationAnalytics applications={applications} />}
 
+      <AnimatePresence mode="wait">
       {applications.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
+        <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center py-20 text-center">
           <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mb-4">
             <Briefcase className="w-6 h-6 text-muted-foreground" />
           </div>
@@ -361,7 +362,7 @@ export const ApplicationsView = () => {
           <p className="text-sm text-muted-foreground max-w-xs">
             When you click <strong>Apply Now</strong> on a job, it'll show up here so you can track its progress.
           </p>
-        </div>
+        </motion.div>
       ) : viewMode === "board" ? (
         /* Kanban Board with DnD */
         <DndContext
