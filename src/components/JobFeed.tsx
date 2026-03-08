@@ -351,17 +351,17 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
+                      <div className="flex items-center gap-1.5 shrink-0">
                         {/* Bookmark */}
                         <button
                           onClick={() => {
                             toggleSave(job.id);
                             toast(jobSaved ? "Removed from saved" : "Saved to bookmarks");
                           }}
-                          className={`p-1.5 rounded-lg transition-colors ${
+                          className={`p-2 rounded-xl transition-colors ${
                             jobSaved
                               ? "text-primary bg-primary/10"
-                              : "text-muted-foreground/60 hover:text-primary hover:bg-primary/5"
+                              : "text-muted-foreground/60 hover:text-primary hover:bg-primary/5 active:bg-primary/10"
                           }`}
                           title={jobSaved ? "Remove bookmark" : "Save job"}
                         >
@@ -370,7 +370,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                         {/* Dismiss */}
                         <button
                           onClick={() => handleDismiss(job)}
-                          className="p-1.5 rounded-lg text-muted-foreground/60 hover:text-destructive hover:bg-destructive/5 transition-colors"
+                          className="p-2 rounded-xl text-muted-foreground/60 hover:text-destructive hover:bg-destructive/5 active:bg-destructive/10 transition-colors"
                           title="Dismiss job"
                         >
                           <X className="w-3.5 h-3.5" />
