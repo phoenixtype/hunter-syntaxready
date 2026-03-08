@@ -131,7 +131,7 @@ export default function ApplicationAnalytics({ applications }: Props) {
         </div>
 
         {/* Conversion Funnel */}
-        <div className="rounded-xl border border-border bg-card/60 p-4">
+        <div className="rounded-xl border border-border bg-card p-4">
           <div className="flex items-center gap-2 mb-3">
             <TrendingUp className="w-4 h-4 text-primary" />
             <h4 className="text-sm font-semibold">Conversion Funnel</h4>

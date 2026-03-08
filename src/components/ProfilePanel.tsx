@@ -279,7 +279,7 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
                     <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Education</h2>
                     <div className="flex flex-wrap gap-2">
                         {profile.education.map((edu, i) => (
-                            <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card/30 text-sm">
+                            <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border bg-card text-sm">
                                 <GraduationCap className="w-3.5 h-3.5 text-muted-foreground" />
                                 <span className="font-medium">{edu.school}</span>
                                 <span className="text-muted-foreground">·</span>

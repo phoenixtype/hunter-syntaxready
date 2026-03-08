@@ -47,7 +47,7 @@ export const DashboardSkeleton = () => {
 
         <main className="p-4 sm:p-6 max-w-5xl mx-auto w-full">
           {/* Welcome card skeleton */}
-          <div className="rounded-2xl border border-border p-5 mb-6 space-y-4">
+          <div className="rounded-xl border border-border p-5 mb-6 space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-1.5">
                 <Skeleton className="w-48 h-5" />
