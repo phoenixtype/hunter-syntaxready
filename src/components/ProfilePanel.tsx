@@ -210,7 +210,7 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
                     { icon: Code2, label: "Skills", value: profile.skills?.length ?? 0, suffix: "listed" },
                     { icon: GraduationCap, label: "Education", value: profile.education?.length ?? 0, suffix: profile.education?.length === 1 ? "entry" : "entries" },
                 ].map(stat => (
-                    <div key={stat.label} className="rounded-xl border border-border bg-card/50 p-4 text-center">
+                    <div key={stat.label} className="rounded-xl border border-border bg-card p-4 text-center">
                         <stat.icon className="w-4 h-4 text-primary mx-auto mb-2" />
                         <div className="text-2xl font-bold">{stat.value}</div>
                         <div className="text-xs text-muted-foreground mt-0.5">{stat.suffix}</div>
