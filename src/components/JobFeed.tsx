@@ -10,6 +10,7 @@ import { saveTailoredResume } from "@/lib/tailored_resume_store";
 import TailorResultSheet from "./TailorResultSheet";
 import { recordFeedback } from "@/lib/learning_engine";
 import { ExternalLink, Sparkles, RefreshCw, Loader2, Globe, Search, MapPin, Building2, X, Bookmark } from "lucide-react";
+import SalaryInsights from "./SalaryInsights";
 import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import JobFiltersBar, { JobFilters, DEFAULT_FILTERS, hasActiveFilters } from "./JobFiltersBar";
