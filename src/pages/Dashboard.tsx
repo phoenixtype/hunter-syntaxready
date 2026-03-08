@@ -35,8 +35,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-type DashboardView = "jobs" | "applications" | "notifications" | "settings";
-const VALID_DASHBOARD_VIEWS: DashboardView[] = ["jobs", "applications", "notifications", "settings"];
+type DashboardView = "jobs" | "applications" | "settings";
+const VALID_DASHBOARD_VIEWS: DashboardView[] = ["jobs", "applications", "settings"];
 
 // Track which tabs have been visited for lazy initialization
 const useVisitedTabs = (activeView: DashboardView) => {
@@ -50,7 +50,6 @@ const useVisitedTabs = (activeView: DashboardView) => {
 const NAV_ITEMS = [
   { id: "jobs" as const, label: "Jobs", icon: Briefcase },
   { id: "applications" as const, label: "Tracker", icon: FileText },
-  { id: "notifications" as const, label: "Alerts", icon: Bell },
 ];
 
 type SidebarTool = {
