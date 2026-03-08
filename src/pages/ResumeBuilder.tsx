@@ -304,7 +304,7 @@ const ResumeBuilder = () => {
       />
       <Progress value={progressPercent} className="h-1 rounded-none bg-muted [&>div]:bg-primary" />
 
-      <div className="pt-20 pb-32 px-4">
+      <div className="pt-16 sm:pt-20 pb-36 sm:pb-32 px-4">
         <div className="max-w-3xl mx-auto">
 
           {/* PERSONAL INFO */}
