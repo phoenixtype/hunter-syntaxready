@@ -143,7 +143,7 @@ const ApplicationWizard = () => {
                         <section className="space-y-4">
                             <div className="flex items-center gap-2 px-2">
                                 <FileCheck className="w-5 h-5 text-primary" />
-                                <h2 className="text-xl font-semibold">Parsed Extracted Strategy</h2>
+                                <h2 className="text-sm font-semibold">Parsed Extracted Strategy</h2>
                             </div>
                             <Card className="border-border bg-card shadow-sm overflow-hidden">
                                 <div className="p-5 border-b border-border flex justify-between items-start">
