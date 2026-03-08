@@ -203,7 +203,7 @@ const ApplicationWizard = () => {
                                                 </div>
                                                 Cover Letter
                                             </div>
-                                            <p className="text-sm text-muted-foreground italic bg-muted/50 p-4 rounded-lg border border-border line-clamp-4">"{tailoredAssets.coverLetter}"</p>
+                                            <p className="text-sm text-muted-foreground italic bg-muted/50 p-4 rounded-xl border border-border line-clamp-4">"{tailoredAssets.coverLetter}"</p>
                                             <Button variant="outline" className="w-full" onClick={() => {
                                                 if (tailoredAssets?.coverLetter) {
                                                     navigator.clipboard.writeText(tailoredAssets.coverLetter);
