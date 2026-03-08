@@ -239,7 +239,7 @@ const Index = () => {
                   variants={fadeUp}
                   custom={i}
                   whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                  className="group p-6 rounded-2xl border border-border bg-card hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-colors"
+                  className="group p-6 rounded-xl border border-border bg-card hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 transition-colors"
                 >
                   <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/15 transition-colors">
                     <feature.icon className="w-5 h-5 text-primary" />
