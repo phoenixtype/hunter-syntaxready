@@ -484,9 +484,7 @@ const Dashboard = () => {
                 {settingsTab === "profile" ? (
                   <ProfilePanel profile={profile} />
                 ) : settingsTab === "preferences" ? (
-                  <div className="max-w-lg space-y-1">
-                    <PreferencesPanel preferences={preferences ?? null} />
-                  </div>
+                  <PreferencesPanel preferences={preferences ?? null} />
                 ) : (
                   <NotificationSettings />
                 )}

@@ -78,10 +78,10 @@ const PreferencesPanel = ({ preferences, onSaved }: PreferencesPanelProps) => {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 max-w-3xl">
             {/* Target Roles */}
-            <div className="space-y-3">
-                <Label className="text-sm font-medium">Target Roles</Label>
+            <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+                <Label className="text-sm font-semibold">Target Roles</Label>
                 <div className="flex flex-wrap gap-2 min-h-[32px]">
                     {roles.map((role, i) => (
                         <Badge key={i} variant="secondary" className="pl-3 pr-1.5 py-1.5 gap-1 text-sm">
@@ -108,75 +108,77 @@ const PreferencesPanel = ({ preferences, onSaved }: PreferencesPanelProps) => {
                 </div>
             </div>
 
-            {/* Salary */}
-            <div className="space-y-3">
-                <div className="flex justify-between items-baseline">
-                    <Label className="text-sm font-medium">Minimum Base Salary</Label>
-                    <span className="text-sm font-mono font-semibold">${salary[0].toLocaleString()}</span>
+            {/* Salary & Intensity */}
+            <div className="rounded-xl border border-border bg-card p-5 space-y-6">
+                <div className="space-y-3">
+                    <div className="flex justify-between items-baseline">
+                        <Label className="text-sm font-semibold">Minimum Base Salary</Label>
+                        <span className="text-sm font-mono font-semibold">${salary[0].toLocaleString()}</span>
+                    </div>
+                    <Slider value={salary} onValueChange={setSalary} min={30000} max={500000} step={5000} />
                 </div>
-                <Slider value={salary} onValueChange={setSalary} min={30000} max={500000} step={5000} />
-            </div>
 
-            {/* Locations */}
-            <div className="space-y-2">
-                <Label className="text-sm font-medium">Preferred Locations</Label>
-                <LocationPicker locations={locations} onChange={setLocations} />
-            </div>
-
-            {/* Remote Policy */}
-            <div className="space-y-2">
-                <Label className="text-sm font-medium">Remote Policy</Label>
-                <div className="grid grid-cols-4 gap-1.5">
-                    {(["remote", "hybrid", "onsite", "any"] as const).map(mode => (
-                        <button
-                            key={mode}
-                            type="button"
-                            onClick={() => setRemotePolicy(mode)}
-                            className={`h-9 rounded-lg text-xs font-medium border transition-all ${
-                                remotePolicy === mode
-                                    ? "bg-primary text-primary-foreground border-primary"
-                                    : "border-border hover:border-primary/50 hover:bg-accent/50"
-                            }`}
-                        >
-                            {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                        </button>
-                    ))}
+                <div className="space-y-3">
+                    <div className="flex justify-between items-baseline">
+                        <Label className="text-sm font-semibold">Search Intensity</Label>
+                        <span className="text-xs text-muted-foreground font-mono">Level {aggressiveness[0]}</span>
+                    </div>
+                    <Slider value={aggressiveness} onValueChange={setAggressiveness} min={1} max={10} step={1} />
+                    <p className="text-xs text-muted-foreground">
+                        Higher = broader search with more results. Lower = tighter focus on exact matches.
+                    </p>
                 </div>
             </div>
 
-            {/* Experience Level */}
-            <div className="space-y-2">
-                <Label className="text-sm font-medium">Experience Level</Label>
-                <div className="grid grid-cols-4 gap-1.5">
-                    {(["entry", "mid", "senior", "lead"] as const).map(level => (
-                        <button
-                            key={level}
-                            type="button"
-                            onClick={() => setExperienceLevel(level)}
-                            className={`h-9 rounded-lg text-xs font-medium border transition-all ${
-                                experienceLevel === level
-                                    ? "bg-primary text-primary-foreground border-primary"
-                                    : "border-border hover:border-primary/50 hover:bg-accent/50"
-                            }`}
-                        >
-                            {level.charAt(0).toUpperCase() + level.slice(1)}
-                        </button>
-                    ))}
+            {/* Location & Work Style */}
+            <div className="rounded-xl border border-border bg-card p-5 space-y-6">
+                <div className="space-y-2">
+                    <Label className="text-sm font-semibold">Preferred Locations</Label>
+                    <LocationPicker locations={locations} onChange={setLocations} />
                 </div>
-                <p className="text-xs text-muted-foreground">
-                    Jobs matching your level are ranked higher in the feed.
-                </p>
-            </div>
 
-            <div className="space-y-3">
-                <div className="flex justify-between items-baseline">
-                    <Label className="text-sm font-medium">Search Intensity</Label>
-                    <span className="text-xs text-muted-foreground font-mono">Level {aggressiveness[0]}</span>
+                <div className="space-y-2">
+                    <Label className="text-sm font-semibold">Remote Policy</Label>
+                    <div className="grid grid-cols-4 gap-1.5">
+                        {(["remote", "hybrid", "onsite", "any"] as const).map(mode => (
+                            <button
+                                key={mode}
+                                type="button"
+                                onClick={() => setRemotePolicy(mode)}
+                                className={`h-9 rounded-lg text-xs font-medium border transition-all ${
+                                    remotePolicy === mode
+                                        ? "bg-primary text-primary-foreground border-primary"
+                                        : "border-border hover:border-primary/50 hover:bg-accent/50"
+                                }`}
+                            >
+                                {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                            </button>
+                        ))}
+                    </div>
                 </div>
-                <Slider value={aggressiveness} onValueChange={setAggressiveness} min={1} max={10} step={1} />
-                <p className="text-xs text-muted-foreground">
-                    Higher = broader search with more results. Lower = tighter focus on exact matches.
-                </p>
+
+                <div className="space-y-2">
+                    <Label className="text-sm font-semibold">Experience Level</Label>
+                    <div className="grid grid-cols-4 gap-1.5">
+                        {(["entry", "mid", "senior", "lead"] as const).map(level => (
+                            <button
+                                key={level}
+                                type="button"
+                                onClick={() => setExperienceLevel(level)}
+                                className={`h-9 rounded-lg text-xs font-medium border transition-all ${
+                                    experienceLevel === level
+                                        ? "bg-primary text-primary-foreground border-primary"
+                                        : "border-border hover:border-primary/50 hover:bg-accent/50"
+                                }`}
+                            >
+                                {level.charAt(0).toUpperCase() + level.slice(1)}
+                            </button>
+                        ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                        Jobs matching your level are ranked higher in the feed.
+                    </p>
+                </div>
             </div>
 
             <div className="flex justify-end pt-2">
