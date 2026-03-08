@@ -327,7 +327,7 @@ const Dashboard = () => {
         </header>
 
         {/* Mobile Tab Bar — only on xs screens where sidebar is hidden */}
-        <nav role="navigation" aria-label="Main navigation" className="sm:hidden fixed bottom-0 left-0 right-0 z-50 flex border-t border-border bg-background/95 backdrop-blur-md safe-area-inset-bottom">
+        <nav role="navigation" aria-label="Main navigation" className="sm:hidden fixed bottom-0 left-0 right-0 z-50 flex border-t border-border bg-background/95 backdrop-blur-md" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
           {NAV_ITEMS.map((item) => (
             <button
               key={item.id}
@@ -337,16 +337,16 @@ const Dashboard = () => {
                 setActiveView(item.id);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className={`flex-1 flex flex-col items-center gap-1.5 py-2.5 text-[10px] font-medium transition-all ${
-                activeView === item.id ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              className={`flex-1 flex flex-col items-center gap-1 py-3 text-[11px] font-medium transition-all relative ${
+                activeView === item.id ? "text-primary" : "text-muted-foreground active:text-foreground"
               }`}
             >
-              <div className={`p-1 rounded-lg transition-colors ${activeView === item.id ? "bg-primary/10" : ""}`}>
+              <div className={`p-1.5 rounded-xl transition-colors ${activeView === item.id ? "bg-primary/10" : ""}`}>
                 <item.icon className="w-5 h-5" />
               </div>
-              <span className="truncate">{item.label}</span>
+              <span>{item.label}</span>
               {activeView === item.id && (
-                <motion.div layoutId="activeTab" className="absolute bottom-0 w-8 h-0.5 bg-primary rounded-full" transition={{ type: "spring", bounce: 0.2, duration: 0.6 }} />
+                <motion.div layoutId="activeTab" className="absolute bottom-0 w-10 h-0.5 bg-primary rounded-full" transition={{ type: "spring", bounce: 0.2, duration: 0.6 }} />
               )}
             </button>
           ))}
@@ -355,11 +355,11 @@ const Dashboard = () => {
             <SheetTrigger asChild>
               <button
                 aria-label="More"
-                className={`flex-1 flex flex-col items-center gap-1.5 py-2.5 text-[10px] font-medium transition-all ${
-                  activeView === "settings" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                className={`flex-1 flex flex-col items-center gap-1 py-3 text-[11px] font-medium transition-all ${
+                  activeView === "settings" ? "text-primary" : "text-muted-foreground active:text-foreground"
                 }`}
               >
-                <div className={`p-1 rounded-lg transition-colors ${activeView === "settings" ? "bg-primary/10" : ""}`}>
+                <div className={`p-1.5 rounded-xl transition-colors ${activeView === "settings" ? "bg-primary/10" : ""}`}>
                   <MoreHorizontal className="w-5 h-5" />
                 </div>
                 <span>More</span>
