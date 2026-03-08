@@ -106,7 +106,7 @@ export default function ApplicationAnalytics({ applications }: Props) {
       {/* Charts row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Weekly Velocity */}
-        <div className="rounded-xl border border-border bg-card/60 p-4">
+        <div className="rounded-xl border border-border bg-card p-4">
           <div className="flex items-center gap-2 mb-3">
             <BarChart3 className="w-4 h-4 text-primary" />
             <h4 className="text-sm font-semibold">Weekly Application Velocity</h4>
