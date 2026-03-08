@@ -272,7 +272,7 @@ const Profile = () => {
                         {/* Identity */}
                         <section className="space-y-4">
                             <h2 className="text-xl font-semibold">Personal Information</h2>
-                            <Card className="border-border bg-card/50 backdrop-blur-md shadow-lg">
+                            <Card className="border-border bg-card">
                                 <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div>
                                         <Label className="text-muted-foreground">Full Name</Label>
