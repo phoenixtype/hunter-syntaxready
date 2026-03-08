@@ -20,8 +20,8 @@ interface StrengthResult {
 
 function getProfileStrength(profile: CandidateProfile | null): StrengthResult {
     const noProfile: StrengthResult = {
-        score: 0, label: "No profile", color: "text-red-500",
-        ringClass: "stroke-red-400", barClass: "bg-red-400",
+        score: 0, label: "No profile", color: "text-destructive",
+        ringClass: "stroke-destructive", barClass: "bg-destructive",
         tips: ["Build your profile to unlock AI-powered job matching"],
     };
     if (!profile) return noProfile;
