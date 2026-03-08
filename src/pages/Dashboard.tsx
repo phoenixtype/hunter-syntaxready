@@ -121,6 +121,16 @@ const Dashboard = () => {
 
   useRealtimeNotifications(user?.id);
 
+  // Listen for navigation events from realtime alerts
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const view = (e as CustomEvent).detail as DashboardView;
+      if (VALID_DASHBOARD_VIEWS.includes(view)) setActiveView(view);
+    };
+    window.addEventListener("hunter:navigate", handler);
+    return () => window.removeEventListener("hunter:navigate", handler);
+  }, []);
+
   const handleSignOut = async () => {
     await signOut();
     toast.success("Signed out");
