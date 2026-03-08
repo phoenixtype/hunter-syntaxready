@@ -533,7 +533,7 @@ const ResumeBuilder = () => {
                 <h2 className="text-2xl font-bold">Choose a Template</h2>
                 <p className="text-muted-foreground">Select an ATS-friendly template that fits your industry and career level.</p>
               </div>
-              <RadioGroup value={selectedTemplate} onValueChange={setSelectedTemplate} className="grid sm:grid-cols-2 gap-4">
+              <RadioGroup value={selectedTemplate} onValueChange={setSelectedTemplate} className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {TEMPLATES.map(t => (
                   <label
                     key={t.id}
