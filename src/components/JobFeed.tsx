@@ -342,7 +342,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                                 job.match.overall_score >= 70
                                   ? 'bg-primary/10 text-primary border-primary/20'
                                   : job.match.overall_score >= 40
-                                  ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20'
+                                  ? 'bg-warning/10 text-warning border-warning/20'
                                   : 'bg-muted text-muted-foreground border-border'
                               }`}>
                                 {job.match.overall_score}% match
