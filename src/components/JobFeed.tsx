@@ -9,8 +9,8 @@ import { simulateApplication, ApplicationState, ComplianceError, getApplicationH
 import { saveTailoredResume } from "@/lib/tailored_resume_store";
 import TailorResultSheet from "./TailorResultSheet";
 import { recordFeedback } from "@/lib/learning_engine";
-import { ExternalLink, Sparkles, RefreshCw, PenTool, Send, GraduationCap, X, Loader2, Globe, Search, MapPin, Building2, ChevronDown, ChevronUp } from "lucide-react";
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { ExternalLink, Sparkles, RefreshCw, Loader2, Globe, Search, MapPin, Building2, X, Bookmark } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import JobFiltersBar, { JobFilters, DEFAULT_FILTERS, hasActiveFilters } from "./JobFiltersBar";
 import { toast } from "sonner";
@@ -29,6 +29,9 @@ import {
 } from "@/components/ui/pagination";
 import { useSubscription } from "@/hooks/useSubscription";
 import PricingModal from "./PricingModal";
+import { useSavedJobs } from "@/hooks/useSavedJobs";
+import MatchScoreTooltip from "./MatchScoreTooltip";
+import JobCardActions from "./JobCardActions";
 
 interface JobFeedProps {
   profile: CandidateProfile | null;
@@ -54,21 +57,25 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [tailoringJobId, setTailoringJobId] = useState<string | null>(null);
   const [tailorResult, setTailorResult] = useState<{ content: TailoredContent; job: { title: string; company: string } } | null>(null);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [showSavedOnly, setShowSavedOnly] = useState(false);
   
-  const { subscription, canAccess, isPro } = useSubscription();
+  const { subscription } = useSubscription();
   const [showPricingModal, setShowPricingModal] = useState(false);
+  const { toggleSave, isSaved, savedCount } = useSavedJobs();
 
   const filteredJobs = useMemo(() => {
     let result = jobs.filter(job => !dismissedJobIds.has(job.id));
 
+    // Saved filter
+    if (showSavedOnly) {
+      result = result.filter(job => isSaved(job.id));
+    }
 
     if (filters.workMode !== "all") {
       result = result.filter(job => {
         const combined = ((job.location || "") + " " + (job.description || "")).toLowerCase();
         if (filters.workMode === "remote") return job.location?.toLowerCase().includes("remote") || combined.includes("remote");
         if (filters.workMode === "hybrid") return combined.includes("hybrid");
-        // onsite: positively matches office/onsite signals, not just absence of remote
         if (filters.workMode === "onsite") return (
           combined.includes("on-site") || combined.includes("onsite") ||
           combined.includes("in-office") || combined.includes("in office") ||
@@ -112,14 +119,14 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
       };
       const cutoff = cutoffs[filters.datePosted];
       result = result.filter(job => {
-        if (!job.posted_at) return filters.datePosted === "month"; // keep if no date for month
+        if (!job.posted_at) return filters.datePosted === "month";
         const postedTime = new Date(job.posted_at).getTime();
         return !isNaN(postedTime) && postedTime >= cutoff;
       });
     }
 
     return result;
-  }, [jobs, dismissedJobIds, searchQuery, filters]);
+  }, [jobs, dismissedJobIds, searchQuery, filters, showSavedOnly, isSaved]);
 
   useEffect(() => {
     if (!user) return;
@@ -130,7 +137,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
 
   const handleApply = async (job: EnrichedJob) => {
     if (subscription && subscription.usage.applications_this_month >= subscription.usage.applications_limit) {
-      toast.error("Application Limit Reached", { description: "You've reached your free tier limit. Upgrade to Pro for unlimited applications." });
+      toast.error("Application Limit Reached", { description: "Upgrade to Pro for unlimited applications." });
       setShowPricingModal(true);
       return;
     }
@@ -181,7 +188,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
 
   const handleTailor = async (job: EnrichedJob) => {
     if (subscription && subscription.usage.applications_this_month >= subscription.usage.applications_limit) {
-      toast.error("Application Limit Reached", { description: "You've reached your free tier limit. Upgrade to Pro for unlimited applications." });
+      toast.error("Application Limit Reached", { description: "Upgrade to Pro for unlimited applications." });
       setShowPricingModal(true);
       return;
     }
@@ -223,6 +230,21 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
             {crawling ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Searching...</> : <><Globe className="w-3.5 h-3.5" />Find Jobs</>}
           </Button>
           <JobFiltersBar filters={filters} onChange={setFilters} />
+          {/* Saved filter toggle */}
+          <Button
+            variant={showSavedOnly ? "default" : "ghost"}
+            size="icon"
+            onClick={() => setShowSavedOnly(!showSavedOnly)}
+            className="h-12 w-12 sm:h-11 sm:w-11 shrink-0 relative"
+            title={showSavedOnly ? "Show all jobs" : "Show saved jobs"}
+          >
+            <Bookmark className={`w-4 h-4 ${showSavedOnly ? "fill-current" : ""}`} />
+            {savedCount > 0 && !showSavedOnly && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center">
+                {savedCount > 9 ? "9+" : savedCount}
+              </span>
+            )}
+          </Button>
           <Button variant="ghost" size="icon" onClick={() => { refreshJobs(); toast.info("Refreshing..."); }} disabled={loading || crawling} className="h-12 w-12 sm:h-11 sm:w-11 shrink-0 bg-muted/30">
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           </Button>
@@ -230,9 +252,15 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
       </div>
 
       {/* Active filter badges */}
-      {hasActiveFilters(filters) && (
+      {(hasActiveFilters(filters) || showSavedOnly) && (
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wide">Active:</span>
+          {showSavedOnly && (
+            <Badge variant="secondary" className="text-[10px] gap-1 pr-1">
+              Saved ({savedCount})
+              <button onClick={() => setShowSavedOnly(false)} className="ml-0.5 hover:text-destructive"><X className="w-2.5 h-2.5" /></button>
+            </Badge>
+          )}
           {filters.workMode !== "all" && (
             <Badge variant="secondary" className="text-[10px] gap-1 pr-1">{filters.workMode}<button onClick={() => setFilters(f => ({ ...f, workMode: "all" }))} className="ml-0.5 hover:text-destructive"><X className="w-2.5 h-2.5" /></button></Badge>
           )}
@@ -255,13 +283,15 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
       <p className="text-xs text-muted-foreground">
         {loading
           ? 'Loading...'
-          : hasActiveFilters(filters) || searchQuery
-            ? `${filteredJobs.length} of ${filteredJobCount} jobs`
-            : filteredJobCount > 0
-              ? `${filteredJobCount} jobs found`
-              : jobCount > 0
-                ? `0 jobs matching your preferences (${jobCount} total in database — click Find Jobs)`
-                : 'No jobs yet — click Find Jobs to search'}
+          : showSavedOnly
+            ? `${filteredJobs.length} saved job${filteredJobs.length !== 1 ? 's' : ''}`
+            : hasActiveFilters(filters) || searchQuery
+              ? `${filteredJobs.length} of ${filteredJobCount} jobs`
+              : filteredJobCount > 0
+                ? `${filteredJobCount} jobs found`
+                : jobCount > 0
+                  ? `0 jobs matching your preferences (${jobCount} total in database — click Find Jobs)`
+                  : 'No jobs yet — click Find Jobs to search'}
       </p>
 
       {/* Job Cards */}
@@ -271,6 +301,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
           const isExpanded = expandedJob === job.id;
           const isApplied = appliedJobIds.has(job.id);
           const isApplying = activeApplication?.jobId === job.id;
+          const jobSaved = isSaved(job.id);
 
           return (
             <motion.div
@@ -295,60 +326,73 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                           <span className="flex items-center gap-1.5"><Building2 className="w-3 h-3 shrink-0" />{job.company}</span>
                           {job.location && <span className="flex items-center gap-1.5"><MapPin className="w-3 h-3 shrink-0" />{job.location}</span>}
                           {job.match && (
-                            <span className={`inline-flex items-center font-semibold text-[11px] px-1.5 py-0.5 rounded-full border ${
-                              job.match.overall_score >= 70
-                                ? 'bg-primary/10 text-primary border-primary/20'
-                                : job.match.overall_score >= 40
-                                ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20'
-                                : 'bg-muted text-muted-foreground border-border'
-                            }`}>
-                              {job.match.overall_score}% match
-                            </span>
+                            <MatchScoreTooltip match={job.match}>
+                              <span className={`inline-flex items-center font-semibold text-[11px] px-1.5 py-0.5 rounded-full border cursor-help ${
+                                job.match.overall_score >= 70
+                                  ? 'bg-primary/10 text-primary border-primary/20'
+                                  : job.match.overall_score >= 40
+                                  ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20'
+                                  : 'bg-muted text-muted-foreground border-border'
+                              }`}>
+                                {job.match.overall_score}% match
+                              </span>
+                            </MatchScoreTooltip>
                           )}
                         </div>
                       </div>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-muted-foreground/60 hover:text-destructive hover:bg-destructive/5" onClick={() => handleDismiss(job)}>
-                        <X className="w-3.5 h-3.5" />
-                      </Button>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {/* Bookmark */}
+                        <button
+                          onClick={() => {
+                            toggleSave(job.id);
+                            toast(jobSaved ? "Removed from saved" : "Saved to bookmarks");
+                          }}
+                          className={`p-1.5 rounded-lg transition-colors ${
+                            jobSaved
+                              ? "text-primary bg-primary/10"
+                              : "text-muted-foreground/60 hover:text-primary hover:bg-primary/5"
+                          }`}
+                          title={jobSaved ? "Remove bookmark" : "Save job"}
+                        >
+                          <Bookmark className={`w-4 h-4 ${jobSaved ? "fill-current" : ""}`} />
+                        </button>
+                        {/* Dismiss */}
+                        <button
+                          onClick={() => handleDismiss(job)}
+                          className="p-1.5 rounded-lg text-muted-foreground/60 hover:text-destructive hover:bg-destructive/5 transition-colors"
+                          title="Dismiss job"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
 
                     <p className="text-sm text-muted-foreground mt-2.5 line-clamp-2 leading-relaxed">{job.description}</p>
 
                     <div className="flex items-center gap-2 mt-3 flex-wrap">
-                      {job.salary_range && <span className="text-xs font-mono font-semibold text-foreground/80 bg-muted px-2 py-0.5 rounded-md">{job.salary_range}</span>}
+                      {job.salary_range ? (
+                        <span className="text-xs font-mono font-semibold text-foreground/80 bg-muted px-2 py-0.5 rounded-md">{job.salary_range}</span>
+                      ) : (
+                        <span className="text-[10px] text-muted-foreground/60 italic">Salary not listed</span>
+                      )}
                       <Badge variant="outline" className="text-[10px] font-medium rounded-full">{job.source}</Badge>
                       {job.freshness_score > 0.9 && (
                         <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px] rounded-full gap-0.5"><Sparkles className="w-2.5 h-2.5" /> New</Badge>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2 mt-4 flex-wrap">
-                      <a
-                        href={isApplied || isApplying ? undefined : (job.url || "#")}
-                        target={job.url ? "_blank" : undefined}
-                        rel="noopener noreferrer"
-                        className="w-full sm:w-auto"
-                        onClick={(e) => {
-                          if (isApplied || isApplying) { e.preventDefault(); return; }
-                          handleApply(job);
-                        }}
-                      >
-                        <Button size="sm" variant={isApplied ? "secondary" : "default"} disabled={isApplied || isApplying} className="w-full sm:w-auto h-9 text-xs px-4 gap-1.5 font-semibold">
-                          {isApplied ? <><Send className="w-3 h-3" />Applied</> : isApplying ? <><Loader2 className="w-3 h-3 animate-spin" />Applying…</> : <><Send className="w-3 h-3" />Apply Now</>}
-                        </Button>
-                      </a>
-                      <Button variant="outline" size="sm" onClick={() => handleTailor(job)} disabled={tailoringJobId === job.id} className="w-full sm:w-auto h-9 text-xs px-4 gap-1.5">
-                        {tailoringJobId === job.id ? <><Loader2 className="w-3 h-3 animate-spin" />Tailoring...</> : <><PenTool className="w-3 h-3" />Tailor</>}
-                      </Button>
-                      <div className="flex gap-2 w-full sm:w-auto sm:ml-auto">
-                        <Button variant="ghost" size="sm" onClick={() => navigate(`/interview-coach?title=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}&desc=${encodeURIComponent(job.description?.substring(0, 500) || '')}`)} className="flex-1 sm:flex-none h-9 text-xs px-3 gap-1.5 bg-muted/30">
-                          <GraduationCap className="w-3 h-3" />Prep
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleExpandJob(job.id)} className="flex-1 sm:flex-none h-9 text-xs px-3 gap-1 bg-muted/30">
-                          {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}Intel
-                        </Button>
-                      </div>
-                    </div>
+                    {/* Simplified actions */}
+                    <JobCardActions
+                      isApplied={isApplied}
+                      isApplying={isApplying}
+                      isTailoring={tailoringJobId === job.id}
+                      jobUrl={job.url || "#"}
+                      onApply={() => handleApply(job)}
+                      onTailor={() => handleTailor(job)}
+                      onPrep={() => navigate(`/interview-coach?title=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}&desc=${encodeURIComponent(job.description?.substring(0, 500) || '')}`)}
+                      onIntel={() => handleExpandJob(job.id)}
+                      isExpanded={isExpanded}
+                    />
 
                     {isApplying && activeApplication && (
                       <div className="mt-3 space-y-1">
@@ -404,15 +448,10 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                 
                 {Array.from({ length: totalPages }).map((_, i) => {
                   const p = i + 1;
-                  // Show first page, last page, current page, and pages immediately surrounding current
-                  if (
-                    p === 1 || 
-                    p === totalPages || 
-                    (p >= currentPage - 1 && p <= currentPage + 1)
-                  ) {
+                  if (p === 1 || p === totalPages || (p >= currentPage - 1 && p <= currentPage + 1)) {
                     return (
                       <PaginationItem key={p}>
-                        <PaginationLink 
+                        <PaginationLink
                           href="#"
                           isActive={currentPage === p}
                           onClick={(e) => { e.preventDefault(); setPage(p); window.scrollTo({ top: 0, behavior: "smooth" }); }}
@@ -422,25 +461,15 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                       </PaginationItem>
                     );
                   }
-                  
-                  // Show ellipsis for gaps
-                  if (
-                    (p === 2 && currentPage > 3) ||
-                    (p === totalPages - 1 && currentPage < totalPages - 2)
-                  ) {
-                    return (
-                      <PaginationItem key={p}>
-                        <PaginationEllipsis />
-                      </PaginationItem>
-                    );
+                  if ((p === 2 && currentPage > 3) || (p === totalPages - 1 && currentPage < totalPages - 2)) {
+                    return <PaginationItem key={p}><PaginationEllipsis /></PaginationItem>;
                   }
-                  
                   return null;
                 })}
 
                 <PaginationItem>
-                  <PaginationNext 
-                    href="#" 
+                  <PaginationNext
+                    href="#"
                     onClick={(e) => { e.preventDefault(); setPage(Math.min(totalPages, currentPage + 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                     className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
                   />
@@ -454,9 +483,15 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
         {filteredJobs.length === 0 && !loading && (
           <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-border rounded-2xl bg-muted/20">
             <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-5">
-              <Search className="w-7 h-7 text-muted-foreground/60" />
+              {showSavedOnly ? <Bookmark className="w-7 h-7 text-muted-foreground/60" /> : <Search className="w-7 h-7 text-muted-foreground/60" />}
             </div>
-            {!profile ? (
+            {showSavedOnly ? (
+              <div className="max-w-[260px] space-y-2">
+                <h3 className="font-semibold text-base">No saved jobs yet</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">Click the bookmark icon on any job card to save it for later.</p>
+                <Button variant="outline" size="sm" onClick={() => setShowSavedOnly(false)} className="mt-3">Show all jobs</Button>
+              </div>
+            ) : !profile ? (
               <div className="max-w-[260px] space-y-2">
                 <h3 className="font-semibold text-base">Build your profile first</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">Complete onboarding so Hunter can find matching jobs for you.</p>
@@ -469,7 +504,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
             ) : jobCount > 0 && filteredJobCount === 0 ? (
               <div className="max-w-[280px] space-y-2">
                 <h3 className="font-semibold text-base">No jobs match your preferences</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">There are {jobCount} jobs in the database but none match your locations or target roles. Click Find Jobs to fetch fresh ones.</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">There are {jobCount} jobs in the database but none match. Click Find Jobs to fetch fresh ones.</p>
               </div>
             ) : (
               <div className="max-w-[260px] space-y-2">
@@ -477,23 +512,21 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                 <p className="text-sm text-muted-foreground leading-relaxed">Click below to search for matching roles based on your profile.</p>
               </div>
             )}
-            { (hasActiveFilters(filters) || searchQuery || locationQuery) && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => {
-                  setFilters(DEFAULT_FILTERS);
-                  setSearchQuery("");
-                  setLocationQuery("");
-                }}
+            {(hasActiveFilters(filters) || searchQuery || locationQuery) && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => { setFilters(DEFAULT_FILTERS); setSearchQuery(""); setLocationQuery(""); }}
                 className="mt-3"
               >
                 Clear all filters
               </Button>
             )}
-            <Button size="sm" onClick={handleCrawl} disabled={crawling || !profile} className="mt-5 gap-1.5 px-5">
-              {crawling ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Searching...</> : <><Globe className="w-3.5 h-3.5" />Find Jobs</>}
-            </Button>
+            {!showSavedOnly && (
+              <Button size="sm" onClick={handleCrawl} disabled={crawling || !profile} className="mt-5 gap-1.5 px-5">
+                {crawling ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Searching...</> : <><Globe className="w-3.5 h-3.5" />Find Jobs</>}
+              </Button>
+            )}
           </div>
         )}
 
@@ -512,9 +545,9 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
         job={tailorResult?.job ?? null}
       />
       
-      <PricingModal 
-        isOpen={showPricingModal} 
-        onClose={() => setShowPricingModal(false)} 
+      <PricingModal
+        isOpen={showPricingModal}
+        onClose={() => setShowPricingModal(false)}
       />
     </div>
   );

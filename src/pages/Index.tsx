@@ -30,19 +30,44 @@ const FEATURES = [
 ];
 
 const TESTIMONIALS = [
-  { name: "Alex M.", role: "Software Engineer", quote: "The resume tailoring is genuinely good. It mirrors the job description language without being obvious — my callback rate went up noticeably.", rating: 5 },
-  { name: "Jordan T.", role: "Product Manager", quote: "Having the hiring team search links right on the job card is a huge time saver. I can reach out to the right person immediately.", rating: 5 },
-  { name: "Priya R.", role: "Data Scientist", quote: "The interview coach is what I was missing. Being able to practice negotiation scenarios before the real call gave me so much more confidence.", rating: 5 },
+  {
+    name: "Alex M.",
+    role: "Software Engineer → Staff Engineer",
+    quote: "The resume tailoring is genuinely good. It mirrors the job description language without being obvious — my callback rate went up noticeably.",
+    rating: 5,
+    avatar: "AM",
+  },
+  {
+    name: "Jordan T.",
+    role: "Product Manager, Series B Startup",
+    quote: "Having the hiring team search links right on the job card is a huge time saver. I can reach out to the right person immediately.",
+    rating: 5,
+    avatar: "JT",
+  },
+  {
+    name: "Priya R.",
+    role: "Data Scientist, Fortune 500",
+    quote: "The interview coach is what I was missing. Being able to practice negotiation scenarios before the real call gave me so much more confidence.",
+    rating: 5,
+    avatar: "PR",
+  },
 ];
 
 const STATS = [
-  { value: "Real-time", label: "Job data from live boards" },
-  { value: "Seconds", label: "To tailor any application" },
+  { value: "1,200+", label: "Jobs crawled daily" },
+  { value: "<45s", label: "To tailor any application" },
   { value: "3 modes", label: "Interview practice" },
   { value: "ATS-ready", label: "Every resume generated" },
 ];
 
 const TRUST_BADGES = ["No credit card required", "Cancel anytime", "Free tier available"];
+
+const COMPARISON = [
+  { feature: "Job discovery", hunter: "AI-matched from live boards", manual: "Scroll through boards manually", other: "Basic keyword alerts" },
+  { feature: "Resume tailoring", hunter: "AI rewrites per job in seconds", manual: "Manual rewrite each time", other: "Template fill-in" },
+  { feature: "Interview prep", hunter: "AI coach with role-specific Q&A", manual: "Google common questions", other: "Generic tips" },
+  { feature: "Hiring team intel", hunter: "Auto-found with LinkedIn links", manual: "Manual LinkedIn searching", other: "Not available" },
+];
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -95,18 +120,12 @@ const Index = () => {
       <main id="main-content">
         {/* Hero */}
         <section className="pt-32 sm:pt-40 pb-20 md:pb-28 relative overflow-hidden">
-          {/* Ambient glow */}
           <div className="absolute inset-0 -z-10">
             <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[600px] rounded-full bg-primary/5 blur-[120px]" />
           </div>
 
           <div className="container max-w-6xl mx-auto px-4 sm:px-6 text-center">
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={stagger}
-              className="space-y-8"
-            >
+            <motion.div initial="hidden" animate="visible" variants={stagger} className="space-y-8">
               <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/15 text-primary text-xs font-semibold">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
@@ -148,7 +167,6 @@ const Index = () => {
                 )}
               </motion.div>
 
-              {/* Trust badges */}
               <motion.div variants={fadeUp} custom={4} className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-muted-foreground">
                 {TRUST_BADGES.map(badge => (
                   <span key={badge} className="flex items-center gap-1.5">
@@ -189,13 +207,7 @@ const Index = () => {
               </motion.p>
             </motion.div>
 
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-50px" }}
-              variants={stagger}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
-            >
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {FEATURES.map((feature, i) => (
                 <motion.article
                   key={feature.title}
@@ -215,8 +227,50 @@ const Index = () => {
           </div>
         </section>
 
-        {/* How it works */}
+        {/* Comparison Table */}
         <section className="py-24 bg-muted/30 border-t border-border/50">
+          <div className="container max-w-6xl mx-auto px-4 sm:px-6">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="text-center mb-16">
+              <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+                How Hunter compares
+              </motion.h2>
+              <motion.p variants={fadeUp} custom={1} className="text-lg text-muted-foreground">See why candidates switch from manual job searching.</motion.p>
+            </motion.div>
+
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-4 px-4 text-muted-foreground font-medium w-1/4">Feature</th>
+                    <th className="text-left py-4 px-4 font-semibold text-primary w-1/4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center">
+                          <span className="text-primary-foreground font-bold text-[10px]">H</span>
+                        </div>
+                        Hunter
+                      </div>
+                    </th>
+                    <th className="text-left py-4 px-4 text-muted-foreground font-medium w-1/4">Manual Search</th>
+                    <th className="text-left py-4 px-4 text-muted-foreground font-medium w-1/4">Other Tools</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {COMPARISON.map((row) => (
+                    <tr key={row.feature} className="border-b border-border/50">
+                      <td className="py-4 px-4 font-medium">{row.feature}</td>
+                      <td className="py-4 px-4 text-primary font-medium">{row.hunter}</td>
+                      <td className="py-4 px-4 text-muted-foreground">{row.manual}</td>
+                      <td className="py-4 px-4 text-muted-foreground">{row.other}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* How it works */}
+        <section className="py-24 border-t border-border/50">
           <div className="container max-w-6xl mx-auto px-4 sm:px-6">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="text-center mb-16">
               <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
@@ -225,13 +279,7 @@ const Index = () => {
               <motion.p variants={fadeUp} custom={1} className="text-lg text-muted-foreground">Three steps to your next job offer.</motion.p>
             </motion.div>
 
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={stagger}
-              className="grid grid-cols-1 md:grid-cols-3 gap-10"
-            >
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="grid grid-cols-1 md:grid-cols-3 gap-10">
               {[
                 { step: "01", title: "Build your profile", desc: "Walk through a guided flow to enter your experience, skills, and education. Hunter generates a polished, ATS-ready resume." },
                 { step: "02", title: "Find matching roles", desc: "Tell Hunter what roles you want and where. It searches live job boards and ranks matches by fit in real time." },
@@ -248,7 +296,7 @@ const Index = () => {
         </section>
 
         {/* Testimonials */}
-        <section className="py-24 border-t border-border/50">
+        <section className="py-24 bg-muted/30 border-t border-border/50">
           <div className="container max-w-6xl mx-auto px-4 sm:px-6">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="text-center mb-16">
               <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
@@ -257,13 +305,7 @@ const Index = () => {
               <motion.p variants={fadeUp} custom={1} className="text-lg text-muted-foreground">Early users on what's actually working for them.</motion.p>
             </motion.div>
 
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={stagger}
-              className="grid grid-cols-1 md:grid-cols-3 gap-6"
-            >
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {TESTIMONIALS.map((t, i) => (
                 <motion.div
                   key={t.name}
@@ -278,8 +320,8 @@ const Index = () => {
                   </div>
                   <p className="text-sm text-foreground leading-relaxed mb-5">"{t.quote}"</p>
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-xs font-bold text-primary">{t.name[0]}</span>
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/15">
+                      <span className="text-xs font-bold text-primary">{t.avatar}</span>
                     </div>
                     <div>
                       <div className="text-sm font-semibold">{t.name}</div>
