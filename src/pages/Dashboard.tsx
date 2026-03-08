@@ -38,6 +38,15 @@ import {
 type DashboardView = "jobs" | "applications" | "tools" | "notifications" | "settings";
 const VALID_DASHBOARD_VIEWS: DashboardView[] = ["jobs", "applications", "tools", "notifications", "settings"];
 
+// Track which tabs have been visited for lazy initialization
+const useVisitedTabs = (activeView: DashboardView) => {
+  const [visited, setVisited] = useState<Set<DashboardView>>(new Set([activeView]));
+  if (!visited.has(activeView)) {
+    setVisited(prev => new Set(prev).add(activeView));
+  }
+  return visited;
+};
+
 const NAV_ITEMS = [
   { id: "jobs" as const, label: "Jobs", icon: Briefcase },
   { id: "applications" as const, label: "Tracker", icon: FileText },
