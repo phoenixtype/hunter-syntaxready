@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import SEOHead from "@/components/SEOHead";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { Link, useNavigate } from "react-router-dom";
-import { Briefcase, FileText, Search, Linkedin, MessageSquare, User, Settings, LogOut, Zap, Bot, LayoutGrid, GraduationCap, Bell, FolderOpen, Sparkles, MoreHorizontal } from "lucide-react";
+import { Briefcase, FileText, Search, Linkedin, MessageSquare, User, Settings, LogOut, Zap, Bot, GraduationCap, Bell, FolderOpen, Sparkles, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -35,8 +35,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-type DashboardView = "jobs" | "applications" | "tools" | "notifications" | "settings";
-const VALID_DASHBOARD_VIEWS: DashboardView[] = ["jobs", "applications", "tools", "notifications", "settings"];
+type DashboardView = "jobs" | "applications" | "notifications" | "settings";
+const VALID_DASHBOARD_VIEWS: DashboardView[] = ["jobs", "applications", "notifications", "settings"];
 
 // Track which tabs have been visited for lazy initialization
 const useVisitedTabs = (activeView: DashboardView) => {
@@ -50,72 +50,37 @@ const useVisitedTabs = (activeView: DashboardView) => {
 const NAV_ITEMS = [
   { id: "jobs" as const, label: "Jobs", icon: Briefcase },
   { id: "applications" as const, label: "Tracker", icon: FileText },
-  { id: "tools" as const, label: "Tools", icon: LayoutGrid },
   { id: "notifications" as const, label: "Alerts", icon: Bell },
 ];
 
-// Mobile-only "More" items
-const MORE_ITEMS = [
-  { id: "settings" as const, label: "Settings", icon: Settings },
-];
+type SidebarTool = {
+  icon: typeof FileText;
+  title: string;
+  route?: string;
+  modal?: "postInterview" | "linkedin";
+};
 
-const TOOL_CATEGORIES = [
+const SIDEBAR_SECTIONS: { label: string; tools: SidebarTool[] }[] = [
   {
     label: "Apply",
     tools: [
-      {
-        icon: FileText,
-        title: "Resume Builder",
-        desc: "Build a polished, ATS-optimised resume",
-        route: "/resume-builder",
-      },
-      {
-        icon: Search,
-        title: "Application Wizard",
-        desc: "Paste a job URL — get a tailored resume & cover letter in seconds",
-        route: "/application-wizard",
-      },
-      {
-        icon: FolderOpen,
-        title: "My Tailored Resumes",
-        desc: "View & download all your AI-optimised resumes",
-        route: "/tailored-resumes",
-      },
+      { icon: FileText, title: "Resume Builder", route: "/resume-builder" },
+      { icon: Search, title: "Application Wizard", route: "/application-wizard" },
+      { icon: FolderOpen, title: "Tailored Resumes", route: "/tailored-resumes" },
     ],
   },
   {
     label: "Prepare",
     tools: [
-      {
-        icon: GraduationCap,
-        title: "Interview Coach",
-        desc: "AI mock interviews, briefing dossiers & negotiation prep",
-        route: "/interview-coach",
-        featured: true,
-      },
-      {
-        icon: MessageSquare,
-        title: "Post-Interview Tools",
-        desc: "Thank-you notes, offer evaluation & negotiation scripts",
-        modal: "postInterview" as const,
-      },
+      { icon: GraduationCap, title: "Interview Coach", route: "/interview-coach" },
+      { icon: MessageSquare, title: "Post-Interview", modal: "postInterview" },
     ],
   },
   {
     label: "Optimize",
     tools: [
-      {
-        icon: Linkedin,
-        title: "LinkedIn Optimizer",
-        desc: "AI suggestions to sharpen your LinkedIn profile",
-        modal: "linkedin" as const,
-      },
-      {
-        icon: Bot,
-        title: "Job Hunt Planner",
-        desc: "Configure your search preferences and job feed intensity",
-        route: "/auto-applier-settings",
-      },
+      { icon: Linkedin, title: "LinkedIn Optimizer", modal: "linkedin" },
+      { icon: Bot, title: "Hunt Planner", route: "/auto-applier-settings" },
     ],
   },
 ];
@@ -191,14 +156,16 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-0.5" aria-label="Dashboard navigation">
+        <nav className="flex-1 px-3 py-3 space-y-4 overflow-y-auto" aria-label="Dashboard navigation">
+          {/* Main nav */}
+          <div className="space-y-0.5">
           {NAV_ITEMS.map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveView(item.id)}
-              className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all ${
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                 activeView === item.id
-                  ? "bg-primary/12 text-primary shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.15)]"
+                  ? "bg-primary/12 text-primary"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
               }`}
             >
@@ -210,6 +177,30 @@ const Dashboard = () => {
                 </Badge>
               )}
             </button>
+          ))}
+          </div>
+
+          {/* Tool sections */}
+          {SIDEBAR_SECTIONS.map((section) => (
+            <div key={section.label}>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 px-3 mb-1">{section.label}</p>
+              <div className="space-y-0.5">
+                {section.tools.map((tool) => (
+                  <button
+                    key={tool.title}
+                    onClick={() => {
+                      if (tool.route) navigate(tool.route);
+                      else if (tool.modal === 'postInterview') setShowPostInterview(true);
+                      else if (tool.modal === 'linkedin') setShowLinkedIn(true);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-all"
+                  >
+                    <tool.icon className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate text-[13px]">{tool.title}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
 
@@ -312,29 +303,51 @@ const Dashboard = () => {
                 <span>More</span>
               </button>
             </SheetTrigger>
-            <SheetContent side="bottom" className="rounded-t-2xl pb-safe">
+            <SheetContent side="bottom" className="rounded-t-2xl pb-safe max-h-[70vh] overflow-y-auto">
               <SheetHeader>
                 <SheetTitle>More</SheetTitle>
               </SheetHeader>
-              <div className="py-4 space-y-1">
-                <button
-                  onClick={() => { setActiveView("settings"); setSettingsTab("profile"); setMoreOpen(false); }}
-                  className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/70 transition-colors"
-                >
-                  <User className="w-4 h-4" /> Profile
-                </button>
-                <button
-                  onClick={() => { setActiveView("settings"); setSettingsTab("preferences"); setMoreOpen(false); }}
-                  className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/70 transition-colors"
-                >
-                  <Settings className="w-4 h-4" /> Preferences
-                </button>
-                <button
-                  onClick={() => { handleSignOut(); setMoreOpen(false); }}
-                  className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors"
-                >
-                  <LogOut className="w-4 h-4" /> Sign out
-                </button>
+              <div className="py-4 space-y-4">
+                {/* Tool sections */}
+                {SIDEBAR_SECTIONS.map((section) => (
+                  <div key={section.label}>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 px-3 mb-1">{section.label}</p>
+                    {section.tools.map((tool) => (
+                      <button
+                        key={tool.title}
+                        onClick={() => {
+                          if (tool.route) { navigate(tool.route); setMoreOpen(false); }
+                          else if (tool.modal === 'postInterview') { setShowPostInterview(true); setMoreOpen(false); }
+                          else if (tool.modal === 'linkedin') { setShowLinkedIn(true); setMoreOpen(false); }
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-muted/70 transition-colors"
+                      >
+                        <tool.icon className="w-4 h-4 text-muted-foreground" /> {tool.title}
+                      </button>
+                    ))}
+                  </div>
+                ))}
+
+                <div className="border-t border-border pt-3 space-y-1">
+                  <button
+                    onClick={() => { setActiveView("settings"); setSettingsTab("profile"); setMoreOpen(false); }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted/70 transition-colors"
+                  >
+                    <User className="w-4 h-4" /> Profile
+                  </button>
+                  <button
+                    onClick={() => { setActiveView("settings"); setSettingsTab("preferences"); setMoreOpen(false); }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted/70 transition-colors"
+                  >
+                    <Settings className="w-4 h-4" /> Preferences
+                  </button>
+                  <button
+                    onClick={() => { handleSignOut(); setMoreOpen(false); }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" /> Sign out
+                  </button>
+                </div>
               </div>
             </SheetContent>
           </Sheet>
@@ -407,59 +420,6 @@ const Dashboard = () => {
             <WidgetErrorBoundary>
               <NotificationSettings />
             </WidgetErrorBoundary>
-          )}
-
-          {/* Tools — Categorized */}
-          {activeView === "tools" && (
-            <div className="space-y-8 animate-fade-in">
-              <div>
-                <h2 className="text-xl font-bold mb-1">AI Tools</h2>
-                <p className="text-sm text-muted-foreground">Every tool you need to research, apply, and ace your interviews.</p>
-              </div>
-
-              {TOOL_CATEGORIES.map((cat) => (
-                <div key={cat.label} className="space-y-3">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{cat.label}</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {cat.tools.map((tool) => (
-                      <button
-                        key={tool.title}
-                        onClick={() => {
-                          if ('route' in tool && tool.route) navigate(tool.route);
-                          else if ('modal' in tool && tool.modal === 'postInterview') setShowPostInterview(true);
-                          else if ('modal' in tool && tool.modal === 'linkedin') setShowLinkedIn(true);
-                        }}
-                        className={`group text-left p-5 rounded-xl border transition-all duration-200 ${
-                          ('featured' in tool && tool.featured)
-                            ? "border-primary/25 bg-primary/5 hover:border-primary/40 hover:bg-primary/8 hover:shadow-sm"
-                            : "border-border bg-card hover:border-primary/25 hover:shadow-sm hover:bg-accent/30"
-                        }`}
-                      >
-                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-4 ${
-                          ('featured' in tool && tool.featured) ? "bg-primary/15" : "bg-muted"
-                        }`}>
-                          <tool.icon className={`w-5 h-5 ${('featured' in tool && tool.featured) ? "text-primary" : "text-muted-foreground group-hover:text-foreground transition-colors"}`} />
-                        </div>
-                        <h3 className="text-sm font-semibold mb-1.5 group-hover:text-primary transition-colors leading-tight">{tool.title}</h3>
-                        <p className="text-xs text-muted-foreground leading-relaxed">{tool.desc}</p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-
-              {!profile && (
-                <div className="p-4 rounded-xl bg-primary/5 border border-primary/15 text-sm text-muted-foreground flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <Sparkles className="w-4 h-4 text-primary" />
-                  </div>
-                  <span>
-                    <strong className="text-foreground">Tip:</strong> Build your profile to unlock all AI-powered tools.
-                    <Link to="/resume-builder" className="text-primary font-medium ml-1 hover:underline">Build Profile →</Link>
-                  </span>
-                </div>
-              )}
-            </div>
           )}
         </main>
       </div>

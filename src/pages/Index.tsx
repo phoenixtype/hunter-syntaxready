@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight, Briefcase, FileText, Zap, Shield, Users, Star, ChevronRight, CheckCircle2 } from "lucide-react";
-import dashboardPreview from "@/assets/dashboard-preview.jpg";
 import MobileNav from "@/components/MobileNav";
 import SkipLink from "@/components/SkipLink";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -210,7 +209,7 @@ const Index = () => {
                   <span className="ml-3 text-[10px] text-muted-foreground font-mono">hunter.app/dashboard</span>
                 </div>
                 <img
-                  src={dashboardPreview}
+                  src="/images/dashboard-preview.jpg"
                   alt="Hunter AI dashboard showing job listings with match scores, filters, and application tracking"
                   className="w-full"
                   loading="lazy"
