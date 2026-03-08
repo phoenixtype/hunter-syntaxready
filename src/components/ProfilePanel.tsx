@@ -144,10 +144,18 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
                     </div>
                 </div>
 
-                <Button onClick={() => navigate("/profile")} variant="outline" size="sm" className="shrink-0 gap-2">
-                    <Edit2 className="w-4 h-4" />
-                    Edit Profile
-                </Button>
+                <div className="flex gap-2">
+                    <Button onClick={() => navigate("/profile")} variant="outline" size="sm" className="shrink-0 gap-2">
+                        <Edit2 className="w-4 h-4" />
+                        Edit Profile
+                    </Button>
+                    {profile.resume_file_url && (
+                        <Button onClick={() => window.open(profile.resume_file_url!, '_blank')} variant="outline" size="sm" className="shrink-0 gap-2">
+                            <Download className="w-4 h-4" />
+                            Download Resume
+                        </Button>
+                    )}
+                </div>
             </div>
 
             {/* Profile Strength Card */}
