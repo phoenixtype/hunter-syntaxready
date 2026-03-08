@@ -122,13 +122,23 @@
   @media (pointer: coarse) and (max-width: 1023px) {
     button,
     [role="button"],
-    a,
+    a {
+      min-height: 44px;
+      min-width: 44px;
+    }
+
     input,
     select,
     textarea {
       min-height: 44px;
-      min-width: 44px;
+      font-size: 16px; /* Prevents iOS zoom on focus */
     }
+  }
+
+  /* Prevent overscroll bounce on iOS */
+  html {
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
   }
 
   :focus-visible {
