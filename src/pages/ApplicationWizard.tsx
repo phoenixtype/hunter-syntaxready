@@ -148,7 +148,7 @@ const ApplicationWizard = () => {
                             <Card className="border-border bg-card shadow-sm overflow-hidden">
                                 <div className="p-5 border-b border-border flex justify-between items-start">
                                     <div>
-                                        <h3 className="text-xl font-bold tracking-tight text-foreground">{job.title}</h3>
+                                        <h3 className="text-lg font-bold tracking-tight text-foreground">{job.title}</h3>
                                         <p className="text-sm text-primary font-medium mt-1">{job.company}</p>
                                     </div>
                                     <Badge variant="outline" className="bg-background/80 backdrop-blur-sm border-border text-xs px-3 py-1 text-muted-foreground">{job.source}</Badge>
