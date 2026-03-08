@@ -303,29 +303,51 @@ const Dashboard = () => {
                 <span>More</span>
               </button>
             </SheetTrigger>
-            <SheetContent side="bottom" className="rounded-t-2xl pb-safe">
+            <SheetContent side="bottom" className="rounded-t-2xl pb-safe max-h-[70vh] overflow-y-auto">
               <SheetHeader>
                 <SheetTitle>More</SheetTitle>
               </SheetHeader>
-              <div className="py-4 space-y-1">
-                <button
-                  onClick={() => { setActiveView("settings"); setSettingsTab("profile"); setMoreOpen(false); }}
-                  className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/70 transition-colors"
-                >
-                  <User className="w-4 h-4" /> Profile
-                </button>
-                <button
-                  onClick={() => { setActiveView("settings"); setSettingsTab("preferences"); setMoreOpen(false); }}
-                  className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/70 transition-colors"
-                >
-                  <Settings className="w-4 h-4" /> Preferences
-                </button>
-                <button
-                  onClick={() => { handleSignOut(); setMoreOpen(false); }}
-                  className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors"
-                >
-                  <LogOut className="w-4 h-4" /> Sign out
-                </button>
+              <div className="py-4 space-y-4">
+                {/* Tool sections */}
+                {SIDEBAR_SECTIONS.map((section) => (
+                  <div key={section.label}>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 px-3 mb-1">{section.label}</p>
+                    {section.tools.map((tool) => (
+                      <button
+                        key={tool.title}
+                        onClick={() => {
+                          if (tool.route) { navigate(tool.route); setMoreOpen(false); }
+                          else if (tool.modal === 'postInterview') { setShowPostInterview(true); setMoreOpen(false); }
+                          else if (tool.modal === 'linkedin') { setShowLinkedIn(true); setMoreOpen(false); }
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-muted/70 transition-colors"
+                      >
+                        <tool.icon className="w-4 h-4 text-muted-foreground" /> {tool.title}
+                      </button>
+                    ))}
+                  </div>
+                ))}
+
+                <div className="border-t border-border pt-3 space-y-1">
+                  <button
+                    onClick={() => { setActiveView("settings"); setSettingsTab("profile"); setMoreOpen(false); }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted/70 transition-colors"
+                  >
+                    <User className="w-4 h-4" /> Profile
+                  </button>
+                  <button
+                    onClick={() => { setActiveView("settings"); setSettingsTab("preferences"); setMoreOpen(false); }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted/70 transition-colors"
+                  >
+                    <Settings className="w-4 h-4" /> Preferences
+                  </button>
+                  <button
+                    onClick={() => { handleSignOut(); setMoreOpen(false); }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" /> Sign out
+                  </button>
+                </div>
               </div>
             </SheetContent>
           </Sheet>
