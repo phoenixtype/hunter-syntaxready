@@ -107,6 +107,17 @@ const Dashboard = () => {
   const [showPricing, setShowPricing] = useState(false);
   const [showLinkedIn, setShowLinkedIn] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    try { return localStorage.getItem("hunter_sidebar_collapsed") === "true"; } catch { return false; }
+  });
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed(prev => {
+      const next = !prev;
+      try { localStorage.setItem("hunter_sidebar_collapsed", String(next)); } catch { /* */ }
+      return next;
+    });
+  };
 
   useRealtimeNotifications(user?.id);
 
