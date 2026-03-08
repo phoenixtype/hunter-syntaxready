@@ -401,14 +401,25 @@ const Dashboard = () => {
                     <Settings className="w-3.5 h-3.5 mr-1.5" />
                     Preferences
                   </Button>
+                  <Button
+                    variant={settingsTab === "alerts" ? "secondary" : "ghost"}
+                    size="sm"
+                    onClick={() => setSettingsTab("alerts")}
+                    className={`h-8 px-4 text-xs ${settingsTab === "alerts" ? "shadow-sm font-medium" : "text-muted-foreground"}`}
+                  >
+                    <Bell className="w-3.5 h-3.5 mr-1.5" />
+                    Alerts
+                  </Button>
                 </div>
 
                 {settingsTab === "profile" ? (
                   <ProfilePanel profile={profile} />
-                ) : (
+                ) : settingsTab === "preferences" ? (
                   <div className="max-w-lg space-y-1">
                     <PreferencesPanel preferences={preferences ?? null} />
                   </div>
+                ) : (
+                  <NotificationSettings />
                 )}
               </div>
             </WidgetErrorBoundary>
