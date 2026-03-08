@@ -32,6 +32,7 @@ import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import PipelineSummary from "./PipelineSummary";
 import ApplicationDetailSheet from "./ApplicationDetailSheet";
+import ApplicationAnalytics from "./ApplicationAnalytics";
 
 type Stage = "applied" | "interview" | "offer" | "rejected";
 
