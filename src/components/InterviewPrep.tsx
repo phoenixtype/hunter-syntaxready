@@ -171,7 +171,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                             </h3>
                                             <div className="grid md:grid-cols-2 gap-4">
                                                 {material.interviewer_insights.map((person, i) => (
-                                                    <div key={i} className="flex gap-4 p-4 rounded-lg bg-card border border-border">
+                                                    <div key={i} className="flex gap-4 p-4 rounded-xl bg-card border border-border">
                                                         <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-foreground font-bold shrank-0">
                                                             {person.role[0]}
                                                         </div>
