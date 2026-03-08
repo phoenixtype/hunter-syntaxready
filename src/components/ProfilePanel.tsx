@@ -1,7 +1,7 @@
 import { CandidateProfile } from "@/lib/resume_engine";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit2, Briefcase, GraduationCap, Code2, User, Mail, Phone, TrendingUp, AlertCircle, FileText } from "lucide-react";
+import { Edit2, Briefcase, GraduationCap, Code2, User, Mail, Phone, TrendingUp, AlertCircle, FileText, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
