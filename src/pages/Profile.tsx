@@ -626,7 +626,7 @@ const Profile = () => {
                                 </div>
                                 <div className="space-y-4">
                                     {formData.custom_sections?.map((section, idx) => (
-                                        <Card key={idx} className="group border-border bg-card/50 backdrop-blur-md shadow-lg hover:border-primary/30 transition-colors">
+                                        <Card key={idx} className="group border-border bg-card hover:border-primary/30 transition-colors">
                                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                                 <Input
                                                     value={section.title}
