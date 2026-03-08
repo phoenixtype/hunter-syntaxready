@@ -38,8 +38,8 @@ type Stage = "applied" | "interview" | "offer" | "rejected";
 
 const STAGES: { id: Stage; label: string; color: string }[] = [
   { id: "applied", label: "Applied", color: "bg-primary/10 text-primary border-primary/20" },
-  { id: "interview", label: "Interview", color: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20" },
-  { id: "offer", label: "Offer", color: "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20" },
+  { id: "interview", label: "Interview", color: "bg-warning/10 text-warning border-warning/20" },
+  { id: "offer", label: "Offer", color: "bg-success/10 text-success border-success/20" },
   { id: "rejected", label: "Rejected", color: "bg-destructive/10 text-destructive border-destructive/20" },
 ];
 

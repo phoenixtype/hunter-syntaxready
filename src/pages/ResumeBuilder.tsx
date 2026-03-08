@@ -613,13 +613,13 @@ const ResumeBuilder = () => {
                         <ShieldCheck className="w-4 h-4 text-primary" />
                         <span className="text-sm font-semibold">ATS Compatibility Score</span>
                       </div>
-                      <span className={`text-2xl font-bold ${atsResult.score >= 70 ? "text-primary" : atsResult.score >= 50 ? "text-yellow-500" : "text-destructive"}`}>
+                      <span className={`text-2xl font-bold ${atsResult.score >= 70 ? "text-primary" : atsResult.score >= 50 ? "text-warning" : "text-destructive"}`}>
                         {atsResult.score}/100
                       </span>
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden mb-3">
                       <div
-                        className={`h-full rounded-full transition-all duration-700 ${atsResult.score >= 70 ? "bg-primary" : atsResult.score >= 50 ? "bg-yellow-500" : "bg-destructive"}`}
+                        className={`h-full rounded-full transition-all duration-700 ${atsResult.score >= 70 ? "bg-primary" : atsResult.score >= 50 ? "bg-warning" : "bg-destructive"}`}
                         style={{ width: `${atsResult.score}%` }}
                       />
                     </div>
@@ -627,7 +627,7 @@ const ResumeBuilder = () => {
                       <ul className="text-xs text-muted-foreground space-y-1">
                         {atsResult.formatting_issues.map((issue, i) => (
                           <li key={i} className="flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 shrink-0" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-warning shrink-0" />
                             {issue}
                           </li>
                         ))}

@@ -158,7 +158,7 @@ const EmailVerification = () => {
               </div>
               <div className="space-y-3 pt-4">
                 <Link to="/signup">
-                  <Button variant="outline" className="w-full h-12 rounded-xl border-white/20 hover:bg-white/5 transition-all">
+                  <Button variant="outline" className="w-full h-12 rounded-xl border-border hover:bg-muted transition-all">
                     Try signing up again
                   </Button>
                 </Link>

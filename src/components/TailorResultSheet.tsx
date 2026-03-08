@@ -88,7 +88,7 @@ const TailorResultSheet = ({ open, onClose, content, job }: TailorResultSheetPro
                         onClick={() => setOnePagePdf(v => !v)}
                         className={`relative w-9 h-5 rounded-full transition-colors ${onePagePdf ? "bg-primary" : "bg-muted-foreground/30"}`}
                     >
-                        <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${onePagePdf ? "translate-x-4" : "translate-x-0"}`} />
+                        <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-background shadow-sm transition-transform ${onePagePdf ? "translate-x-4" : "translate-x-0"}`} />
                     </div>
                     <span className="text-sm text-muted-foreground">Fit to 1 page</span>
                 </label>
@@ -96,13 +96,13 @@ const TailorResultSheet = ({ open, onClose, content, job }: TailorResultSheetPro
                 {/* Download buttons */}
                 <div className="grid grid-cols-2 gap-3 mb-5">
                     <Button onClick={handlePdf} className="gap-2 h-12">
-                        <FileText className="w-4 h-4 text-red-300" />
+                        <FileText className="w-4 h-4" />
                         Download PDF
                     </Button>
                     <Button variant="outline" onClick={handleDocx} disabled={downloadingDocx} className="gap-2 h-12">
                         {downloadingDocx
                             ? <Loader2 className="w-4 h-4 animate-spin" />
-                            : <FileDown className="w-4 h-4 text-blue-500" />
+                            : <FileDown className="w-4 h-4" />
                         }
                         {downloadingDocx ? "Exporting..." : "Download DOCX"}
                     </Button>

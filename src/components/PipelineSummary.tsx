@@ -6,8 +6,8 @@ interface Props {
 
 const STAGES = [
   { id: "applied", label: "Applied", dotClass: "bg-primary" },
-  { id: "interview", label: "Interview", dotClass: "bg-yellow-500" },
-  { id: "offer", label: "Offer", dotClass: "bg-green-500" },
+  { id: "interview", label: "Interview", dotClass: "bg-warning" },
+  { id: "offer", label: "Offer", dotClass: "bg-success" },
   { id: "rejected", label: "Rejected", dotClass: "bg-destructive" },
 ];
 
