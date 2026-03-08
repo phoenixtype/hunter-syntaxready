@@ -257,7 +257,7 @@ const Profile = () => {
                 }
             />
 
-            <main className="container max-w-4xl mx-auto px-4 pt-24 space-y-8 animate-fade-in">
+            <main className="container max-w-4xl mx-auto px-4 pt-20 sm:pt-24 space-y-8 animate-fade-in pb-8">
 
                 {/* --- VIEW / PREVIEW MODE (READ ONLY) --- */}
                 {(mode === 'view' || mode === 'preview') && (

@@ -119,7 +119,7 @@ const Index = () => {
 
       <main id="main-content">
         {/* Hero */}
-        <section className="pt-32 sm:pt-40 pb-20 md:pb-28 relative overflow-hidden">
+        <section className="pt-28 sm:pt-40 pb-16 md:pb-28 relative overflow-hidden">
           <div className="absolute inset-0 -z-10">
             <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[600px] rounded-full bg-primary/5 blur-[120px]" />
           </div>
@@ -134,13 +134,13 @@ const Index = () => {
                 Now in open beta — Join free
               </motion.div>
 
-              <motion.h1 variants={fadeUp} custom={1} className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08]">
+              <motion.h1 variants={fadeUp} custom={1} className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1]">
                 Your career on
                 <br />
                 <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">autopilot.</span>
               </motion.h1>
 
-              <motion.p variants={fadeUp} custom={2} className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              <motion.p variants={fadeUp} custom={2} className="text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed px-2">
                 Hunter discovers hidden opportunities, tailors every application to beat ATS filters, and preps you for interviews — so you focus on what matters.
               </motion.p>
 

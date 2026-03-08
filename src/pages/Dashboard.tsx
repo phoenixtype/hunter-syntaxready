@@ -327,7 +327,7 @@ const Dashboard = () => {
         </header>
 
         {/* Mobile Tab Bar — only on xs screens where sidebar is hidden */}
-        <nav role="navigation" aria-label="Main navigation" className="sm:hidden fixed bottom-0 left-0 right-0 z-50 flex border-t border-border bg-background/95 backdrop-blur-md safe-area-inset-bottom">
+        <nav role="navigation" aria-label="Main navigation" className="sm:hidden fixed bottom-0 left-0 right-0 z-50 flex border-t border-border bg-background/95 backdrop-blur-md" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
           {NAV_ITEMS.map((item) => (
             <button
               key={item.id}
@@ -337,16 +337,16 @@ const Dashboard = () => {
                 setActiveView(item.id);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className={`flex-1 flex flex-col items-center gap-1.5 py-2.5 text-[10px] font-medium transition-all ${
-                activeView === item.id ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              className={`flex-1 flex flex-col items-center gap-1 py-3 text-[11px] font-medium transition-all relative ${
+                activeView === item.id ? "text-primary" : "text-muted-foreground active:text-foreground"
               }`}
             >
-              <div className={`p-1 rounded-lg transition-colors ${activeView === item.id ? "bg-primary/10" : ""}`}>
+              <div className={`p-1.5 rounded-xl transition-colors ${activeView === item.id ? "bg-primary/10" : ""}`}>
                 <item.icon className="w-5 h-5" />
               </div>
-              <span className="truncate">{item.label}</span>
+              <span>{item.label}</span>
               {activeView === item.id && (
-                <motion.div layoutId="activeTab" className="absolute bottom-0 w-8 h-0.5 bg-primary rounded-full" transition={{ type: "spring", bounce: 0.2, duration: 0.6 }} />
+                <motion.div layoutId="activeTab" className="absolute bottom-0 w-10 h-0.5 bg-primary rounded-full" transition={{ type: "spring", bounce: 0.2, duration: 0.6 }} />
               )}
             </button>
           ))}
@@ -355,11 +355,11 @@ const Dashboard = () => {
             <SheetTrigger asChild>
               <button
                 aria-label="More"
-                className={`flex-1 flex flex-col items-center gap-1.5 py-2.5 text-[10px] font-medium transition-all ${
-                  activeView === "settings" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                className={`flex-1 flex flex-col items-center gap-1 py-3 text-[11px] font-medium transition-all ${
+                  activeView === "settings" ? "text-primary" : "text-muted-foreground active:text-foreground"
                 }`}
               >
-                <div className={`p-1 rounded-lg transition-colors ${activeView === "settings" ? "bg-primary/10" : ""}`}>
+                <div className={`p-1.5 rounded-xl transition-colors ${activeView === "settings" ? "bg-primary/10" : ""}`}>
                   <MoreHorizontal className="w-5 h-5" />
                 </div>
                 <span>More</span>
@@ -382,7 +382,7 @@ const Dashboard = () => {
                           else if (tool.modal === 'postInterview') { setShowPostInterview(true); setMoreOpen(false); }
                           else if (tool.modal === 'linkedin') { setShowLinkedIn(true); setMoreOpen(false); }
                         }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-muted/70 transition-colors"
+                        className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-foreground hover:bg-muted/70 active:bg-muted transition-colors"
                       >
                         <tool.icon className="w-4 h-4 text-muted-foreground" /> {tool.title}
                       </button>
@@ -393,25 +393,25 @@ const Dashboard = () => {
                 <div className="border-t border-border pt-3 space-y-1">
                   <button
                     onClick={() => { setActiveView("settings"); setSettingsTab("profile"); setMoreOpen(false); }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted/70 transition-colors"
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/70 active:bg-muted transition-colors"
                   >
                     <User className="w-4 h-4" /> Profile
                   </button>
                   <button
                     onClick={() => { setActiveView("settings"); setSettingsTab("preferences"); setMoreOpen(false); }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted/70 transition-colors"
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/70 active:bg-muted transition-colors"
                   >
                     <Settings className="w-4 h-4" /> Preferences
                   </button>
                   <button
                     onClick={() => { setActiveView("settings"); setSettingsTab("alerts"); setMoreOpen(false); }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted/70 transition-colors"
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/70 active:bg-muted transition-colors"
                   >
                     <Bell className="w-4 h-4" /> Alerts
                   </button>
                   <button
                     onClick={() => { handleSignOut(); setMoreOpen(false); }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors"
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/5 active:bg-destructive/10 transition-colors"
                   >
                     <LogOut className="w-4 h-4" /> Sign out
                   </button>
@@ -422,7 +422,7 @@ const Dashboard = () => {
         </nav>
 
         {/* Content */}
-        <main id="main-content" className="flex-1 p-4 sm:p-6 max-w-5xl w-full mx-auto pb-24 lg:pb-6">
+        <main id="main-content" className="flex-1 p-4 sm:p-6 max-w-5xl w-full mx-auto pb-28 sm:pb-6">
           {/* Jobs - lazy init */}
           {visitedTabs.has("jobs") && (
             <div className={activeView !== "jobs" ? "hidden" : ""}>

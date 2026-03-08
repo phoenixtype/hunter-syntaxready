@@ -304,7 +304,7 @@ const ResumeBuilder = () => {
       />
       <Progress value={progressPercent} className="h-1 rounded-none bg-muted [&>div]:bg-primary" />
 
-      <div className="pt-20 pb-32 px-4">
+      <div className="pt-16 sm:pt-20 pb-36 sm:pb-32 px-4">
         <div className="max-w-3xl mx-auto">
 
           {/* PERSONAL INFO */}
@@ -533,7 +533,7 @@ const ResumeBuilder = () => {
                 <h2 className="text-2xl font-bold">Choose a Template</h2>
                 <p className="text-muted-foreground">Select an ATS-friendly template that fits your industry and career level.</p>
               </div>
-              <RadioGroup value={selectedTemplate} onValueChange={setSelectedTemplate} className="grid sm:grid-cols-2 gap-4">
+              <RadioGroup value={selectedTemplate} onValueChange={setSelectedTemplate} className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {TEMPLATES.map(t => (
                   <label
                     key={t.id}
@@ -563,7 +563,7 @@ const ResumeBuilder = () => {
                       </div>
                     </div>
                     {/* Mini preview */}
-                    <div className={`h-24 rounded-lg ${t.preview} border border-border/50 p-3 flex flex-col justify-between`}>
+                    <div className={`h-20 sm:h-24 rounded-lg ${t.preview} border border-border/50 p-3 flex flex-col justify-between`}>
                       <div className="space-y-1">
                         <div className="h-2.5 bg-foreground/25 rounded w-2/5" />
                         <div className="h-1.5 bg-foreground/10 rounded w-3/5" />

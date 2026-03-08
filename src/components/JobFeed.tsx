@@ -325,17 +325,17 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
               className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 transition-all duration-200"
             >
               <div className="p-4 sm:p-5">
-                <div className="flex items-start gap-3.5">
-                  <div className="hidden sm:flex w-11 h-11 rounded-xl bg-primary/10 items-center justify-center shrink-0 border border-primary/10">
+                <div className="flex items-start gap-3">
+                  <div className="flex w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-primary/10 items-center justify-center shrink-0 border border-primary/10">
                     <span className="text-sm font-bold text-primary">{job.company[0]}</span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <h3 className="font-semibold text-base leading-snug truncate">{job.title}</h3>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                        <h3 className="font-semibold text-[15px] sm:text-base leading-snug line-clamp-2">{job.title}</h3>
+                        <div className="flex items-center gap-2 sm:gap-3 mt-1.5 text-xs text-muted-foreground flex-wrap">
                           <span className="flex items-center gap-1.5"><Building2 className="w-3 h-3 shrink-0" />{job.company}</span>
-                          {job.location && <span className="flex items-center gap-1.5"><MapPin className="w-3 h-3 shrink-0" />{job.location}</span>}
+                          {job.location && <span className="flex items-center gap-1.5 truncate max-w-[140px] sm:max-w-none"><MapPin className="w-3 h-3 shrink-0" />{job.location}</span>}
                           {job.match && (
                             <MatchScoreTooltip match={job.match}>
                               <span className={`inline-flex items-center font-semibold text-[11px] px-1.5 py-0.5 rounded-full border cursor-help ${
@@ -351,17 +351,17 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
+                      <div className="flex items-center gap-1.5 shrink-0">
                         {/* Bookmark */}
                         <button
                           onClick={() => {
                             toggleSave(job.id);
                             toast(jobSaved ? "Removed from saved" : "Saved to bookmarks");
                           }}
-                          className={`p-1.5 rounded-lg transition-colors ${
+                          className={`p-2 rounded-xl transition-colors ${
                             jobSaved
                               ? "text-primary bg-primary/10"
-                              : "text-muted-foreground/60 hover:text-primary hover:bg-primary/5"
+                              : "text-muted-foreground/60 hover:text-primary hover:bg-primary/5 active:bg-primary/10"
                           }`}
                           title={jobSaved ? "Remove bookmark" : "Save job"}
                         >
@@ -370,7 +370,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                         {/* Dismiss */}
                         <button
                           onClick={() => handleDismiss(job)}
-                          className="p-1.5 rounded-lg text-muted-foreground/60 hover:text-destructive hover:bg-destructive/5 transition-colors"
+                          className="p-2 rounded-xl text-muted-foreground/60 hover:text-destructive hover:bg-destructive/5 active:bg-destructive/10 transition-colors"
                           title="Dismiss job"
                         >
                           <X className="w-3.5 h-3.5" />
