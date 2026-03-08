@@ -148,7 +148,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                             </h3>
                                             <div className="grid md:grid-cols-3 gap-4">
                                                 {material.evaluation_criteria.map((crit, i) => (
-                                                    <div key={i} className="p-4 rounded-lg bg-card border border-border ">
+                                                    <div key={i} className="p-4 rounded-xl bg-card border border-border">
                                                         <div className="flex justify-between items-start mb-2">
                                                             <div className="font-medium">{crit.dimension}</div>
                                                             <Badge variant={crit.weight === 'High' ? 'default' : 'secondary'} className="text-[10px]">
