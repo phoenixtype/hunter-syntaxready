@@ -424,13 +424,6 @@ const Dashboard = () => {
               </div>
             </WidgetErrorBoundary>
           )}
-
-          {/* Notifications */}
-          {activeView === "notifications" && (
-            <WidgetErrorBoundary>
-              <NotificationSettings />
-            </WidgetErrorBoundary>
-          )}
         </main>
       </div>
 
