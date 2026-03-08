@@ -563,7 +563,7 @@ const ResumeBuilder = () => {
                       </div>
                     </div>
                     {/* Mini preview */}
-                    <div className={`h-24 rounded-lg ${t.preview} border border-border/50 p-3 flex flex-col justify-between`}>
+                    <div className={`h-20 sm:h-24 rounded-lg ${t.preview} border border-border/50 p-3 flex flex-col justify-between`}>
                       <div className="space-y-1">
                         <div className="h-2.5 bg-foreground/25 rounded w-2/5" />
                         <div className="h-1.5 bg-foreground/10 rounded w-3/5" />
