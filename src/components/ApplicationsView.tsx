@@ -544,8 +544,8 @@ export const ApplicationsView = () => {
           )}
         </div>
       )}
+      </AnimatePresence>
 
-      {/* Detail sheet */}
       <ApplicationDetailSheet
         app={detailApp}
         open={!!detailApp}
