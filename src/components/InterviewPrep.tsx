@@ -219,7 +219,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                     <TabsContent value="questions" className="mt-0 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
                                         <div className="grid md:grid-cols-2 gap-6">
                                             <div className="space-y-4">
-                                                <h3 className="text-lg font-semibold">Technical Review</h3>
+                                                <h3 className="text-sm font-semibold">Technical Review</h3>
                                                 <div className="space-y-3">
                                                     {material.technical_questions.map((q, i) => (
                                                         <div key={i} className="p-4 rounded-lg bg-secondary border border-border text-sm leading-relaxed">
