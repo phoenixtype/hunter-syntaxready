@@ -156,14 +156,16 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-0.5" aria-label="Dashboard navigation">
+        <nav className="flex-1 px-3 py-3 space-y-4 overflow-y-auto" aria-label="Dashboard navigation">
+          {/* Main nav */}
+          <div className="space-y-0.5">
           {NAV_ITEMS.map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveView(item.id)}
-              className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all ${
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                 activeView === item.id
-                  ? "bg-primary/12 text-primary shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.15)]"
+                  ? "bg-primary/12 text-primary"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
               }`}
             >
@@ -175,6 +177,30 @@ const Dashboard = () => {
                 </Badge>
               )}
             </button>
+          ))}
+          </div>
+
+          {/* Tool sections */}
+          {SIDEBAR_SECTIONS.map((section) => (
+            <div key={section.label}>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 px-3 mb-1">{section.label}</p>
+              <div className="space-y-0.5">
+                {section.tools.map((tool) => (
+                  <button
+                    key={tool.title}
+                    onClick={() => {
+                      if (tool.route) navigate(tool.route);
+                      else if (tool.modal === 'postInterview') setShowPostInterview(true);
+                      else if (tool.modal === 'linkedin') setShowLinkedIn(true);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-all"
+                  >
+                    <tool.icon className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate text-[13px]">{tool.title}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
 
