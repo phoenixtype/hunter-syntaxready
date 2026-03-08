@@ -38,20 +38,66 @@ const TEMPLATES = [
   {
     id: "classic",
     name: "Classic Professional",
-    desc: "Clean, traditional layout. Ideal for corporate roles.",
+    desc: "Clean, traditional layout with serif headings. Ideal for corporate, legal, and finance roles.",
     preview: "bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900",
+    accent: "border-l-slate-500",
+    tag: "Popular",
   },
   {
     id: "modern",
     name: "Modern Minimal",
-    desc: "Sleek, contemporary design. Great for tech & creative roles.",
+    desc: "Sleek, contemporary sans-serif design with teal accents. Great for tech & product roles.",
     preview: "bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950 dark:to-indigo-950",
+    accent: "border-l-primary",
+    tag: "Default",
   },
   {
     id: "executive",
     name: "Executive",
-    desc: "Bold, authoritative layout for senior/leadership positions.",
+    desc: "Bold, authoritative layout with a dark header. Best for VP, Director, and C-level positions.",
     preview: "bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-950 dark:to-orange-950",
+    accent: "border-l-amber-500",
+    tag: null,
+  },
+  {
+    id: "creative",
+    name: "Creative Portfolio",
+    desc: "Two-column layout with a colored sidebar. Perfect for designers, marketers, and content creators.",
+    preview: "bg-gradient-to-br from-fuchsia-50 to-pink-100 dark:from-fuchsia-950 dark:to-pink-950",
+    accent: "border-l-fuchsia-500",
+    tag: "New",
+  },
+  {
+    id: "technical",
+    name: "Technical Engineer",
+    desc: "Monospace-accented layout highlighting tech stack and project details. Built for engineers.",
+    preview: "bg-gradient-to-br from-emerald-50 to-teal-100 dark:from-emerald-950 dark:to-teal-950",
+    accent: "border-l-emerald-500",
+    tag: "New",
+  },
+  {
+    id: "compact",
+    name: "One-Page Compact",
+    desc: "Dense, information-rich single-page layout. Great when you need everything on one page.",
+    preview: "bg-gradient-to-br from-gray-50 to-zinc-100 dark:from-gray-900 dark:to-zinc-900",
+    accent: "border-l-zinc-500",
+    tag: null,
+  },
+  {
+    id: "elegant",
+    name: "Elegant Serif",
+    desc: "Refined serif typography with subtle gold accents. Ideal for academia, consulting, and publishing.",
+    preview: "bg-gradient-to-br from-yellow-50 to-stone-100 dark:from-yellow-950 dark:to-stone-900",
+    accent: "border-l-yellow-600",
+    tag: null,
+  },
+  {
+    id: "bold",
+    name: "Bold Impact",
+    desc: "High-contrast layout with oversized name and color blocks. Makes a strong first impression.",
+    preview: "bg-gradient-to-br from-red-50 to-rose-100 dark:from-red-950 dark:to-rose-950",
+    accent: "border-l-red-500",
+    tag: "New",
   },
 ];
 
@@ -485,37 +531,47 @@ const ResumeBuilder = () => {
             <div className="animate-fade-in space-y-8 pt-8">
               <div className="space-y-2">
                 <h2 className="text-2xl font-bold">Choose a Template</h2>
-                <p className="text-muted-foreground">Select an ATS-friendly template for your resume.</p>
+                <p className="text-muted-foreground">Select an ATS-friendly template that fits your industry and career level.</p>
               </div>
-              <RadioGroup value={selectedTemplate} onValueChange={setSelectedTemplate} className="grid gap-4">
+              <RadioGroup value={selectedTemplate} onValueChange={setSelectedTemplate} className="grid sm:grid-cols-2 gap-4">
                 {TEMPLATES.map(t => (
                   <label
                     key={t.id}
-                    className={`flex items-start gap-4 p-5 rounded-xl border-2 cursor-pointer transition-all ${
+                    className={`flex flex-col gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all border-l-4 ${t.accent} ${
                       selectedTemplate === t.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/30"
+                        ? "border-primary bg-primary/5 shadow-md"
+                        : "border-border hover:border-primary/30 hover:shadow-sm"
                     }`}
                   >
-                    <RadioGroupItem value={t.id} className="mt-1" />
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold">{t.name}</h3>
-                        {selectedTemplate === t.id && (
-                          <Badge className="bg-primary text-primary-foreground text-xs">
-                            <Check className="w-3 h-3 mr-1" /> Selected
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground">{t.desc}</p>
-                      {/* Template preview swatch */}
-                      <div className={`h-20 rounded-lg ${t.preview} border border-border/50 flex items-center justify-center`}>
-                        <div className="space-y-1.5 w-3/4">
-                          <div className="h-2 bg-foreground/20 rounded w-1/2" />
-                          <div className="h-1.5 bg-foreground/10 rounded w-full" />
-                          <div className="h-1.5 bg-foreground/10 rounded w-3/4" />
-                          <div className="h-1.5 bg-foreground/10 rounded w-5/6" />
+                    <div className="flex items-start gap-3">
+                      <RadioGroupItem value={t.id} className="mt-1 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-semibold text-sm">{t.name}</h3>
+                          {t.tag && (
+                            <Badge variant={t.tag === "Default" ? "default" : "secondary"} className="text-[10px] h-5 px-1.5">
+                              {t.tag}
+                            </Badge>
+                          )}
+                          {selectedTemplate === t.id && (
+                            <Badge className="bg-primary text-primary-foreground text-[10px] h-5 px-1.5 ml-auto">
+                              <Check className="w-3 h-3 mr-0.5" /> Selected
+                            </Badge>
+                          )}
                         </div>
+                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{t.desc}</p>
+                      </div>
+                    </div>
+                    {/* Mini preview */}
+                    <div className={`h-24 rounded-lg ${t.preview} border border-border/50 p-3 flex flex-col justify-between`}>
+                      <div className="space-y-1">
+                        <div className="h-2.5 bg-foreground/25 rounded w-2/5" />
+                        <div className="h-1.5 bg-foreground/10 rounded w-3/5" />
+                      </div>
+                      <div className="space-y-1">
+                        <div className="h-1.5 bg-foreground/8 rounded w-full" />
+                        <div className="h-1.5 bg-foreground/8 rounded w-4/5" />
+                        <div className="h-1.5 bg-foreground/8 rounded w-11/12" />
                       </div>
                     </div>
                   </label>

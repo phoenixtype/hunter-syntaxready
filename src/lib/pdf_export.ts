@@ -2,7 +2,7 @@ import { CandidateProfile } from "./resume_engine";
 
 // ─── PDF (lazy-loaded jsPDF, text-based, fully ATS-parseable) ──────────────────
 
-export const exportResumeToPdf = async (profile: CandidateProfile, filename?: string, options?: { onePage?: boolean }) => {
+export const exportResumeToPdf = async (profile: CandidateProfile, filename?: string, options?: { onePage?: boolean; template?: string }) => {
     const { default: jsPDF } = await import("jspdf");
     const doc = new jsPDF({ unit: "pt", format: "letter" });
     const PW = doc.internal.pageSize.getWidth();
