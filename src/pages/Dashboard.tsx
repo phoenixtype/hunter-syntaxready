@@ -422,7 +422,7 @@ const Dashboard = () => {
         </nav>
 
         {/* Content */}
-        <main id="main-content" className="flex-1 p-4 sm:p-6 max-w-5xl w-full mx-auto pb-24 lg:pb-6">
+        <main id="main-content" className="flex-1 p-4 sm:p-6 max-w-5xl w-full mx-auto pb-28 sm:pb-6">
           {/* Jobs - lazy init */}
           {visitedTabs.has("jobs") && (
             <div className={activeView !== "jobs" ? "hidden" : ""}>
