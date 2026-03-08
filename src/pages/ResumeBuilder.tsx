@@ -613,7 +613,7 @@ const ResumeBuilder = () => {
                         <ShieldCheck className="w-4 h-4 text-primary" />
                         <span className="text-sm font-semibold">ATS Compatibility Score</span>
                       </div>
-                      <span className={`text-2xl font-bold ${atsResult.score >= 70 ? "text-primary" : atsResult.score >= 50 ? "text-yellow-500" : "text-destructive"}`}>
+                      <span className={`text-2xl font-bold ${atsResult.score >= 70 ? "text-primary" : atsResult.score >= 50 ? "text-warning" : "text-destructive"}`}>
                         {atsResult.score}/100
                       </span>
                     </div>
