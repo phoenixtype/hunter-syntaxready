@@ -399,59 +399,6 @@ const Dashboard = () => {
               <NotificationSettings />
             </WidgetErrorBoundary>
           )}
-
-          {/* Tools — Categorized */}
-          {activeView === "tools" && (
-            <div className="space-y-8 animate-fade-in">
-              <div>
-                <h2 className="text-xl font-bold mb-1">AI Tools</h2>
-                <p className="text-sm text-muted-foreground">Every tool you need to research, apply, and ace your interviews.</p>
-              </div>
-
-              {TOOL_CATEGORIES.map((cat) => (
-                <div key={cat.label} className="space-y-3">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{cat.label}</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {cat.tools.map((tool) => (
-                      <button
-                        key={tool.title}
-                        onClick={() => {
-                          if ('route' in tool && tool.route) navigate(tool.route);
-                          else if ('modal' in tool && tool.modal === 'postInterview') setShowPostInterview(true);
-                          else if ('modal' in tool && tool.modal === 'linkedin') setShowLinkedIn(true);
-                        }}
-                        className={`group text-left p-5 rounded-xl border transition-all duration-200 ${
-                          ('featured' in tool && tool.featured)
-                            ? "border-primary/25 bg-primary/5 hover:border-primary/40 hover:bg-primary/8 hover:shadow-sm"
-                            : "border-border bg-card hover:border-primary/25 hover:shadow-sm hover:bg-accent/30"
-                        }`}
-                      >
-                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-4 ${
-                          ('featured' in tool && tool.featured) ? "bg-primary/15" : "bg-muted"
-                        }`}>
-                          <tool.icon className={`w-5 h-5 ${('featured' in tool && tool.featured) ? "text-primary" : "text-muted-foreground group-hover:text-foreground transition-colors"}`} />
-                        </div>
-                        <h3 className="text-sm font-semibold mb-1.5 group-hover:text-primary transition-colors leading-tight">{tool.title}</h3>
-                        <p className="text-xs text-muted-foreground leading-relaxed">{tool.desc}</p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-
-              {!profile && (
-                <div className="p-4 rounded-xl bg-primary/5 border border-primary/15 text-sm text-muted-foreground flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <Sparkles className="w-4 h-4 text-primary" />
-                  </div>
-                  <span>
-                    <strong className="text-foreground">Tip:</strong> Build your profile to unlock all AI-powered tools.
-                    <Link to="/resume-builder" className="text-primary font-medium ml-1 hover:underline">Build Profile →</Link>
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
         </main>
       </div>
 
