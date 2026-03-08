@@ -209,7 +209,7 @@ const Index = () => {
                   <span className="ml-3 text-[10px] text-muted-foreground font-mono">hunter.app/dashboard</span>
                 </div>
                 <img
-                  src={dashboardPreview}
+                  src="/images/dashboard-preview.jpg"
                   alt="Hunter AI dashboard showing job listings with match scores, filters, and application tracking"
                   className="w-full"
                   loading="lazy"
