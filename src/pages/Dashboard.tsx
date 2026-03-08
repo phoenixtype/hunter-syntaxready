@@ -35,8 +35,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-type DashboardView = "jobs" | "applications" | "tools" | "notifications" | "settings";
-const VALID_DASHBOARD_VIEWS: DashboardView[] = ["jobs", "applications", "tools", "notifications", "settings"];
+type DashboardView = "jobs" | "applications" | "notifications" | "settings";
+const VALID_DASHBOARD_VIEWS: DashboardView[] = ["jobs", "applications", "notifications", "settings"];
 
 // Track which tabs have been visited for lazy initialization
 const useVisitedTabs = (activeView: DashboardView) => {
@@ -50,72 +50,37 @@ const useVisitedTabs = (activeView: DashboardView) => {
 const NAV_ITEMS = [
   { id: "jobs" as const, label: "Jobs", icon: Briefcase },
   { id: "applications" as const, label: "Tracker", icon: FileText },
-  { id: "tools" as const, label: "Tools", icon: LayoutGrid },
   { id: "notifications" as const, label: "Alerts", icon: Bell },
 ];
 
-// Mobile-only "More" items
-const MORE_ITEMS = [
-  { id: "settings" as const, label: "Settings", icon: Settings },
-];
+type SidebarTool = {
+  icon: typeof FileText;
+  title: string;
+  route?: string;
+  modal?: "postInterview" | "linkedin";
+};
 
-const TOOL_CATEGORIES = [
+const SIDEBAR_SECTIONS: { label: string; tools: SidebarTool[] }[] = [
   {
     label: "Apply",
     tools: [
-      {
-        icon: FileText,
-        title: "Resume Builder",
-        desc: "Build a polished, ATS-optimised resume",
-        route: "/resume-builder",
-      },
-      {
-        icon: Search,
-        title: "Application Wizard",
-        desc: "Paste a job URL — get a tailored resume & cover letter in seconds",
-        route: "/application-wizard",
-      },
-      {
-        icon: FolderOpen,
-        title: "My Tailored Resumes",
-        desc: "View & download all your AI-optimised resumes",
-        route: "/tailored-resumes",
-      },
+      { icon: FileText, title: "Resume Builder", route: "/resume-builder" },
+      { icon: Search, title: "Application Wizard", route: "/application-wizard" },
+      { icon: FolderOpen, title: "Tailored Resumes", route: "/tailored-resumes" },
     ],
   },
   {
     label: "Prepare",
     tools: [
-      {
-        icon: GraduationCap,
-        title: "Interview Coach",
-        desc: "AI mock interviews, briefing dossiers & negotiation prep",
-        route: "/interview-coach",
-        featured: true,
-      },
-      {
-        icon: MessageSquare,
-        title: "Post-Interview Tools",
-        desc: "Thank-you notes, offer evaluation & negotiation scripts",
-        modal: "postInterview" as const,
-      },
+      { icon: GraduationCap, title: "Interview Coach", route: "/interview-coach" },
+      { icon: MessageSquare, title: "Post-Interview", modal: "postInterview" },
     ],
   },
   {
     label: "Optimize",
     tools: [
-      {
-        icon: Linkedin,
-        title: "LinkedIn Optimizer",
-        desc: "AI suggestions to sharpen your LinkedIn profile",
-        modal: "linkedin" as const,
-      },
-      {
-        icon: Bot,
-        title: "Job Hunt Planner",
-        desc: "Configure your search preferences and job feed intensity",
-        route: "/auto-applier-settings",
-      },
+      { icon: Linkedin, title: "LinkedIn Optimizer", modal: "linkedin" },
+      { icon: Bot, title: "Hunt Planner", route: "/auto-applier-settings" },
     ],
   },
 ];
