@@ -16,7 +16,7 @@ import { getApplicationHistory, ApplicationRecord, updateApplicationStatus } fro
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   DndContext,
   closestCenter,
