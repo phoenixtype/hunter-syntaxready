@@ -459,7 +459,7 @@ const Profile = () => {
                                 </div>
                                 <div className="space-y-4">
                                     {formData.experience_atoms.map((exp, index) => (
-                                        <Card key={exp.id || index} className="group border-border bg-card/50 backdrop-blur-md shadow-lg hover:border-primary/30 transition-colors">
+                                        <Card key={exp.id || index} className="group border-border bg-card hover:border-primary/30 transition-colors">
                                             <CardHeader className="flex flex-row items-start justify-between pb-2">
                                                 <div className="space-y-1 w-full mr-4">
                                                     <Input
