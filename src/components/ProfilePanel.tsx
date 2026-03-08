@@ -159,7 +159,7 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
             </div>
 
             {/* Profile Strength Card */}
-            <div className="rounded-xl border border-border bg-card/60 p-4 space-y-3">
+            <div className="rounded-xl border border-border bg-card p-4 space-y-3">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <TrendingUp className="w-4 h-4 text-primary" />
