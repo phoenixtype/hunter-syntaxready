@@ -517,7 +517,7 @@ const Profile = () => {
                                 </div>
                                 <div className="grid gap-4">
                                     {formData.education.map((edu, index) => (
-                                        <Card key={index} className="group border-border bg-card/50 backdrop-blur-md shadow-lg hover:border-primary/30 transition-colors">
+                                        <Card key={index} className="group border-border bg-card hover:border-primary/30 transition-colors">
                                             <CardContent className="p-4 flex items-start gap-4">
                                                 <div className="flex-1 space-y-2">
                                                     <Input
