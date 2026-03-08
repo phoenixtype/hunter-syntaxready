@@ -382,7 +382,7 @@ const Dashboard = () => {
                           else if (tool.modal === 'postInterview') { setShowPostInterview(true); setMoreOpen(false); }
                           else if (tool.modal === 'linkedin') { setShowLinkedIn(true); setMoreOpen(false); }
                         }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-muted/70 transition-colors"
+                        className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-foreground hover:bg-muted/70 active:bg-muted transition-colors"
                       >
                         <tool.icon className="w-4 h-4 text-muted-foreground" /> {tool.title}
                       </button>
