@@ -531,37 +531,47 @@ const ResumeBuilder = () => {
             <div className="animate-fade-in space-y-8 pt-8">
               <div className="space-y-2">
                 <h2 className="text-2xl font-bold">Choose a Template</h2>
-                <p className="text-muted-foreground">Select an ATS-friendly template for your resume.</p>
+                <p className="text-muted-foreground">Select an ATS-friendly template that fits your industry and career level.</p>
               </div>
-              <RadioGroup value={selectedTemplate} onValueChange={setSelectedTemplate} className="grid gap-4">
+              <RadioGroup value={selectedTemplate} onValueChange={setSelectedTemplate} className="grid sm:grid-cols-2 gap-4">
                 {TEMPLATES.map(t => (
                   <label
                     key={t.id}
-                    className={`flex items-start gap-4 p-5 rounded-xl border-2 cursor-pointer transition-all ${
+                    className={`flex flex-col gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all border-l-4 ${t.accent} ${
                       selectedTemplate === t.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/30"
+                        ? "border-primary bg-primary/5 shadow-md"
+                        : "border-border hover:border-primary/30 hover:shadow-sm"
                     }`}
                   >
-                    <RadioGroupItem value={t.id} className="mt-1" />
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold">{t.name}</h3>
-                        {selectedTemplate === t.id && (
-                          <Badge className="bg-primary text-primary-foreground text-xs">
-                            <Check className="w-3 h-3 mr-1" /> Selected
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground">{t.desc}</p>
-                      {/* Template preview swatch */}
-                      <div className={`h-20 rounded-lg ${t.preview} border border-border/50 flex items-center justify-center`}>
-                        <div className="space-y-1.5 w-3/4">
-                          <div className="h-2 bg-foreground/20 rounded w-1/2" />
-                          <div className="h-1.5 bg-foreground/10 rounded w-full" />
-                          <div className="h-1.5 bg-foreground/10 rounded w-3/4" />
-                          <div className="h-1.5 bg-foreground/10 rounded w-5/6" />
+                    <div className="flex items-start gap-3">
+                      <RadioGroupItem value={t.id} className="mt-1 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-semibold text-sm">{t.name}</h3>
+                          {t.tag && (
+                            <Badge variant={t.tag === "Default" ? "default" : "secondary"} className="text-[10px] h-5 px-1.5">
+                              {t.tag}
+                            </Badge>
+                          )}
+                          {selectedTemplate === t.id && (
+                            <Badge className="bg-primary text-primary-foreground text-[10px] h-5 px-1.5 ml-auto">
+                              <Check className="w-3 h-3 mr-0.5" /> Selected
+                            </Badge>
+                          )}
                         </div>
+                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{t.desc}</p>
+                      </div>
+                    </div>
+                    {/* Mini preview */}
+                    <div className={`h-24 rounded-lg ${t.preview} border border-border/50 p-3 flex flex-col justify-between`}>
+                      <div className="space-y-1">
+                        <div className="h-2.5 bg-foreground/25 rounded w-2/5" />
+                        <div className="h-1.5 bg-foreground/10 rounded w-3/5" />
+                      </div>
+                      <div className="space-y-1">
+                        <div className="h-1.5 bg-foreground/8 rounded w-full" />
+                        <div className="h-1.5 bg-foreground/8 rounded w-4/5" />
+                        <div className="h-1.5 bg-foreground/8 rounded w-11/12" />
                       </div>
                     </div>
                   </label>
