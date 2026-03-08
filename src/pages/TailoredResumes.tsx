@@ -212,11 +212,11 @@ const TailoredResumes = () => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => handleDownloadPdf(resume)}>
-                            <FileText className="w-3.5 h-3.5 mr-2 text-red-500" />
+                            <FileText className="w-3.5 h-3.5 mr-2 text-destructive" />
                             Download as PDF
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleDownloadDocx(resume)}>
-                            <FileText className="w-3.5 h-3.5 mr-2 text-blue-500" />
+                            <FileText className="w-3.5 h-3.5 mr-2 text-info" />
                             Download as DOCX
                           </DropdownMenuItem>
                         </DropdownMenuContent>

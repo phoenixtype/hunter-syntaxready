@@ -9,7 +9,7 @@ const Terms = () => {
       <SEOHead title="Terms of Service" description="Terms and conditions for using the Hunter AI job search automation platform." path="/terms" />
       <div className="container max-w-3xl mx-auto px-6 py-16">
         <Link to="/">
-          <Button variant="ghost" size="sm" className="mb-8 hover:bg-white/10 transition-colors">
+          <Button variant="ghost" size="sm" className="mb-8 hover:bg-muted transition-colors">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Button>

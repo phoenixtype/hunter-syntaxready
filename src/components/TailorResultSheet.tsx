@@ -96,13 +96,13 @@ const TailorResultSheet = ({ open, onClose, content, job }: TailorResultSheetPro
                 {/* Download buttons */}
                 <div className="grid grid-cols-2 gap-3 mb-5">
                     <Button onClick={handlePdf} className="gap-2 h-12">
-                        <FileText className="w-4 h-4 text-red-300" />
+                        <FileText className="w-4 h-4" />
                         Download PDF
                     </Button>
                     <Button variant="outline" onClick={handleDocx} disabled={downloadingDocx} className="gap-2 h-12">
                         {downloadingDocx
                             ? <Loader2 className="w-4 h-4 animate-spin" />
-                            : <FileDown className="w-4 h-4 text-blue-500" />
+                            : <FileDown className="w-4 h-4" />
                         }
                         {downloadingDocx ? "Exporting..." : "Download DOCX"}
                     </Button>

@@ -9,7 +9,7 @@ const Privacy = () => {
       <SEOHead title="Privacy Policy" description="How Hunter AI collects, uses, and protects your personal data." path="/privacy" />
       <div className="container max-w-3xl mx-auto px-6 py-16">
         <Link to="/">
-          <Button variant="ghost" size="sm" className="mb-8 hover:bg-white/10 transition-colors">
+          <Button variant="ghost" size="sm" className="mb-8 hover:bg-muted transition-colors">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Button>

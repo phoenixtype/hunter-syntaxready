@@ -43,14 +43,14 @@ function getProfileStrength(profile: CandidateProfile | null): StrengthResult {
     const tips = checks.filter(c => !c.done).map(c => c.tip).slice(0, 3);
 
     let label = "Getting started";
-    let color = "text-red-500";
-    let ringClass = "stroke-red-400";
-    let barClass = "bg-red-400";
+    let color = "text-destructive";
+    let ringClass = "stroke-destructive";
+    let barClass = "bg-destructive";
 
-    if (score >= 90) { label = "Elite"; color = "text-emerald-500"; ringClass = "stroke-emerald-500"; barClass = "bg-emerald-500"; }
-    else if (score >= 70) { label = "Strong"; color = "text-green-500"; ringClass = "stroke-green-500"; barClass = "bg-green-500"; }
-    else if (score >= 50) { label = "Good"; color = "text-amber-500"; ringClass = "stroke-amber-500"; barClass = "bg-amber-500"; }
-    else if (score >= 30) { label = "Fair"; color = "text-orange-500"; ringClass = "stroke-orange-400"; barClass = "bg-orange-400"; }
+    if (score >= 90) { label = "Elite"; color = "text-success"; ringClass = "stroke-success"; barClass = "bg-success"; }
+    else if (score >= 70) { label = "Strong"; color = "text-success"; ringClass = "stroke-success"; barClass = "bg-success"; }
+    else if (score >= 50) { label = "Good"; color = "text-warning"; ringClass = "stroke-warning"; barClass = "bg-warning"; }
+    else if (score >= 30) { label = "Fair"; color = "text-warning"; ringClass = "stroke-warning"; barClass = "bg-warning"; }
 
     return { score, label, color, ringClass, barClass, tips };
 }
