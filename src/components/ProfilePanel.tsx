@@ -1,7 +1,7 @@
 import { CandidateProfile } from "@/lib/resume_engine";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit2, Briefcase, GraduationCap, Code2, User, Mail, Phone, TrendingUp, AlertCircle, FileText } from "lucide-react";
+import { Edit2, Briefcase, GraduationCap, Code2, User, Mail, Phone, TrendingUp, AlertCircle, FileText, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -144,10 +144,18 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
                     </div>
                 </div>
 
-                <Button onClick={() => navigate("/profile")} variant="outline" size="sm" className="shrink-0 gap-2">
-                    <Edit2 className="w-4 h-4" />
-                    Edit Profile
-                </Button>
+                <div className="flex gap-2">
+                    <Button onClick={() => navigate("/profile")} variant="outline" size="sm" className="shrink-0 gap-2">
+                        <Edit2 className="w-4 h-4" />
+                        Edit Profile
+                    </Button>
+                    {profile.resume_file_url && (
+                        <Button onClick={() => window.open(profile.resume_file_url!, '_blank')} variant="outline" size="sm" className="shrink-0 gap-2">
+                            <Download className="w-4 h-4" />
+                            Download Resume
+                        </Button>
+                    )}
+                </div>
             </div>
 
             {/* Profile Strength Card */}
@@ -176,10 +184,20 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
                     <div className="space-y-1.5 pt-1">
                         <p className="text-xs font-medium text-muted-foreground">Quick wins to improve your match rate:</p>
                         {strength.tips.map((tip, i) => (
-                            <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <button
+                                key={i}
+                                onClick={() => {
+                                    if (tip.includes("experience") || tip.includes("role")) navigate("/resume-builder?section=experience");
+                                    else if (tip.includes("skill")) navigate("/resume-builder?section=skills");
+                                    else if (tip.includes("education")) navigate("/resume-builder?section=education");
+                                    else if (tip.includes("summary")) navigate("/resume-builder?section=summary");
+                                    else navigate("/resume-builder");
+                                }}
+                                className="flex items-center gap-2 text-xs text-muted-foreground hover:text-primary transition-colors w-full text-left group"
+                            >
                                 <AlertCircle className="w-3 h-3 text-amber-500 shrink-0" />
-                                {tip}
-                            </div>
+                                <span className="group-hover:underline">{tip}</span>
+                            </button>
                         ))}
                     </div>
                 )}

@@ -16,7 +16,7 @@ import { getApplicationHistory, ApplicationRecord, updateApplicationStatus } fro
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   DndContext,
   closestCenter,
@@ -32,6 +32,7 @@ import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import PipelineSummary from "./PipelineSummary";
 import ApplicationDetailSheet from "./ApplicationDetailSheet";
+import ApplicationAnalytics from "./ApplicationAnalytics";
 
 type Stage = "applied" | "interview" | "offer" | "rejected";
 
@@ -348,8 +349,12 @@ export const ApplicationsView = () => {
       {/* Pipeline Summary */}
       {applications.length > 0 && <PipelineSummary counts={pipelineCounts} />}
 
+      {/* Analytics */}
+      {applications.length > 0 && <ApplicationAnalytics applications={applications} />}
+
+      <AnimatePresence mode="wait">
       {applications.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
+        <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center py-20 text-center">
           <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mb-4">
             <Briefcase className="w-6 h-6 text-muted-foreground" />
           </div>
@@ -357,9 +362,10 @@ export const ApplicationsView = () => {
           <p className="text-sm text-muted-foreground max-w-xs">
             When you click <strong>Apply Now</strong> on a job, it'll show up here so you can track its progress.
           </p>
-        </div>
+        </motion.div>
       ) : viewMode === "board" ? (
         /* Kanban Board with DnD */
+        <motion.div key="board" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -403,9 +409,10 @@ export const ApplicationsView = () => {
             ) : null}
           </DragOverlay>
         </DndContext>
+        </motion.div>
       ) : (
         /* List View */
-        <div className="space-y-4">
+        <motion.div key="list" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }} className="space-y-4">
           <div className="grid gap-3">
             {applications
               .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
@@ -537,10 +544,10 @@ export const ApplicationsView = () => {
               </Pagination>
             </div>
           )}
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
-      {/* Detail sheet */}
       <ApplicationDetailSheet
         app={detailApp}
         open={!!detailApp}

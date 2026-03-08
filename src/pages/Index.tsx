@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight, Briefcase, FileText, Zap, Shield, Users, Star, ChevronRight, CheckCircle2 } from "lucide-react";
+import dashboardPreview from "@/assets/dashboard-preview.jpg";
 import MobileNav from "@/components/MobileNav";
 import SkipLink from "@/components/SkipLink";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -191,6 +192,31 @@ const Index = () => {
                   <div className="text-sm text-muted-foreground mt-1">{stat.label}</div>
                 </motion.div>
               ))}
+            </motion.div>
+
+            {/* Product Demo Screenshot */}
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              className="mt-20 relative"
+            >
+              <div className="rounded-2xl border border-border/60 bg-card/30 backdrop-blur-sm shadow-2xl shadow-primary/10 overflow-hidden">
+                <div className="flex items-center gap-1.5 px-4 py-2.5 bg-muted/50 border-b border-border/40">
+                  <div className="w-3 h-3 rounded-full bg-destructive/60" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
+                  <div className="w-3 h-3 rounded-full bg-green-500/60" />
+                  <span className="ml-3 text-[10px] text-muted-foreground font-mono">hunter.app/dashboard</span>
+                </div>
+                <img
+                  src={dashboardPreview}
+                  alt="Hunter AI dashboard showing job listings with match scores, filters, and application tracking"
+                  className="w-full"
+                  loading="lazy"
+                />
+              </div>
+              <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-3/4 h-12 bg-primary/10 blur-3xl rounded-full" />
             </motion.div>
           </div>
         </section>
