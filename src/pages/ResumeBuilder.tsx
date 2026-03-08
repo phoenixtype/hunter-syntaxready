@@ -99,6 +99,38 @@ const TEMPLATES = [
     accent: "border-l-red-500",
     tag: "New",
   },
+  {
+    id: "nordic",
+    name: "Nordic Clean",
+    desc: "Scandinavian-inspired minimalism with generous whitespace and muted tones. Timeless and calm.",
+    preview: "bg-gradient-to-br from-sky-50 to-slate-100 dark:from-sky-950 dark:to-slate-900",
+    accent: "border-l-sky-400",
+    tag: "New",
+  },
+  {
+    id: "editorial",
+    name: "Editorial",
+    desc: "Magazine-style layout with refined typography and subtle dividers. Great for writers and consultants.",
+    preview: "bg-gradient-to-br from-stone-50 to-neutral-100 dark:from-stone-950 dark:to-neutral-900",
+    accent: "border-l-stone-500",
+    tag: "New",
+  },
+  {
+    id: "luxe",
+    name: "Luxe Dark",
+    desc: "Premium dark-themed resume with gold typography and refined spacing. Perfect for senior leaders.",
+    preview: "bg-gradient-to-br from-zinc-800 to-neutral-900 dark:from-zinc-900 dark:to-black",
+    accent: "border-l-amber-400",
+    tag: "Premium",
+  },
+  {
+    id: "swiss",
+    name: "Swiss Grid",
+    desc: "Grid-based International Typographic Style with strong alignment and hierarchy. For design-savvy roles.",
+    preview: "bg-gradient-to-br from-white to-gray-100 dark:from-gray-900 dark:to-gray-950",
+    accent: "border-l-red-600",
+    tag: null,
+  },
 ];
 
 const SUGGESTED_SKILLS = [
