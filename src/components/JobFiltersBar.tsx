@@ -8,12 +8,14 @@ import { SlidersHorizontal, X } from "lucide-react";
 export type WorkMode = "all" | "remote" | "hybrid" | "onsite";
 export type ExperienceLevel = "all" | "entry" | "mid" | "senior" | "lead";
 export type DatePosted = "all" | "24h" | "week" | "month";
+export type JobType = "all" | "fulltime" | "contract" | "parttime";
 
 export interface JobFilters {
   workMode: WorkMode;
   experienceLevel: ExperienceLevel;
   minSalary: number; // in thousands USD, 0 = any
   datePosted: DatePosted;
+  jobType: JobType;
 }
 
 const WORK_MODES: { value: WorkMode; label: string }[] = [
