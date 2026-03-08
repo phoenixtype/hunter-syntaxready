@@ -35,8 +35,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-type DashboardView = "jobs" | "applications" | "notifications" | "settings";
-const VALID_DASHBOARD_VIEWS: DashboardView[] = ["jobs", "applications", "notifications", "settings"];
+type DashboardView = "jobs" | "applications" | "settings";
+const VALID_DASHBOARD_VIEWS: DashboardView[] = ["jobs", "applications", "settings"];
 
 // Track which tabs have been visited for lazy initialization
 const useVisitedTabs = (activeView: DashboardView) => {
@@ -50,7 +50,6 @@ const useVisitedTabs = (activeView: DashboardView) => {
 const NAV_ITEMS = [
   { id: "jobs" as const, label: "Jobs", icon: Briefcase },
   { id: "applications" as const, label: "Tracker", icon: FileText },
-  { id: "notifications" as const, label: "Alerts", icon: Bell },
 ];
 
 type SidebarTool = {
@@ -98,7 +97,7 @@ const Dashboard = () => {
   });
 
   // Settings sub-tab
-  const [settingsTab, setSettingsTab] = useState<"profile" | "preferences">("profile");
+  const [settingsTab, setSettingsTab] = useState<"profile" | "preferences" | "alerts">("profile");
   const visitedTabs = useVisitedTabs(activeView);
 
   useEffect(() => {
@@ -342,6 +341,12 @@ const Dashboard = () => {
                     <Settings className="w-4 h-4" /> Preferences
                   </button>
                   <button
+                    onClick={() => { setActiveView("settings"); setSettingsTab("alerts"); setMoreOpen(false); }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted/70 transition-colors"
+                  >
+                    <Bell className="w-4 h-4" /> Alerts
+                  </button>
+                  <button
                     onClick={() => { handleSignOut(); setMoreOpen(false); }}
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors"
                   >
@@ -402,23 +407,27 @@ const Dashboard = () => {
                     <Settings className="w-3.5 h-3.5 mr-1.5" />
                     Preferences
                   </Button>
+                  <Button
+                    variant={settingsTab === "alerts" ? "secondary" : "ghost"}
+                    size="sm"
+                    onClick={() => setSettingsTab("alerts")}
+                    className={`h-8 px-4 text-xs ${settingsTab === "alerts" ? "shadow-sm font-medium" : "text-muted-foreground"}`}
+                  >
+                    <Bell className="w-3.5 h-3.5 mr-1.5" />
+                    Alerts
+                  </Button>
                 </div>
 
                 {settingsTab === "profile" ? (
                   <ProfilePanel profile={profile} />
-                ) : (
+                ) : settingsTab === "preferences" ? (
                   <div className="max-w-lg space-y-1">
                     <PreferencesPanel preferences={preferences ?? null} />
                   </div>
+                ) : (
+                  <NotificationSettings />
                 )}
               </div>
-            </WidgetErrorBoundary>
-          )}
-
-          {/* Notifications */}
-          {activeView === "notifications" && (
-            <WidgetErrorBoundary>
-              <NotificationSettings />
             </WidgetErrorBoundary>
           )}
         </main>
