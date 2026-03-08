@@ -322,6 +322,17 @@
   @apply rounded-full px-3 py-0.5 text-xs font-medium;
 }
 
+/* Consistent shadow utilities */
+.shadow-glow {
+  box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.3);
+}
+.shadow-glow-lg {
+  box-shadow: 0 0 30px -5px hsl(var(--primary) / 0.4);
+}
+.shadow-elevated {
+  box-shadow: 0 4px 24px -4px hsl(var(--foreground) / 0.08);
+}
+
 /* Input focus enhancement */
 input:focus-visible,
 textarea:focus-visible,
