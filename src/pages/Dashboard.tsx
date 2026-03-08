@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import SEOHead from "@/components/SEOHead";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { Link, useNavigate } from "react-router-dom";
-import { Briefcase, FileText, Search, Linkedin, MessageSquare, User, Settings, LogOut, Zap, Bot, GraduationCap, Bell, FolderOpen, Sparkles, MoreHorizontal } from "lucide-react";
+import { Briefcase, FileText, Search, Linkedin, MessageSquare, User, Settings, LogOut, Zap, Bot, GraduationCap, Bell, FolderOpen, Sparkles, MoreHorizontal, PanelLeftClose, PanelLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -107,6 +107,17 @@ const Dashboard = () => {
   const [showPricing, setShowPricing] = useState(false);
   const [showLinkedIn, setShowLinkedIn] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    try { return localStorage.getItem("hunter_sidebar_collapsed") === "true"; } catch { return false; }
+  });
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed(prev => {
+      const next = !prev;
+      try { localStorage.setItem("hunter_sidebar_collapsed", String(next)); } catch { /* */ }
+      return next;
+    });
+  };
 
   useRealtimeNotifications(user?.id);
 
@@ -129,73 +140,104 @@ const Dashboard = () => {
       <SEOHead title="Dashboard" description="Manage your job search, applications, and AI tools." path="/dashboard" noIndex />
       <SkipLink />
 
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex flex-col w-[272px] border-r border-border bg-card h-screen sticky top-0">
-        <div className="h-16 flex items-center px-5 border-b border-border">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-sm">
-              <span className="text-primary-foreground font-bold text-base">H</span>
-            </div>
-            <span className="text-lg font-bold tracking-tight">Hunter</span>
-          </Link>
+      {/* Sidebar — always visible, collapsible */}
+      <aside className={`hidden sm:flex flex-col border-r border-border bg-card h-screen sticky top-0 transition-all duration-300 ${sidebarCollapsed ? "w-[60px]" : "w-[240px]"}`}>
+        <div className={`h-14 flex items-center border-b border-border ${sidebarCollapsed ? "justify-center px-2" : "justify-between px-4"}`}>
+          {sidebarCollapsed ? (
+            <Link to="/" aria-label="Home">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-sm">
+                <span className="text-primary-foreground font-bold text-sm">H</span>
+              </div>
+            </Link>
+          ) : (
+            <Link to="/" className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-sm">
+                <span className="text-primary-foreground font-bold text-sm">H</span>
+              </div>
+              <span className="text-base font-bold tracking-tight">Hunter</span>
+            </Link>
+          )}
+          <button onClick={toggleSidebar} className={`p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors ${sidebarCollapsed ? "hidden" : ""}`} title="Collapse sidebar">
+            <PanelLeftClose className="w-4 h-4" />
+          </button>
         </div>
 
-        <div className="px-4 py-4 border-b border-border">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10 ring-2 ring-border">
+        {!sidebarCollapsed && (
+          <div className="px-3 py-3 border-b border-border">
+            <div className="flex items-center gap-2.5">
+              <Avatar className="h-8 w-8 ring-2 ring-border">
+                <AvatarImage src={user?.user_metadata?.avatar_url} />
+                <AvatarFallback className="bg-primary/15 text-primary font-semibold text-xs">{initials}</AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold truncate leading-tight">
+                  {profile?.identity?.name || user?.email?.split('@')[0] || "Guest"}
+                </p>
+                <p className="text-[11px] text-muted-foreground truncate">{user?.email}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {sidebarCollapsed && (
+          <div className="flex justify-center py-3 border-b border-border">
+            <Avatar className="h-8 w-8 ring-2 ring-border">
               <AvatarImage src={user?.user_metadata?.avatar_url} />
-              <AvatarFallback className="bg-primary/15 text-primary font-semibold text-sm">{initials}</AvatarFallback>
+              <AvatarFallback className="bg-primary/15 text-primary font-semibold text-xs">{initials}</AvatarFallback>
             </Avatar>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold truncate leading-tight">
-                {profile?.identity?.name || user?.email?.split('@')[0] || "Guest"}
-              </p>
-              <p className="text-xs text-muted-foreground truncate mt-0.5">{user?.email}</p>
-            </div>
           </div>
-        </div>
+        )}
 
-        <nav className="flex-1 px-3 py-3 space-y-4 overflow-y-auto" aria-label="Dashboard navigation">
-          {/* Main nav */}
+        <nav className="flex-1 px-1.5 py-2 space-y-3 overflow-y-auto" aria-label="Dashboard navigation">
           <div className="space-y-0.5">
-          {NAV_ITEMS.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveView(item.id)}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                activeView === item.id
-                  ? "bg-primary/12 text-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
-              }`}
-            >
-              <item.icon className={`w-4 h-4 shrink-0 ${activeView === item.id ? "text-primary" : ""}`} />
-              {item.label}
-              {item.id === "applications" && appCount > 0 && (
-                <Badge variant="secondary" className="ml-auto text-[10px] h-5 min-w-[20px] flex items-center justify-center px-1.5 bg-primary/10 text-primary border-0">
-                  {appCount}
-                </Badge>
-              )}
-            </button>
-          ))}
+            {NAV_ITEMS.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveView(item.id)}
+                title={sidebarCollapsed ? item.label : undefined}
+                className={`w-full flex items-center gap-2.5 rounded-lg text-sm font-medium transition-all ${
+                  sidebarCollapsed ? "justify-center p-2" : "px-3 py-2"
+                } ${
+                  activeView === item.id
+                    ? "bg-primary/12 text-primary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
+                }`}
+              >
+                <item.icon className={`w-4 h-4 shrink-0 ${activeView === item.id ? "text-primary" : ""}`} />
+                {!sidebarCollapsed && item.label}
+                {!sidebarCollapsed && item.id === "applications" && appCount > 0 && (
+                  <Badge variant="secondary" className="ml-auto text-[10px] h-5 min-w-[20px] flex items-center justify-center px-1.5 bg-primary/10 text-primary border-0">
+                    {appCount}
+                  </Badge>
+                )}
+              </button>
+            ))}
           </div>
 
-          {/* Tool sections */}
           {SIDEBAR_SECTIONS.map((section) => (
             <div key={section.label}>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 px-3 mb-1">{section.label}</p>
+              {!sidebarCollapsed && (
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 px-3 mb-1">{section.label}</p>
+              )}
+              {sidebarCollapsed && (
+                <div className="w-6 mx-auto border-t border-border/50 my-1" />
+              )}
               <div className="space-y-0.5">
                 {section.tools.map((tool) => (
                   <button
                     key={tool.title}
+                    title={sidebarCollapsed ? tool.title : undefined}
                     onClick={() => {
                       if (tool.route) navigate(tool.route);
                       else if (tool.modal === 'postInterview') setShowPostInterview(true);
                       else if (tool.modal === 'linkedin') setShowLinkedIn(true);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-all"
+                    className={`w-full flex items-center gap-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-all ${
+                      sidebarCollapsed ? "justify-center p-2" : "px-3 py-1.5"
+                    }`}
                   >
                     <tool.icon className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate text-[13px]">{tool.title}</span>
+                    {!sidebarCollapsed && <span className="truncate text-[13px]">{tool.title}</span>}
                   </button>
                 ))}
               </div>
@@ -203,33 +245,44 @@ const Dashboard = () => {
           ))}
         </nav>
 
-        <div className="px-3 py-4 border-t border-border space-y-0.5">
+        <div className="px-1.5 py-3 border-t border-border space-y-0.5">
+          {sidebarCollapsed && (
+            <button onClick={toggleSidebar} title="Expand sidebar" className="w-full flex justify-center p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors mb-1">
+              <PanelLeft className="w-4 h-4" />
+            </button>
+          )}
           <button
             onClick={() => setActiveView("settings")}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+            title={sidebarCollapsed ? "Settings" : undefined}
+            className={`w-full flex items-center gap-2.5 rounded-lg text-sm font-medium transition-all ${
+              sidebarCollapsed ? "justify-center p-2" : "px-3 py-2"
+            } ${
               activeView === "settings"
-                ? "bg-primary/12 text-primary shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.15)]"
+                ? "bg-primary/12 text-primary"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
             }`}
           >
             <Settings className={`w-4 h-4 shrink-0 ${activeView === "settings" ? "text-primary" : ""}`} />
-            Settings
+            {!sidebarCollapsed && "Settings"}
           </button>
           <button
             onClick={handleSignOut}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"
+            title={sidebarCollapsed ? "Sign out" : undefined}
+            className={`w-full flex items-center gap-2.5 rounded-lg text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors ${
+              sidebarCollapsed ? "justify-center p-2" : "px-3 py-2"
+            }`}
           >
             <LogOut className="w-4 h-4" />
-            Sign out
+            {!sidebarCollapsed && "Sign out"}
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex-1 flex flex-col min-h-screen min-w-0">
         <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-xl border-b border-border h-14 flex items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-4">
-            <Link to="/" className="lg:hidden flex items-center gap-2.5">
+            <Link to="/" className="sm:hidden flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-sm">
                 <span className="text-primary-foreground font-bold text-sm">H</span>
               </div>
@@ -257,14 +310,14 @@ const Dashboard = () => {
               </Button>
             )}
             <ThemeToggle />
-            <div className="lg:hidden">
+            <div className="sm:hidden">
               <MobileNav isAuthenticated={true} onSignOut={handleSignOut} />
             </div>
           </div>
         </header>
 
-        {/* Mobile Tab Bar with More */}
-        <nav role="navigation" aria-label="Main navigation" className="lg:hidden fixed bottom-0 left-0 right-0 z-50 flex border-t border-border bg-background/95 backdrop-blur-md safe-area-inset-bottom">
+        {/* Mobile Tab Bar — only on xs screens where sidebar is hidden */}
+        <nav role="navigation" aria-label="Main navigation" className="sm:hidden fixed bottom-0 left-0 right-0 z-50 flex border-t border-border bg-background/95 backdrop-blur-md safe-area-inset-bottom">
           {NAV_ITEMS.map((item) => (
             <button
               key={item.id}
