@@ -107,7 +107,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                                     <Building2 className="w-5 h-5 text-foreground" />
                                                     Company Profile
                                                 </h3>
-                                                <div className="p-5 rounded-lg bg-card border border-border  space-y-4">
+                                                <div className="p-5 rounded-xl bg-card border border-border space-y-4">
                                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                                         <div>
                                                             <div className="text-muted-foreground text-xs uppercase tracking-wider mb-1">Industry</div>
