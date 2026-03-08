@@ -393,25 +393,25 @@ const Dashboard = () => {
                 <div className="border-t border-border pt-3 space-y-1">
                   <button
                     onClick={() => { setActiveView("settings"); setSettingsTab("profile"); setMoreOpen(false); }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted/70 transition-colors"
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/70 active:bg-muted transition-colors"
                   >
                     <User className="w-4 h-4" /> Profile
                   </button>
                   <button
                     onClick={() => { setActiveView("settings"); setSettingsTab("preferences"); setMoreOpen(false); }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted/70 transition-colors"
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/70 active:bg-muted transition-colors"
                   >
                     <Settings className="w-4 h-4" /> Preferences
                   </button>
                   <button
                     onClick={() => { setActiveView("settings"); setSettingsTab("alerts"); setMoreOpen(false); }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted/70 transition-colors"
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/70 active:bg-muted transition-colors"
                   >
                     <Bell className="w-4 h-4" /> Alerts
                   </button>
                   <button
                     onClick={() => { handleSignOut(); setMoreOpen(false); }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors"
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/5 active:bg-destructive/10 transition-colors"
                   >
                     <LogOut className="w-4 h-4" /> Sign out
                   </button>
