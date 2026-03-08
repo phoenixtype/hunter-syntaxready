@@ -204,8 +204,8 @@ const Index = () => {
               <div className="rounded-2xl border border-border/60 bg-card/30 backdrop-blur-sm shadow-2xl shadow-primary/10 overflow-hidden">
                 <div className="flex items-center gap-1.5 px-4 py-2.5 bg-muted/50 border-b border-border/40">
                   <div className="w-3 h-3 rounded-full bg-destructive/60" />
-                  <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
-                  <div className="w-3 h-3 rounded-full bg-green-500/60" />
+                  <div className="w-3 h-3 rounded-full bg-warning/60" />
+                  <div className="w-3 h-3 rounded-full bg-success/60" />
                   <span className="ml-3 text-[10px] text-muted-foreground font-mono">hunter.app/dashboard</span>
                 </div>
                 <img
