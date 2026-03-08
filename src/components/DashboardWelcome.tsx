@@ -65,7 +65,7 @@ const DashboardWelcome = ({ profile, preferences, jobCount, appCount, onSetView 
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/6 via-background to-background p-5 sm:p-6 mb-6 overflow-hidden relative"
+      className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/6 via-background to-background p-5 sm:p-6 mb-6 overflow-hidden relative"
     >
       {/* Decorative blob */}
       <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full bg-primary/5 blur-2xl pointer-events-none" />

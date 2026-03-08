@@ -499,8 +499,8 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
 
         {/* Empty */}
         {filteredJobs.length === 0 && !loading && (
-          <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-border rounded-2xl bg-muted/20">
-            <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-5">
+          <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-border rounded-xl bg-muted/20">
+            <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center mb-5">
               {showSavedOnly ? <Bookmark className="w-7 h-7 text-muted-foreground/60" /> : <Search className="w-7 h-7 text-muted-foreground/60" />}
             </div>
             {showSavedOnly ? (

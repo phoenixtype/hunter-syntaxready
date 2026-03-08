@@ -143,12 +143,12 @@ const ApplicationWizard = () => {
                         <section className="space-y-4">
                             <div className="flex items-center gap-2 px-2">
                                 <FileCheck className="w-5 h-5 text-primary" />
-                                <h2 className="text-xl font-semibold">Parsed Extracted Strategy</h2>
+                                <h2 className="text-sm font-semibold">Parsed Extracted Strategy</h2>
                             </div>
                             <Card className="border-border bg-card shadow-sm overflow-hidden">
                                 <div className="p-5 border-b border-border flex justify-between items-start">
                                     <div>
-                                        <h3 className="text-xl font-bold tracking-tight text-foreground">{job.title}</h3>
+                                        <h3 className="text-lg font-bold tracking-tight text-foreground">{job.title}</h3>
                                         <p className="text-sm text-primary font-medium mt-1">{job.company}</p>
                                     </div>
                                     <Badge variant="outline" className="bg-background/80 backdrop-blur-sm border-border text-xs px-3 py-1 text-muted-foreground">{job.source}</Badge>
@@ -176,7 +176,7 @@ const ApplicationWizard = () => {
                             <section className="space-y-4">
                                 <div className="flex items-center gap-2 px-2">
                                     <FileText className="w-5 h-5 text-primary" />
-                                    <h2 className="text-xl font-semibold">Application Assets</h2>
+                                    <h2 className="text-sm font-semibold">Application Assets</h2>
                                 </div>
                                 <Card className="h-full border-border bg-card shadow-sm">
                                     <CardContent className="p-6 space-y-6">
@@ -203,7 +203,7 @@ const ApplicationWizard = () => {
                                                 </div>
                                                 Cover Letter
                                             </div>
-                                            <p className="text-sm text-muted-foreground italic bg-muted/50 p-4 rounded-lg border border-border line-clamp-4">"{tailoredAssets.coverLetter}"</p>
+                                            <p className="text-sm text-muted-foreground italic bg-muted/50 p-4 rounded-xl border border-border line-clamp-4">"{tailoredAssets.coverLetter}"</p>
                                             <Button variant="outline" className="w-full" onClick={() => {
                                                 if (tailoredAssets?.coverLetter) {
                                                     navigator.clipboard.writeText(tailoredAssets.coverLetter);
@@ -219,7 +219,7 @@ const ApplicationWizard = () => {
                             <section className="space-y-4">
                                 <div className="flex items-center gap-2 px-2">
                                     <UserPlus className="w-5 h-5 text-primary" />
-                                    <h2 className="text-xl font-semibold">Find the Team on LinkedIn</h2>
+                                    <h2 className="text-sm font-semibold">Find the Team on LinkedIn</h2>
                                 </div>
                                 <Card className="h-full border-border bg-card shadow-sm">
                                     <CardContent className="p-6 space-y-4">

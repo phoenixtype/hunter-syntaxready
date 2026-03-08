@@ -435,7 +435,7 @@ const Onboarding = () => {
         </div>
 
         {/* ── Card ─────────────────────────────────────────────────────── */}
-        <div className="bg-card rounded-2xl border border-border/50 shadow-2xl overflow-hidden">
+        <div className="bg-card rounded-xl border border-border/50 shadow-sm overflow-hidden">
 
           {/* Progress bar */}
           <div className="h-[3px] bg-muted/60">
@@ -473,7 +473,7 @@ const Onboarding = () => {
             {currentStep === "method" && (
               <div className="animate-fade-in py-3">
                 <div className="text-center space-y-3 mb-8">
-                  <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+                  <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto">
                     <Zap className="w-6 h-6 text-primary" />
                   </div>
                   <h1 className="text-2xl font-bold tracking-tight">Let's build your profile</h1>

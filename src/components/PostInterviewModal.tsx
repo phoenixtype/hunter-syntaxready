@@ -164,7 +164,7 @@ const PostInterviewModal = ({ isOpen, onClose, companyName = "", profile }: Post
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-sm font-medium text-muted-foreground">Negotiation Script</label>
-                                            <div className="p-3 bg-muted rounded-lg text-sm italic border border-border">
+                                            <div className="p-3 bg-muted rounded-xl text-sm italic border border-border">
                                                 "{strategy.script}"
                                             </div>
                                         </div>
