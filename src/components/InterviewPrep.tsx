@@ -126,7 +126,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                             </div>
 
                                             <div className="space-y-4">
-                                                <h3 className="text-lg font-semibold flex items-center gap-2">
+                                                <h3 className="text-sm font-semibold flex items-center gap-2">
                                                     <Newspaper className="w-5 h-5 text-foreground" />
                                                     Recent Intel
                                                 </h3>
