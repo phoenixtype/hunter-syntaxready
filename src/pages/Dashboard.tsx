@@ -310,7 +310,7 @@ const Dashboard = () => {
               </Button>
             )}
             <ThemeToggle />
-            <div className="lg:hidden">
+            <div className="sm:hidden">
               <MobileNav isAuthenticated={true} onSignOut={handleSignOut} />
             </div>
           </div>
