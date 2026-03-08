@@ -435,7 +435,7 @@ const Onboarding = () => {
         </div>
 
         {/* ── Card ─────────────────────────────────────────────────────── */}
-        <div className="bg-card rounded-2xl border border-border/50 shadow-2xl overflow-hidden">
+        <div className="bg-card rounded-xl border border-border/50 shadow-sm overflow-hidden">
 
           {/* Progress bar */}
           <div className="h-[3px] bg-muted/60">
