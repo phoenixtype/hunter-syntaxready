@@ -316,8 +316,8 @@ const Dashboard = () => {
           </div>
         </header>
 
-        {/* Mobile Tab Bar with More */}
-        <nav role="navigation" aria-label="Main navigation" className="lg:hidden fixed bottom-0 left-0 right-0 z-50 flex border-t border-border bg-background/95 backdrop-blur-md safe-area-inset-bottom">
+        {/* Mobile Tab Bar — only on xs screens where sidebar is hidden */}
+        <nav role="navigation" aria-label="Main navigation" className="sm:hidden fixed bottom-0 left-0 right-0 z-50 flex border-t border-border bg-background/95 backdrop-blur-md safe-area-inset-bottom">
           {NAV_ITEMS.map((item) => (
             <button
               key={item.id}
