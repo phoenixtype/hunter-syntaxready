@@ -272,7 +272,7 @@ const Profile = () => {
                         {/* Identity */}
                         <section className="space-y-4">
                             <h2 className="text-xl font-semibold">Personal Information</h2>
-                            <Card className="border-border bg-card/50 backdrop-blur-md shadow-lg">
+                            <Card className="border-border bg-card">
                                 <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div>
                                         <Label className="text-muted-foreground">Full Name</Label>
@@ -300,7 +300,7 @@ const Profile = () => {
                         {formData.summary && (
                             <section className="space-y-4">
                                 <h2 className="text-xl font-semibold">Professional Summary</h2>
-                                <Card className="border-border bg-card/50 backdrop-blur-md shadow-lg">
+                                <Card className="border-border bg-card">
                                     <CardContent className="p-6">
                                         <p className="text-lg leading-relaxed whitespace-pre-wrap">{formData.summary}</p>
                                     </CardContent>
@@ -313,7 +313,7 @@ const Profile = () => {
                             <h2 className="text-xl font-semibold">Experience</h2>
                             <div className="space-y-4">
                                 {formData.experience_atoms.map((exp, idx) => (
-                                    <Card key={idx} className="border-border bg-card/50 backdrop-blur-md shadow-lg hover:border-primary/30 transition-all hover:translate-y-[-2px]">
+                                    <Card key={idx} className="border-border bg-card hover:border-primary/30 transition-all hover:translate-y-[-2px]">
                                         <CardContent className="p-6 space-y-2">
                                             <div className="flex justify-between items-start">
                                                 <div>
@@ -335,7 +335,7 @@ const Profile = () => {
                             <h2 className="text-xl font-semibold">Education</h2>
                             <div className="grid gap-4">
                                 {formData.education.map((edu, idx) => (
-                                    <Card key={idx} className="border-border bg-card/50 backdrop-blur-md shadow-lg hover:border-primary/30 transition-all hover:translate-y-[-2px]">
+                                    <Card key={idx} className="border-border bg-card hover:border-primary/30 transition-all hover:translate-y-[-2px]">
                                         <CardContent className="p-6 flex justify-between items-start">
                                             <div>
                                                 <h3 className="font-semibold">{edu.school}</h3>
@@ -367,7 +367,7 @@ const Profile = () => {
                                 <h2 className="text-xl font-semibold">Additional Information</h2>
                                 <div className="space-y-4">
                                     {formData.custom_sections.map((section, idx) => (
-                                        <Card key={idx} className="border-border bg-card/50 backdrop-blur-md shadow-lg hover:border-primary/30 transition-all hover:translate-y-[-2px]">
+                                        <Card key={idx} className="border-border bg-card hover:border-primary/30 transition-all hover:translate-y-[-2px]">
                                             <CardContent className="p-6 space-y-2">
                                                 <h3 className="text-lg font-bold">{section.title}</h3>
                                                 <Separator className="my-2" />
@@ -394,7 +394,7 @@ const Profile = () => {
                             {/* Identity Section */}
                             <section className="space-y-4">
                                 <h2 className="text-xl font-semibold">Personal Information</h2>
-                                <Card className="border-border bg-card/50 backdrop-blur-md shadow-lg">
+                                <Card className="border-border bg-card">
                                     <CardContent className="p-6 space-y-4">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="space-y-2">
@@ -436,7 +436,7 @@ const Profile = () => {
                             {/* Summary Section */}
                             <section className="space-y-4">
                                 <h2 className="text-xl font-semibold">Professional Summary</h2>
-                                <Card className="border-border bg-card/50 backdrop-blur-md shadow-lg">
+                                <Card className="border-border bg-card">
                                     <CardContent className="p-6">
                                         <Textarea
                                             value={formData.summary || ""}
@@ -459,7 +459,7 @@ const Profile = () => {
                                 </div>
                                 <div className="space-y-4">
                                     {formData.experience_atoms.map((exp, index) => (
-                                        <Card key={exp.id || index} className="group border-border bg-card/50 backdrop-blur-md shadow-lg hover:border-primary/30 transition-colors">
+                                        <Card key={exp.id || index} className="group border-border bg-card hover:border-primary/30 transition-colors">
                                             <CardHeader className="flex flex-row items-start justify-between pb-2">
                                                 <div className="space-y-1 w-full mr-4">
                                                     <Input
@@ -517,7 +517,7 @@ const Profile = () => {
                                 </div>
                                 <div className="grid gap-4">
                                     {formData.education.map((edu, index) => (
-                                        <Card key={index} className="group border-border bg-card/50 backdrop-blur-md shadow-lg hover:border-primary/30 transition-colors">
+                                        <Card key={index} className="group border-border bg-card hover:border-primary/30 transition-colors">
                                             <CardContent className="p-4 flex items-start gap-4">
                                                 <div className="flex-1 space-y-2">
                                                     <Input
@@ -564,7 +564,7 @@ const Profile = () => {
                             {/* Skills Section */}
                             <section className="space-y-4">
                                 <h2 className="text-xl font-semibold">Skills</h2>
-                                <Card className="border-border bg-card/50 backdrop-blur-md shadow-lg">
+                                <Card className="border-border bg-card">
                                     <CardContent className="p-6 space-y-4">
                                         <div className="flex flex-wrap gap-2">
                                             {formData.skills.map((skill, index) => (
@@ -626,7 +626,7 @@ const Profile = () => {
                                 </div>
                                 <div className="space-y-4">
                                     {formData.custom_sections?.map((section, idx) => (
-                                        <Card key={idx} className="group border-border bg-card/50 backdrop-blur-md shadow-lg hover:border-primary/30 transition-colors">
+                                        <Card key={idx} className="group border-border bg-card hover:border-primary/30 transition-colors">
                                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                                 <Input
                                                     value={section.title}

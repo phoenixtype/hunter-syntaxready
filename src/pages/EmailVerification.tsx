@@ -114,7 +114,7 @@ const EmailVerification = () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background transition-colors duration-500 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
       <div className="w-full max-w-md animate-scale-in">
-        <div className="bg-card/50 backdrop-blur-xl border border-border shadow-2xl rounded-2xl p-8 md:p-12 space-y-6 text-center">
+        <div className="bg-card backdrop-blur-xl border border-border shadow-sm rounded-xl p-6 sm:p-8 space-y-6 text-center">
           {status === 'loading' && (
             <>
               <div className="w-20 h-20 mx-auto rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center animate-pulse shadow-glow">

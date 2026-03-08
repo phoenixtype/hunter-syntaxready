@@ -112,7 +112,7 @@ const DashboardWelcome = ({ profile, preferences, jobCount, appCount, onSetView 
                   ? "bg-primary/5 border border-primary/10"
                   : isNext
                   ? "bg-card border border-border shadow-sm"
-                  : "bg-card/40 border border-border/50 opacity-60"
+                  : "bg-card border border-border/50 opacity-60"
               }`}
             >
               <div className={`mt-0.5 shrink-0 rounded-lg p-1.5 ${step.done ? "bg-primary/10" : "bg-muted"}`}>

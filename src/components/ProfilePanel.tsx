@@ -159,7 +159,7 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
             </div>
 
             {/* Profile Strength Card */}
-            <div className="rounded-xl border border-border bg-card/60 p-4 space-y-3">
+            <div className="rounded-xl border border-border bg-card p-4 space-y-3">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <TrendingUp className="w-4 h-4 text-primary" />
@@ -210,7 +210,7 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
                     { icon: Code2, label: "Skills", value: profile.skills?.length ?? 0, suffix: "listed" },
                     { icon: GraduationCap, label: "Education", value: profile.education?.length ?? 0, suffix: profile.education?.length === 1 ? "entry" : "entries" },
                 ].map(stat => (
-                    <div key={stat.label} className="rounded-xl border border-border bg-card/50 p-4 text-center">
+                    <div key={stat.label} className="rounded-xl border border-border bg-card p-4 text-center">
                         <stat.icon className="w-4 h-4 text-primary mx-auto mb-2" />
                         <div className="text-2xl font-bold">{stat.value}</div>
                         <div className="text-xs text-muted-foreground mt-0.5">{stat.suffix}</div>
@@ -251,7 +251,7 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
                     <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Experience</h2>
                     <div className="space-y-2">
                         {profile.experience_atoms.slice(0, 4).map((exp, i) => (
-                            <div key={i} className="flex items-start gap-3 p-3 rounded-xl border border-border bg-card/30 hover:border-primary/20 transition-colors">
+                            <div key={i} className="flex items-start gap-3 p-4 rounded-xl border border-border bg-card hover:border-primary/20 transition-colors">
                                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
                                     <Briefcase className="w-4 h-4 text-primary" />
                                 </div>
@@ -279,7 +279,7 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
                     <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Education</h2>
                     <div className="flex flex-wrap gap-2">
                         {profile.education.map((edu, i) => (
-                            <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card/30 text-sm">
+                            <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border bg-card text-sm">
                                 <GraduationCap className="w-3.5 h-3.5 text-muted-foreground" />
                                 <span className="font-medium">{edu.school}</span>
                                 <span className="text-muted-foreground">·</span>
