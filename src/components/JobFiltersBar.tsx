@@ -152,6 +152,24 @@ const JobFiltersBar = ({ filters, onChange }: JobFiltersBarProps) => {
             </div>
           </div>
 
+          {/* Job Type */}
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Job Type</label>
+            <div className="flex flex-wrap gap-1.5">
+              {JOB_TYPES.map((jt) => (
+                <Button
+                  key={jt.value}
+                  variant={filters.jobType === jt.value ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 text-xs px-3"
+                  onClick={() => onChange({ ...filters, jobType: jt.value })}
+                >
+                  {jt.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
           {/* Min Salary */}
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
