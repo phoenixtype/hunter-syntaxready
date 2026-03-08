@@ -282,7 +282,7 @@ const Dashboard = () => {
       <div className="flex-1 flex flex-col min-h-screen min-w-0">
         <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-xl border-b border-border h-14 flex items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-4">
-            <Link to="/" className="lg:hidden flex items-center gap-2.5">
+            <Link to="/" className="sm:hidden flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-sm">
                 <span className="text-primary-foreground font-bold text-sm">H</span>
               </div>
