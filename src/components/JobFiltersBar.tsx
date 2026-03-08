@@ -72,6 +72,7 @@ const JobFiltersBar = ({ filters, onChange }: JobFiltersBarProps) => {
     filters.experienceLevel !== "all",
     filters.minSalary > 0,
     filters.datePosted !== "all",
+    filters.jobType !== "all",
   ].filter(Boolean).length;
 
   return (
