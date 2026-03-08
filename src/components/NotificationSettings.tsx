@@ -76,28 +76,19 @@ const NotificationSettings = () => {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h2 className="text-xl font-semibold flex items-center gap-2">
-          <Bell className="w-5 h-5 text-primary" /> Alerts
-        </h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Get notified when new jobs match your profile or your application status changes.
-        </p>
-      </div>
-
+    <div className="space-y-6 animate-fade-in max-w-3xl">
       {/* Live status */}
-      <div className="rounded-2xl border border-primary/20 bg-primary/5 p-6 space-y-4">
+      <div className="rounded-xl border border-primary/20 bg-primary/5 p-5 space-y-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
             <Zap className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h3 className="text-base font-semibold flex items-center gap-2">
+            <h3 className="text-sm font-semibold flex items-center gap-2">
               Real-time alerts active
               <Badge className="bg-primary/15 text-primary border-primary/20 text-[10px]">Live</Badge>
             </h3>
-            <p className="text-sm text-muted-foreground">You'll see toast notifications in real-time while using Hunter.</p>
+            <p className="text-xs text-muted-foreground">You'll see toast notifications in real-time while using Hunter.</p>
           </div>
         </div>
 

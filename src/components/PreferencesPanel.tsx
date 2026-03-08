@@ -78,7 +78,7 @@ const PreferencesPanel = ({ preferences, onSaved }: PreferencesPanelProps) => {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 max-w-3xl">
             {/* Target Roles */}
             <div className="space-y-3">
                 <Label className="text-sm font-medium">Target Roles</Label>
