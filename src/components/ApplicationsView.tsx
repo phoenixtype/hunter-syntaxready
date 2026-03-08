@@ -374,7 +374,7 @@ export const ApplicationsView = () => {
         >
           <div className="flex gap-4 overflow-x-auto pb-4 -mx-2 px-2 snap-x snap-mandatory md:grid md:grid-cols-2 xl:grid-cols-4 md:overflow-x-visible md:pb-0 md:mx-0 md:px-0">
             {grouped.map((stage) => (
-              <div key={stage.id} className="space-y-3">
+              <div key={stage.id} className="space-y-3 min-w-[280px] md:min-w-0 snap-start">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-semibold">{stage.label}</h3>
