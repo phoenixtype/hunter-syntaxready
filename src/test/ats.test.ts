@@ -6,14 +6,14 @@ import { CandidateProfile } from "@/lib/resume_engine";
 const mockProfile: CandidateProfile = {
   identity: { name: "Jane Doe", email: "jane@test.com", links: ["https://linkedin.com/in/jane"] },
   skills: [
-    { name: "React", level: "expert" },
-    { name: "TypeScript", level: "expert" },
-    { name: "Node.js", level: "intermediate" },
+    { name: "React", proficiency: 90, evidence: ["Built SPA"] },
+    { name: "TypeScript", proficiency: 85, evidence: ["3 years"] },
+    { name: "Node.js", proficiency: 70, evidence: ["REST APIs"] },
   ],
   experience_atoms: [
-    { company: "Acme Inc", role: "Senior Engineer", content: "Led a team of 5 engineers, improving deploy speed by 40%", start_date: "2021", end_date: "2023" },
+    { id: "1", company: "Acme Inc", role: "Senior Engineer", duration: "2021-2023", content: "Led a team of 5 engineers, improving deploy speed by 40%", keywords: ["leadership", "CI/CD"] },
   ],
-  education: [{ institution: "MIT", degree: "BS Computer Science", start_date: "2017", end_date: "2021" }],
+  education: [{ school: "MIT", degree: "BS Computer Science", year: "2021" }],
 };
 
 describe("ATS Engine", () => {
