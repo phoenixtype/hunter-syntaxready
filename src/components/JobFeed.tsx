@@ -10,6 +10,7 @@ import { saveTailoredResume } from "@/lib/tailored_resume_store";
 import TailorResultSheet from "./TailorResultSheet";
 import { recordFeedback } from "@/lib/learning_engine";
 import { ExternalLink, Sparkles, RefreshCw, Loader2, Globe, Search, MapPin, Building2, X, Bookmark } from "lucide-react";
+import SalaryInsights from "./SalaryInsights";
 import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import JobFiltersBar, { JobFilters, DEFAULT_FILTERS, hasActiveFilters } from "./JobFiltersBar";
@@ -385,6 +386,13 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                       ) : (
                         <span className="text-[10px] text-muted-foreground/60 italic">Salary not listed</span>
                       )}
+                      <SalaryInsights
+                        jobTitle={job.title}
+                        company={job.company}
+                        location={job.location}
+                        salaryRange={job.salary_range}
+                        description={job.description}
+                      />
                       <Badge variant="outline" className="text-[10px] font-medium rounded-full">{job.source}</Badge>
                       {job.freshness_score > 0.9 && (
                         <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px] rounded-full gap-0.5"><Sparkles className="w-2.5 h-2.5" /> New</Badge>

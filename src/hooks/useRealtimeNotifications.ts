@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 /**
  * Subscribes to Supabase Realtime channels for:
- * 1. New job_listings inserts → toast + invalidate jobs query
+ * 1. New job_listings inserts → toast + invalidate jobs query (special alert for high-match)
  * 2. application_history updates → toast + invalidate apps query
  */
 export const useRealtimeNotifications = (userId: string | undefined) => {
@@ -21,11 +21,36 @@ export const useRealtimeNotifications = (userId: string | undefined) => {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "job_listings" },
         (payload) => {
-          const job = payload.new as { title?: string; company?: string };
-          toast.info("New job posted", {
-            description: `${job.title || "New role"} at ${job.company || "a company"}`,
-            duration: 5000,
-          });
+          const job = payload.new as {
+            title?: string;
+            company?: string;
+            salary_range?: string;
+            tech_stack?: string[];
+          };
+
+          // Check if it could be a high-match job based on tech stack overlap
+          // (full match calculation requires profile context, so we do a lightweight signal here)
+          const hasHighSignal = (job.tech_stack?.length ?? 0) >= 3;
+
+          if (hasHighSignal) {
+            toast.success("🎯 High-Match Job Alert!", {
+              description: `${job.title || "New role"} at ${job.company || "a company"}${job.salary_range ? ` · ${job.salary_range}` : ""}`,
+              duration: 8000,
+              action: {
+                label: "View",
+                onClick: () => {
+                  // Scroll to jobs view
+                  window.dispatchEvent(new CustomEvent("hunter:navigate", { detail: "jobs" }));
+                },
+              },
+            });
+          } else {
+            toast.info("New job posted", {
+              description: `${job.title || "New role"} at ${job.company || "a company"}`,
+              duration: 5000,
+            });
+          }
+
           queryClient.invalidateQueries({ queryKey: ["jobs"] });
           queryClient.invalidateQueries({ queryKey: ["jobCount"] });
         }
@@ -40,10 +65,21 @@ export const useRealtimeNotifications = (userId: string | undefined) => {
         },
         (payload) => {
           const app = payload.new as { job_title?: string; status?: string };
-          toast.info("Application updated", {
-            description: `${app.job_title || "Application"} → ${app.status || "updated"}`,
-            duration: 5000,
-          });
+          const status = app.status?.toLowerCase() || "";
+
+          // Special treatment for offers
+          if (status.includes("offer")) {
+            toast.success("🎉 You received an offer!", {
+              description: `${app.job_title || "Application"} → Offer`,
+              duration: 10000,
+            });
+          } else {
+            toast.info("Application updated", {
+              description: `${app.job_title || "Application"} → ${app.status || "updated"}`,
+              duration: 5000,
+            });
+          }
+
           queryClient.invalidateQueries({ queryKey: ["applicationCount"] });
         }
       )
