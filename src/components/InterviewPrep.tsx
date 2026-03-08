@@ -103,7 +103,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                         {/* Company Snapshot */}
                                         <section className="grid md:grid-cols-3 gap-6">
                                             <div className="md:col-span-2 space-y-4">
-                                                <h3 className="text-lg font-semibold flex items-center gap-2">
+                                                <h3 className="text-sm font-semibold flex items-center gap-2">
                                                     <Building2 className="w-5 h-5 text-foreground" />
                                                     Company Profile
                                                 </h3>
