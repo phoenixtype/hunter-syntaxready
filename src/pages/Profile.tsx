@@ -300,7 +300,7 @@ const Profile = () => {
                         {formData.summary && (
                             <section className="space-y-4">
                                 <h2 className="text-xl font-semibold">Professional Summary</h2>
-                                <Card className="border-border bg-card/50 backdrop-blur-md shadow-lg">
+                                <Card className="border-border bg-card">
                                     <CardContent className="p-6">
                                         <p className="text-lg leading-relaxed whitespace-pre-wrap">{formData.summary}</p>
                                     </CardContent>
