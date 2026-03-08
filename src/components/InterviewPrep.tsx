@@ -194,7 +194,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                                 </div>
                                                 <div className="grid gap-2">
                                                     {material.company_values.map((val, i) => (
-                                                        <div key={i} className="p-4 rounded-lg bg-secondary border border-border text-sm font-medium">
+                                                        <div key={i} className="p-4 rounded-xl bg-secondary border border-border text-sm font-medium">
                                                             {val}
                                                         </div>
                                                     ))}
