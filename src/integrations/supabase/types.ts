@@ -499,6 +499,7 @@ export type Database = {
           search_intent: string | null
           sms_alerts_enabled: boolean | null
           target_roles: string[] | null
+          tracker_view: string | null
           updated_at: string
           user_id: string
         }
@@ -519,6 +520,7 @@ export type Database = {
           search_intent?: string | null
           sms_alerts_enabled?: boolean | null
           target_roles?: string[] | null
+          tracker_view?: string | null
           updated_at?: string
           user_id: string
         }
@@ -539,6 +541,7 @@ export type Database = {
           search_intent?: string | null
           sms_alerts_enabled?: boolean | null
           target_roles?: string[] | null
+          tracker_view?: string | null
           updated_at?: string
           user_id?: string
         }
