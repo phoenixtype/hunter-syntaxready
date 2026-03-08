@@ -134,6 +134,7 @@ const Dashboard = () => {
 
   // Settings sub-tab
   const [settingsTab, setSettingsTab] = useState<"profile" | "preferences">("profile");
+  const visitedTabs = useVisitedTabs(activeView);
 
   useEffect(() => {
     localStorage.setItem("hunter_dashboard_view", activeView);
