@@ -97,7 +97,7 @@ const Dashboard = () => {
   });
 
   // Settings sub-tab
-  const [settingsTab, setSettingsTab] = useState<"profile" | "preferences">("profile");
+  const [settingsTab, setSettingsTab] = useState<"profile" | "preferences" | "alerts">("profile");
   const visitedTabs = useVisitedTabs(activeView);
 
   useEffect(() => {
