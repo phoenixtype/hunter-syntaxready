@@ -61,7 +61,7 @@ interface JobFiltersBarProps {
 }
 
 export const hasActiveFilters = (filters: JobFilters): boolean =>
-  filters.workMode !== "all" || filters.experienceLevel !== "all" || filters.minSalary > 0 || filters.datePosted !== "all";
+  filters.workMode !== "all" || filters.experienceLevel !== "all" || filters.minSalary > 0 || filters.datePosted !== "all" || filters.jobType !== "all";
 
 const JobFiltersBar = ({ filters, onChange }: JobFiltersBarProps) => {
   const [open, setOpen] = useState(false);
