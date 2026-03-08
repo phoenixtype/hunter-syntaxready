@@ -367,7 +367,7 @@ const Profile = () => {
                                 <h2 className="text-xl font-semibold">Additional Information</h2>
                                 <div className="space-y-4">
                                     {formData.custom_sections.map((section, idx) => (
-                                        <Card key={idx} className="border-border bg-card/50 backdrop-blur-md shadow-lg hover:border-primary/30 transition-all hover:translate-y-[-2px]">
+                                        <Card key={idx} className="border-border bg-card hover:border-primary/30 transition-all hover:translate-y-[-2px]">
                                             <CardContent className="p-6 space-y-2">
                                                 <h3 className="text-lg font-bold">{section.title}</h3>
                                                 <Separator className="my-2" />
