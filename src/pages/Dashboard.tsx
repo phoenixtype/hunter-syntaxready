@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import SEOHead from "@/components/SEOHead";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { Link, useNavigate } from "react-router-dom";
-import { Briefcase, FileText, Search, Linkedin, MessageSquare, User, Settings, LogOut, Zap, Bot, LayoutGrid, GraduationCap, Bell, FolderOpen, Sparkles, MoreHorizontal } from "lucide-react";
+import { Briefcase, FileText, Search, Linkedin, MessageSquare, User, Settings, LogOut, Zap, Bot, GraduationCap, Bell, FolderOpen, Sparkles, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
