@@ -442,6 +442,12 @@ serve(async (req) => {
         queries.push(`${searchRoles[1]}${locSuffix}`.trim());
       }
 
+      // Contract / freelance variant to surface gig opportunities
+      if (queries.length < 5) {
+        const locSuffix = searchLocs[0] ? ` ${searchLocs[0]}` : '';
+        queries.push(`${primaryRole} contract${locSuffix}`.trim());
+      }
+
       console.log(`[JSEARCH] Running ${queries.length} queries for locations: ${searchLocs.join(', ') || '(any)'}`);
 
       const searchResults = await Promise.allSettled(

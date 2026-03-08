@@ -110,6 +110,16 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
       });
     }
 
+    if (filters.jobType !== "all") {
+      result = result.filter(job => {
+        const text = ((job.title || "") + " " + (job.description || "")).toLowerCase();
+        if (filters.jobType === "contract") return text.includes("contract") || text.includes("freelance") || text.includes("consulting") || text.includes("c2c") || text.includes("1099") || text.includes("temp");
+        if (filters.jobType === "fulltime") return text.includes("full-time") || text.includes("full time") || text.includes("fulltime") || text.includes("permanent") || (!text.includes("contract") && !text.includes("part-time") && !text.includes("freelance"));
+        if (filters.jobType === "parttime") return text.includes("part-time") || text.includes("part time") || text.includes("parttime");
+        return true;
+      });
+    }
+
     if (filters.datePosted !== "all") {
       const now = Date.now();
       const cutoffs: Record<string, number> = {
