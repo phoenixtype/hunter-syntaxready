@@ -89,6 +89,8 @@ const App = () => (
                       <Route path="/interview-coach" element={<ProtectedRoute><InterviewCoach /></ProtectedRoute>} />
                       <Route path="/resume-builder" element={<ProtectedRoute><ResumeBuilder /></ProtectedRoute>} />
                       <Route path="/tailored-resumes" element={<ProtectedRoute><TailoredResumes /></ProtectedRoute>} />
+                      <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                      <Route path="/admin/analytics" element={<ProtectedRoute><AdminAnalytics /></ProtectedRoute>} />
                       <Route path="/privacy" element={<Privacy />} />
                       <Route path="/terms" element={<Terms />} />
                       <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
