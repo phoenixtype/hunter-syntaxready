@@ -22,6 +22,7 @@ import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { PublicRoute } from "./components/auth/PublicRoute";
 import FloatingThemeToggle from "./components/FloatingThemeToggle";
+import CookieConsent from "./components/CookieConsent";
 import CommandPalette from "./components/CommandPalette";
 import Footer from "./components/Footer";
 import { runStartupValidation } from "./lib/env_validator";
@@ -74,6 +75,7 @@ const App = () => (
               <ScrollToTop />
               <FloatingThemeToggle />
               <CommandPalette />
+              <CookieConsent />
               <div className="flex flex-col min-h-screen">
                 <div className="flex-1">
                   <Suspense fallback={<PageLoader />}>
