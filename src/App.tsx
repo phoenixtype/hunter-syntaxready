@@ -34,6 +34,8 @@ const AutoApplierSettings = lazy(() => import("./pages/AutoApplierSettings"));
 const InterviewCoach = lazy(() => import("./pages/InterviewCoach"));
 const ResumeBuilder = lazy(() => import("./pages/ResumeBuilder"));
 const TailoredResumes = lazy(() => import("./pages/TailoredResumes"));
+const Settings = lazy(() => import("./pages/Settings"));
+const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
