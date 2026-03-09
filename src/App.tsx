@@ -75,6 +75,7 @@ const App = () => (
               <ScrollToTop />
               <FloatingThemeToggle />
               <CommandPalette />
+              <CookieConsent />
               <div className="flex flex-col min-h-screen">
                 <div className="flex-1">
                   <Suspense fallback={<PageLoader />}>
