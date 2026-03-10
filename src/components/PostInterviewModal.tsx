@@ -14,6 +14,7 @@ import { useState } from "react";
 import { generateThankYouNote, generateNegotiationStrategy, OfferDetails, NegotiationStrategy } from "@/lib/post_interview_engine";
 import { toast } from "sonner";
 import { MessageSquare, DollarSign, Send, CheckCircle2 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { CandidateProfile } from "@/lib/resume_engine";
 
 interface PostInterviewModalProps {
@@ -158,14 +159,16 @@ const PostInterviewModal = ({ isOpen, onClose, companyName = "", profile }: Post
                                             <label className="text-sm font-medium text-muted-foreground">Leverage Points</label>
                                             <ul className="list-disc pl-5 text-sm space-y-1">
                                                 {strategy.leveragePoints.map((p: string, i: number) => (
-                                                    <li key={i}>{p}</li>
+                                                    <li key={i}>
+                                                        <ReactMarkdown>{p}</ReactMarkdown>
+                                                    </li>
                                                 ))}
                                             </ul>
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-sm font-medium text-muted-foreground">Negotiation Script</label>
-                                            <div className="p-3 bg-muted rounded-xl text-sm italic border border-border">
-                                                "{strategy.script}"
+                                            <div className="p-3 bg-muted rounded-xl text-sm border border-border prose prose-sm dark:prose-invert max-w-none">
+                                                <ReactMarkdown>{strategy.script}</ReactMarkdown>
                                             </div>
                                         </div>
                                     </CardContent>

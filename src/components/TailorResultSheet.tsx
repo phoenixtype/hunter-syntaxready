@@ -9,6 +9,7 @@ import {
     FileText, Check, Copy, ChevronDown, ChevronUp,
     Building2, Loader2, FileDown
 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
 interface TailorResultSheetProps {
     open: boolean;
@@ -135,9 +136,9 @@ const TailorResultSheet = ({ open, onClose, content, job }: TailorResultSheetPro
                     </button>
                     {showCoverLetter && (
                         <div className="px-4 pb-4 pt-1 border-t border-border">
-                            <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-sans leading-relaxed">
-                                {content.coverLetter}
-                            </pre>
+                            <div className="text-sm text-muted-foreground whitespace-pre-wrap font-sans leading-relaxed prose prose-sm dark:prose-invert max-w-none">
+                                <ReactMarkdown>{content.coverLetter}</ReactMarkdown>
+                            </div>
                         </div>
                     )}
                 </div>

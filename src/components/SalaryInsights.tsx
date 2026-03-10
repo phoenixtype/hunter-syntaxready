@@ -128,8 +128,10 @@ export default function SalaryInsights({ jobTitle, company, location, salaryRang
                   <ul className="space-y-1.5">
                     {data.keyPoints.map((point, i) => (
                       <li key={i} className="flex items-start gap-2 text-xs">
-                        <AlertTriangle className="w-3 h-3 text-primary mt-0.5 shrink-0" />
-                        {point}
+                        <AlertTriangle className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                        <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-0 prose-p:leading-snug">
+                            <ReactMarkdown>{point}</ReactMarkdown>
+                        </div>
                       </li>
                     ))}
                   </ul>
