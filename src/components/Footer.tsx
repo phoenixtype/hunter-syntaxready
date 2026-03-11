@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 /** Pages where the footer is suppressed (full-screen layouts with their own chrome) */
@@ -11,13 +12,13 @@ const HIDDEN_FOOTER_PATHS = [
   "/tailored-resumes"
 ];
 
-const Footer = () => {
+const Footer = forwardRef<HTMLElement>((_, ref) => {
   const { pathname } = useLocation();
 
   if (HIDDEN_FOOTER_PATHS.includes(pathname)) return null;
 
   return (
-    <footer className="py-8 border-t border-border mt-auto" role="contentinfo">
+    <footer ref={ref} className="py-8 border-t border-border mt-auto" role="contentinfo">
       <div className="container max-w-6xl mx-auto px-4 sm:px-6">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2.5">
@@ -35,6 +36,8 @@ const Footer = () => {
       </div>
     </footer>
   );
-};
+});
+
+Footer.displayName = "Footer";
 
 export default Footer;
