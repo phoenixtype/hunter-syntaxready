@@ -180,6 +180,7 @@ const Onboarding = () => {
 
   // On mount: restore saved step + load existing data from DB
   useEffect(() => {
+    if (!user?.id) return;
     // Restore step from localStorage
     const savedStep = localStorage.getItem(`hunter_onboarding_step_${user.id}`);
     if (savedStep && STEPS.some(s => s.id === savedStep)) {
