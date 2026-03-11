@@ -152,7 +152,10 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
       setShowPricingModal(true);
       return;
     }
-    if (appliedJobIds.has(job.id)) { toast.error("You have already applied to this position."); return; }
+    if (appliedJobIds.has(job.id)) { 
+      // Do nothing, let the <a> tag handle navigation to the job URL
+      return; 
+    }
     toast.info(`Applying to ${job.company}...`);
     await recordFeedback({ jobId: job.id, action: 'APPLY', timestamp: Date.now(), jobMetadata: { skills: job.tech_stack || [], company: job.company, source: job.source } });
     try {
