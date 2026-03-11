@@ -5,7 +5,7 @@ const FloatingThemeToggle = () => {
     const location = useLocation();
 
     // Pages that already have a theme toggle in their header
-    const hiddenPaths = ["/", "/dashboard", "/auto-applier-settings"];
+    const hiddenPaths = ["/", "/dashboard", "/auto-applier-settings", "/settings"];
 
     if (hiddenPaths.includes(location.pathname)) {
         return null;
