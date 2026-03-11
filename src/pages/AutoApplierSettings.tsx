@@ -17,6 +17,7 @@ import { useResume } from "@/hooks/useResume";
 import { useAuth } from "@/hooks/useAuth";
 import { getPreferences, savePreferences, UserPreferences } from "@/lib/user_preferences";
 import { saveCandidateProfile } from "@/lib/resume_engine";
+import { supabase } from "@/integrations/supabase/client";
 
 const INTENSITY_LABELS: Record<number, string> = {
   1: "Very selective — few highly targeted roles",
@@ -56,6 +57,7 @@ const JobHuntPlanner = () => {
   const [hasClearance, setHasClearance] = useState(false);
   const [expectedSalary, setExpectedSalary] = useState("");
   const [noticePeriod, setNoticePeriod] = useState("14");
+  const [experienceLevel, setExperienceLevel] = useState("mid");
 
   // Search intensity
   const [intensity, setIntensity] = useState([5]);
@@ -72,6 +74,7 @@ const JobHuntPlanner = () => {
       if (linkedin) setLinkedinUrl(linkedin);
       const portfolio = profile.identity?.links?.find((l: string) => !l.includes("linkedin") && !l.includes("github"));
       if (portfolio) setPortfolioUrl(portfolio);
+      if (profile.identity?._years_exp) setYearsExp(profile.identity._years_exp.toString());
     }
 
     const loadPrefs = async () => {
@@ -87,7 +90,18 @@ const JobHuntPlanner = () => {
         setHasClearance(prefs.has_clearance);
         setExpectedSalary(prefs.min_salary_usd?.toString() || "");
         setNoticePeriod(prefs.notice_period_days?.toString() || "14");
+        if (prefs.experience_level) setExperienceLevel(prefs.experience_level);
       }
+      
+      const { data: weightsData } = await supabase
+        .from('learning_weights')
+        .select('banned_companies')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (weightsData?.banned_companies) {
+        setBlacklist(weightsData.banned_companies.join(", "));
+      }
+
       setLoading(false);
     };
     loadPrefs();
@@ -102,7 +116,7 @@ const JobHuntPlanner = () => {
         locations,
         remote_policy: workSetup as UserPreferences["remote_policy"],
         min_salary_usd: parseInt(expectedSalary) || 100000,
-        experience_level: 'mid',
+        experience_level: experienceLevel,
         safe_mode: safeMode,
         aggressiveness: intensity[0],
         require_sponsorship: requireSponsorship,
@@ -124,15 +138,22 @@ const JobHuntPlanner = () => {
       currentProfile = {
         ...currentProfile,
         identity: {
+          ...currentProfile.identity,
           name: fullName,
           email: currentProfile.identity?.email || user.email || "",
           phone: phone,
           location: currentLocation,
-          links: [linkedinUrl, portfolioUrl].filter(Boolean)
+          links: [linkedinUrl, portfolioUrl].filter(Boolean),
+          _years_exp: yearsExp
         }
       };
 
       await saveCandidateProfile(user.id, currentProfile);
+
+      const bannedCompanies = blacklist.split(",").map(s => s.trim()).filter(Boolean);
+      await supabase
+        .from('learning_weights')
+        .upsert({ user_id: user.id, banned_companies: bannedCompanies }, { onConflict: 'user_id' });
 
       toast.success("Preferences saved!");
     } catch {

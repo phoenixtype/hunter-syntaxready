@@ -36,101 +36,42 @@ type StepId = typeof STEPS[number]["id"];
 
 const TEMPLATES = [
   {
-    id: "classic",
-    name: "Classic Professional",
-    desc: "Clean, traditional layout with serif headings. Ideal for corporate, legal, and finance roles.",
-    preview: "bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900",
-    accent: "border-l-slate-500",
+    id: "minimalist",
+    name: "Professional Minimalist",
+    desc: "Clean, ultra-modern sans-serif layout. Focuses entirely on content readability and elegant whitespace. Perfect for tech and modern corporate roles.",
+    preview: "bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950",
     tag: "Popular",
   },
   {
-    id: "modern",
-    name: "Modern Minimal",
-    desc: "Sleek, contemporary sans-serif design with teal accents. Great for tech & product roles.",
-    preview: "bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950 dark:to-indigo-950",
-    accent: "border-l-primary",
-    tag: "Default",
-  },
-  {
     id: "executive",
-    name: "Executive",
-    desc: "Bold, authoritative layout with a dark header. Best for VP, Director, and C-level positions.",
-    preview: "bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-950 dark:to-orange-950",
-    accent: "border-l-amber-500",
-    tag: null,
-  },
-  {
-    id: "creative",
-    name: "Creative Portfolio",
-    desc: "Two-column layout with a colored sidebar. Perfect for designers, marketers, and content creators.",
-    preview: "bg-gradient-to-br from-fuchsia-50 to-pink-100 dark:from-fuchsia-950 dark:to-pink-950",
-    accent: "border-l-fuchsia-500",
-    tag: "New",
-  },
-  {
-    id: "technical",
-    name: "Technical Engineer",
-    desc: "Monospace-accented layout highlighting tech stack and project details. Built for engineers.",
-    preview: "bg-gradient-to-br from-emerald-50 to-teal-100 dark:from-emerald-950 dark:to-teal-950",
-    accent: "border-l-emerald-500",
-    tag: "New",
-  },
-  {
-    id: "compact",
-    name: "One-Page Compact",
-    desc: "Dense, information-rich single-page layout. Great when you need everything on one page.",
-    preview: "bg-gradient-to-br from-gray-50 to-zinc-100 dark:from-gray-900 dark:to-zinc-900",
-    accent: "border-l-zinc-500",
-    tag: null,
-  },
-  {
-    id: "elegant",
-    name: "Elegant Serif",
-    desc: "Refined serif typography with subtle gold accents. Ideal for academia, consulting, and publishing.",
-    preview: "bg-gradient-to-br from-yellow-50 to-stone-100 dark:from-yellow-950 dark:to-stone-900",
-    accent: "border-l-yellow-600",
-    tag: null,
-  },
-  {
-    id: "bold",
-    name: "Bold Impact",
-    desc: "High-contrast layout with oversized name and color blocks. Makes a strong first impression.",
-    preview: "bg-gradient-to-br from-red-50 to-rose-100 dark:from-red-950 dark:to-rose-950",
-    accent: "border-l-red-500",
-    tag: "New",
-  },
-  {
-    id: "nordic",
-    name: "Nordic Clean",
-    desc: "Scandinavian-inspired minimalism with generous whitespace and muted tones. Timeless and calm.",
-    preview: "bg-gradient-to-br from-sky-50 to-slate-100 dark:from-sky-950 dark:to-slate-900",
-    accent: "border-l-sky-400",
-    tag: "New",
-  },
-  {
-    id: "editorial",
-    name: "Editorial",
-    desc: "Magazine-style layout with refined typography and subtle dividers. Great for writers and consultants.",
-    preview: "bg-gradient-to-br from-stone-50 to-neutral-100 dark:from-stone-950 dark:to-neutral-900",
-    accent: "border-l-stone-500",
-    tag: "New",
-  },
-  {
-    id: "luxe",
-    name: "Luxe Dark",
-    desc: "Premium dark-themed resume with gold typography and refined spacing. Perfect for senior leaders.",
-    preview: "bg-gradient-to-br from-zinc-800 to-neutral-900 dark:from-zinc-900 dark:to-black",
-    accent: "border-l-amber-400",
+    name: "Executive Premium",
+    desc: "Authoritative serif typography with strong dividing lines and a sophisticated structural grid. Ideal for senior, management, and traditional roles.",
+    preview: "bg-gradient-to-br from-stone-50 to-neutral-100 dark:from-stone-900 dark:to-neutral-950",
     tag: "Premium",
   },
   {
-    id: "swiss",
-    name: "Swiss Grid",
-    desc: "Grid-based International Typographic Style with strong alignment and hierarchy. For design-savvy roles.",
-    preview: "bg-gradient-to-br from-white to-gray-100 dark:from-gray-900 dark:to-gray-950",
-    accent: "border-l-red-600",
+    id: "tech",
+    name: "Modern Tech",
+    desc: "Sleek, high-density layout optimized for engineers and developers. Highlights skills, projects, and metrics with technical precision.",
+    preview: "bg-gradient-to-br from-zinc-50 to-blue-50 dark:from-zinc-900 dark:to-blue-950",
+    tag: "New",
+  },
+  {
+    id: "corporate",
+    name: "Classic Corporate",
+    desc: "Timeless and traditional format recognized by all major institutions. Strict, highly structured, and universally ATS compliant.",
+    preview: "bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950",
     tag: null,
   },
+];
+
+const ACCENT_COLORS = [
+  { id: "slate", name: "Slate", hex: "#475569", bg: "bg-slate-500", ring: "ring-slate-500" },
+  { id: "blue", name: "Blue", hex: "#2563eb", bg: "bg-blue-600", ring: "ring-blue-600" },
+  { id: "teal", name: "Teal", hex: "#0d9488", bg: "bg-teal-600", ring: "ring-teal-600" },
+  { id: "emerald", name: "Emerald", hex: "#059669", bg: "bg-emerald-600", ring: "ring-emerald-600" },
+  { id: "crimson", name: "Crimson", hex: "#dc2626", bg: "bg-red-600", ring: "ring-red-600" },
+  { id: "indigo", name: "Indigo", hex: "#4f46e5", bg: "bg-indigo-600", ring: "ring-indigo-600" },
 ];
 
 const SUGGESTED_SKILLS = [
@@ -145,7 +86,8 @@ const ResumeBuilder = () => {
   const { profile: existingProfile, loading: profileLoading, setProfile: setGlobalProfile } = useResume();
 
   const [currentStep, setCurrentStep] = useState<StepId>("personal");
-  const [selectedTemplate, setSelectedTemplate] = useState("modern");
+  const [selectedTemplate, setSelectedTemplate] = useState("minimalist");
+  const [accentColor, setAccentColor] = useState(ACCENT_COLORS[0]);
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
   const [generatedHtml, setGeneratedHtml] = useState<string | null>(null);
@@ -254,7 +196,7 @@ const ResumeBuilder = () => {
       const [atsRes, genRes] = await Promise.allSettled([
         analyzeResumeForJob(formData, ""),
         supabase.functions.invoke("generate-resume", {
-          body: { profile: formData, template: selectedTemplate },
+          body: { profile: formData, template: selectedTemplate, accentColor: accentColor.hex },
           headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
         }),
       ]);
@@ -561,54 +503,80 @@ const ResumeBuilder = () => {
           {/* TEMPLATE SELECTION */}
           {currentStep === "template" && (
             <div className="animate-fade-in space-y-8 pt-8">
-              <div className="space-y-2">
-                <h2 className="text-2xl font-bold">Choose a Template</h2>
-                <p className="text-muted-foreground">Select an ATS-friendly template that fits your industry and career level.</p>
-              </div>
-              <RadioGroup value={selectedTemplate} onValueChange={setSelectedTemplate} className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                {TEMPLATES.map(t => (
-                  <label
-                    key={t.id}
-                    className={`flex flex-col gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all border-l-4 ${t.accent} ${
-                      selectedTemplate === t.id
-                        ? "border-primary bg-primary/5 shadow-md"
-                        : "border-border hover:border-primary/30 hover:shadow-sm"
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <RadioGroupItem value={t.id} className="mt-1 shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-semibold text-sm">{t.name}</h3>
-                          {t.tag && (
-                            <Badge variant={t.tag === "Default" ? "default" : "secondary"} className="text-[10px] h-5 px-1.5">
-                              {t.tag}
-                            </Badge>
-                          )}
-                          {selectedTemplate === t.id && (
-                            <Badge className="bg-primary text-primary-foreground text-[10px] h-5 px-1.5 ml-auto">
-                              <Check className="w-3 h-3 mr-0.5" /> Selected
-                            </Badge>
-                          )}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-bold">Choose a Template</h2>
+                  <p className="text-muted-foreground">Select an ATS-friendly layout that fits your industry and career level.</p>
+                </div>
+                <RadioGroup value={selectedTemplate} onValueChange={setSelectedTemplate} className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  {TEMPLATES.map(t => (
+                    <label
+                      key={t.id}
+                      className={`flex flex-col gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                        selectedTemplate === t.id
+                          ? `border-primary bg-primary/5 shadow-md`
+                          : "border-border hover:border-primary/30 hover:shadow-sm"
+                      }`}
+                      style={{ borderLeftColor: selectedTemplate === t.id ? accentColor.hex : undefined, borderLeftWidth: "4px" }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <RadioGroupItem value={t.id} className="mt-1 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-semibold text-sm">{t.name}</h3>
+                            {t.tag && (
+                              <Badge variant={t.tag === "Default" || t.tag === "Popular" ? "default" : "secondary"} className="text-[10px] h-5 px-1.5">
+                                {t.tag}
+                              </Badge>
+                            )}
+                            {selectedTemplate === t.id && (
+                              <Badge className="bg-primary text-primary-foreground text-[10px] h-5 px-1.5 ml-auto">
+                                <Check className="w-3 h-3 mr-0.5" /> Selected
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{t.desc}</p>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{t.desc}</p>
                       </div>
-                    </div>
-                    {/* Mini preview */}
-                    <div className={`h-20 sm:h-24 rounded-lg ${t.preview} border border-border/50 p-3 flex flex-col justify-between`}>
-                      <div className="space-y-1">
-                        <div className="h-2.5 bg-foreground/25 rounded w-2/5" />
-                        <div className="h-1.5 bg-foreground/10 rounded w-3/5" />
+                      {/* Mini preview */}
+                      <div className={`h-20 sm:h-24 rounded-lg ${t.preview} border border-border/50 p-3 flex flex-col justify-between`}>
+                        <div className="space-y-1">
+                          <div className="h-2.5 bg-foreground/25 rounded w-2/5" />
+                          <div className="h-1.5 bg-foreground/10 rounded w-3/5" />
+                        </div>
+                        <div className="space-y-1">
+                          <div className="h-1.5 bg-foreground/8 rounded w-full" />
+                          <div className="h-1.5 bg-foreground/8 rounded w-4/5" />
+                          <div className="h-1.5 bg-foreground/8 rounded w-11/12" />
+                        </div>
                       </div>
-                      <div className="space-y-1">
-                        <div className="h-1.5 bg-foreground/8 rounded w-full" />
-                        <div className="h-1.5 bg-foreground/8 rounded w-4/5" />
-                        <div className="h-1.5 bg-foreground/8 rounded w-11/12" />
-                      </div>
-                    </div>
-                  </label>
-                ))}
-              </RadioGroup>
+                    </label>
+                  ))}
+                </RadioGroup>
+              </div>
+
+              <div className="space-y-4 pt-6 border-t border-border">
+                <div className="space-y-2">
+                  <h2 className="text-xl font-semibold">Color Accent</h2>
+                  <p className="text-sm text-muted-foreground">Choose a subtle color to highlight headers and key elements.</p>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {ACCENT_COLORS.map(color => (
+                    <button
+                      key={color.id}
+                      onClick={() => setAccentColor(color)}
+                      className={`w-10 h-10 rounded-full transition-all flex items-center justify-center ${color.bg} ${
+                        accentColor.id === color.id 
+                          ? `ring-2 ring-offset-2 ring-offset-background ${color.ring} scale-110 shadow-md` 
+                          : 'hover:scale-105 opacity-80 hover:opacity-100 border border-black/10 dark:border-white/10'
+                      }`}
+                      title={color.name}
+                    >
+                      {accentColor.id === color.id && <Check className="w-5 h-5 text-white" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 

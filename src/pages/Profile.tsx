@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Plus, Trash2, Save, Loader2, X, Edit2, Eye, Ban } from "lucide-react";
+import { Plus, Trash2, Save, Loader2, X, Edit2, Eye, Ban, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import DashboardSkeleton from "@/components/DashboardSkeleton";
 
@@ -163,6 +163,37 @@ const Profile = () => {
             if (!prev) return null;
             const newExp = prev.experience_atoms.filter((_, i) => i !== index);
             return { ...prev, experience_atoms: newExp };
+        });
+    };
+
+    const moveExperience = (index: number, direction: 'up' | 'down') => {
+        setFormData(prev => {
+            if (!prev) return null;
+            const newExp = [...prev.experience_atoms];
+            if (direction === 'up' && index > 0) {
+                [newExp[index - 1], newExp[index]] = [newExp[index], newExp[index - 1]];
+            } else if (direction === 'down' && index < newExp.length - 1) {
+                [newExp[index + 1], newExp[index]] = [newExp[index], newExp[index + 1]];
+            }
+            return { ...prev, experience_atoms: newExp };
+        });
+    };
+
+    const sortExperiencesByDate = () => {
+        setFormData(prev => {
+            if (!prev) return null;
+            const sorted = [...prev.experience_atoms].sort((a, b) => {
+                const parseDate = (dateStr: string) => {
+                    if (!dateStr) return 0;
+                    const parts = dateStr.split('-');
+                    const endStr = parts.length > 1 ? parts[1].trim() : parts[0].trim();
+                    if (endStr.toLowerCase() === 'present') return Infinity;
+                    const date = new Date(endStr);
+                    return isNaN(date.getTime()) ? 0 : date.getTime();
+                };
+                return parseDate(b.duration) - parseDate(a.duration);
+            });
+            return { ...prev, experience_atoms: sorted };
         });
     };
 
@@ -452,10 +483,16 @@ const Profile = () => {
                             <section className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-xl font-semibold">Experience</h2>
-                                    <Button size="sm" variant="outline" onClick={addExperience}>
-                                        <Plus className="w-4 h-4 mr-2" />
-                                        Add Role
-                                    </Button>
+                                    <div className="flex gap-2">
+                                        <Button size="sm" variant="outline" onClick={sortExperiencesByDate}>
+                                            <ArrowUpDown className="w-4 h-4 mr-2" />
+                                            Sort by Date
+                                        </Button>
+                                        <Button size="sm" variant="outline" onClick={addExperience}>
+                                            <Plus className="w-4 h-4 mr-2" />
+                                            Add Role
+                                        </Button>
+                                    </div>
                                 </div>
                                 <div className="space-y-4">
                                     {formData.experience_atoms.map((exp, index) => (
@@ -483,14 +520,34 @@ const Profile = () => {
                                                         />
                                                     </div>
                                                 </div>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="text-destructive sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
-                                                    onClick={() => removeExperience(index)}
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </Button>
+                                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-muted-foreground"
+                                                        onClick={() => moveExperience(index, 'up')}
+                                                        disabled={index === 0}
+                                                    >
+                                                        <ArrowUp className="w-4 h-4" />
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-muted-foreground"
+                                                        onClick={() => moveExperience(index, 'down')}
+                                                        disabled={index === formData.experience_atoms.length - 1}
+                                                    >
+                                                        <ArrowDown className="w-4 h-4" />
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-destructive"
+                                                        onClick={() => removeExperience(index)}
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </Button>
+                                                </div>
                                             </CardHeader>
                                             <CardContent>
                                                 <Textarea

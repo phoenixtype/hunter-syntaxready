@@ -51,7 +51,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                 <h3 className="text-xl font-bold flex items-center gap-2">
                                     Hunter Pro <Sparkles className="w-4 h-4 text-foreground" />
                                 </h3>
-                                <p className="text-2xl font-mono">$29<span className="text-sm text-muted-foreground font-sans">/mo</span></p>
+                                <p className="text-2xl font-mono">$19<span className="text-sm text-muted-foreground font-sans">/week</span></p>
                                 <p className="text-sm text-muted-foreground">Supercharge your search with Agentic AI.</p>
                             </div>
                             <span className="bg-foreground text-background text-xs font-bold px-2 py-1 rounded-md uppercase tracking-wider shrink-0">Pro</span>

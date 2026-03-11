@@ -361,7 +361,7 @@ const Onboarding = () => {
       queryClient.invalidateQueries({ queryKey: ['preferences'] });
       queryClient.invalidateQueries({ queryKey: ['candidate_profile'] });
       toast.success("You're all set!");
-      navigate("/dashboard");
+      navigate("/dashboard", { state: { showPricing: true } });
     } catch (err) {
       console.error("Onboarding save failed:", err);
       toast.error("Something went wrong. Please try again.");

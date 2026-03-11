@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import SEOHead from "@/components/SEOHead";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Briefcase, FileText, Search, Linkedin, MessageSquare, User, Settings, LogOut, Zap, Bot, GraduationCap, Bell, FolderOpen, Sparkles, MoreHorizontal, PanelLeftClose, PanelLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -87,6 +87,7 @@ const SIDEBAR_SECTIONS: { label: string; tools: SidebarTool[] }[] = [
 const Dashboard = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { profile, loading: resumeLoading } = useResume();
   const { subscription, isLoading: subLoading } = useSubscription();
   const { preferences, appCount, jobCount, visibility, isLoading: dataLoading } = useDashboardData();
@@ -107,6 +108,13 @@ const Dashboard = () => {
   const [showPricing, setShowPricing] = useState(false);
   const [showLinkedIn, setShowLinkedIn] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+
+  useEffect(() => {
+    if (location.state?.showPricing) {
+      setShowPricing(true);
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
     try { return localStorage.getItem("hunter_sidebar_collapsed") === "true"; } catch { return false; }
   });

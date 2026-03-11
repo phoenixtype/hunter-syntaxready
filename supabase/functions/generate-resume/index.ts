@@ -37,7 +37,7 @@ serve(async (req) => {
       });
     }
 
-    const { profile, template } = await req.json();
+    const { profile, template, accentColor } = await req.json();
 
     if (!profile || !profile.identity) {
       return new Response(JSON.stringify({ error: 'Profile data required' }), {
@@ -53,36 +53,28 @@ serve(async (req) => {
     }
 
     const TEMPLATE_STYLES: Record<string, string> = {
-      classic: 'Clean, traditional, serif headings (Georgia), simple gray borders, professional corporate look, conservative spacing',
-      modern: 'Sleek, minimal, sans-serif, teal accent color (#0d9488), modern tech industry style, clean lines',
-      executive: 'Bold, authoritative, dark navy header section (#1e293b), large name, gold accents (#d4a853), executive presence',
-      creative: 'Two-column layout with a colored sidebar (#7c3aed light purple), skills/contact in sidebar, main content on right, creative feel',
-      technical: 'Monospace font accents for tech stack (Fira Code), green accent (#059669), code-block style skill tags, engineer-focused',
-      compact: 'Dense single-page layout, smaller font sizes (11px body), narrow margins, maximum information density, no wasted space',
-      elegant: 'Refined serif typography (Playfair Display feel), subtle gold (#b8860b) underline accents, generous whitespace, academic/consulting',
-      bold: 'High-contrast layout, oversized name (36px+), bold color blocks (#e11d48 rose), strong visual hierarchy, attention-grabbing',
-      nordic: 'Scandinavian minimalism, extremely generous whitespace, light steel blue accents (#94a3b8), soft gray text (#475569), no borders just spacing, clean sans-serif (system-ui), airy and calm',
-      editorial: 'Magazine/editorial style, elegant serif headings (Georgia or Playfair Display), thin hairline dividers (#d4d4d4), small caps for section headers, slightly wider letter-spacing, refined understated elegance',
-      luxe: 'Premium dark background (#18181b) with gold (#d4a853) and warm white (#fafaf9) text, elegant serif name, generous padding, subtle letter-spacing, high-end executive presence, reversed color scheme',
-      swiss: 'International Typographic Style / Swiss grid, strong left-aligned hierarchy, Helvetica/system-ui, red accent (#dc2626) for name or section rules only, mathematical spacing (8px grid), no decorative elements, pure structure',
+      minimalist: 'Professional Minimalist: Clean, ultra-modern sans-serif layout (Inter/system-ui). Focuses entirely on content readability and elegant whitespace. No borders, pure typography.',
+      executive: 'Executive Premium: Authoritative serif typography (Georgia/Playfair) with strong dividing lines and a sophisticated structural grid. Center-aligned name header.',
+      tech: 'Modern Tech: Sleek, high-density layout. Use monospace fonts (Fira Code/Courier) for skill tags or project metrics. Very structured.',
+      corporate: 'Classic Corporate: Timeless layout with standard serif headings and minimal styling. Maximum ATS readability. Strict left alignment.',
     };
-    const templateStyle = TEMPLATE_STYLES[template] || TEMPLATE_STYLES.modern;
+    const templateStyle = TEMPLATE_STYLES[template] || TEMPLATE_STYLES.minimalist;
+    const accentHex = accentColor || '#475569';
 
-    const systemPrompt = `You are an expert resume designer. Generate a complete, ATS-friendly HTML resume document. 
-The HTML must be self-contained with inline CSS styles. Use clean, professional formatting.
-Template style: ${templateStyle}
+    const systemPrompt = `You are a world-class executive resume writer and strict ATS parsing expert. 
+Generate a complete, highly-optimized HTML resume document based ONLY on the provided data.
 
-Rules:
-- Use semantic HTML (h1, h2, section, ul, li)
-- All styles must be inline CSS
-- Use a clean, readable font stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif
-- Page should be letter-size friendly (max-width: 800px, centered)
-- Include proper spacing, margins, and visual hierarchy
-- Make it print-friendly (no dark backgrounds that waste ink, unless executive template)
-- Ensure strong ATS compatibility (avoid tables for layout, use standard heading tags)
-- Format experience bullet points with quantified achievements
-- Group skills logically
-- DO NOT include any placeholder text — only use the data provided`;
+Template style requested: ${templateStyle}
+Accent Color requested: ${accentHex}
+
+CRITICAL RULES FOR GENERATION:
+1. STRICTLY NO HALLUCINATIONS: You are FORBIDDEN from adding any companies, roles, degrees, skills, or responsibilities that are NOT explicitly in the user's provided data. Do not make up metrics. 
+2. EXTREME CONCISENESS: Refine and rewrite the user's bullet points to be incredibly punchy. Use strong action verbs. Ensure the entire resume cleanly fits on a single printed page. Limit to a MAXIMUM of 3 bullet points per role, combining redundant points if necessary.
+3. ATS OPTIMIZATION: Do not use HTML tables for layout. Use semantic <h1>, <h2>, <ul>, and <li> tags.
+4. STYLING INSTRUCTIONS: All CSS must be inline. Use the provided Accent Color (${accentHex}) for key structural elements like section headings (<h2>), borders/dividers, or skill badge backgrounds.
+5. FONT STACK: Use web-safe, completely standard fonts (e.g. system-ui, -apple-system, sans-serif, or serif depending on the template style).
+6. PRINT READY: Ensure 'max-width: 800px; margin: 0 auto; color: #111; background: #fff;' on the body. Do not use dark backgrounds, they waste printer ink.
+7. Omit any section if no data is provided for it.`;
 
     const experienceText = profile.experience_atoms?.map((exp: any) => 
       `Role: ${exp.role}, Company: ${exp.company}, Duration: ${exp.duration}, Details: ${exp.content}`
