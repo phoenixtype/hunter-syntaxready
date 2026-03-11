@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, ArrowRight, Sparkles, Target, Briefcase, Send } from "lucide-react";
 import { CandidateProfile } from "@/lib/resume_engine";
+import { ApplicationMetrics } from "@/lib/application_engine";
 import { UserPreferences } from "@/lib/user_preferences";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -10,10 +11,11 @@ interface Props {
   preferences: UserPreferences | null;
   jobCount: number;
   appCount: number;
+  metrics?: ApplicationMetrics;
   onSetView?: (view: "jobs" | "applications" | "tools" | "preferences") => void;
 }
 
-const DashboardWelcome = ({ profile, preferences, jobCount, appCount, onSetView }: Props) => {
+const DashboardWelcome = ({ profile, preferences, jobCount, appCount, metrics, onSetView }: Props) => {
   const navigate = useNavigate();
 
   const firstName = profile?.identity?.name?.split(' ')[0];
@@ -58,7 +60,48 @@ const DashboardWelcome = ({ profile, preferences, jobCount, appCount, onSetView 
   const nextStep = steps.find(s => !s.done);
   const progressPct = (completedCount / steps.length) * 100;
 
-  if (allDone) return null;
+  if (allDone && metrics) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4 }}
+        className="rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/10 via-background to-background p-6 mb-6 overflow-hidden relative shadow-sm"
+      >
+        <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
+        
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-3">
+              <Sparkles className="w-3.5 h-3.5" /> Hunter Success Tracking
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+              You're on fire, {firstName || "there"}! 🔥
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+              Your AI-automated job hunt is yielding results. Keep applying and crushing those interviews.
+            </p>
+          </div>
+
+          <div className="flex gap-4 sm:gap-6 mt-2 sm:mt-0 w-full sm:w-auto">
+            <div className="flex flex-col items-center justify-center bg-card border border-border/50 rounded-xl p-4 w-full sm:w-32 shadow-sm relative overflow-hidden group">
+              <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <span className="text-3xl font-black text-primary mb-0.5">{metrics.interviews}</span>
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Interviews</span>
+            </div>
+            <div className="flex flex-col items-center justify-center bg-card border border-border/50 rounded-xl p-4 w-full sm:w-32 shadow-sm relative overflow-hidden group">
+              <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <span className="text-3xl font-black text-emerald-500 mb-0.5">{metrics.offers}</span>
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Offers</span>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  } else if (allDone) {
+      return null;
+  }
 
   return (
     <motion.div

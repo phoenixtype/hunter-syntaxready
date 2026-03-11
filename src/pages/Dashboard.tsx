@@ -90,7 +90,7 @@ const Dashboard = () => {
   const location = useLocation();
   const { profile, loading: resumeLoading } = useResume();
   const { subscription, isLoading: subLoading } = useSubscription();
-  const { preferences, appCount, jobCount, visibility, isLoading: dataLoading } = useDashboardData();
+  const { preferences, appCount, jobCount, visibility, metrics, isLoading: dataLoading } = useDashboardData();
 
   const [activeView, setActiveView] = useState<DashboardView>(() => {
     const saved = localStorage.getItem("hunter_dashboard_view");
@@ -435,7 +435,7 @@ const Dashboard = () => {
           {visitedTabs.has("jobs") && (
             <div className={activeView !== "jobs" ? "hidden" : ""}>
               <WidgetErrorBoundary>
-                <DashboardWelcome profile={profile} preferences={preferences ?? null} jobCount={jobCount} appCount={appCount} onSetView={(v) => setActiveView(v as DashboardView)} />
+                <DashboardWelcome profile={profile} preferences={preferences ?? null} jobCount={jobCount} appCount={appCount} metrics={metrics} onSetView={(v) => setActiveView(v as DashboardView)} />
                 <JobFeed profile={profile} preferences={preferences} />
               </WidgetErrorBoundary>
             </div>

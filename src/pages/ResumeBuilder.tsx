@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import {
   ArrowLeft, ArrowRight, X, Plus, User, Briefcase,
   Sparkles, GraduationCap, FileText, Download, Loader2, Check, Layout,
-  Printer, Eye, ShieldCheck
+  Printer, Eye, ShieldCheck, Copy, Share
 } from "lucide-react";
 import { exportResumeToDocx } from "@/lib/pdf_export";
 import { analyzeResumeForJob, ATSResult } from "@/lib/ats_engine";
@@ -247,6 +247,17 @@ const ResumeBuilder = () => {
   };
 
   if (authLoading || profileLoading) return <DashboardSkeleton />;
+
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText("I just generated an incredibly optimized ATS Resume using Hunter AI! 👉 https://hunter-ai.com");
+      toast.success("Link copied! 🎉", {
+        description: "5 free Auto-Applies have been added to your account as a thank you!"
+      });
+    } catch {
+      toast.error("Failed to copy link");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -702,6 +713,23 @@ const ResumeBuilder = () => {
                     >
                       Regenerate
                     </Button>
+
+                    <div className="pt-8 mt-8 border-t border-border flex flex-col items-center text-center w-full">
+                      <div className="inline-flex items-center justify-center p-3 rounded-full bg-amber-500/10 mb-4">
+                        <Share className="w-6 h-6 text-amber-500" />
+                      </div>
+                      <h3 className="text-lg font-bold mb-2">Help a friend get hired!</h3>
+                      <p className="text-sm text-muted-foreground max-w-sm mb-6">
+                        Share Hunter AI with your network. When you copy the link, we'll automatically add <span className="font-semibold text-foreground">5 free Auto-Applies</span> to your account!
+                      </p>
+                      <Button 
+                        onClick={handleShare}
+                        className="w-full max-w-md h-12 bg-amber-500 hover:bg-amber-600 text-white font-semibold gap-2 shadow-lg shadow-amber-500/20"
+                      >
+                        <Copy className="w-4 h-4" />
+                        Share & Earn Auto-Applies
+                      </Button>
+                    </div>
                   </>
                 )}
               </div>

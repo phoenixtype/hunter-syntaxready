@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getApplicationCount } from "@/lib/application_engine";
+import { getApplicationCount, getApplicationMetrics, ApplicationMetrics } from "@/lib/application_engine";
 import { getJobCount } from "@/lib/crawler_engine";
 import { getPreferences, UserPreferences } from "@/lib/user_preferences";
 import { calculateVisibilityScore, VisibilityScore } from "@/lib/visibility_engine";
@@ -26,6 +26,13 @@ export const useDashboardData = () => {
     const { data: appCount, isLoading: countLoading } = useQuery<number>({
         queryKey: ['applicationCount', userId],
         queryFn: () => userId ? getApplicationCount(userId) : Promise.resolve(0),
+        enabled: !!userId
+    });
+
+    // 2a. Magic Metrics
+    const { data: metrics, isLoading: metricsLoading } = useQuery<ApplicationMetrics>({
+        queryKey: ['applicationMetrics', userId],
+        queryFn: () => userId ? getApplicationMetrics(userId) : Promise.resolve({ interviews: 0, offers: 0 }),
         enabled: !!userId
     });
 
@@ -60,13 +67,14 @@ export const useDashboardData = () => {
         gcTime: Infinity // Keep this result forever so it doesn't re-run unreasonably
     });
 
-    const isLoading = prefsLoading || countLoading || visibilityLoading || jobCountLoading;
+    const isLoading = prefsLoading || countLoading || metricsLoading || visibilityLoading || jobCountLoading;
 
     return {
         preferences,
         appCount: appCount || 0,
         jobCount: jobCount || 0,
         visibility,
+        metrics: metrics || { interviews: 0, offers: 0 },
         isLoading
     };
 };

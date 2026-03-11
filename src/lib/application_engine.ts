@@ -12,6 +12,11 @@ export interface ApplicationState {
   logs: string[];
 }
 
+export interface ApplicationMetrics {
+    interviews: number;
+    offers: number;
+}
+
 export interface ApplicationRecord {
     id: string;
     user_id: string;
@@ -145,5 +150,41 @@ export const getApplicationCount = async (userId: string): Promise<number> => {
     } catch (err) {
         console.error('Error fetching application count:', err);
         return 0;
+    }
+};
+
+// Get Magic Metrics (Interviews and Offers)
+export const getApplicationMetrics = async (userId: string): Promise<ApplicationMetrics> => {
+    try {
+        const { data, error } = await supabase
+            .from('application_history')
+            .select('status')
+            .eq('user_id', userId);
+
+        if (error) {
+            console.error('Error fetching application metrics:', error);
+            return { interviews: 0, offers: 0 };
+        }
+
+        let interviews = 0;
+        let offers = 0;
+
+        data?.forEach((app) => {
+            const status = (app.status || '').toLowerCase();
+            if (status.includes('offer') || status.includes('accepted')) {
+                offers++;
+            } else if (status.includes('interview') || status.includes('screening') || status.includes('phone') || status.includes('onsite')) {
+                interviews++;
+            }
+        });
+
+        // Offers should fundamentally also count as having successfully interviewed
+        return { 
+            interviews: interviews + offers, 
+            offers 
+        };
+    } catch (err) {
+        console.error('Error fetching application metrics:', err);
+        return { interviews: 0, offers: 0 };
     }
 };
