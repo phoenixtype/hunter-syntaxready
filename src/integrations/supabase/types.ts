@@ -580,6 +580,7 @@ export type Database = {
         Returns: boolean
       }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
+      get_platform_analytics: { Args: never; Returns: Json }
     }
     Enums: {
       [_ in never]: never
