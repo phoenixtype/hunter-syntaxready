@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 /** Pages where the footer is suppressed (full-screen layouts with their own chrome) */
@@ -11,7 +12,7 @@ const HIDDEN_FOOTER_PATHS = [
   "/tailored-resumes"
 ];
 
-const Footer = () => {
+const Footer = forwardRef<HTMLElement>((_, ref) => {
   const { pathname } = useLocation();
 
   if (HIDDEN_FOOTER_PATHS.includes(pathname)) return null;
