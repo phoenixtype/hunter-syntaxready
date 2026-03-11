@@ -54,26 +54,9 @@ const AdminAnalytics = () => {
       if (!user) return;
 
       try {
-        // Fetch aggregate analytics data
-        const [
-          usersResult,
-          applicationsResult,
-          resumesResult,
-          jobsResult,
-          applicationStatusResult,
-          activityResult
-        ] = await Promise.all([
-          // Total users (count profiles)
-          supabase.from('profiles').select('id', { count: 'exact', head: true }),
-          // Total applications
-          supabase.from('application_history').select('id', { count: 'exact', head: true }),
-          // Total candidate profiles (resumes)
-          supabase.from('candidate_profiles').select('id', { count: 'exact', head: true }),
-          // Total job listings
-          supabase.from('job_listings').select('id', { count: 'exact', head: true }),
-          // Applications by status
-          supabase.from('application_history').select('status'),
-          // Recent activity for growth chart (user's own for demo)
+        // Use security definer RPC for platform-wide counts
+        const [analyticsResult, activityResult] = await Promise.all([
+          supabase.rpc('get_platform_analytics'),
           supabase.from('agent_activity_logs')
             .select('created_at, agent')
             .eq('user_id', user.id)
@@ -81,14 +64,12 @@ const AdminAnalytics = () => {
             .limit(100)
         ]);
 
-        // Process application status distribution
-        const statusCounts: Record<string, number> = {};
-        applicationStatusResult.data?.forEach(app => {
-          const status = app.status || 'unknown';
-          statusCounts[status] = (statusCounts[status] || 0) + 1;
-        });
+        const analytics = analyticsResult.data as Record<string, unknown> | null;
 
-        // Generate mock growth data based on actual timestamps
+        // Process application status distribution from RPC result
+        const statusData = (analytics?.applications_by_status as { status: string; count: number }[]) || [];
+
+        // Generate growth data from activity logs
         const growthData = generateGrowthData(activityResult.data || []);
 
         // Process feature usage from activity logs
@@ -99,16 +80,16 @@ const AdminAnalytics = () => {
         });
 
         setData({
-          totalUsers: usersResult.count || 0,
-          totalApplications: applicationsResult.count || 0,
-          totalResumes: resumesResult.count || 0,
-          totalJobs: jobsResult.count || 0,
+          totalUsers: (analytics?.total_users as number) || 0,
+          totalApplications: (analytics?.total_applications as number) || 0,
+          totalResumes: (analytics?.total_resumes as number) || 0,
+          totalJobs: (analytics?.total_jobs as number) || 0,
           userGrowth: growthData,
-          applicationsByStatus: Object.entries(statusCounts).map(([status, count]) => ({ 
-            status: status.charAt(0).toUpperCase() + status.slice(1), 
-            count 
+          applicationsByStatus: statusData.map(s => ({ 
+            status: s.status.charAt(0).toUpperCase() + s.status.slice(1), 
+            count: Number(s.count) 
           })),
-          topCompanies: [], // Would require aggregation query
+          topCompanies: [],
           featureUsage: Object.entries(featureCounts)
             .map(([feature, count]) => ({ feature, count }))
             .sort((a, b) => b.count - a.count)
