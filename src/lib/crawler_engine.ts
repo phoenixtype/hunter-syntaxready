@@ -123,9 +123,13 @@ export const searchJobs = async (
     const from = page * pageSize;
     const to = from + pageSize;
 
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
     let queryBuilder = supabase
       .from('job_listings')
       .select('*', { count: 'exact' })
+      .gte('created_at', thirtyDaysAgo.toISOString())
       .order('freshness_score', { ascending: false })
       .order('created_at', { ascending: false })
       .range(from, to - 1);

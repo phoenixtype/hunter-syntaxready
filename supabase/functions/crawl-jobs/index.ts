@@ -380,6 +380,21 @@ serve(async (req) => {
     const body = await req.json();
     const { keywords, url, location, locations, remotePolicy, targetRoles } = body;
 
+    // ─── Cleanup Stale Jobs (older than 30 days) ──────────────────────────
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const { error: cleanupError, count: deletedCount } = await supabase
+      .from('job_listings')
+      .delete({ count: 'exact' })
+      .lt('created_at', thirtyDaysAgo.toISOString());
+
+    if (cleanupError) {
+      console.error('[CLEANUP] Error pruning stale jobs:', cleanupError);
+    } else {
+      console.log(`[CLEANUP] Pruned ${deletedCount || 0} stale jobs older than 30 days`);
+    }
+
     const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
     const jsearchApiKey = Deno.env.get('JSEARCH_API_KEY');
