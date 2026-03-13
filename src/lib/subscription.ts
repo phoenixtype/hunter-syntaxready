@@ -37,7 +37,7 @@ export const getSubscription = async (): Promise<UserSubscription> => {
             .from('subscriptions')
             .select('*')
             .eq('user_id', session.user.id)
-            .eq('status', 'active')
+            .in('status', ['active', 'trialing'])
             .maybeSingle();
 
         const tier = (subData?.tier as SubscriptionTier) || SubscriptionTier.FREE;

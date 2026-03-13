@@ -92,7 +92,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { profile, loading: resumeLoading } = useResume();
-  const { subscription, isLoading: subLoading } = useSubscription();
+  const { subscription, isLoading: subLoading, refetch: refetchSubscription } = useSubscription();
   const { preferences, appCount, jobCount, visibility, skillRecommendations, metrics, isLoading: dataLoading } = useDashboardData();
 
   const [activeView, setActiveView] = useState<DashboardView>(() => {
@@ -118,7 +118,30 @@ const Dashboard = () => {
       setShowPricing(true);
       window.history.replaceState({}, document.title);
     }
-  }, [location.state]);
+
+    // Handle checkout redirection success
+    const params = new URLSearchParams(location.search);
+    if (params.get('checkout') === 'success') {
+      toast.success("Payment successful! Activating your Pro account...");
+      
+      // Poll a few times as the webhook might take a second
+      let attempts = 0;
+      const interval = setInterval(async () => {
+        attempts++;
+        const { data } = await refetchSubscription();
+        if (data?.tier === SubscriptionTier.PRO || attempts > 5) {
+          clearInterval(interval);
+          if (data?.tier === SubscriptionTier.PRO) {
+            toast.success("Hunter Pro is now active! 🚀");
+            // Remove the query param without reload
+            navigate(location.pathname, { replace: true });
+          }
+        }
+      }, 2000);
+
+      return () => clearInterval(interval);
+    }
+  }, [location.state, location.search, location.pathname, navigate, refetchSubscription]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
     try { return localStorage.getItem("hunter_sidebar_collapsed") === "true"; } catch { return false; }
   });

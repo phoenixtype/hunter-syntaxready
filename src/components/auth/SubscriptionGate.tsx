@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
-import { Zap, ShieldCheck, Sparkles, Rocket, ArrowRight } from "lucide-react";
+import { Zap, ShieldCheck, Sparkles, Rocket, ArrowRight, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { upgradeToPro } from "@/lib/subscription";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface SubscriptionGateProps {
   onClose?: () => void;
@@ -11,6 +12,8 @@ interface SubscriptionGateProps {
 
 const SubscriptionGate = ({ onClose }: SubscriptionGateProps) => {
   const [loading, setLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { refetch } = useSubscription();
 
   const handleUpgrade = async () => {
     setLoading(true);
@@ -21,6 +24,22 @@ const SubscriptionGate = ({ onClose }: SubscriptionGateProps) => {
       toast.error(message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      const { data } = await refetch();
+      if (data?.tier !== 'free') {
+        toast.success("Subscription detected! Welcome to Pro.");
+      } else {
+        toast.info("Status refreshed. Still on Free tier.");
+      }
+    } catch (error) {
+       toast.error("Failed to refresh status.");
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -74,6 +93,18 @@ const SubscriptionGate = ({ onClose }: SubscriptionGateProps) => {
               {loading ? "Initializing..." : "Activate Pro Access"}
               {!loading && <ArrowRight className="h-4 w-4" />}
             </Button>
+            
+            <div className="flex justify-center">
+               <button 
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 py-1 px-3 rounded-full hover:bg-muted/50 transition-all disabled:opacity-50"
+               >
+                 <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+                 {isRefreshing ? "Checking..." : "Already paid? Refresh status"}
+               </button>
+            </div>
+
             <p className="text-center label-eyebrow opacity-60">
               Cancel anytime • Secure checkout via Stripe
             </p>
