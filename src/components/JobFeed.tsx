@@ -208,12 +208,14 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
     }
     if (!profile) { toast.error("Build your profile first."); return; }
     setTailoringJobId(job.id);
+    const toastId = toast.loading("Tailoring resume…", { description: `Optimizing for ${job.title} at ${job.company}` });
     try {
       const content = await generateTailoredContent(profile, job);
       await saveTailoredResume(content, { title: job.title, company: job.company, url: job.url });
       setTailorResult({ content, job: { title: job.title, company: job.company } });
+      toast.success("Resume tailored!", { id: toastId, description: "Your optimized resume is ready." });
     } catch {
-      toast.error("Tailoring failed", { description: "Try again — this is usually a temporary issue.", action: { label: "Retry", onClick: () => handleTailor(job) } });
+      toast.error("Tailoring failed", { id: toastId, description: "Try again — this is usually a temporary issue.", action: { label: "Retry", onClick: () => handleTailor(job) } });
     } finally {
       setTailoringJobId(null);
     }
