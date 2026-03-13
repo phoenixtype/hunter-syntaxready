@@ -117,11 +117,11 @@ const ResumeBuilder = () => {
         identity: { ...prev.identity, email: user.email! },
       }));
     }
-  }, [user]);
+  }, [user, formData.identity.email]);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/login");
-  }, [user, authLoading]);
+  }, [user, authLoading, navigate]);
 
   const stepIndex = STEPS.findIndex(s => s.id === currentStep);
   const progressPercent = ((stepIndex) / (STEPS.length - 1)) * 100;
@@ -148,7 +148,7 @@ const ResumeBuilder = () => {
       ],
     }));
 
-  const updateExperience = (idx: number, field: keyof ExperienceAtom, value: any) =>
+  const updateExperience = (idx: number, field: keyof ExperienceAtom, value: string | string[]) =>
     setFormData(p => {
       const atoms = [...p.experience_atoms];
       atoms[idx] = { ...atoms[idx], [field]: value };

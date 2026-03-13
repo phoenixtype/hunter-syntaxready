@@ -228,7 +228,6 @@ const Onboarding = () => {
           // If DB profile is basic but draft has data, auto-restore
           const isDbProfileEmpty = !existingProfile || (existingProfile.experience_atoms.length === 0 && existingProfile.skills.length === 0);
           if (isDbProfileEmpty && draft.profile) {
-            console.log("[ONBOARDING] Restoring draft from localStorage");
             setProfile(draft.profile);
             if (draft.preferences) {
               setRoles(draft.preferences.target_roles || []);
@@ -280,7 +279,6 @@ const Onboarding = () => {
         updatedAt: Date.now()
       };
       localStorage.setItem(`hunter_onboarding_draft_${user.id}`, JSON.stringify(draft));
-      console.log("[ONBOARDING] Draft saved to localStorage");
     }, 2000);
 
     return () => clearTimeout(timer);

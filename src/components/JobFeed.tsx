@@ -138,7 +138,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
     }
 
     return result;
-  }, [jobs, dismissedJobIds, searchQuery, filters, showSavedOnly, isSaved]);
+  }, [jobs, dismissedJobIds, filters, showSavedOnly, isSaved]);
 
   useEffect(() => {
     if (!user) return;

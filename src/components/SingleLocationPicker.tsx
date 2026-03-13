@@ -13,7 +13,7 @@ interface SingleLocationPickerProps {
 const ALL_COUNTRIES = Country.getAllCountries();
 
 const SingleLocationPicker = ({ value, onChange }: SingleLocationPickerProps) => {
-  const parsed = useMemo(() => parseLocationString(value), []);
+  const parsed = useMemo(() => parseLocationString(value), [value]);
 
   const [countryCode, setCountryCode] = useState<string>(() => {
     if (!parsed.country) return "";
@@ -44,8 +44,11 @@ const SingleLocationPicker = ({ value, onChange }: SingleLocationPickerProps) =>
   useEffect(() => {
     const countryName = ALL_COUNTRIES.find(c => c.isoCode === countryCode)?.name || countryCode;
     const stateName = states.find(s => s.isoCode === stateCode)?.name || stateCode;
-    onChange(buildLocationString(city, stateName, countryName));
-  }, [city, stateCode, countryCode]);
+    const formatted = buildLocationString(city || "", stateName || "", countryName || "");
+    if (formatted !== value) {
+      onChange(formatted);
+    }
+  }, [city, stateCode, countryCode, states, onChange, value]);
 
   const handleCountryChange = (iso: string) => {
     setCountryCode(iso);

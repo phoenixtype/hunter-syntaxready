@@ -14,7 +14,8 @@ const loadHistory = (): CommandEntry[] => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
-  } catch {
+  } catch (e) {
+    console.warn("[HISTORY] Failed to load command history", e);
     return [];
   }
 };
@@ -22,7 +23,9 @@ const loadHistory = (): CommandEntry[] => {
 const saveHistory = (entries: CommandEntry[]) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-  } catch {}
+  } catch (e) {
+    console.warn("[HISTORY] Failed to save command history", e);
+  }
 };
 
 export const useCommandHistory = () => {

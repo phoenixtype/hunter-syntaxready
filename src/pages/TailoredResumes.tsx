@@ -60,12 +60,7 @@ const TailoredResumes = () => {
 
   const ITEMS_PER_PAGE = 20;
 
-  useEffect(() => {
-    if (!user) return;
-    fetchResumes();
-  }, [user]);
-
-  const fetchResumes = async () => {
+  const fetchResumes = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     const { data, error } = await supabase
@@ -80,7 +75,11 @@ const TailoredResumes = () => {
       setResumes((data || []) as unknown as TailoredResume[]);
     }
     setLoading(false);
-  };
+  }, [user]);
+
+  useEffect(() => {
+    fetchResumes();
+  }, [fetchResumes]);
 
   const handleDownloadPdf = (resume: TailoredResume) => {
     const name = `${resume.job_title}_${resume.company}`.replace(/[^a-z0-9_]/gi, "_");

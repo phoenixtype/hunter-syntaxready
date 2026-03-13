@@ -84,8 +84,29 @@ function emailLayout(title: string, previewText: string, bodyContent: string): s
 </html>`;
 }
 
-function buildJobAlertEmail(jobs: any[]): { subject: string; html: string } {
-  const jobCards = jobs.map((job: any) => `
+interface Job {
+  title: string;
+  company: string;
+  location?: string;
+  salary_range?: string;
+  tech_stack?: string[];
+  url: string;
+}
+
+interface ApplicationData {
+  status: string;
+  job_title?: string;
+  company?: string;
+}
+
+interface WeeklyDigestData {
+  applications_sent: number;
+  new_jobs: number;
+  interviews?: number;
+}
+
+function buildJobAlertEmail(jobs: Job[]): { subject: string; html: string } {
+  const jobCards = jobs.map((job: Job) => `
     <tr>
       <td style="padding: 0 32px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid ${BRAND.border}; border-radius: 12px; overflow: hidden; margin-bottom: 12px;">
@@ -126,7 +147,7 @@ function buildJobAlertEmail(jobs: any[]): { subject: string; html: string } {
   };
 }
 
-function buildApplicationUpdateEmail(data: any): { subject: string; html: string } {
+function buildApplicationUpdateEmail(data: ApplicationData): { subject: string; html: string } {
   const statusColors: Record<string, string> = {
     applied: '#0d9488',
     interview: '#7c3aed',
@@ -169,7 +190,7 @@ function buildApplicationUpdateEmail(data: any): { subject: string; html: string
   };
 }
 
-function buildWeeklyDigestEmail(data: any): { subject: string; html: string } {
+function buildWeeklyDigestEmail(data: WeeklyDigestData): { subject: string; html: string } {
   const body = `
     <!-- Hero Banner -->
     <tr>

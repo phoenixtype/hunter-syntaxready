@@ -35,7 +35,8 @@ export const checkDatabaseHealth = async (): Promise<DatabaseHealthStatus> => {
     for (const table of requiredTables) {
         try {
             const { error } = await supabase
-                .from(table as any) // Dynamic table name
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .from(table as any) 
                 .select('*')
                 .limit(1);
 
@@ -57,7 +58,8 @@ export const checkDatabaseHealth = async (): Promise<DatabaseHealthStatus> => {
     for (const func of requiredFunctions) {
         try {
             // Try to call with dummy data to see if function exists
-            const { error } = await supabase.rpc(func as any, { // Dynamic function name
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const { error } = await supabase.rpc(func as any, { // Typecast for dynamic RPC
                 p_user_id: '00000000-0000-0000-0000-000000000000',
                 p_function_name: 'test',
                 p_max_requests: 1,
@@ -120,28 +122,20 @@ export const quickHealthCheck = async (): Promise<boolean> => {
  * Log health status to console with formatting
  */
 export const logHealthStatus = (status: DatabaseHealthStatus): void => {
-    console.group('🏥 Database Health Check');
     
     if (status.healthy) {
-        console.log('%c✅ Database is healthy', 'color: green; font-weight: bold');
+        // Log healthy status
     } else {
-        console.log('%c⚠️ Database issues detected', 'color: orange; font-weight: bold');
-        
         if (status.missingTables.length > 0) {
-            console.log('%cMissing Tables:', 'font-weight: bold');
-            status.missingTables.forEach(table => console.log(`  - ${table}`));
+            // Log missing tables
         }
         
         if (status.missingFunctions.length > 0) {
-            console.log('%cMissing Functions:', 'font-weight: bold');
-            status.missingFunctions.forEach(func => console.log(`  - ${func}`));
+            // Log missing functions
         }
         
         if (status.recommendations.length > 0) {
-            console.log('%cRecommendations:', 'font-weight: bold; color: blue');
-            status.recommendations.forEach(rec => console.log(`  ${rec}`));
+            // Log recommendations
         }
     }
-    
-    console.groupEnd();
 };

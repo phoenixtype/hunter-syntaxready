@@ -116,7 +116,7 @@ export const initializeLearningEngine = async (userId: string): Promise<void> =>
                     bannedCompanies: data.banned_companies || [],
                     preferredSkills: data.preferred_skills || []
                 };
-                console.log('[LEARNING] ✅ Loaded weights from database');
+                // Weight loading logic
                 engineStatus = 'database';
             } else {
                 // Create initial weights record
@@ -135,7 +135,6 @@ export const initializeLearningEngine = async (userId: string): Promise<void> =>
                     console.error('[LEARNING] Failed to create initial weights:', insertError.message);
                     engineStatus = 'memory';
                 } else {
-                    console.log('[LEARNING] ✅ Created initial weights in database');
                     engineStatus = 'database';
                 }
             }
@@ -157,7 +156,6 @@ export const initializeLearningEngine = async (userId: string): Promise<void> =>
 
 // Record user feedback with fallback
 export const recordFeedback = async (action: FeedbackAction): Promise<void> => {
-    console.log(`[LEARNING] Recorded ${action.action} for job ${action.jobId}`);
     
     // Update in-memory weights immediately (works in both modes)
     if (action.action === 'DISMISS') {

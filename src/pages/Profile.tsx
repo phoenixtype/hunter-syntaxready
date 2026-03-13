@@ -49,7 +49,6 @@ const Profile = () => {
 
         // Priority 1: Use pending profile from navigation (e.g., from resume upload)
         if (state?.pendingProfile) {
-            console.log("[PROFILE] Initializing with pending profile from upload:", state.pendingProfile.identity.name);
             setFormData(state.pendingProfile);
             if (state.mode) {
                 setMode(state.mode);
@@ -61,7 +60,6 @@ const Profile = () => {
         }
         // Priority 2: Use existing profile from database (only if not already editing)
         else if (profile && !formData) {
-            console.log("[PROFILE] Initializing with existing profile from database:", profile.identity.name);
             setFormData(JSON.parse(JSON.stringify(profile))); // Deep copy
         }
         // Priority 3: Explicitly update formData when profile changes after a save (handled by handleSave)
@@ -74,9 +72,8 @@ const Profile = () => {
 
         const timer = setTimeout(() => {
             localStorage.setItem(`hunter_profile_draft_${user.id}`, JSON.stringify(formData));
-            console.log("[PROFILE] Draft saved to localStorage");
         }, 2000);
-
+ 
         return () => clearTimeout(timer);
     }, [formData, mode, user?.id]);
 
@@ -134,8 +131,8 @@ const Profile = () => {
         setFormData(prev => prev ? ({ ...prev, identity: { ...prev.identity, [field]: value } }) : null);
     };
 
-    const updateExperience = (index: number, field: keyof ExperienceAtom, value: any) => {
-        setFormData(prev => {
+    const updateExperience = (index: number, field: keyof ExperienceAtom, value: string | string[]) => {
+      setFormData(prev => {
             if (!prev) return null;
             const newExp = [...prev.experience_atoms];
             newExp[index] = { ...newExp[index], [field]: value };
@@ -186,6 +183,7 @@ const Profile = () => {
                 const parseDate = (dateStr: string) => {
                     if (!dateStr) return 0;
                     const parts = dateStr.split('-');
+                    // The following line `const identity = (data.identity || {}) as Record<string, unknown>;` was removed as `data` is undefined in this scope.
                     const endStr = parts.length > 1 ? parts[1].trim() : parts[0].trim();
                     if (endStr.toLowerCase() === 'present') return Infinity;
                     const date = new Date(endStr);
@@ -225,6 +223,7 @@ const Profile = () => {
     const removeSkill = (index: number) => {
         setFormData(prev => {
             if (!prev) return null;
+            // The following line `const skills = (data.skills || []) as unknown as Record<string, unknown>[];` was removed as `data` is undefined in this scope.
             const newSkills = prev.skills.filter((_, i) => i !== index);
             return { ...prev, skills: newSkills };
         });

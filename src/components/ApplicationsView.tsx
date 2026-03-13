@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -118,7 +118,7 @@ export const ApplicationsView = () => {
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   );
 
-  const fetchHistory = async () => {
+  const fetchHistory = useCallback(async () => {
     if (session?.user?.id) {
       try {
         const history = await getApplicationHistory(session.user.id);
@@ -133,7 +133,7 @@ export const ApplicationsView = () => {
     } else {
       setLoading(false);
     }
-  };
+  }, [session?.user?.id]);
 
   const toggleViewMode = (mode: "board" | "list") => {
     setViewMode(mode);
@@ -153,7 +153,7 @@ export const ApplicationsView = () => {
 
   useEffect(() => {
     fetchHistory();
-  }, [session?.user?.id]);
+  }, [session?.user?.id, fetchHistory]);
 
   const handleStatusChange = async (appId: string, newStatus: string) => {
     try {

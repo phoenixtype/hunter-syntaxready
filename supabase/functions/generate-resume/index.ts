@@ -91,15 +91,32 @@ CRITICAL RULES FOR GENERATION:
 6. PRINT READY: Ensure 'max-width: 800px; margin: 0 auto; color: #111; background: #fff;' on the body. Do not use dark backgrounds, they waste printer ink.
 7. Omit any section if no data is provided for it.`;
 
-    const experienceText = profile.experience_atoms?.map((exp: any) => 
+    interface ExperienceAtom {
+      role: string;
+      company: string;
+      duration: string;
+      content: string;
+    }
+
+    interface Education {
+      degree: string;
+      school: string;
+      year: string;
+    }
+
+    interface Skill {
+      name: string;
+    }
+
+    const experienceText = profile.experience_atoms?.map((exp: ExperienceAtom) => 
       `Role: ${exp.role}, Company: ${exp.company}, Duration: ${exp.duration}, Details: ${exp.content}`
     ).join('\n') || 'No experience provided';
 
-    const educationText = profile.education?.map((edu: any) => 
+    const educationText = profile.education?.map((edu: Education) => 
       `${edu.degree} from ${edu.school} (${edu.year})`
     ).join('\n') || 'No education provided';
 
-    const skillsText = profile.skills?.map((s: any) => s.name).join(', ') || 'No skills provided';
+    const skillsText = profile.skills?.map((s: Skill) => s.name).join(', ') || 'No skills provided';
 
     const userPrompt = `Generate an HTML resume for:
 

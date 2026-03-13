@@ -93,7 +93,7 @@ const Dashboard = () => {
   const location = useLocation();
   const { profile, loading: resumeLoading } = useResume();
   const { subscription, isLoading: subLoading } = useSubscription();
-  const { preferences, appCount, jobCount, visibility, metrics, isLoading: dataLoading } = useDashboardData();
+  const { preferences, appCount, jobCount, visibility, skillRecommendations, metrics, isLoading: dataLoading } = useDashboardData();
 
   const [activeView, setActiveView] = useState<DashboardView>(() => {
     const saved = localStorage.getItem("hunter_dashboard_view");
@@ -515,7 +515,13 @@ const Dashboard = () => {
       <PostInterviewModal isOpen={showPostInterview} onClose={() => setShowPostInterview(false)} companyName="" profile={profile} />
       <PricingModal isOpen={showPricing} onClose={() => setShowPricing(false)} />
       <LinkedInOptimizer isOpen={showLinkedIn} onClose={() => setShowLinkedIn(false)} profile={profile} />
-      <VisibilityCoachModal isOpen={showCoach} onClose={() => setShowCoach(false)} profile={profile} score={visibility} />
+      <VisibilityCoachModal 
+        isOpen={showCoach} 
+        onClose={() => setShowCoach(false)} 
+        profile={profile} 
+        score={visibility} 
+        skillRecommendations={skillRecommendations || []}
+      />
       
       {/* Subscription Gate — block dashboard if on FREE tier and has profile */}
       {subscription?.tier === SubscriptionTier.FREE && profile && (

@@ -7,6 +7,8 @@ import { fetchLogsFromDatabase } from "@/lib/activity_logger";
 import { initializeLearningEngine } from "@/lib/learning_engine";
 import { useAuth } from "./useAuth";
 import { useResume } from "./useResume";
+import { getSkillDevelopmentAdvice, SkillRecommendation } from "@/lib/skill_coach_engine";
+import { supabase as supabaseClient } from "@/integrations/supabase/client";
 
 export const useDashboardData = () => {
     const { user } = useAuth();
@@ -50,7 +52,26 @@ export const useDashboardData = () => {
         enabled: !!profile,
         staleTime: 1000 * 60 * 2 // Cache for 2 mins
     });
-
+ 
+    // 3b. Skill Recommendations
+    const { data: skillRecommendations, isLoading: skillLoading } = useQuery<SkillRecommendation[]>({
+        queryKey: ['skillRecommendations', profile, userId],
+        queryFn: async () => {
+            if (!profile || !userId) return [];
+            // Fetch recent applications with metadata to feed the engine
+            const { data: apps } = await supabaseClient
+                .from('applications')
+                .select('*')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false })
+                .limit(10);
+            
+            return getSkillDevelopmentAdvice(profile, apps || []);
+        },
+        enabled: !!profile && !!userId,
+        staleTime: 1000 * 60 * 5 // Cache for 5 mins
+    });
+ 
     // 4. Side Effects (Fire and Forget or Background Sync)
     // We use useQuery here just to trigger the async initialization logic efficiently once
     useQuery({
@@ -67,13 +88,14 @@ export const useDashboardData = () => {
         gcTime: Infinity // Keep this result forever so it doesn't re-run unreasonably
     });
 
-    const isLoading = prefsLoading || countLoading || metricsLoading || visibilityLoading || jobCountLoading;
+    const isLoading = prefsLoading || countLoading || metricsLoading || visibilityLoading || jobCountLoading || skillLoading;
 
     return {
         preferences,
         appCount: appCount || 0,
         jobCount: jobCount || 0,
         visibility,
+        skillRecommendations: skillRecommendations || [],
         metrics: metrics || { interviews: 0, offers: 0 },
         isLoading
     };

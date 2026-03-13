@@ -16,8 +16,9 @@ const SubscriptionGate = ({ onClose }: SubscriptionGateProps) => {
     setLoading(true);
     try {
       await upgradeToPro();
-    } catch (error: any) {
-      toast.error(error.message || "Failed to start checkout. Please try again.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to start checkout. Please try again.";
+      toast.error(message);
     } finally {
       setLoading(false);
     }

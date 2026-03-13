@@ -265,10 +265,6 @@ export async function extractTextFromFile(file: File): Promise<string> {
 
             // Iterate over all pages
             for (let i = 1; i <= pdf.numPages; i++) {
-              const page = await pdf.getPage(i);
-              const textContent = await page.getTextContent();
-
-              let lastY = -1;
               let pageText = '';
 
               // Sort items by Y (top to bottom) then X (left to right) to handle multi-column layouts
@@ -390,7 +386,7 @@ export const getCandidateProfile = async (userId: string): Promise<CandidateProf
     // Parse identity — spread raw JSONB first so all hidden _fields (set during
     // onboarding: _gender, _work_auth, _age, _search_status, _exp_level, _job_values, _summary)
     // are preserved when the profile is loaded then saved again from Profile.tsx.
-    const identity = data.identity as any;
+    const identity = (data.identity || {}) as Record<string, unknown>;
     const profileIdentity = {
       ...identity,                                    // keep all _underscore fields
       name: identity?.name || 'Unknown Candidate',
@@ -425,11 +421,11 @@ export const saveCandidateProfile = async (userId: string, profile: CandidatePro
     .from('candidate_profiles')
     .upsert({
       user_id: userId,
-      identity: identityPayload as any,
-      skills: profile.skills as any,
-      experience_atoms: profile.experience_atoms as any,
-      education: profile.education as any
-    } as any, { onConflict: 'user_id' });
+      identity: identityPayload as unknown as Record<string, unknown>,
+      skills: profile.skills as unknown as Record<string, unknown>[],
+      experience_atoms: profile.experience_atoms as unknown as Record<string, unknown>[],
+      education: profile.education as unknown as Record<string, unknown>[]
+    }, { onConflict: 'user_id' });
 
   if (error) {
     throw error;

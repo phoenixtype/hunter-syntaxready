@@ -8,15 +8,18 @@ import { CandidateProfile } from "@/lib/resume_engine";
 import { VisibilityScore, CoachAdvice, getCoachAdvice } from "@/lib/visibility_engine";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { SkillRecommendation } from "@/lib/skill_coach_engine";
+import { Badge } from "@/components/ui/badge";
 
 interface VisibilityCoachModalProps {
   isOpen: boolean;
   onClose: () => void;
   profile: CandidateProfile | null;
   score: VisibilityScore | null;
+  skillRecommendations: SkillRecommendation[];
 }
 
-const VisibilityCoachModal = ({ isOpen, onClose, profile, score }: VisibilityCoachModalProps) => {
+const VisibilityCoachModal = ({ isOpen, onClose, profile, score, skillRecommendations }: VisibilityCoachModalProps) => {
   const [loading, setLoading] = useState(true);
   const [advice, setAdvice] = useState<CoachAdvice[]>([]);
   const navigate = useNavigate();
@@ -75,7 +78,7 @@ const VisibilityCoachModal = ({ isOpen, onClose, profile, score }: VisibilityCoa
         {/* Actionable Content Tabs */}
         <div className="flex-1 overflow-hidden px-8">
             <Tabs defaultValue="roadmap" className="h-full flex flex-col">
-                <TabsList className="grid w-full grid-cols-3 h-14 bg-muted/30 p-1.5 rounded-2xl mb-6">
+                <TabsList className="grid w-full grid-cols-4 h-14 bg-muted/30 p-1.5 rounded-2xl mb-6">
                     <TabsTrigger value="roadmap" className="rounded-xl font-bold label-eyebrow text-[10px] gap-2">
                         <TrendingUp className="h-3.5 w-3.5" />
                         Roadmap
@@ -87,6 +90,10 @@ const VisibilityCoachModal = ({ isOpen, onClose, profile, score }: VisibilityCoa
                     <TabsTrigger value="intelligence" className="rounded-xl font-bold label-eyebrow text-[10px] gap-2">
                         <ShieldCheck className="h-3.5 w-3.5" />
                         Market Info
+                    </TabsTrigger>
+                    <TabsTrigger value="growth" className="rounded-xl font-bold label-eyebrow text-[10px] gap-2">
+                        <Rocket className="h-3.5 w-3.5" />
+                        Growth
                     </TabsTrigger>
                 </TabsList>
 
@@ -207,6 +214,77 @@ const VisibilityCoachModal = ({ isOpen, onClose, profile, score }: VisibilityCoa
                                         <p className="text-xs text-muted-foreground bg-white/5 p-3 rounded-xl border border-white/5">
                                             These skills are currently showing a <span className="text-foreground font-bold">+42% increase</span> in recruiter search frequency this quarter. Integrating them into your summary boosted your score by 12 points.
                                         </p>
+                                    </div>
+                                </TabsContent>
+
+                                <TabsContent value="growth" className="mt-0 outline-none space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+                                    <div className="space-y-6">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <h4 className="text-lg font-black uppercase italic">Skill Development Roadmap</h4>
+                                                <p className="text-xs text-muted-foreground">AI-curated growth paths based on your application history.</p>
+                                            </div>
+                                            <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[10px] font-black uppercase tracking-widest">
+                                                Context Aware
+                                            </Badge>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 gap-4">
+                                            {skillRecommendations.map((rec, idx) => (
+                                                <motion.div
+                                                    key={idx}
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: idx * 0.1 }}
+                                                    className="p-5 rounded-3xl border border-white/10 bg-card/40 backdrop-blur-sm space-y-4 group hover:border-primary/40 hover:bg-card transition-all"
+                                                >
+                                                    <div className="flex items-start justify-between">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                                                                {rec.type === 'certification' ? <ShieldCheck className="h-5 w-5" /> : <Zap className="h-5 w-5" />}
+                                                            </div>
+                                                            <div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <h5 className="font-black text-lg">{rec.name}</h5>
+                                                                    <span className="text-[10px] font-bold text-muted-foreground uppercase">{rec.type}</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-3 mt-0.5">
+                                                                    <div className="flex items-center gap-1 text-[10px] font-black text-emerald-500 uppercase">
+                                                                        <TrendingUp className="h-3 w-3" />
+                                                                        {rec.demand_trend} DEMAND
+                                                                    </div>
+                                                                    <div className="h-1 w-24 bg-muted/40 rounded-full overflow-hidden">
+                                                                        <div className="h-full bg-primary" style={{ width: `${rec.relevance_score}%` }} />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <p className="text-[10px] font-black text-muted-foreground uppercase opacity-60">Relevance</p>
+                                                            <p className="text-xl font-black italic text-foreground/80">{rec.relevance_score}%</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <p className="text-xs text-muted-foreground leading-relaxed">
+                                                        {rec.rationale}
+                                                    </p>
+
+                                                    {rec.latest_certifications && (
+                                                        <div className="space-y-2 pt-2">
+                                                            <p className="text-[10px] font-black text-foreground/60 uppercase tracking-widest">Recommended Certifications:</p>
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {rec.latest_certifications.map(cert => (
+                                                                    <div key={cert} className="px-3 py-1.5 rounded-xl bg-primary/5 border border-primary/10 text-[10px] font-bold text-primary flex items-center gap-2">
+                                                                        <CheckCircle2 className="h-3 w-3" />
+                                                                        {cert}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </motion.div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </TabsContent>
                             </>

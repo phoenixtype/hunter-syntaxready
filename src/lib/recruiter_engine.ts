@@ -32,7 +32,8 @@ export const findStakeholders = async (job: JobOpportunity): Promise<Stakeholder
     });
 
     if (!error && data?.stakeholders && data.stakeholders.length > 0) {
-      return data.stakeholders.map((s: any) => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (data.stakeholders as any[]).map((s) => ({
         name: s.name || 'Unknown',
         role: s.role || s.title || 'Employee',
         connection_degree: 'Out of Network' as const,

@@ -71,6 +71,7 @@ function escapeLikePattern(input: string): string {
   return input.replace(/[%_\\]/g, '\\$&');
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapJobRow(j: any): JobOpportunity {
   return {
     id: j.id,

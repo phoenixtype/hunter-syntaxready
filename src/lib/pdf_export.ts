@@ -145,6 +145,7 @@ export const exportResumeToPdf = async (profile: CandidateProfile, filename?: st
 
     // Trim to 1 page if requested
     if (onePage) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const totalPages = (doc.internal as any).getNumberOfPages?.() ?? (doc as any).getNumberOfPages?.() ?? 1;
         for (let p = totalPages; p > 1; p--) {
             doc.deletePage(p);

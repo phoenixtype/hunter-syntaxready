@@ -170,7 +170,7 @@ const extractName = (text: string, email: string): string => {
   const normalizedText = text.replace(/\s+/g, ' ').trim();
 
   // Strategy 1: Look for explicit "Name:" label
-  const nameLabel = /(?:^|[\n\s])(?:Name|Full Name)\s*[:\-]\s*([A-Za-z]{2,}\s+[A-Za-z]{2,}[A-Za-z\s]*)/i;
+  const nameLabel = /(?:^|[\n\s])(?:Name|Full Name)\s*[:-]\s*([A-Za-z]{2,}\s+[A-Za-z]{2,}[A-Za-z\s]*)/i;
   const labelMatch = normalizedText.match(nameLabel);
   if (labelMatch) {
     return labelMatch[1].trim().slice(0, 50);

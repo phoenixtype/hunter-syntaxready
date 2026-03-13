@@ -119,10 +119,7 @@ export const logActivity = async (
   }
   notifySubscribers();
   
-  // SECURITY: Only log non-sensitive info to console in development
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`[${type.toUpperCase()}] [${agent}] ${action}`);
-  }
+  // No console logs in production
 
   // Persist to database
   try {

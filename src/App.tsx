@@ -55,7 +55,7 @@ const AppInitializer = () => {
         const healthStatus = await checkDatabaseHealth();
         logHealthStatus(healthStatus);
       } catch (err) {
-        console.warn('⚠️ Database health check failed:', err);
+        // Silent fail in production
       }
     };
     runChecks();

@@ -84,7 +84,11 @@ export const simulateApplication = async (
             company: job.company,
             job_url: job.url,
             status: 'applied',
-            metadata: { source: job.source, salary_range: job.salary_range }
+            metadata: { 
+                source: job.source, 
+                salary_range: job.salary_range,
+                tech_stack: job.tech_stack 
+            }
         }) : Promise.resolve(),
     ]);
 
