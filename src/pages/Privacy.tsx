@@ -182,7 +182,7 @@ const Privacy = () => {
 
               <p>
                 To exercise any of these rights, visit your <Link to="/settings" className="text-primary hover:underline">Account Settings</Link> or 
-                contact us at <a href="mailto:privacy@hunter-ai.app" className="text-primary hover:underline">privacy@hunter-ai.app</a>.
+                contact us at <a href="mailto:privacy@hunter.syntaxready.com" className="text-primary hover:underline">privacy@hunter.syntaxready.com</a>.
               </p>
             </div>
           </section>
