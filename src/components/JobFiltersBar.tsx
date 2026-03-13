@@ -8,7 +8,7 @@ import { SlidersHorizontal, X } from "lucide-react";
 export type WorkMode = "all" | "remote" | "hybrid" | "onsite";
 export type ExperienceLevel = "all" | "entry" | "mid" | "senior" | "lead";
 export type DatePosted = "all" | "24h" | "week" | "month";
-export type JobType = "all" | "fulltime" | "contract" | "parttime";
+export type JobType = "all" | "fulltime" | "contract" | "parttime" | "internship";
 
 export interface JobFilters {
   workMode: WorkMode;
@@ -45,6 +45,7 @@ const JOB_TYPES: { value: JobType; label: string }[] = [
   { value: "fulltime", label: "Full-time" },
   { value: "contract", label: "Contract" },
   { value: "parttime", label: "Part-time" },
+  { value: "internship", label: "Internship" },
 ];
 
 export const DEFAULT_FILTERS: JobFilters = {

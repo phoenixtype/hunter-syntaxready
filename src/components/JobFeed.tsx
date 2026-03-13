@@ -117,6 +117,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
         if (filters.jobType === "contract") return text.includes("contract") || text.includes("freelance") || text.includes("consulting") || text.includes("c2c") || text.includes("1099") || text.includes("temp");
         if (filters.jobType === "fulltime") return text.includes("full-time") || text.includes("full time") || text.includes("fulltime") || text.includes("permanent") || (!text.includes("contract") && !text.includes("part-time") && !text.includes("freelance"));
         if (filters.jobType === "parttime") return text.includes("part-time") || text.includes("part time") || text.includes("parttime");
+        if (filters.jobType === "internship") return text.includes("intern") || text.includes("co-op") || text.includes("coop") || text.includes("student") || text.includes("graduate");
         return true;
       });
     }

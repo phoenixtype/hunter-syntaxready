@@ -103,8 +103,34 @@ function scoreExperienceLevel(
     return { score: 30, reasoning: `This appears to be a different experience level than your "${userLevel}" preference.` };
   }
 
-  // No clear level signal in the job → neutral
+// No clear level signal in the job → neutral
   return { score: 70, reasoning: null };
+}
+
+/**
+ * Detect if a user is likely a student based on education and experience keywords.
+ */
+function isStudentProfile(profile: CandidateProfile): boolean {
+  const currentYear = new Date().getFullYear();
+  
+  // 1. Check education for ongoing or recent studies
+  const educationSignals = profile.education.some(edu => {
+    const yearMatch = edu.year.match(/\d{4}/);
+    if (!yearMatch) return false;
+    const gradYear = parseInt(yearMatch[0]);
+    // Student if grad year is in future or within last year
+    return gradYear >= currentYear || gradYear >= currentYear - 1;
+  });
+
+  if (educationSignals) return true;
+
+  // 2. Check summary or experience for "student", "intern", "university", "class of"
+  const text = (profile.summary || "").toLowerCase();
+  if (text.includes("student") || text.includes("university") || text.includes("candidate") || text.includes("class of")) {
+    return true;
+  }
+
+  return false;
 }
 
 export const calculateMatch = async (
@@ -209,12 +235,24 @@ export const calculateMatch = async (
   const wLocation = 0.25;
   const wExperience = 0.15;
 
-  const overall = 
+  let overall = 
     (skillScore * wSkill) + 
     (locationScore * wLocation) + 
     (expResult.score * wExperience) + 
     (cultureScore * wCulture) + 
     (job.freshness_score * 100 * wFreshness);
+
+  // 5.5 Internship Boost for Students
+  const isStudent = isStudentProfile(profile);
+  const isInternship = (job.title + " " + job.description).toLowerCase().match(/intern|co-op|coop|student|graduate/i);
+
+  if (isStudent && isInternship) {
+    overall += 15; // Significant boost
+    reasoning.push("Internship opportunity matched with your student profile.");
+  } else if (!isStudent && isInternship) {
+    overall -= 20; // Penalize internships for non-students
+    reasoning.push("This is an internship, which may not match your experience level.");
+  }
 
   // 6. Generate Reasoning
   if (skillScore > 80) {

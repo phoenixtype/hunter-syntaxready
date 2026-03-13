@@ -81,6 +81,16 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
                 params.keywords = [];
                 if (latestRole) params.keywords.push(latestRole);
                 if (topSkills.length > 0) params.keywords.push(...topSkills);
+                
+                // Add student/internship keywords if relevant
+                const isStudent = profile.education.some(edu => {
+                    const yearMatch = edu.year.match(/\d{4}/);
+                    return yearMatch && parseInt(yearMatch[0]) >= new Date().getFullYear();
+                }) || profile.summary?.toLowerCase().includes('student') || profile.summary?.toLowerCase().includes('university');
+
+                if (isStudent) {
+                    params.keywords.push("internship", "intern", "graduate");
+                }
             }
 
             if (extraKeywords && extraKeywords.length > 0) {
