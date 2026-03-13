@@ -27,6 +27,9 @@ import { ApplicationsView } from "@/components/ApplicationsView";
 import NotificationSettings from "@/components/NotificationSettings";
 import ProfilePanel from "@/components/ProfilePanel";
 import PreferencesPanel from "@/components/PreferencesPanel";
+import VisibilityScoreWidget from "@/components/VisibilityScoreWidget";
+import VisibilityCoachModal from "@/components/VisibilityCoachModal";
+import SubscriptionGate from "@/components/auth/SubscriptionGate";
 import {
   Sheet,
   SheetContent,
@@ -107,6 +110,7 @@ const Dashboard = () => {
   const [showPostInterview, setShowPostInterview] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
   const [showLinkedIn, setShowLinkedIn] = useState(false);
+  const [showCoach, setShowCoach] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
 
   useEffect(() => {
@@ -264,6 +268,11 @@ const Dashboard = () => {
         </nav>
 
         <div className="px-1.5 py-3 border-t border-border space-y-0.5">
+          {visibility && (
+            <div className="px-2 mb-4">
+               <VisibilityScoreWidget score={visibility} onConsultCoach={() => setShowCoach(true)} />
+            </div>
+          )}
           {sidebarCollapsed && (
             <button onClick={toggleSidebar} title="Expand sidebar" className="w-full flex justify-center p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors mb-1">
               <PanelLeft className="w-4 h-4" />
@@ -506,6 +515,12 @@ const Dashboard = () => {
       <PostInterviewModal isOpen={showPostInterview} onClose={() => setShowPostInterview(false)} companyName="" profile={profile} />
       <PricingModal isOpen={showPricing} onClose={() => setShowPricing(false)} />
       <LinkedInOptimizer isOpen={showLinkedIn} onClose={() => setShowLinkedIn(false)} profile={profile} />
+      <VisibilityCoachModal isOpen={showCoach} onClose={() => setShowCoach(false)} profile={profile} score={visibility} />
+      
+      {/* Subscription Gate — block dashboard if on FREE tier and has profile */}
+      {subscription?.tier === SubscriptionTier.FREE && profile && (
+        <SubscriptionGate />
+      )}
     </div>
   );
 };
