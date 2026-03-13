@@ -192,8 +192,8 @@ serve(async (req) => {
                 },
                 signal: controller.signal,
                 body: JSON.stringify({
-                    model: 'gemini-2.5-flash',
-                    messages: [{ role: 'user', content: briefingPrompt }],
+                    model: 'gemini-1.5-flash',
+                  messages: [{ role: 'user', content: briefingPrompt }],
                     tools: [{
                         type: 'function',
                         function: {
@@ -353,7 +353,7 @@ Description: ${job.description}`;
             },
             signal: controller.signal,
             body: JSON.stringify({
-                model: 'gemini-2.5-flash',
+                model: 'gemini-1.5-flash',
                 messages: chatMessages
             }),
         });

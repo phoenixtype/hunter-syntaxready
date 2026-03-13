@@ -28,6 +28,7 @@ import NotificationSettings from "@/components/NotificationSettings";
 import ProfilePanel from "@/components/ProfilePanel";
 import PreferencesPanel from "@/components/PreferencesPanel";
 import VisibilityScoreWidget from "@/components/VisibilityScoreWidget";
+import SkillCoachWidget from "@/components/SkillCoachWidget";
 import VisibilityCoachModal from "@/components/VisibilityCoachModal";
 import SubscriptionGate from "@/components/auth/SubscriptionGate";
 import {
@@ -468,9 +469,16 @@ const Dashboard = () => {
             <div className={activeView !== "jobs" ? "hidden" : ""}>
               <WidgetErrorBoundary>
                 <DashboardWelcome profile={profile} preferences={preferences ?? null} jobCount={jobCount} appCount={appCount} metrics={metrics} onSetView={(v) => setActiveView(v as DashboardView)} />
-                <JobFeed profile={profile} preferences={preferences} />
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-6">
+                    <div className="md:col-span-8">
+                        <JobFeed profile={profile} preferences={preferences} />
+                    </div>
+                    <div className="md:col-span-4 space-y-6">
+                        <SkillCoachWidget />
+                    </div>
+                </div>
               </WidgetErrorBoundary>
-            </div>
+          </div>
           )}
 
           {/* Applications - lazy init */}
