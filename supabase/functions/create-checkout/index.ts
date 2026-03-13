@@ -44,7 +44,13 @@ serve(async (req) => {
       );
     }
 
-    const { priceId } = await req.json();
+    let priceId: string | undefined;
+    try {
+      const body = await req.json();
+      priceId = body?.priceId;
+    } catch {
+      // No body sent — use default price
+    }
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Check if user already has a Stripe customer ID
