@@ -76,74 +76,81 @@ serve(async (req) => {
         }),
       });
 
-      if (!customerRes.ok) {
-        return new Response(
-          JSON.stringify({ error: 'Failed to initialize payment' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      const customer = await customerRes.json();
-      customerId = customer.id;
-
-      await supabase
-        .from('subscriptions')
-        .upsert({
-          user_id: user.id,
-          stripe_customer_id: customerId,
-          tier: 'free',
-          status: 'active'
-        }, { onConflict: 'user_id' });
-    }
-
-    const stripePriceId = priceId || Deno.env.get('STRIPE_PRO_PRICE_ID');
-
-    if (!stripePriceId) {
+    if (!customerRes.ok) {
+      const errorData = await customerRes.json();
+      console.error('[STRIPE CUSTOMER ERROR]:', errorData);
       return new Response(
-        JSON.stringify({ error: 'Pricing not configured' }),
+        JSON.stringify({ error: 'Failed to initialize payment', details: errorData }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Use SITE_URL for redirects, validated against allowed origins
-    const siteUrl = Deno.env.get('SITE_URL') || req.headers.get('origin') || 'http://localhost:5173';
+    const customer = await customerRes.json();
+    customerId = customer.id;
 
-    const sessionRes = await fetch('https://api.stripe.com/v1/checkout/sessions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${stripeSecretKey}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        'customer': customerId!,
-        'mode': 'subscription',
-        'line_items[0][price]': stripePriceId,
-        'line_items[0][quantity]': '1',
-        'success_url': `${siteUrl}/dashboard?checkout=success`,
-        'cancel_url': `${siteUrl}/dashboard?checkout=canceled`,
-        'metadata[supabase_user_id]': user.id,
-      }),
-    });
+    await supabase
+      .from('subscriptions')
+      .upsert({
+        user_id: user.id,
+        stripe_customer_id: customerId,
+        tier: 'free',
+        status: 'active'
+      }, { onConflict: 'user_id' });
+  }
 
-    if (!sessionRes.ok) {
-      return new Response(
-        JSON.stringify({ error: 'Failed to create checkout session' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+  const stripePriceId = priceId || Deno.env.get('STRIPE_PRO_PRICE_ID');
 
-    const session = await sessionRes.json();
-
+  if (!stripePriceId) {
+    console.error('[CHECKOUT ERROR]: Pricing not configured (STRIPE_PRO_PRICE_ID missing)');
     return new Response(
-      JSON.stringify({ url: session.url, sessionId: session.id }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-
-  } catch (error) {
-    console.error('[CHECKOUT] Error:', error);
-    return new Response(
-      JSON.stringify({ error: 'Service temporarily unavailable' }),
+      JSON.stringify({ error: 'Pricing not configured' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
+
+  // Use SITE_URL for redirects, validated against allowed origins
+  const siteUrl = Deno.env.get('SITE_URL') || req.headers.get('origin') || 'http://localhost:5173';
+
+  console.log('[CHECKOUT] Creating session for customer:', customerId, 'Price:', stripePriceId);
+
+  const sessionRes = await fetch('https://api.stripe.com/v1/checkout/sessions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${stripeSecretKey}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({
+      'customer': customerId!,
+      'mode': 'subscription',
+      'line_items[0][price]': stripePriceId,
+      'line_items[0][quantity]': '1',
+      'success_url': `${siteUrl}/dashboard?checkout=success`,
+      'cancel_url': `${siteUrl}/dashboard?checkout=canceled`,
+      'metadata[supabase_user_id]': user.id,
+    }),
+  });
+
+  if (!sessionRes.ok) {
+    const errorData = await sessionRes.json();
+    console.error('[STRIPE SESSION ERROR]:', errorData);
+    return new Response(
+      JSON.stringify({ error: 'Failed to create checkout session', details: errorData }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  const session = await sessionRes.json();
+
+  return new Response(
+    JSON.stringify({ url: session.url, sessionId: session.id }),
+    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  );
+
+} catch (error) {
+  console.error('[CHECKOUT] Global Error:', error);
+  return new Response(
+    JSON.stringify({ error: 'Service temporarily unavailable', details: error instanceof Error ? error.message : String(error) }),
+    { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  );
+}
 });
