@@ -33,20 +33,18 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          // Core React vendor
           "react-vendor": ["react", "react-dom", "react-router-dom"],
-          // UI component library
           "ui-vendor": [
             "@radix-ui/react-dialog",
             "@radix-ui/react-dropdown-menu",
             "@radix-ui/react-slot",
+            "lucide-react",
           ],
-          // Animation library
           "animation-vendor": ["framer-motion"],
-          // Chart library
           "chart-vendor": ["recharts"],
-          // PDF/document libraries
-          "document-vendor": ["jspdf"],
+          "document-vendor": ["jspdf", "docx", "pdfjs-dist"],
+          "supabase-vendor": ["@supabase/supabase-js"],
+          "location-vendor": ["country-state-city"],
         },
       },
     },

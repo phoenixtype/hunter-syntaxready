@@ -183,7 +183,6 @@ const Profile = () => {
                 const parseDate = (dateStr: string) => {
                     if (!dateStr) return 0;
                     const parts = dateStr.split('-');
-                    // The following line `const identity = (data.identity || {}) as Record<string, unknown>;` was removed as `data` is undefined in this scope.
                     const endStr = parts.length > 1 ? parts[1].trim() : parts[0].trim();
                     if (endStr.toLowerCase() === 'present') return Infinity;
                     const date = new Date(endStr);
@@ -302,7 +301,7 @@ const Profile = () => {
                         {/* Identity */}
                         <section className="space-y-4">
                             <h2 className="text-xl font-semibold">Personal Information</h2>
-                            <Card className="border-border bg-card">
+                            <Card className="border-border bg-card/50 backdrop-blur-sm shadow-elevated">
                                 <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div>
                                         <Label className="text-muted-foreground">Full Name</Label>
@@ -343,7 +342,7 @@ const Profile = () => {
                             <h2 className="text-xl font-semibold">Experience</h2>
                             <div className="space-y-4">
                                 {formData.experience_atoms.map((exp, idx) => (
-                                    <Card key={idx} className="border-border bg-card hover:border-primary/30 transition-all hover:translate-y-[-2px]">
+                                    <Card key={idx} className="border-border bg-card/50 backdrop-blur-sm shadow-elevated hover:border-primary/30 transition-all hover:translate-y-[-2px]">
                                         <CardContent className="p-6 space-y-2">
                                             <div className="flex justify-between items-start">
                                                 <div>
@@ -365,7 +364,7 @@ const Profile = () => {
                             <h2 className="text-xl font-semibold">Education</h2>
                             <div className="grid gap-4">
                                 {formData.education.map((edu, idx) => (
-                                    <Card key={idx} className="border-border bg-card hover:border-primary/30 transition-all hover:translate-y-[-2px]">
+                                    <Card key={idx} className="border-border bg-card/50 backdrop-blur-sm shadow-elevated hover:border-primary/30 transition-all hover:translate-y-[-2px]">
                                         <CardContent className="p-6 flex justify-between items-start">
                                             <div>
                                                 <h3 className="font-semibold">{edu.school}</h3>

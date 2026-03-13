@@ -11,6 +11,7 @@ import SEOHead from "@/components/SEOHead";
 import { triggerJobCrawl, JobOpportunity } from "@/lib/crawler_engine";
 import { generateTailoredContent, TailoredContent } from "@/lib/writer_engine";
 import { findStakeholders, Stakeholder } from "@/lib/recruiter_engine";
+import { saveTailoredResume } from "@/lib/tailored_resume_store";
 import { useResume } from "@/hooks/useResume";
 
 const ApplicationWizard = () => {
@@ -70,8 +71,15 @@ const ApplicationWizard = () => {
             const assets = await generateTailoredContent(profile, scrapedJob);
             setTailoredAssets(assets);
 
+            // Persist the tailored resume automatically
+            await saveTailoredResume(assets, {
+                title: scrapedJob.title,
+                company: scrapedJob.company,
+                url: url
+            });
+
             setStep('results');
-            toast.success("Application package ready!");
+            toast.success("Application package ready and saved!");
 
         } catch (error) {
             console.error(error);
@@ -193,7 +201,10 @@ const ApplicationWizard = () => {
                                                     <p key={i} className="text-sm text-muted-foreground pl-3">{change}</p>
                                                 ))}
                                             </div>
-                                            <Button className="w-full mt-4" onClick={() => navigate('/resume-builder')}>Open Resume Builder</Button>
+                                            <div className="flex flex-col gap-2 mt-4">
+                                                <Button className="w-full" onClick={() => navigate('/resume-builder')}>Open Resume Builder</Button>
+                                                <Button variant="outline" className="w-full" onClick={() => navigate('/tailored-resumes')}>View All Saved Resumes</Button>
+                                            </div>
                                         </div>
 
                                         <div className="pt-6 border-t border-border space-y-3">

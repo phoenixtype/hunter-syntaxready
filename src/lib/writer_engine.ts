@@ -148,7 +148,12 @@ export const optimizeResumeForJobUrl = async (
   }
 
   const job = result.jobs[0] as JobOpportunity;
-  return generateTailoredContent(profile, job);
+  try {
+    return await generateTailoredContent(profile, job);
+  } catch (error) {
+    console.error('Content optimization error:', error);
+    throw new Error('Failed to tailor content for this job. Please try again.');
+  }
 };
 
 // Generate LinkedIn profile optimization suggestions
