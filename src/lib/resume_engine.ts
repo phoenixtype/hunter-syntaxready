@@ -30,6 +30,7 @@ export interface CandidateProfile {
     phone?: string;
     location?: string;
     links: string[];
+    _years_exp?: string;
   };
   skills: Skill[];
   experience_atoms: ExperienceAtom[];

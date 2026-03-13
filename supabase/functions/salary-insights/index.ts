@@ -57,14 +57,21 @@ Description snippet: ${(description || '').slice(0, 500)}
 
 You MUST call the function "salary_analysis" with your findings.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Use Gemini directly if available, otherwise use Lovable AI gateway
+    const useGemini = !!GEMINI_API_KEY;
+    const apiUrl = useGemini
+      ? `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`
+      : "https://ai.gateway.lovable.dev/v1/chat/completions";
+    const apiKey = useGemini ? GEMINI_API_KEY! : LOVABLE_API_KEY!;
+
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: useGemini ? "gemini-2.5-flash" : "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: "You are a compensation expert. Always use the salary_analysis tool." },
           { role: "user", content: prompt }

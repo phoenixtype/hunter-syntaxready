@@ -135,7 +135,6 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('[CHECKOUT] Error:', error);
-    const corsHeaders = getCorsHeaders(req);
     return new Response(
       JSON.stringify({ error: 'Service temporarily unavailable' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
