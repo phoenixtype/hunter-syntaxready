@@ -26,6 +26,7 @@ serve(async (req) => {
     const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
 
     if (!stripeSecretKey) {
+      console.error('[STRIPE ERROR]: STRIPE_SECRET_KEY not set');
       return new Response(
         JSON.stringify({ error: 'Service temporarily unavailable' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -49,20 +50,12 @@ serve(async (req) => {
       const body = await req.json();
       priceId = body?.priceId;
     } catch {
-      // No body sent — use default price
+      // No body sent — will use default price below
     }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Check if user already has a Stripe customer ID
-    const { data: existingSub } = await supabase
-      .from('subscriptions')
-      .select('stripe_customer_id')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    let customerId = existingSub?.stripe_customer_id;
-
-    // Helper to create a new Stripe customer
+    // 1. Helper to create a new Stripe customer
     const createCustomer = async () => {
       console.log('[CHECKOUT] Creating new Stripe customer for:', user.email);
       const res = await fetch('https://api.stripe.com/v1/customers', {
@@ -98,21 +91,8 @@ serve(async (req) => {
       return customer.id;
     };
 
-    // Check if user already has a Stripe customer ID
-    const { data: existingSub } = await supabase
-      .from('subscriptions')
-      .select('stripe_customer_id')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    let customerId = existingSub?.stripe_customer_id;
-
-    if (!customerId) {
-      customerId = await createCustomer();
-    }
-
+    // 2. Determine Price ID
     const stripePriceId = priceId || Deno.env.get('STRIPE_PRO_PRICE_ID');
-
     if (!stripePriceId) {
       console.error('[CHECKOUT ERROR]: Pricing not configured (STRIPE_PRO_PRICE_ID missing)');
       return new Response(
@@ -121,10 +101,9 @@ serve(async (req) => {
       );
     }
 
-    // Use SITE_URL for redirects, validated against allowed origins
+    // 3. Helper to create checkout session
     const siteUrl = Deno.env.get('SITE_URL') || req.headers.get('origin') || 'http://localhost:5173';
-
-    // Helper to create checkout session
+    
     const createSession = async (cid: string) => {
       console.log('[CHECKOUT] Creating session for customer:', cid, 'Price:', stripePriceId);
       return await fetch('https://api.stripe.com/v1/checkout/sessions', {
@@ -145,11 +124,24 @@ serve(async (req) => {
       });
     };
 
+    // 4. Initial attempt to find existing customer and create session
+    const { data: existingSub } = await supabase
+      .from('subscriptions')
+      .select('stripe_customer_id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    let customerId = existingSub?.stripe_customer_id;
+
+    if (!customerId) {
+      customerId = await createCustomer();
+    }
+
     let sessionRes = await createSession(customerId);
 
-    // If the customer was not found (likely from a different account/env), recreate and try once more
+    // 5. If the customer was not found (likely from a different account/env), recreate and try once more
     if (!sessionRes.ok) {
-      const errorData = await sessionRes.json();
+      const errorData = await sessionRes.clone().json();
       
       if (errorData.error?.code === 'resource_missing' && errorData.error?.message?.includes('No such customer')) {
         console.warn('[CHECKOUT] Customer ID was stale, recreating...', customerId);
@@ -164,6 +156,7 @@ serve(async (req) => {
       }
     }
 
+    // 6. Final check
     if (!sessionRes.ok) {
        const errorData = await sessionRes.json();
        console.error('[STRIPE SESSION FINAL ERROR]:', errorData);
@@ -173,18 +166,17 @@ serve(async (req) => {
       );
     }
 
-  const session = await sessionRes.json();
+    const session = await sessionRes.json();
+    return new Response(
+      JSON.stringify({ url: session.url, sessionId: session.id }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
 
-  return new Response(
-    JSON.stringify({ url: session.url, sessionId: session.id }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
-
-} catch (error) {
-  console.error('[CHECKOUT] Global Error:', error);
-  return new Response(
-    JSON.stringify({ error: 'Service temporarily unavailable', details: error instanceof Error ? error.message : String(error) }),
-    { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
-}
+  } catch (error) {
+    console.error('[CHECKOUT] Global Error:', error);
+    return new Response(
+      JSON.stringify({ error: 'Service temporarily unavailable', details: error instanceof Error ? error.message : String(error) }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
 });
