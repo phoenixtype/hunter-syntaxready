@@ -37,6 +37,21 @@ serve(async (req) => {
       });
     }
 
+    // Rate Limiting
+    const { RateLimiter } = await import("../_shared/rate-limiter.ts");
+    const supabase = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const limiter = new RateLimiter(supabase, user.id);
+    const { allowed, error: limitError } = await limiter.isAllowed('generate-resume', {
+      free: { max: 3, window: 300 }, // 3 resumes per 5 mins for free users
+      pro: { max: 15, window: 300 }   // 15 resumes per 5 mins for pro users
+    });
+
+    if (!allowed) {
+      return new Response(JSON.stringify({ error: limitError }), {
+        status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     const { profile, template, accentColor } = await req.json();
 
     if (!profile || !profile.identity) {

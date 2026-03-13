@@ -261,6 +261,21 @@ serve(async (req) => {
       });
     }
 
+    // Rate Limiting
+    const { RateLimiter } = await import("../_shared/rate-limiter.ts");
+    const supabase = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const limiter = new RateLimiter(supabase, user.id);
+    const { allowed, error: limitError } = await limiter.isAllowed('send-notification', {
+      free: { max: 10, window: 60 },
+      pro: { max: 50, window: 60 }
+    });
+
+    if (!allowed) {
+      return new Response(JSON.stringify({ error: limitError }), {
+        status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     const resendKey = Deno.env.get('RESEND_API_KEY');
     if (!resendKey) {
       console.error('RESEND_API_KEY not configured');

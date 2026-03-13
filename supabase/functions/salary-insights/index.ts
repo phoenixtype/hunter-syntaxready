@@ -37,6 +37,21 @@ serve(async (req) => {
       });
     }
 
+    // Rate Limiting
+    const { RateLimiter } = await import("../_shared/rate-limiter.ts");
+    const supabase = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const limiter = new RateLimiter(supabase, user.id);
+    const { allowed, error: limitError } = await limiter.isAllowed('salary-insights', {
+      free: { max: 5, window: 60 },
+      pro: { max: 25, window: 60 }
+    });
+
+    if (!allowed) {
+      return new Response(JSON.stringify({ error: limitError }), {
+        status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
     

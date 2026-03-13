@@ -1,0 +1,71 @@
+// Rate Limiter Utility for Supabase Edge Functions
+// This utility leverages the existing `public.check_rate_limit` RPC function.
+
+import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+export class RateLimiter {
+  constructor(private supabase: SupabaseClient, private userId: string) {}
+
+  /**
+   * Checks if the user has exceeded their rate limit for a specific function.
+   * If the user is on a 'pro' tier, they receive higher limits.
+   */
+  async isAllowed(
+    functionName: string,
+    limits: { 
+      free: { max: number; window: number }; 
+      pro: { max: number; window: number } 
+    }
+  ): Promise<{ allowed: boolean; error?: string }> {
+    try {
+      // 1. Get user subscription tier
+      const { data: subscription } = await this.supabase
+        .from('subscriptions')
+        .select('tier')
+        .eq('user_id', this.userId)
+        .maybeSingle();
+
+      const tier = subscription?.tier === 'pro' ? 'pro' : 'free';
+      const config = limits[tier];
+
+      console.log(`[RATE_LIMIT] Checking ${functionName} for user ${this.userId} (Tier: ${tier})`);
+
+      // 2. Execute the rate limit RPC
+      const { data, error } = await this.supabase.rpc('check_rate_limit', {
+        p_user_id: this.userId,
+        p_function_name: functionName,
+        p_max_requests: config.max,
+        p_window_seconds: config.window
+      });
+
+      if (error) {
+        console.error(`[RATE_LIMIT] RPC Error for ${functionName}:`, error);
+        // Default to block on database error to protect resources
+        return { allowed: false, error: 'Request validation failed' };
+      }
+
+      const allowed = data === true;
+      if (!allowed) {
+        console.warn(`[RATE_LIMIT] Blocked ${functionName} for user ${this.userId}`);
+      }
+
+      return { 
+        allowed, 
+        error: allowed ? undefined : `Too many requests. Please try again in ${config.window} seconds.` 
+      };
+
+    } catch (err) {
+      console.error(`[RATE_LIMIT] Unexpected error for ${functionName}:`, err);
+      return { allowed: false, error: 'Internal validation error' };
+    }
+  }
+}
+
+/**
+ * Common CORS headers for Edge Function responses
+ */
+export const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
