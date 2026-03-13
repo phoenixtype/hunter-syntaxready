@@ -22,32 +22,14 @@ export default defineConfig(({ mode }) => ({
   optimizeDeps: {
     include: ["@tanstack/react-query", "react", "react-dom"],
   },
-  esbuild:
-    mode === "production"
-      ? {
-          drop: ["console", "debugger"],
-        }
-      : undefined,
+  esbuild: undefined,
   build: {
     sourcemap: mode !== "production",
     rollupOptions: {
       output: {
-        manualChunks: {
-          "react-vendor": ["react", "react-dom", "react-router-dom"],
-          "ui-vendor": [
-            "@radix-ui/react-dialog",
-            "@radix-ui/react-dropdown-menu",
-            "@radix-ui/react-slot",
-            "lucide-react",
-          ],
-          "animation-vendor": ["framer-motion"],
-          "chart-vendor": ["recharts"],
-          "document-vendor": ["jspdf", "docx", "pdfjs-dist"],
-          "supabase-vendor": ["@supabase/supabase-js"],
-          "location-vendor": ["country-state-city"],
-        },
+        manualChunks: undefined,
       },
     },
-    chunkSizeWarningLimit: 600,
+    chunkSizeWarningLimit: 1000,
   },
 }));
