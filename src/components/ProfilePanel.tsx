@@ -25,16 +25,20 @@ function getProfileStrength(profile: CandidateProfile | null): StrengthResult {
     };
     if (!profile) return noProfile;
 
+    const hasProjects = (profile.custom_sections?.length ?? 0) >= 1;
+    const hasExperience = (profile.experience_atoms?.length ?? 0) >= 1;
+    const isStudent = !hasExperience && (profile.education?.length ?? 0) >= 1;
+
     const checks = [
         { done: !!profile.identity?.name, tip: "Add your full name" },
         { done: !!profile.identity?.email, tip: "Add your email address" },
         { done: !!profile.identity?.phone, tip: "Add your phone number" },
-        { done: !!(profile.summary?.trim()), tip: "Write a professional summary" },
-        { done: (profile.experience_atoms?.length ?? 0) >= 1, tip: "Add at least one work experience" },
-        { done: (profile.experience_atoms?.length ?? 0) >= 3, tip: "Add 3+ work experiences" },
-        { done: (profile.skills?.length ?? 0) >= 5, tip: "Add at least 5 skills" },
+        { done: !!(profile.summary?.trim()), tip: isStudent ? "Write a student summary highlighting your major and goals" : "Write a professional summary" },
+        { done: hasExperience || hasProjects, tip: isStudent ? "Add projects, coursework, or extracurriculars" : "Add at least one work experience" },
+        { done: hasExperience ? (profile.experience_atoms?.length ?? 0) >= 3 : hasProjects, tip: isStudent ? "Add more projects to strengthen your profile" : "Add 3+ work experiences" },
+        { done: (profile.skills?.length ?? 0) >= 5, tip: "Add at least 5 technical skills" },
         { done: (profile.skills?.length ?? 0) >= 10, tip: "Add 10+ skills for better matching" },
-        { done: (profile.education?.length ?? 0) >= 1, tip: "Add your education" },
+        { done: (profile.education?.length ?? 0) >= 1, tip: "Add your degree and graduation year" },
     ];
 
     const done = checks.filter(c => c.done).length;
@@ -160,9 +164,10 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
                             <button
                                 key={i}
                                 onClick={() => {
-                                    if (tip.includes("experience") || tip.includes("role")) navigate("/resume-builder?section=experience");
+                                    if (tip.includes("project") || tip.includes("coursework") || tip.includes("extracurricular")) navigate("/resume-builder?section=projects");
+                                    else if (tip.includes("experience") || tip.includes("role")) navigate("/resume-builder?section=experience");
                                     else if (tip.includes("skill")) navigate("/resume-builder?section=skills");
-                                    else if (tip.includes("education")) navigate("/resume-builder?section=education");
+                                    else if (tip.includes("education") || tip.includes("degree") || tip.includes("graduation")) navigate("/resume-builder?section=education");
                                     else if (tip.includes("summary")) navigate("/resume-builder?section=summary");
                                     else navigate("/resume-builder");
                                 }}
@@ -179,7 +184,9 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
             {/* Quick Stats */}
             <div className="flex items-center divide-x divide-border border border-border rounded-md overflow-hidden">
                 {[
-                    { icon: Briefcase, label: "Experiences", value: profile.experience_atoms?.length ?? 0 },
+                    profile.experience_atoms?.length > 0
+                        ? { icon: Briefcase, label: "Experiences", value: profile.experience_atoms.length }
+                        : { icon: Briefcase, label: "Projects", value: profile.custom_sections?.length ?? 0 },
                     { icon: Code2, label: "Skills", value: profile.skills?.length ?? 0 },
                     { icon: GraduationCap, label: "Education", value: profile.education?.length ?? 0 },
                 ].map(stat => (

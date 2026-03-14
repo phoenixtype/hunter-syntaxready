@@ -6,7 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { SlidersHorizontal, X } from "lucide-react";
 
 export type WorkMode = "all" | "remote" | "hybrid" | "onsite";
-export type ExperienceLevel = "all" | "entry" | "mid" | "senior" | "lead";
+export type ExperienceLevel = "all" | "intern" | "entry" | "mid" | "senior" | "lead";
 export type DatePosted = "all" | "24h" | "week" | "month";
 export type JobType = "all" | "fulltime" | "contract" | "parttime" | "internship";
 
@@ -27,6 +27,7 @@ const WORK_MODES: { value: WorkMode; label: string }[] = [
 
 const EXP_LEVELS: { value: ExperienceLevel; label: string }[] = [
   { value: "all", label: "All" },
+  { value: "intern", label: "Intern" },
   { value: "entry", label: "Entry" },
   { value: "mid", label: "Mid" },
   { value: "senior", label: "Senior" },

@@ -159,8 +159,8 @@ const PreferencesPanel = ({ preferences, onSaved }: PreferencesPanelProps) => {
 
                 <div className="space-y-2">
                     <Label className="text-sm font-semibold">Experience Level</Label>
-                    <div className="grid grid-cols-4 gap-1.5">
-                        {(["entry", "mid", "senior", "lead"] as const).map(level => (
+                    <div className="grid grid-cols-5 gap-1.5">
+                        {(["intern", "entry", "mid", "senior", "lead"] as const).map(level => (
                             <button
                                 key={level}
                                 type="button"
@@ -171,7 +171,7 @@ const PreferencesPanel = ({ preferences, onSaved }: PreferencesPanelProps) => {
                                         : "border-border hover:border-primary/50 hover:bg-accent/50"
                                 }`}
                             >
-                                {level.charAt(0).toUpperCase() + level.slice(1)}
+                                {level === "intern" ? "Intern" : level.charAt(0).toUpperCase() + level.slice(1)}
                             </button>
                         ))}
                     </div>

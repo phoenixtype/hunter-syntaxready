@@ -86,8 +86,9 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
     if (filters.experienceLevel !== "all") {
       result = result.filter(job => {
         const text = ((job.title || "") + " " + (job.description || "")).toLowerCase();
-        if (filters.experienceLevel === "entry") return text.includes("entry") || text.includes("junior") || text.includes("associate") || text.includes("intern");
-        if (filters.experienceLevel === "mid") return !text.includes("senior") && !text.includes("junior") && !text.includes("lead") && !text.includes("staff");
+        if (filters.experienceLevel === "intern") return text.includes("intern") || text.includes("co-op") || text.includes("coop") || text.includes("student") || text.includes("new grad") || text.includes("graduate program") || text.includes("entry level");
+        if (filters.experienceLevel === "entry") return text.includes("entry") || text.includes("junior") || text.includes("associate") || text.includes("new grad");
+        if (filters.experienceLevel === "mid") return !text.includes("senior") && !text.includes("junior") && !text.includes("lead") && !text.includes("staff") && !text.includes("intern");
         if (filters.experienceLevel === "senior") return text.includes("senior") || text.includes("sr.");
         if (filters.experienceLevel === "lead") return text.includes("lead") || text.includes("staff") || text.includes("principal") || text.includes("director");
         return true;
@@ -210,8 +211,12 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
 
   const handleCrawl = () => {
     toast.info(profile ? "Searching for matching roles..." : "Starting job search...");
-    const extra = searchQuery.trim() ? searchQuery.trim().split(/\s+/) : undefined;
-    crawl(extra);
+    const searchTerms = searchQuery.trim() ? searchQuery.trim().split(/\s+/) : [];
+    // Automatically inject "internship" keyword for intern-level users
+    if (preferences?.experience_level === "intern" && !searchTerms.some(t => t.toLowerCase().includes("intern"))) {
+      searchTerms.push("internship");
+    }
+    crawl(searchTerms.length > 0 ? searchTerms : undefined);
   };
 
   return (
