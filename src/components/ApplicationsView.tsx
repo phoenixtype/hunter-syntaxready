@@ -234,7 +234,7 @@ export const ApplicationsView = () => {
 
   const renderCard = (app: ApplicationRecord, isDragOverlay = false) => (
     <div
-      className={`p-4 rounded-xl border border-border bg-card hover:border-primary/20 hover:shadow-sm transition-all ${isDragOverlay ? "shadow-lg ring-2 ring-primary/20" : ""} ${!isDragOverlay ? "pl-7" : ""}`}
+      className={`p-4 rounded-md border border-border bg-card hover:bg-muted/20 transition-colors ${isDragOverlay ? "shadow-lg" : ""} ${!isDragOverlay ? "pl-7" : ""}`}
     >
       <div
         className="flex items-start justify-between gap-2 mb-2 cursor-pointer"
@@ -261,7 +261,7 @@ export const ApplicationsView = () => {
             value={noteInput}
             onChange={e => setNoteInput(e.target.value)}
             placeholder="Add a note..."
-            className="w-full text-xs bg-muted border border-border rounded-lg px-2 py-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-primary min-h-[60px]"
+            className="w-full text-xs bg-muted border border-border rounded-md px-2 py-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-primary min-h-[60px]"
           />
           <div className="flex gap-1.5">
             <button onClick={() => handleSaveNote(app.id)} className="text-[10px] text-primary font-medium hover:underline">Save</button>
@@ -311,7 +311,7 @@ export const ApplicationsView = () => {
   );
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+    <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-semibold">Job Tracker</h2>
@@ -323,7 +323,7 @@ export const ApplicationsView = () => {
         </div>
         
         {applications.length > 0 && (
-          <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border border-border/50">
+          <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-md border border-border/50">
             <Button
               variant={viewMode === "board" ? "secondary" : "ghost"}
               size="sm"
@@ -392,7 +392,7 @@ export const ApplicationsView = () => {
                   ))}
 
                   {stage.apps.length === 0 && (
-                    <div className="p-6 rounded-xl border border-dashed border-border text-center">
+                    <div className="p-6 rounded-md border border-dashed border-border text-center">
                       <p className="text-xs text-muted-foreground">Drop here</p>
                     </div>
                   )}
@@ -412,23 +412,20 @@ export const ApplicationsView = () => {
         </motion.div>
       ) : (
         /* List View */
-        <motion.div key="list" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }} className="space-y-4">
-          <div className="grid gap-3">
+        <div key="list" className="space-y-4">
+          <div className="border border-border rounded-md overflow-hidden divide-y divide-border">
             {applications
               .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
               .map((app) => {
-                const stageInfo = STAGES.find(s => s.id === getStage(app.status)) || STAGES[0];
                 return (
-                  <motion.div
+                  <div
                     key={app.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-border bg-card hover:border-primary/20 hover:shadow-sm transition-all cursor-pointer"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 py-3 bg-card hover:bg-muted/30 transition-colors cursor-pointer"
                     onClick={() => setDetailApp(app)}
                   >
-                    <div className="flex-1 min-w-0 flex items-start sm:items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 border border-primary/10">
-                        <span className="text-sm font-bold text-primary">{app.company?.[0]?.toUpperCase() ?? "?"}</span>
+                    <div className="flex-1 min-w-0 flex items-start sm:items-center gap-3">
+                      <div className="w-7 h-7 rounded-sm bg-muted flex items-center justify-center shrink-0">
+                        <span className="text-xs font-semibold text-foreground">{app.company?.[0]?.toUpperCase() ?? "?"}</span>
                       </div>
                       <div className="grid gap-1">
                         <h4 className="text-sm font-medium truncate">{app.job_title}</h4>
@@ -448,7 +445,7 @@ export const ApplicationsView = () => {
                           value={app.status}
                           onValueChange={(val) => handleStatusChange(app.id, val)}
                         >
-                          <SelectTrigger className={`h-8 text-xs w-[130px] border-border ${stageInfo.color}`}>
+                          <SelectTrigger className="h-8 text-xs w-[130px] border-border">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -485,7 +482,7 @@ export const ApplicationsView = () => {
                             value={noteInput}
                             onChange={e => setNoteInput(e.target.value)}
                             placeholder="Add a note..."
-                            className="w-full text-xs bg-muted border border-border rounded-lg px-2 py-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-primary min-h-[56px]"
+                            className="w-full text-xs bg-muted border border-border rounded-md px-2 py-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-primary min-h-[56px]"
                           />
                           <div className="flex gap-2">
                             <button onClick={() => handleSaveNote(app.id)} className="text-[11px] text-primary font-medium hover:underline">Save</button>
@@ -499,7 +496,7 @@ export const ApplicationsView = () => {
                         </p>
                       )}
                     </div>
-                  </motion.div>
+                  </div>
                 );
               })}
           </div>
@@ -544,7 +541,7 @@ export const ApplicationsView = () => {
               </Pagination>
             </div>
           )}
-        </motion.div>
+        </div>
       )}
       </AnimatePresence>
 
@@ -553,6 +550,6 @@ export const ApplicationsView = () => {
         open={!!detailApp}
         onClose={() => setDetailApp(null)}
       />
-    </motion.div>
+    </div>
   );
 };

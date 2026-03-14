@@ -61,10 +61,10 @@ const MobileNav = ({ isAuthenticated = false, onSignOut }: MobileNavProps) => {
                   <Link
                     to={item.href}
                     onClick={() => setIsOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm font-medium transition-colors ${
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors ${
                       isActive(item.href)
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted active:bg-muted"
+                        ? "bg-muted text-foreground font-medium"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     }`}
                   >
                     <item.icon className="w-4 h-4" />

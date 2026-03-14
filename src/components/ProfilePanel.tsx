@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit2, Briefcase, GraduationCap, Code2, User, Mail, Phone, TrendingUp, AlertCircle, FileText, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 
 interface ProfilePanelProps {
     profile: CandidateProfile | null;
@@ -63,8 +62,6 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
         ? profile.identity.name.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase()
         : '?';
 
-    const circumference = 2 * Math.PI * 28;
-
     if (!profile) {
         return (
             <div className="text-center py-20 space-y-4">
@@ -92,44 +89,22 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
     }
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="space-y-6 max-w-3xl"
-        >
+        <div className="space-y-6 max-w-3xl">
             {/* Header */}
             <div className="flex items-start justify-between gap-4 flex-wrap">
-                <div className="flex items-center gap-4">
-                    {/* Avatar with animated strength ring */}
-                    <div className="relative shrink-0">
-                        <svg className="w-20 h-20 -rotate-90" viewBox="0 0 64 64">
-                            <circle cx="32" cy="32" r="28" fill="none" stroke="hsl(var(--muted))" strokeWidth="4" />
-                            <motion.circle
-                                cx="32" cy="32" r="28" fill="none"
-                                className={strength.ringClass}
-                                strokeWidth="4"
-                                strokeDasharray={circumference}
-                                initial={{ strokeDashoffset: circumference }}
-                                animate={{ strokeDashoffset: circumference - (circumference * strength.score) / 100 }}
-                                transition={{ duration: 1, ease: "easeOut" }}
-                                strokeLinecap="round"
-                            />
-                        </svg>
-                        <div className="absolute inset-2 rounded-full bg-primary/10 flex items-center justify-center">
-                            <span className="text-lg font-bold text-primary">{initials}</span>
-                        </div>
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-sm bg-muted flex items-center justify-center shrink-0">
+                        <span className="text-sm font-semibold text-foreground">{initials}</span>
                     </div>
-
                     <div>
-                        <h1 className="text-xl font-bold leading-tight">{profile.identity.name}</h1>
+                        <h1 className="text-base font-semibold leading-tight">{profile.identity.name}</h1>
                         {profile.experience_atoms?.[0] && (
                             <p className="text-sm text-muted-foreground mt-0.5">
                                 {profile.experience_atoms[0].role}
                                 {profile.experience_atoms[0].company && ` · ${profile.experience_atoms[0].company}`}
                             </p>
                         )}
-                        <div className="flex flex-wrap items-center gap-3 mt-2">
+                        <div className="flex flex-wrap items-center gap-3 mt-1">
                             {profile.identity.email && (
                                 <span className="flex items-center gap-1 text-xs text-muted-foreground">
                                     <Mail className="w-3 h-3" />{profile.identity.email}
@@ -147,19 +122,19 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
                 <div className="flex gap-2">
                     <Button onClick={() => navigate("/profile")} variant="outline" size="sm" className="shrink-0 gap-2">
                         <Edit2 className="w-4 h-4" />
-                        Edit Profile
+                        Edit
                     </Button>
                     {profile.resume_file_url && (
                         <Button onClick={() => window.open(profile.resume_file_url!, '_blank')} variant="outline" size="sm" className="shrink-0 gap-2">
                             <Download className="w-4 h-4" />
-                            Download Resume
+                            Resume
                         </Button>
                     )}
                 </div>
             </div>
 
             {/* Profile Strength Card */}
-            <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+            <div className="rounded-md border border-border bg-card p-4 space-y-3">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <TrendingUp className="w-4 h-4 text-primary" />
@@ -171,12 +146,10 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
                     </div>
                 </div>
 
-                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                    <motion.div
+                <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                    <div
                         className={`h-full rounded-full ${strength.barClass}`}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${strength.score}%` }}
-                        transition={{ duration: 0.8, ease: "easeOut" }}
+                        style={{ width: `${strength.score}%` }}
                     />
                 </div>
 
@@ -204,16 +177,18 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="flex items-center divide-x divide-border border border-border rounded-md overflow-hidden">
                 {[
-                    { icon: Briefcase, label: "Experiences", value: profile.experience_atoms?.length ?? 0, suffix: profile.experience_atoms?.length === 1 ? "role" : "roles" },
-                    { icon: Code2, label: "Skills", value: profile.skills?.length ?? 0, suffix: "listed" },
-                    { icon: GraduationCap, label: "Education", value: profile.education?.length ?? 0, suffix: profile.education?.length === 1 ? "entry" : "entries" },
+                    { icon: Briefcase, label: "Experiences", value: profile.experience_atoms?.length ?? 0 },
+                    { icon: Code2, label: "Skills", value: profile.skills?.length ?? 0 },
+                    { icon: GraduationCap, label: "Education", value: profile.education?.length ?? 0 },
                 ].map(stat => (
-                    <div key={stat.label} className="rounded-xl border border-border bg-card p-4 text-center">
-                        <stat.icon className="w-4 h-4 text-primary mx-auto mb-2" />
-                        <div className="text-2xl font-bold">{stat.value}</div>
-                        <div className="text-xs text-muted-foreground mt-0.5">{stat.suffix}</div>
+                    <div key={stat.label} className="flex-1 flex items-center gap-2 px-4 py-3 bg-card">
+                        <stat.icon className="w-4 h-4 text-muted-foreground shrink-0" />
+                        <div>
+                            <div className="text-sm font-semibold">{stat.value}</div>
+                            <div className="text-xs text-muted-foreground">{stat.label}</div>
+                        </div>
                     </div>
                 ))}
             </div>
@@ -232,7 +207,7 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
                     <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Skills</h2>
                     <div className="flex flex-wrap gap-1.5">
                         {profile.skills.slice(0, 20).map((skill, i) => (
-                            <Badge key={i} variant="secondary" className="bg-primary/8 text-primary border-primary/15 text-xs px-2.5 py-1">
+                            <Badge key={i} variant="secondary" className="text-xs px-2.5 py-1">
                                 {skill.name}
                             </Badge>
                         ))}
@@ -249,11 +224,11 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
             {profile.experience_atoms.length > 0 && (
                 <div className="space-y-2">
                     <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Experience</h2>
-                    <div className="space-y-2">
+                    <div className="border border-border rounded-md divide-y divide-border overflow-hidden">
                         {profile.experience_atoms.slice(0, 4).map((exp, i) => (
-                            <div key={i} className="flex items-start gap-3 p-4 rounded-xl border border-border bg-card hover:border-primary/20 transition-colors">
-                                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                                    <Briefcase className="w-4 h-4 text-primary" />
+                            <div key={i} className="flex items-start gap-3 px-4 py-3 bg-card">
+                                <div className="w-7 h-7 rounded-sm bg-muted flex items-center justify-center shrink-0 mt-0.5">
+                                    <Briefcase className="w-3.5 h-3.5 text-muted-foreground" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-start justify-between gap-2">
@@ -277,9 +252,9 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
             {profile.education.length > 0 && (
                 <div className="space-y-2">
                     <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Education</h2>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="border border-border rounded-md divide-y divide-border overflow-hidden">
                         {profile.education.map((edu, i) => (
-                            <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border bg-card text-sm">
+                            <div key={i} className="flex items-center gap-2 px-4 py-2.5 bg-card text-sm">
                                 <GraduationCap className="w-3.5 h-3.5 text-muted-foreground" />
                                 <span className="font-medium">{edu.school}</span>
                                 <span className="text-muted-foreground">·</span>
@@ -296,12 +271,12 @@ const ProfilePanel = ({ profile }: ProfilePanelProps) => {
                 <p className="text-xs text-muted-foreground">
                     A complete profile improves your AI match scores by up to 3×
                 </p>
-                <Button onClick={() => navigate("/profile")} size="sm" className="gap-2 shrink-0">
+                <Button onClick={() => navigate("/profile")} size="sm" variant="outline" className="gap-2 shrink-0">
                     <Edit2 className="w-4 h-4" />
                     Edit Full Profile
                 </Button>
             </div>
-        </motion.div>
+        </div>
     );
 };
 

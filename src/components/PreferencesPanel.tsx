@@ -80,7 +80,7 @@ const PreferencesPanel = ({ preferences, onSaved }: PreferencesPanelProps) => {
     return (
         <div className="space-y-6 max-w-3xl">
             {/* Target Roles */}
-            <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+            <div className="rounded-md border border-border bg-card p-5 space-y-4">
                 <Label className="text-sm font-semibold">Target Roles</Label>
                 <div className="flex flex-wrap gap-2 min-h-[32px]">
                     {roles.map((role, i) => (
@@ -109,7 +109,7 @@ const PreferencesPanel = ({ preferences, onSaved }: PreferencesPanelProps) => {
             </div>
 
             {/* Salary & Intensity */}
-            <div className="rounded-xl border border-border bg-card p-5 space-y-6">
+            <div className="rounded-md border border-border bg-card p-5 space-y-6">
                 <div className="space-y-3">
                     <div className="flex justify-between items-baseline">
                         <Label className="text-sm font-semibold">Minimum Base Salary</Label>
@@ -131,7 +131,7 @@ const PreferencesPanel = ({ preferences, onSaved }: PreferencesPanelProps) => {
             </div>
 
             {/* Location & Work Style */}
-            <div className="rounded-xl border border-border bg-card p-5 space-y-6">
+            <div className="rounded-md border border-border bg-card p-5 space-y-6">
                 <div className="space-y-2">
                     <Label className="text-sm font-semibold">Preferred Locations</Label>
                     <LocationPicker locations={locations} onChange={setLocations} />

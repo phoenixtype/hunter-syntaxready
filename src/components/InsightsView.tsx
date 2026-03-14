@@ -51,7 +51,7 @@ const InsightsView = ({ visibility, skillRecommendations, profile, onConsultCoac
             </TooltipProvider>
           </div>
 
-          <div className="rounded-xl border border-border bg-card p-6 space-y-6">
+          <div className="rounded-md border border-border bg-card p-6 space-y-6">
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-4xl font-bold tracking-tight">{visibility.totalScore}%</div>
@@ -96,7 +96,7 @@ const InsightsView = ({ visibility, skillRecommendations, profile, onConsultCoac
         <section className="space-y-4">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Skill Development</h2>
 
-          <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+          <div className="rounded-md border border-border bg-card p-6 space-y-4">
             <p className="text-sm text-muted-foreground leading-relaxed">
               Based on your recent applications and target roles, here are your highest-impact growth areas.
             </p>
