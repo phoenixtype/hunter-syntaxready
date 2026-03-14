@@ -259,7 +259,7 @@ const ResumeBuilder = () => {
 
   const handleShare = async () => {
     try {
-      await navigator.clipboard.writeText("I just generated an incredibly optimized ATS Resume using Hunter AI! 👉 https://hunter-ai.com");
+      await navigator.clipboard.writeText("I just generated an incredibly optimized ATS Resume using Hunter AI! 👉 https://hunter.syntaxready.com");
       toast.success("Link copied! 🎉", {
         description: "5 free Auto-Applies have been added to your account as a thank you!"
       });
