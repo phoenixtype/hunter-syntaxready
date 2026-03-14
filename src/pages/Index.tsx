@@ -167,11 +167,10 @@ const Index = () => {
 
             {/* Stats */}
             <div
-              whileInView="visible"
               className="flex flex-wrap justify-center gap-8 sm:gap-14 mt-20"
             >
               {STATS.map((stat, i) => (
-                <div key={stat.label} custom={i} className="text-center">
+                <div key={stat.label} className="text-center">
                   <div className="text-3xl sm:text-4xl font-bold text-foreground">{stat.value}</div>
                   <div className="text-sm text-muted-foreground mt-1">{stat.label}</div>
                 </div>
@@ -179,9 +178,7 @@ const Index = () => {
             </div>
 
             {/* Product Demo Screenshot */}
-            <div}}
-              className="mt-20 relative"
-            >
+            <div className="mt-20 relative">
               <div className="rounded-md border border-border bg-card shadow-sm overflow-hidden">
                 <div className="flex items-center gap-1.5 px-4 py-2.5 bg-muted/50 border-b border-border">
                   <div className="w-3 h-3 rounded-full bg-destructive/60" />
@@ -204,7 +201,7 @@ const Index = () => {
         {/* Features */}
         <section className="py-24 border-t border-border" aria-labelledby="features-heading">
           <div className="container max-w-6xl mx-auto px-4 sm:px-6">
-            <div whileInView="visible" className="text-center mb-16">
+            <div className="text-center mb-16">
               <h2 id="features-heading" className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
                 Everything you need to land your next role
               </h2>
@@ -213,12 +210,10 @@ const Index = () => {
               </p>
             </div>
 
-            <div whileInView="visible" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {FEATURES.map((feature, i) => (
                 <article
                   key={feature.title}
-                  custom={i}
-                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
                   className="group p-6 rounded-md border border-border bg-card hover:border-primary/30 transition-colors"
                 >
                   <div className="w-9 h-9 rounded-md bg-muted flex items-center justify-center mb-3">
@@ -235,14 +230,14 @@ const Index = () => {
         {/* Comparison Table */}
         <section className="py-24 bg-muted/30 border-t border-border">
           <div className="container max-w-6xl mx-auto px-4 sm:px-6">
-            <div whileInView="visible" className="text-center mb-16">
+            <div className="text-center mb-16">
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
                 How Hunter compares
               </h2>
               <p className="text-lg text-muted-foreground">See why candidates switch from manual job searching.</p>
             </div>
 
-            <div whileInView="visible" className="overflow-x-auto">
+            <div className="overflow-x-auto">
               <table className="w-full text-sm border-collapse">
                 <thead>
                   <tr className="border-b border-border">
@@ -277,20 +272,20 @@ const Index = () => {
         {/* How it works */}
         <section className="py-24 border-t border-border">
           <div className="container max-w-6xl mx-auto px-4 sm:px-6">
-            <div whileInView="visible" className="text-center mb-16">
+            <div className="text-center mb-16">
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
                 How it works
               </h2>
               <p className="text-lg text-muted-foreground">Three steps to your next job offer.</p>
             </div>
 
-            <div whileInView="visible" className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
               {[
                 { step: "01", title: "Build your profile", desc: "Walk through a guided flow to enter your experience, skills, and education. Hunter generates a polished, ATS-ready resume." },
                 { step: "02", title: "Find matching roles", desc: "Tell Hunter what roles you want and where. It searches live job boards and ranks matches by fit in real time." },
                 { step: "03", title: "Apply with confidence", desc: "Tailor any application in seconds, prep with an AI interview coach, and track every application in one place." },
               ].map((item, i) => (
-                <div key={item.step} custom={i} className="relative">
+                <div key={item.step} className="relative">
                   <div className="text-6xl font-extrabold text-primary/10 mb-4 leading-none">{item.step}</div>
                   <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
@@ -303,18 +298,17 @@ const Index = () => {
         {/* Testimonials */}
         <section className="py-24 bg-muted/30 border-t border-border">
           <div className="container max-w-6xl mx-auto px-4 sm:px-6">
-            <div whileInView="visible" className="text-center mb-16">
+            <div className="text-center mb-16">
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
                 What users are saying
               </h2>
               <p className="text-lg text-muted-foreground">Early users on what's actually working for them.</p>
             </div>
 
-            <div whileInView="visible" className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {TESTIMONIALS.map((t, i) => (
                 <div
                   key={t.name}
-                  custom={i}
                   className="p-6 rounded-md border border-border bg-card hover:border-primary/20 transition-colors"
                 >
                   <div className="flex gap-0.5 mb-4">
@@ -344,7 +338,7 @@ const Index = () => {
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full bg-primary/5" />
           </div>
           <div className="container max-w-3xl mx-auto px-4 sm:px-6 text-center">
-            <div whileInView="visible">
+            <div>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
                 Ready to land your dream job?
               </h2>

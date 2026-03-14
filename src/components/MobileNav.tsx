@@ -46,7 +46,7 @@ const MobileNav = ({ isAuthenticated = false, onSignOut }: MobileNavProps) => {
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between p-5 border-b border-border">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
+              <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-xs">H</span>
               </div>
               <span className="font-bold">Hunter</span>

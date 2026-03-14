@@ -352,7 +352,7 @@ const MetricCard = ({
           <p className="text-3xl font-bold mt-1">{value.toLocaleString()}</p>
           <p className="text-xs text-primary mt-1">{change} vs last month</p>
         </div>
-        <div className="p-3 bg-primary/10 rounded-lg">
+        <div className="p-3 bg-muted rounded-md">
           <Icon className="w-6 h-6 text-primary" />
         </div>
       </div>

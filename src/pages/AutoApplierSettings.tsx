@@ -249,7 +249,7 @@ const JobHuntPlanner = () => {
                       : "hover:bg-muted border border-transparent opacity-70 hover:opacity-100"
                   }`}
                 >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                  <div className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 ${
                     activeStep === step.num ? "bg-primary text-primary-foreground" : "bg-muted"
                   }`}>
                     <step.icon className="w-4 h-4" />

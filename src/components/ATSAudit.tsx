@@ -95,7 +95,7 @@ const ATSAudit = ({ profile, preferences }: ATSAuditProps) => {
                                     <h3 className="text-sm font-medium uppercase text-muted-foreground tracking-wider">Analysis</h3>
 
                                     {result.recommendations.map((rec, i) => (
-                                        <div key={i} className="flex gap-3 items-start p-3 rounded-lg bg-secondary">
+                                        <div key={i} className="flex gap-3 items-start p-3 rounded-md bg-secondary">
                                             {rec.includes("parsing errors") ? (
                                                 <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
                                             ) : (

@@ -183,7 +183,7 @@ const EmailVerification = () => {
                 </p>
               </div>
 
-              <div className="p-4 rounded-lg bg-muted/50 text-sm text-muted-foreground space-y-2">
+              <div className="p-4 rounded-md bg-muted/50 text-sm text-muted-foreground space-y-2">
                 <p>Didn't receive the email? Check your spam folder.</p>
                 {lastEmail ? (
                   <Button

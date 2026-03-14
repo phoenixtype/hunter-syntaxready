@@ -108,7 +108,7 @@ const NotificationSettings = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className={`flex items-center justify-between gap-3 p-4 rounded-md border transition-colors ${emailAlerts ? 'border-primary/30 bg-muted' : 'border-border bg-card'}`}>
           <div className="flex gap-3">
-            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${emailAlerts ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
+            <div className={`w-9 h-9 rounded-md flex items-center justify-center ${emailAlerts ? 'bg-muted text-foreground' : 'bg-muted text-muted-foreground'}`}>
               <Mail className="w-4 h-4" />
             </div>
             <div>
@@ -125,7 +125,7 @@ const NotificationSettings = () => {
         
         <div className={`flex items-center justify-between gap-3 p-4 rounded-md border transition-colors ${smsAlerts ? 'border-primary/30 bg-muted' : 'border-border bg-card'}`}>
           <div className="flex gap-3">
-            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${smsAlerts ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
+            <div className={`w-9 h-9 rounded-md flex items-center justify-center ${smsAlerts ? 'bg-muted text-foreground' : 'bg-muted text-muted-foreground'}`}>
               <Smartphone className="w-4 h-4" />
             </div>
             <div>

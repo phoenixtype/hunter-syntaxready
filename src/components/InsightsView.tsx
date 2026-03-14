@@ -105,7 +105,7 @@ const InsightsView = ({ visibility, skillRecommendations, profile, onConsultCoac
               {skillRecommendations.slice(0, 5).map((rec, idx) => (
                 <div
                   key={idx}
-                  className="flex items-start gap-3 p-3 rounded-lg border border-border bg-muted/20 hover:bg-muted/40 transition-colors"
+                  className="flex items-start gap-3 p-3 rounded-md border border-border bg-muted/20 hover:bg-muted/40 transition-colors"
                 >
                   <div className="mt-0.5 shrink-0">
                     {rec.type === "certification" ? (

@@ -30,7 +30,7 @@ class WidgetErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="flex flex-col items-center justify-center p-6 min-h-[200px] text-center space-y-4 rounded-lg border border-dashed border-destructive/30 bg-destructive/5">
+        <div className="flex flex-col items-center justify-center p-6 min-h-[200px] text-center space-y-4 rounded-md border border-dashed border-destructive/30 bg-destructive/5">
           <div className="p-2 rounded-full bg-destructive/10 text-destructive">
             <AlertCircle className="w-5 h-5" />
           </div>

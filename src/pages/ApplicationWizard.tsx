@@ -247,7 +247,7 @@ const ApplicationWizard = () => {
                                                     className="group flex items-center justify-between gap-4 p-3.5 rounded-md hover:bg-muted transition-all border border-border hover:border-primary/20"
                                                 >
                                                     <div className="flex items-center gap-3">
-                                                      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                                      <div className="w-9 h-9 rounded-md bg-muted flex items-center justify-center shrink-0">
                                                           <Search className="w-4 h-4 text-primary" />
                                                       </div>
                                                       <div>

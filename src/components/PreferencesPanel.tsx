@@ -145,7 +145,7 @@ const PreferencesPanel = ({ preferences, onSaved }: PreferencesPanelProps) => {
                                 key={mode}
                                 type="button"
                                 onClick={() => setRemotePolicy(mode)}
-                                className={`h-9 rounded-lg text-xs font-medium border transition-all ${
+                                className={`h-9 rounded-md text-xs font-medium border transition-all ${
                                     remotePolicy === mode
                                         ? "bg-primary text-primary-foreground border-primary"
                                         : "border-border hover:border-primary/50 hover:bg-accent/50"
@@ -165,7 +165,7 @@ const PreferencesPanel = ({ preferences, onSaved }: PreferencesPanelProps) => {
                                 key={level}
                                 type="button"
                                 onClick={() => setExperienceLevel(level)}
-                                className={`h-9 rounded-lg text-xs font-medium border transition-all ${
+                                className={`h-9 rounded-md text-xs font-medium border transition-all ${
                                     experienceLevel === level
                                         ? "bg-primary text-primary-foreground border-primary"
                                         : "border-border hover:border-primary/50 hover:bg-accent/50"

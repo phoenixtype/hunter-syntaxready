@@ -71,7 +71,7 @@ function DroppableColumn({ id, children }: { id: string; children: React.ReactNo
   return (
     <div
       ref={setNodeRef}
-      className={`space-y-2 min-h-[80px] rounded-lg transition-colors p-1 ${isOver ? "bg-primary/5 ring-1 ring-primary/20" : ""}`}
+      className={`space-y-2 min-h-[80px] rounded-md transition-colors p-1 ${isOver ? "bg-primary/5 ring-1 ring-primary/20" : ""}`}
     >
       {children}
     </div>

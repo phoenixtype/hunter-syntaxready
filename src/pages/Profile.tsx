@@ -292,7 +292,7 @@ const Profile = () => {
                 {(mode === 'view' || mode === 'preview') && (
                     <div className="space-y-8">
                         {mode === 'preview' && (
-                            <div className="bg-secondary border border-border p-4 rounded-lg text-foreground flex items-center gap-2">
+                            <div className="bg-secondary border border-border p-4 rounded-md text-foreground flex items-center gap-2">
                                 <Eye className="w-5 h-5" />
                                 <span className="font-semibold">Preview Mode - Review your changes before saving.</span>
                             </div>

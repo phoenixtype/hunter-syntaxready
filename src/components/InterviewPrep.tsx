@@ -59,7 +59,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
             <DialogContent className="max-w-5xl h-[85vh] flex flex-col p-0 overflow-hidden">
                 <DialogHeader className="p-6 pb-2 border-b border-border">
                     <DialogTitle className="flex items-center gap-3 text-2xl font-light tracking-tight">
-                        <div className="p-2 bg-secondary rounded-lg">
+                        <div className="p-2 bg-secondary rounded-md">
                             <BrainCircuit className="w-6 h-6 text-foreground" />
                         </div>
                         <div>

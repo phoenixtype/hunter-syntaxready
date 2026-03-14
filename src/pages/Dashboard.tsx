@@ -196,19 +196,19 @@ const Dashboard = () => {
         <div className={`h-14 flex items-center border-b border-border ${sidebarCollapsed ? "justify-center px-2" : "justify-between px-4"}`}>
           {sidebarCollapsed ? (
             <Link to="/" aria-label="Home">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-sm">
+              <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center shadow-sm">
                 <span className="text-primary-foreground font-bold text-sm">H</span>
               </div>
             </Link>
           ) : (
             <Link to="/" className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-sm">
+              <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center shadow-sm">
                 <span className="text-primary-foreground font-bold text-sm">H</span>
               </div>
               <span className="text-base font-bold tracking-tight">Hunter</span>
             </Link>
           )}
-          <button onClick={toggleSidebar} className={`p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors ${sidebarCollapsed ? "hidden" : ""}`} title="Collapse sidebar">
+          <button onClick={toggleSidebar} className={`p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors ${sidebarCollapsed ? "hidden" : ""}`} title="Collapse sidebar">
             <PanelLeftClose className="w-4 h-4" />
           </button>
         </div>
@@ -297,7 +297,7 @@ const Dashboard = () => {
 
         <div className="px-1.5 py-3 border-t border-border space-y-0.5">
           {sidebarCollapsed && (
-            <button onClick={toggleSidebar} title="Expand sidebar" className="w-full flex justify-center p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors mb-1">
+            <button onClick={toggleSidebar} title="Expand sidebar" className="w-full flex justify-center p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors mb-1">
               <PanelLeft className="w-4 h-4" />
             </button>
           )}
@@ -347,7 +347,7 @@ const Dashboard = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
-              className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground bg-muted/60 hover:bg-muted border border-border rounded-lg px-2.5 py-1.5 transition-colors"
+              className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground bg-muted/60 hover:bg-muted border border-border rounded-md px-2.5 py-1.5 transition-colors"
             >
               <Search className="w-3 h-3" />
               <span>Search…</span>
@@ -509,7 +509,7 @@ const Dashboard = () => {
                   <p className="text-sm text-muted-foreground">Manage your profile and job preferences.</p>
                 </div>
                 {/* Tabs */}
-                <div className="flex gap-1 bg-muted/50 p-1 rounded-lg border border-border w-fit">
+                <div className="flex gap-1 bg-muted/50 p-1 rounded-md border border-border w-fit">
                   <Button
                     variant={settingsTab === "profile" ? "secondary" : "ghost"}
                     size="sm"

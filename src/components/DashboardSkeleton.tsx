@@ -30,7 +30,7 @@ export const DashboardSkeleton = () => {
         <header className="h-14 border-b border-border flex items-center justify-between px-4 sm:px-6">
           <Skeleton className="w-20 h-5" />
           <div className="flex gap-2">
-            <Skeleton className="w-24 h-8 rounded-lg" />
+            <Skeleton className="w-24 h-8 rounded-md" />
             <Skeleton className="w-8 h-8 rounded-full" />
           </div>
         </header>
@@ -68,9 +68,9 @@ export const DashboardSkeleton = () => {
 
           {/* Search bar */}
           <div className="flex gap-2 mb-4">
-            <Skeleton className="flex-1 h-11 rounded-lg" />
-            <Skeleton className="w-28 h-11 rounded-lg" />
-            <Skeleton className="w-11 h-11 rounded-lg" />
+            <Skeleton className="flex-1 h-11 rounded-md" />
+            <Skeleton className="w-28 h-11 rounded-md" />
+            <Skeleton className="w-11 h-11 rounded-md" />
           </div>
 
           {/* Job cards */}
@@ -86,9 +86,9 @@ export const DashboardSkeleton = () => {
               <Skeleton className="w-full h-4" />
               <Skeleton className="w-4/5 h-4" />
               <div className="flex gap-2">
-                <Skeleton className="w-20 h-9 rounded-lg" />
-                <Skeleton className="w-20 h-9 rounded-lg" />
-                <Skeleton className="w-16 h-9 rounded-lg" />
+                <Skeleton className="w-20 h-9 rounded-md" />
+                <Skeleton className="w-20 h-9 rounded-md" />
+                <Skeleton className="w-16 h-9 rounded-md" />
               </div>
             </div>
           ))}

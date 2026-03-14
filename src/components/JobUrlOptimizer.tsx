@@ -158,7 +158,7 @@ const JobUrlOptimizer = ({ isOpen, onClose, profile }: JobUrlOptimizerProps) => 
                 ) : (
                     <div className="space-y-3">
                         {result.changes_summary.length > 0 && (
-                            <div className="bg-secondary border border-border rounded-lg p-3">
+                            <div className="bg-secondary border border-border rounded-md p-3">
                                 <h4 className="text-xs font-semibold text-foreground mb-2">Optimizations Applied:</h4>
                                 <ul className="space-y-1">
                                     {result.changes_summary.map((change, i) => (

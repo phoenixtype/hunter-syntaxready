@@ -427,7 +427,7 @@ const Onboarding = () => {
 
         {/* Logo mark */}
         <div className="flex items-center justify-center gap-2 mb-5">
-          <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
+          <div className="h-7 w-7 rounded-md bg-muted flex items-center justify-center">
             <Sparkles className="w-3.5 h-3.5 text-primary" />
           </div>
           <span className="font-bold text-sm tracking-wide text-foreground/70">Hunter</span>
@@ -472,7 +472,7 @@ const Onboarding = () => {
             {currentStep === "method" && (
               <div className="animate-fade-in py-3">
                 <div className="text-center space-y-3 mb-8">
-                  <div className="w-14 h-14 rounded-md bg-primary/10 flex items-center justify-center mx-auto">
+                  <div className="w-14 h-14 rounded-md bg-muted flex items-center justify-center mx-auto">
                     <Zap className="w-6 h-6 text-primary" />
                   </div>
                   <h1 className="text-2xl font-bold tracking-tight">Let's build your profile</h1>
@@ -486,7 +486,7 @@ const Onboarding = () => {
                     const Icon = s.icon;
                     return (
                       <div key={s.id} className="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-muted/50 transition-colors">
-                        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center shrink-0">
                           <Icon className="w-3.5 h-3.5 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -1102,7 +1102,7 @@ function SkillsStep({ skills, onAdd, onRemove }: { skills: Skill[]; onAdd: (name
               <button
                 key={s}
                 onClick={() => onAdd(s)}
-                className="px-3 py-1.5 text-sm rounded-lg border border-dashed border-border hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all"
+                className="px-3 py-1.5 text-sm rounded-md border border-dashed border-border hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all"
               >
                 + {s}
               </button>

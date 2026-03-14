@@ -46,7 +46,7 @@ export default function ApplicationDetailSheet({ app, open, onClose }: Props) {
                 <StickyNote className="w-3.5 h-3.5" />
                 Notes
               </div>
-              <p className="text-sm text-foreground bg-muted/50 p-3 rounded-lg whitespace-pre-wrap">{app.notes}</p>
+              <p className="text-sm text-foreground bg-muted/50 p-3 rounded-md whitespace-pre-wrap">{app.notes}</p>
             </div>
           )}
 
