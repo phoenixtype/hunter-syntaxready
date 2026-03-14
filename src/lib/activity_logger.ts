@@ -188,8 +188,8 @@ export const fetchLogsFromDatabase = async (userId: string, limit: number = 50):
     notifySubscribers();
 
     return logs;
-  } catch (err) {
-    if (process.env.NODE_ENV === 'development') {
+  } catch {
+    if (import.meta.env.DEV) {
       console.error('Error fetching logs');
     }
     return [];
