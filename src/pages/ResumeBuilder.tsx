@@ -221,21 +221,18 @@ const ResumeBuilder = () => {
 
   const handleDownloadPdf = () => {
     if (!generatedHtml) return;
-    // Use a hidden iframe so the exact AI-rendered HTML is printed —
-    // matches the preview 1:1 and avoids popup blockers.
+    // Inject html via srcdoc so onload fires after content is fully parsed.
     const iframe = document.createElement("iframe");
-    iframe.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:850px;height:1200px;border:none;";
-    document.body.appendChild(iframe);
-    const doc = iframe.contentDocument!;
-    doc.open();
-    doc.write(generatedHtml);
-    doc.close();
+    iframe.setAttribute("sandbox", "allow-scripts allow-same-origin allow-modals");
+    iframe.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:8.5in;height:11in;border:none;";
     iframe.onload = () => {
       setTimeout(() => {
-        iframe.contentWindow!.print();
-        setTimeout(() => { if (document.body.contains(iframe)) document.body.removeChild(iframe); }, 3000);
-      }, 600);
+        iframe.contentWindow?.print();
+        setTimeout(() => { if (document.body.contains(iframe)) document.body.removeChild(iframe); }, 4000);
+      }, 500);
     };
+    iframe.srcdoc = generatedHtml;
+    document.body.appendChild(iframe);
   };
 
   const canProceed = () => {
