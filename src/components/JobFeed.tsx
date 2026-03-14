@@ -317,32 +317,31 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
               className="bg-card"
             >
               {/* Row */}
-              <div className="flex items-start gap-3 px-4 py-3 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => handleExpandJob(job.id)}>
+              <div className="flex items-start gap-3 px-4 py-3.5 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => handleExpandJob(job.id)}>
                 {/* Company initial */}
-                <div className="w-7 h-7 rounded-sm bg-muted flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-xs font-medium text-muted-foreground">{job.company[0]}</span>
+                <div className="w-8 h-8 rounded-sm bg-muted flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="text-xs font-semibold text-foreground">{job.company[0]}</span>
                 </div>
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline gap-2 flex-wrap">
-                    <span className="text-sm font-medium leading-snug">{job.title}</span>
-                    <span className="text-xs text-muted-foreground shrink-0">{job.company}</span>
-                    {job.location && <span className="text-xs text-muted-foreground truncate hidden sm:block">{job.location}</span>}
-                  </div>
-                  <div className="flex items-center gap-2.5 mt-0.5 flex-wrap">
+                  <p className="text-sm font-medium leading-snug">{job.title}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {job.company}{job.location ? ` · ${job.location}` : ""}
+                  </p>
+                  <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                     {job.match && (
                       <MatchScoreTooltip match={job.match}>
                         <span className="text-xs text-muted-foreground cursor-help">{job.match.overall_score}% match</span>
                       </MatchScoreTooltip>
                     )}
-                    {job.salary_range && (
+                    {job.salary_range && job.salary_range !== "Not specified" && (
                       <span className="text-xs text-muted-foreground">{job.salary_range}</span>
                     )}
                     {job.freshness_score > 0.9 && (
-                      <span className="text-[10px] text-primary font-medium">New</span>
+                      <span className="text-[10px] font-medium text-primary">New</span>
                     )}
-                    <span className="text-[10px] text-muted-foreground/50">{job.source}</span>
+                    <span className="text-[10px] text-muted-foreground/40">{job.source}</span>
                   </div>
                 </div>
 
@@ -368,7 +367,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
               {/* Expanded detail */}
               {isExpanded && (
                 <div className="px-4 pb-4 border-t border-border/50 bg-muted/20">
-                  <p className="text-sm text-muted-foreground py-3 leading-relaxed line-clamp-3">{job.description}</p>
+                  <p className="text-sm text-muted-foreground py-3 leading-relaxed whitespace-pre-line">{job.description}</p>
 
                   <div className="flex items-center gap-2 mb-3 flex-wrap">
                     <SalaryInsights
