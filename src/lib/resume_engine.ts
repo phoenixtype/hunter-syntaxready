@@ -393,13 +393,13 @@ export const getCandidateProfile = async (userId: string): Promise<CandidateProf
     // onboarding: _gender, _work_auth, _age, _search_status, _exp_level, _job_values, _summary)
     // are preserved when the profile is loaded then saved again from Profile.tsx.
     const identity = (data.identity || {}) as Record<string, unknown>;
-    const profileIdentity = {
-      ...identity,                                    // keep all _underscore fields
-      name: identity?.name || 'Unknown Candidate',
-      email: identity?.email || '',
-      phone: identity?.phone || '',
-      location: identity?.location || '',
-      links: Array.isArray(identity?.links) ? identity.links : []
+    const profileIdentity: CandidateProfile['identity'] = {
+      ...(identity as Record<string, string>),        // keep all _underscore fields
+      name: (identity?.name as string) || 'Unknown Candidate',
+      email: (identity?.email as string) || '',
+      phone: (identity?.phone as string) || '',
+      location: (identity?.location as string) || '',
+      links: Array.isArray(identity?.links) ? (identity.links as string[]) : []
     };
 
     return {
@@ -409,7 +409,7 @@ export const getCandidateProfile = async (userId: string): Promise<CandidateProf
       education: (data.education as unknown as Education[]) || [],
       resume_file_url: data.resume_file_url || undefined,
       // summary is embedded in the identity JSONB (no separate DB column)
-      summary: identity?._summary || undefined
+      summary: (identity?._summary as string) || undefined
     };
   } catch {
     return null;
