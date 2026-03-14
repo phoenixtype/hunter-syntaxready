@@ -333,7 +333,7 @@ serve(async (req) => {
     }
 
     const emailResponse = await resend.emails.send({
-      from: 'Hunter AI <notifications@resend.dev>',
+      from: 'Hunter <notifications@hunter.syntaxready.com>',
       to: [recipientEmail],
       subject: emailSubject,
       html: emailHtml,

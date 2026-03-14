@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
@@ -88,6 +89,7 @@ const ResumeBuilder = () => {
   const [currentStep, setCurrentStep] = useState<StepId>("personal");
   const [selectedTemplate, setSelectedTemplate] = useState("minimalist");
   const [accentColor, setAccentColor] = useState(ACCENT_COLORS[0]);
+  const [fitToOnePage, setFitToOnePage] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
   const [generatedHtml, setGeneratedHtml] = useState<string | null>(null);
@@ -196,7 +198,7 @@ const ResumeBuilder = () => {
       const [atsRes, genRes] = await Promise.allSettled([
         analyzeResumeForJob(formData, ""),
         supabase.functions.invoke("generate-resume", {
-          body: { profile: formData, template: selectedTemplate, accentColor: accentColor.hex },
+          body: { profile: formData, template: selectedTemplate, accentColor: accentColor.hex, onePage: fitToOnePage },
           headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
         }),
       ]);
@@ -609,7 +611,7 @@ const ResumeBuilder = () => {
               {/* Profile summary */}
               {!generated && (
                 <Card className="border-border bg-card">
-                  <CardContent className="p-6">
+                  <CardContent className="p-6 space-y-4">
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div><span className="text-muted-foreground">Name</span><p className="font-medium">{formData.identity.name || "—"}</p></div>
                       <div><span className="text-muted-foreground">Email</span><p className="font-medium">{formData.identity.email || "—"}</p></div>
@@ -617,6 +619,13 @@ const ResumeBuilder = () => {
                       <div><span className="text-muted-foreground">Skills</span><p className="font-medium">{formData.skills.length} skill(s)</p></div>
                       <div><span className="text-muted-foreground">Education</span><p className="font-medium">{formData.education.length} entry(ies)</p></div>
                       <div><span className="text-muted-foreground">Template</span><p className="font-medium">{TEMPLATES.find(t => t.id === selectedTemplate)?.name}</p></div>
+                    </div>
+                    <div className="flex items-center justify-between pt-2 border-t border-border">
+                      <div>
+                        <p className="text-sm font-medium">Fit to one page</p>
+                        <p className="text-xs text-muted-foreground">AI will compress content to a single printed page</p>
+                      </div>
+                      <Switch checked={fitToOnePage} onCheckedChange={setFitToOnePage} />
                     </div>
                   </CardContent>
                 </Card>

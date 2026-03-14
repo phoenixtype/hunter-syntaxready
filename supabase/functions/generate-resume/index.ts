@@ -52,7 +52,7 @@ serve(async (req) => {
       });
     }
 
-    const { profile, template, accentColor } = await req.json();
+    const { profile, template, accentColor, onePage = false } = await req.json();
 
     if (!profile || !profile.identity) {
       return new Response(JSON.stringify({ error: 'Profile data required' }), {
@@ -76,20 +76,24 @@ serve(async (req) => {
     const templateStyle = TEMPLATE_STYLES[template] || TEMPLATE_STYLES.minimalist;
     const accentHex = accentColor || '#475569';
 
-    const systemPrompt = `You are a world-class executive resume writer and strict ATS parsing expert. 
+    const onePageRule = onePage
+      ? `\n8. ONE PAGE STRICT: The ENTIRE resume MUST fit on exactly ONE printed page (letter size, ~1050px tall at 96dpi). Use font-size: 10px for body text, reduce margins to 28px, limit skills to the top 10, cap experience to 2 bullet points per role. If content still overflows, truncate the oldest experience entries first. Add @media print { body { margin: 0; } } and set html,body { page-break-after: avoid; }.`
+      : '';
+
+    const systemPrompt = `You are a world-class executive resume writer and strict ATS parsing expert.
 Generate a complete, highly-optimized HTML resume document based ONLY on the provided data.
 
 Template style requested: ${templateStyle}
 Accent Color requested: ${accentHex}
 
 CRITICAL RULES FOR GENERATION:
-1. STRICTLY NO HALLUCINATIONS: You are FORBIDDEN from adding any companies, roles, degrees, skills, or responsibilities that are NOT explicitly in the user's provided data. Do not make up metrics. 
+1. STRICTLY NO HALLUCINATIONS: You are FORBIDDEN from adding any companies, roles, degrees, skills, or responsibilities that are NOT explicitly in the user's provided data. Do not make up metrics.
 2. EXTREME CONCISENESS: Refine and rewrite the user's bullet points to be incredibly punchy. Use strong action verbs. Ensure the entire resume cleanly fits on a single printed page. Limit to a MAXIMUM of 3 bullet points per role, combining redundant points if necessary.
 3. ATS OPTIMIZATION: Do not use HTML tables for layout. Use semantic <h1>, <h2>, <ul>, and <li> tags.
 4. STYLING INSTRUCTIONS: All CSS must be inline. Use the provided Accent Color (${accentHex}) for key structural elements like section headings (<h2>), borders/dividers, or skill badge backgrounds.
 5. FONT STACK: Use web-safe, completely standard fonts (e.g. system-ui, -apple-system, sans-serif, or serif depending on the template style).
 6. PRINT READY: Ensure 'max-width: 800px; margin: 0 auto; color: #111; background: #fff;' on the body. Do not use dark backgrounds, they waste printer ink.
-7. Omit any section if no data is provided for it.`;
+7. Omit any section if no data is provided for it.${onePageRule}`;
 
     interface ExperienceAtom {
       role: string;
