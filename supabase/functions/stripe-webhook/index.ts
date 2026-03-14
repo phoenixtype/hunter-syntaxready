@@ -99,26 +99,43 @@ serve(async (req) => {
           break;
         }
 
-        const subRes = await fetch(`https://api.stripe.com/v1/subscriptions/${subscriptionId}`, {
-          headers: { 'Authorization': `Bearer ${stripeSecretKey}` },
-        });
+        // Grant Pro access immediately — no secondary Stripe API call needed.
+        // customer.subscription.created fires separately and fills in period dates.
+        const { error: upsertError } = await supabase
+          .from('subscriptions')
+          .upsert({
+            user_id: userId,
+            tier: 'pro',
+            status: 'active',
+            stripe_customer_id: customerId,
+            stripe_subscription_id: subscriptionId,
+          }, { onConflict: 'user_id' });
 
-        if (subRes.ok) {
-          const stripeSub = await subRes.json();
+        if (upsertError) {
+          console.error('[WEBHOOK] Failed to upsert subscription:', upsertError.message);
+        } else {
+          console.log('[WEBHOOK] Pro access granted for user:', userId);
+        }
 
-          await supabase
-            .from('subscriptions')
-            .upsert({
-              user_id: userId,
-              tier: 'pro',
-              status: stripeSub.status,
-              stripe_customer_id: customerId,
-              stripe_subscription_id: subscriptionId,
-              stripe_price_id: stripeSub.items?.data?.[0]?.price?.id,
-              current_period_start: new Date(stripeSub.current_period_start * 1000).toISOString(),
-              current_period_end: new Date(stripeSub.current_period_end * 1000).toISOString(),
-              cancel_at_period_end: stripeSub.cancel_at_period_end,
-            }, { onConflict: 'user_id' });
+        // Enrich with subscription details (non-blocking — best effort)
+        if (subscriptionId) {
+          fetch(`https://api.stripe.com/v1/subscriptions/${subscriptionId}`, {
+            headers: { 'Authorization': `Bearer ${stripeSecretKey}` },
+          }).then(async (subRes) => {
+            if (subRes.ok) {
+              const stripeSub = await subRes.json();
+              await supabase
+                .from('subscriptions')
+                .update({
+                  status: stripeSub.status,
+                  stripe_price_id: stripeSub.items?.data?.[0]?.price?.id,
+                  current_period_start: new Date(stripeSub.current_period_start * 1000).toISOString(),
+                  current_period_end: new Date(stripeSub.current_period_end * 1000).toISOString(),
+                  cancel_at_period_end: stripeSub.cancel_at_period_end,
+                })
+                .eq('user_id', userId);
+            }
+          }).catch((err) => console.warn('[WEBHOOK] Non-critical enrichment failed:', err));
         }
         break;
       }

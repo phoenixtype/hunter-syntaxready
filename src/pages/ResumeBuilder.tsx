@@ -16,9 +16,9 @@ import { toast } from "sonner";
 import {
   ArrowLeft, ArrowRight, X, Plus, User, Briefcase,
   Sparkles, GraduationCap, FileText, Download, Loader2, Check, Layout,
-  Printer, Eye, ShieldCheck, Copy, Share
+  Eye, ShieldCheck, Copy, Share
 } from "lucide-react";
-import { exportResumeToDocx } from "@/lib/pdf_export";
+import { exportResumeToPdf, exportResumeToDocx } from "@/lib/pdf_export";
 import { analyzeResumeForJob, ATSResult } from "@/lib/ats_engine";
 import PageHeader from "@/components/PageHeader";
 import DashboardSkeleton from "@/components/DashboardSkeleton";
@@ -217,15 +217,11 @@ const ResumeBuilder = () => {
     }
   };
 
-  const handlePrintPdf = () => {
-    if (generatedHtml) {
-      const w = window.open("", "_blank");
-      if (w) {
-        w.document.write(generatedHtml);
-        w.document.close();
-        w.focus();
-        setTimeout(() => w.print(), 400);
-      }
+  const handleDownloadPdf = async () => {
+    try {
+      await exportResumeToPdf(formData, `${formData.identity.name || "resume"}_hunter.pdf`, { onePage: true });
+    } catch {
+      toast.error("PDF export failed", { description: "Try the DOCX option instead." });
     }
   };
 
@@ -678,7 +674,7 @@ const ResumeBuilder = () => {
                     size="lg"
                     onClick={handleGenerate}
                     disabled={generating}
-                    className="w-full max-w-md h-14 text-base  hover: transition-all"
+                    className="w-full max-w-md h-14 text-base"
                   >
                     {generating ? (
                       <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Generating…</>
@@ -690,11 +686,11 @@ const ResumeBuilder = () => {
                   <>
                     <Button
                       size="lg"
-                      onClick={handlePrintPdf}
-                      className="w-full max-w-md h-14 text-base gap-2  hover:"
+                      onClick={handleDownloadPdf}
+                      className="w-full max-w-md h-14 text-base gap-2"
                     >
-                      <Printer className="w-5 h-5" />
-                      Save as PDF
+                      <Download className="w-5 h-5" />
+                      Download as PDF
                     </Button>
                     <Button
                       variant="outline"
