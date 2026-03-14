@@ -137,7 +137,7 @@ export const logActivity = async (
       });
   } catch (err) {
     // SECURITY: Don't expose error details to console
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.error('Failed to persist log');
     }
   }
