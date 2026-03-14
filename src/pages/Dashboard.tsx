@@ -27,6 +27,7 @@ import NotificationSettings from "@/components/NotificationSettings";
 import ProfilePanel from "@/components/ProfilePanel";
 import PreferencesPanel from "@/components/PreferencesPanel";
 import InsightsView from "@/components/InsightsView";
+import SkillCoachWidget from "@/components/SkillCoachWidget";
 import VisibilityCoachModal from "@/components/VisibilityCoachModal";
 import SubscriptionGate from "@/components/auth/SubscriptionGate";
 import {
@@ -480,6 +481,9 @@ const Dashboard = () => {
                   profile={profile}
                   onConsultCoach={() => setShowCoach(true)}
                 />
+                <div className="mt-6">
+                  <SkillCoachWidget />
+                </div>
               </WidgetErrorBoundary>
             </div>
           )}
@@ -557,9 +561,9 @@ const Dashboard = () => {
         preferences={preferences}
       />
       
-      {/* Subscription Gate — block dashboard if on FREE tier and has profile */}
-      {subscription?.tier === SubscriptionTier.FREE && profile && (
-        <SubscriptionGate />
+      {/* Subscription Gate — block dashboard for free users; only dismiss when payment confirmed */}
+      {!subLoading && subscription?.tier === SubscriptionTier.FREE && profile && (
+        <SubscriptionGate onClose={refetchSubscription} />
       )}
     </div>
   );

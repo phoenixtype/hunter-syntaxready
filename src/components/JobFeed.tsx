@@ -9,7 +9,8 @@ import { simulateApplication, ApplicationState, ComplianceError, getApplicationH
 import { saveTailoredResume } from "@/lib/tailored_resume_store";
 import TailorResultSheet from "./TailorResultSheet";
 import { recordFeedback } from "@/lib/learning_engine";
-import { ExternalLink, Sparkles, RefreshCw, Loader2, Globe, Search, MapPin, Building2, X, Bookmark } from "lucide-react";
+import { ExternalLink, Sparkles, RefreshCw, Loader2, Globe, Search, MapPin, Building2, X, Bookmark, Link, ChevronDown, ChevronUp, Cpu, Newspaper, Users, Lightbulb } from "lucide-react";
+import { researchCompany, crawlCareersPage, CompanyResearch } from "@/lib/crawler_engine";
 import SalaryInsights from "./SalaryInsights";
 import { useEffect, useState, useMemo } from "react";
 import JobFiltersBar, { JobFilters, DEFAULT_FILTERS, hasActiveFilters } from "./JobFiltersBar";
@@ -56,7 +57,12 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   const [tailoringJobId, setTailoringJobId] = useState<string | null>(null);
   const [tailorResult, setTailorResult] = useState<{ content: TailoredContent; job: { title: string; company: string } } | null>(null);
   const [showSavedOnly, setShowSavedOnly] = useState(false);
-  
+  const [careersUrl, setCareersUrl] = useState("");
+  const [showCareersImport, setShowCareersImport] = useState(false);
+  const [importingCareers, setImportingCareers] = useState(false);
+  const [companyResearch, setCompanyResearch] = useState<Record<string, CompanyResearch | null>>({});
+  const [researchingJobId, setResearchingJobId] = useState<string | null>(null);
+
   const { toggleSave, isSaved, savedCount } = useSavedJobs();
 
   const filteredJobs = useMemo(() => {
@@ -208,6 +214,36 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
     }
   };
 
+  const handleCareersImport = async () => {
+    const url = careersUrl.trim();
+    if (!url) { toast.error("Enter a careers page URL"); return; }
+    setImportingCareers(true);
+    const toastId = toast.loading("Scanning careers page…", { description: url });
+    try {
+      const result = await crawlCareersPage(url);
+      if (result.total > 0) {
+        toast.success(`Imported ${result.total} job${result.total !== 1 ? 's' : ''}`, { id: toastId, description: "Refreshing your feed…" });
+        setCareersUrl("");
+        setShowCareersImport(false);
+        refreshJobs();
+      } else {
+        toast.warning("No jobs found", { id: toastId, description: "The page may require login or the URL may not be a careers listing." });
+      }
+    } catch {
+      toast.error("Import failed", { id: toastId });
+    } finally {
+      setImportingCareers(false);
+    }
+  };
+
+  const handleResearchCompany = async (job: EnrichedJob) => {
+    if (companyResearch[job.id] !== undefined) return; // already fetched or fetching
+    setResearchingJobId(job.id);
+    const research = await researchCompany(job.company, job.title);
+    setCompanyResearch(prev => ({ ...prev, [job.id]: research }));
+    setResearchingJobId(null);
+  };
+
   const handleCrawl = () => {
     toast.info(profile ? "Searching for matching roles..." : "Starting job search...");
     const searchTerms = searchQuery.trim() ? searchQuery.trim().split(/\s+/) : [];
@@ -256,6 +292,39 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           </Button>
         </div>
+      </div>
+
+      {/* Careers page import */}
+      <div className="rounded-md border border-border bg-muted/20 overflow-hidden">
+        <button
+          onClick={() => setShowCareersImport(v => !v)}
+          className="w-full flex items-center justify-between px-3 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <span className="flex items-center gap-1.5"><Link className="w-3.5 h-3.5" />Import from careers page</span>
+          {showCareersImport ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+        </button>
+        {showCareersImport && (
+          <div className="px-3 pb-3 flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1">
+              <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+              <Input
+                placeholder="https://company.com/careers"
+                value={careersUrl}
+                onChange={e => setCareersUrl(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleCareersImport()}
+                className="pl-9 h-9 text-sm"
+              />
+            </div>
+            <Button
+              size="sm"
+              onClick={handleCareersImport}
+              disabled={importingCareers || !careersUrl.trim()}
+              className="h-9 gap-1.5 shrink-0"
+            >
+              {importingCareers ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Scanning…</> : <><Sparkles className="w-3.5 h-3.5" />Import Jobs</>}
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Active filter badges */}
@@ -375,7 +444,66 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                       salaryRange={job.salary_range}
                       description={job.description}
                     />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-xs gap-1.5"
+                      disabled={researchingJobId === job.id}
+                      onClick={() => handleResearchCompany(job)}
+                    >
+                      {researchingJobId === job.id
+                        ? <><Loader2 className="w-3 h-3 animate-spin" />Researching…</>
+                        : <><Building2 className="w-3 h-3" />Research Company</>}
+                    </Button>
                   </div>
+
+                  {/* Company Research Panel */}
+                  {companyResearch[job.id] && (
+                    <div className="mb-4 rounded-md border border-border bg-card p-3 space-y-3 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-foreground flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5" />{job.company} Intelligence</span>
+                        {companyResearch[job.id]!._scraped && <span className="text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded px-1.5 py-0.5">Live data</span>}
+                      </div>
+                      {companyResearch[job.id]!.mission && (
+                        <p className="text-muted-foreground leading-relaxed"><span className="font-medium text-foreground">Mission: </span>{companyResearch[job.id]!.mission}</p>
+                      )}
+                      <div className="grid grid-cols-2 gap-2">
+                        {companyResearch[job.id]!.industry && <div><span className="text-muted-foreground">Industry</span><p className="font-medium mt-0.5">{companyResearch[job.id]!.industry}</p></div>}
+                        {companyResearch[job.id]!.stage && <div><span className="text-muted-foreground">Stage</span><p className="font-medium mt-0.5">{companyResearch[job.id]!.stage}</p></div>}
+                        {companyResearch[job.id]!.headcount && <div><span className="text-muted-foreground">Headcount</span><p className="font-medium mt-0.5">{companyResearch[job.id]!.headcount}</p></div>}
+                      </div>
+                      {companyResearch[job.id]!.tech_stack?.length > 0 && (
+                        <div>
+                          <p className="text-muted-foreground flex items-center gap-1 mb-1"><Cpu className="w-3 h-3" />Tech Stack</p>
+                          <div className="flex flex-wrap gap-1">
+                            {companyResearch[job.id]!.tech_stack.map((t, i) => <span key={i} className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-medium">{t}</span>)}
+                          </div>
+                        </div>
+                      )}
+                      {companyResearch[job.id]!.culture_signals?.length > 0 && (
+                        <div>
+                          <p className="text-muted-foreground flex items-center gap-1 mb-1"><Users className="w-3 h-3" />Culture</p>
+                          <ul className="space-y-0.5">
+                            {companyResearch[job.id]!.culture_signals.slice(0, 3).map((s, i) => <li key={i} className="text-muted-foreground">· {s}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                      {companyResearch[job.id]!.recent_news?.length > 0 && (
+                        <div>
+                          <p className="text-muted-foreground flex items-center gap-1 mb-1"><Newspaper className="w-3 h-3" />Recent News</p>
+                          <ul className="space-y-0.5">
+                            {companyResearch[job.id]!.recent_news.slice(0, 2).map((n, i) => <li key={i} className="text-muted-foreground">· {n}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                      {companyResearch[job.id]!.interview_tip && (
+                        <div className="flex items-start gap-1.5 rounded bg-amber-500/10 border border-amber-500/20 px-2 py-1.5">
+                          <Lightbulb className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
+                          <p className="text-amber-700 dark:text-amber-300">{companyResearch[job.id]!.interview_tip}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <JobCardActions
                     isApplied={isApplied}

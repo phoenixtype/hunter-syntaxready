@@ -228,6 +228,65 @@ export const getJobById = async (id: string): Promise<JobOpportunity | undefined
   }
 };
 
+// ─── Firecrawl-powered features ──────────────────────────────────────────────
+
+export interface CompanyResearch {
+  mission: string;
+  industry: string;
+  stage: string;
+  tech_stack: string[];
+  culture_signals: string[];
+  recent_news: string[];
+  headcount: string;
+  key_products: string[];
+  interview_tip: string;
+  source_url: string;
+  _scraped: boolean;
+}
+
+/** Scrape and analyse a company's web presence for interview prep & job matching */
+export const researchCompany = async (company: string, jobTitle = ''): Promise<CompanyResearch | null> => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return null;
+
+    const { data, error } = await supabase.functions.invoke('crawl-jobs', {
+      body: { mode: 'company_research', company, title: jobTitle },
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+
+    if (error || !data?.success) return null;
+    return data.research as CompanyResearch;
+  } catch (err) {
+    console.error('[researchCompany] error:', err);
+    return null;
+  }
+};
+
+/** Extract multiple job listings from a company's careers page URL */
+export const crawlCareersPage = async (
+  careersUrl: string
+): Promise<{ jobs: JobOpportunity[]; total: number }> => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return { jobs: [], total: 0 };
+
+    const { data, error } = await supabase.functions.invoke('crawl-jobs', {
+      body: { mode: 'careers_crawl', careers_url: careersUrl },
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+
+    if (error || !data?.success) return { jobs: [], total: 0 };
+    return {
+      jobs: (data.jobs || []).map(mapJobRow),
+      total: data.total || 0,
+    };
+  } catch (err) {
+    console.error('[crawlCareersPage] error:', err);
+    return { jobs: [], total: 0 };
+  }
+};
+
 // Get job count
 export const getJobCount = async (): Promise<number> => {
   try {

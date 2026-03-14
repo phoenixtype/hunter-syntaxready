@@ -63,6 +63,51 @@ serve(async (req) => {
 
     const { jobTitle, company, location, salaryRange, description } = await req.json();
 
+    // Fetch real market compensation data via Firecrawl before AI analysis
+    let marketData = '';
+    const firecrawlKey = Deno.env.get('FIRECRAWL_API_KEY');
+    if (firecrawlKey && jobTitle) {
+      try {
+        const locationQuery = location && !location.toLowerCase().includes('remote') ? location : 'United States';
+        const [levelsRes, marketRes] = await Promise.allSettled([
+          fetch('https://api.firecrawl.dev/v1/search', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${firecrawlKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: `${jobTitle} salary compensation levels.fyi ${locationQuery}`,
+              limit: 2,
+              scrapeOptions: { formats: ['markdown'] }
+            }),
+            signal: AbortSignal.timeout(10000),
+          }),
+          fetch('https://api.firecrawl.dev/v1/search', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${firecrawlKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: `${jobTitle} ${company || ''} salary range 2024 2025 glassdoor linkedin`,
+              limit: 2,
+              scrapeOptions: { formats: ['markdown'] }
+            }),
+            signal: AbortSignal.timeout(10000),
+          }),
+        ]);
+
+        const allSnippets: string[] = [];
+        for (const result of [levelsRes, marketRes]) {
+          if (result.status === 'fulfilled' && result.value.ok) {
+            const data = await result.value.json();
+            for (const r of (data.data || []).slice(0, 2)) {
+              if (r.markdown) allSnippets.push(`Source: ${r.url}\n${r.markdown.substring(0, 600)}`);
+            }
+          }
+        }
+        marketData = allSnippets.join('\n\n---\n\n');
+        console.log(`[SALARY] Fetched market data: ${marketData.length} chars`);
+      } catch (err) {
+        console.warn('[SALARY] Market data fetch failed (non-fatal):', err);
+      }
+    }
+
     const prompt = `You are a compensation analyst. Analyze this job and provide salary insights.
 
 Job: ${jobTitle} at ${company}
@@ -70,7 +115,9 @@ Location: ${location || 'Not specified'}
 Listed Salary: ${salaryRange || 'Not listed'}
 Description snippet: ${(description || '').slice(0, 500)}
 
-You MUST call the function "salary_analysis" with your findings.`;
+${marketData ? `Real Market Compensation Data (scraped from salary sites and job boards):\n${marketData.substring(0, 3000)}` : ''}
+
+Use the real market data above to ground your analysis. You MUST call the function "salary_analysis" with your findings.`;
 
     // Use Gemini directly if available, otherwise use Lovable AI gateway
     const useGemini = !!GEMINI_API_KEY;

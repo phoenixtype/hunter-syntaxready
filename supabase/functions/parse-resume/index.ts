@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 const GENERIC_SERVICE_ERROR = 'Service temporarily unavailable';
@@ -29,6 +29,31 @@ serve(async (req) => {
     if (!geminiApiKey) {
       return new Response(JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Verify user token
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+    const { data: { user }, error: authError } = await authClient.auth.getUser();
+    if (authError || !user) {
+      return new Response(JSON.stringify({ success: false, error: GENERIC_AUTH_ERROR }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Rate limiting
+    const supabase = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const { RateLimiter } = await import('../_shared/rate-limiter.ts');
+    const limiter = new RateLimiter(supabase, user.id);
+    const { allowed, error: limitError } = await limiter.isAllowed('parse-resume', {
+      free: { max: 10, window: 60 },
+      pro:  { max: 30, window: 60 },
+    });
+    if (!allowed) {
+      return new Response(JSON.stringify({ success: false, error: limitError || 'Too many requests' }), {
+        status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 

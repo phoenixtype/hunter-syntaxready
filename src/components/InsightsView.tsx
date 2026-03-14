@@ -65,7 +65,7 @@ const InsightsView = ({ visibility, skillRecommendations, profile, onConsultCoac
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs text-muted-foreground">
                         {visibility.roleFitDetail.targetRoles.length > 0
-                          ? `Role fit: ${visibility.roleFitDetail.targetRoles[0]}${visibility.roleFitDetail.targetRoles.length > 1 ? ` +${visibility.roleFitDetail.targetRoles.length - 1}` : ''}`
+                          ? `Role fit: ${visibility.roleFitDetail.targetRoles[0]}`
                           : 'Role fit: no target roles set'}
                       </span>
                       <span className={`text-xs font-semibold tabular-nums ${

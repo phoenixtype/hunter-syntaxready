@@ -11,9 +11,6 @@ const GENERIC_AUTH_ERROR = 'Authentication required';
 const GENERIC_SESSION_ERROR = 'Session expired or invalid';
 const GENERIC_RATE_LIMIT_ERROR = 'Too many requests. Please try again later.';
 
-const RATE_LIMIT_MAX_REQUESTS = 10;
-const RATE_LIMIT_WINDOW_SECONDS = 60;
-
 // Max jobs to process per search pass
 const MAX_JOBS_PER_PASS = 30;
 
@@ -62,19 +59,6 @@ function sanitizeJobTitle(title: string): string {
 // ─── Rate limiting ─────────────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function checkRateLimit(supabase: any, userId: string, functionName: string, maxRequests: number, windowSeconds: number): Promise<boolean> {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase as any).rpc('check_rate_limit', {
-      p_user_id: userId,
-      p_function_name: functionName,
-      p_max_requests: maxRequests,
-      p_window_seconds: windowSeconds
-    });
-    if (error) { console.error('[RATE_LIMIT] Check failed, blocking request'); return false; }
-    return data === true;
-  } catch { console.error('[RATE_LIMIT] Exception, blocking'); return false; }
-}
 
 function isHealthCheckRequest(req: Request): boolean {
   const ua = req.headers.get('user-agent')?.toLowerCase() || '';
@@ -83,24 +67,16 @@ function isHealthCheckRequest(req: Request): boolean {
   return isProbe || isHealthMethod;
 }
 
-// ─── Tech stack extractor (parses description text) ──────────────────────────
+// ─── Tech stack extractor ─────────────────────────────────────────────────────
 
 const TECH_KEYWORDS = [
-  // Languages
   'JavaScript','TypeScript','Python','Java','Kotlin','Swift','Go','Rust','C++','C#','Ruby','PHP','Scala','Dart','R',
-  // Frontend
   'React','Vue','Angular','Next.js','Nuxt','Svelte','Redux','GraphQL','HTML','CSS','Tailwind','Bootstrap','Webpack','Vite',
-  // Backend
   'Node.js','Express','FastAPI','Django','Flask','Spring','Rails','Laravel','NestJS','tRPC',
-  // Mobile
   'React Native','Flutter','iOS','Android','Expo',
-  // Cloud/DevOps
   'AWS','Azure','GCP','Docker','Kubernetes','Terraform','CI/CD','GitHub Actions','Jenkins','Ansible',
-  // Data/AI
   'SQL','PostgreSQL','MySQL','MongoDB','Redis','Elasticsearch','Kafka','Spark','dbt','Airflow','PyTorch','TensorFlow','LangChain','OpenAI',
-  // Tools/Platforms
   'Supabase','Firebase','Vercel','Netlify','Stripe','Twilio','Salesforce','Jira','Git','Linux',
-  // Soft/Process
   'REST','API','Microservices','Agile','Scrum',
 ];
 
@@ -111,7 +87,6 @@ const KEYWORD_REGEX = new RegExp(
 
 function extractTechStack(description: string): string[] {
   const matches = description.match(KEYWORD_REGEX) || [];
-  // Deduplicate preserving original casing of first occurrence
   const seen = new Map<string, string>();
   for (const m of matches) {
     const key = m.toLowerCase();
@@ -120,7 +95,79 @@ function extractTechStack(description: string): string[] {
   return Array.from(seen.values()).slice(0, 12);
 }
 
-// ─── JSearch API (search mode) ─────────────────────────────────────────────────
+// ─── Firecrawl helpers ────────────────────────────────────────────────────────
+
+/** Scrape a single URL → clean markdown */
+async function firecrawlScrapeUrl(apiKey: string, url: string, timeoutMs = 15000): Promise<string> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      signal: controller.signal,
+      body: JSON.stringify({ url, formats: ['markdown'], waitFor: 2000 }),
+    });
+    clearTimeout(timeoutId);
+    if (!response.ok) { console.error(`[FIRECRAWL] Scrape failed: ${response.status}`); return ''; }
+    const data = await response.json();
+    return data.data?.markdown || '';
+  } catch (err) {
+    clearTimeout(timeoutId);
+    console.error('[FIRECRAWL] Scrape exception', err);
+    return '';
+  }
+}
+
+/** Search the web via Firecrawl → returns array of {url, title, markdown} */
+async function firecrawlSearch(apiKey: string, query: string, limit = 5): Promise<Array<{url: string; title: string; markdown: string}>> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 20000);
+  try {
+    const response = await fetch('https://api.firecrawl.dev/v1/search', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      signal: controller.signal,
+      body: JSON.stringify({ query, limit, scrapeOptions: { formats: ['markdown'] } }),
+    });
+    clearTimeout(timeoutId);
+    if (!response.ok) { console.error(`[FIRECRAWL] Search failed: ${response.status}`); return []; }
+    const data = await response.json();
+    return (data.data || []).map((r: Record<string, unknown>) => ({
+      url: String(r.url || ''),
+      title: String(r.title || ''),
+      markdown: String(r.markdown || ''),
+    }));
+  } catch (err) {
+    clearTimeout(timeoutId);
+    console.error('[FIRECRAWL] Search exception', err);
+    return [];
+  }
+}
+
+/** Extract structured data from a URL using Firecrawl /extract */
+async function firecrawlExtract(apiKey: string, urls: string[], prompt: string, schema: Record<string, unknown>): Promise<Record<string, unknown> | null> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
+  try {
+    const response = await fetch('https://api.firecrawl.dev/v1/extract', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      signal: controller.signal,
+      body: JSON.stringify({ urls, prompt, schema }),
+    });
+    clearTimeout(timeoutId);
+    if (!response.ok) { console.error(`[FIRECRAWL] Extract failed: ${response.status}`); return null; }
+    const data = await response.json();
+    return data.data || null;
+  } catch (err) {
+    clearTimeout(timeoutId);
+    console.error('[FIRECRAWL] Extract exception', err);
+    return null;
+  }
+}
+
+// ─── JSearch API ─────────────────────────────────────────────────────────────
 
 interface JSearchJob {
   employer_name: string;
@@ -183,14 +230,12 @@ async function jsearchFetch(apiKey: string, query: string, remoteOnly: boolean):
 }
 
 function mapJSearchJob(item: JSearchJob): Record<string, unknown> {
-  // Build location string
   let location = 'Remote';
   if (!item.job_is_remote) {
     const parts = [item.job_city, item.job_state, item.job_country].filter(Boolean);
     location = parts.join(', ') || 'Not specified';
   }
 
-  // Salary range
   let salary_range = 'Not specified';
   if (item.job_min_salary && item.job_max_salary) {
     const currency = item.job_salary_currency || 'USD';
@@ -201,13 +246,11 @@ function mapJSearchJob(item: JSearchJob): Record<string, unknown> {
 
   const title = sanitizeJobTitle(item.job_title || 'Unknown Title');
   const company = item.employer_name || 'Unknown Company';
-
   const description = item.job_description || '';
   const tech_stack = (item.job_required_skills && item.job_required_skills.length > 0)
     ? item.job_required_skills
     : extractTechStack(description);
 
-  // Also use job_salary_string as fallback if min/max not set
   if (salary_range === 'Not specified' && (item as Record<string, unknown>).job_salary_string) {
     salary_range = (item as Record<string, unknown>).job_salary_string as string;
   }
@@ -229,30 +272,7 @@ function mapJSearchJob(item: JSearchJob): Record<string, unknown> {
   };
 }
 
-// ─── Firecrawl (URL scrape mode only) ─────────────────────────────────────────
-
-async function firecrawlScrapeUrl(apiKey: string, url: string): Promise<string> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
-  try {
-    const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      signal: controller.signal,
-      body: JSON.stringify({ url, formats: ['markdown'] }),
-    });
-    clearTimeout(timeoutId);
-    if (!response.ok) { console.error(`[FIRECRAWL] Scrape failed: ${response.status}`); return ''; }
-    const data = await response.json();
-    return data.data?.markdown || '';
-  } catch (err) {
-    clearTimeout(timeoutId);
-    console.error('[FIRECRAWL] Scrape exception', err);
-    return '';
-  }
-}
-
-// ─── Gemini normalization (URL scrape mode only) ──────────────────────────────
+// ─── Gemini normalization ─────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function normalizeWithGemini(geminiKey: string, rawJob: { title: string; url: string; content: string; source: string }): Promise<any | null> {
@@ -290,10 +310,7 @@ Content: ${rawJob.content.substring(0, 15000)}`
     });
     clearTimeout(timeoutId);
 
-    if (!llmResponse.ok) {
-      console.error(`[GEMINI] Failed: ${llmResponse.status}`);
-      return null;
-    }
+    if (!llmResponse.ok) { console.error(`[GEMINI] Failed: ${llmResponse.status}`); return null; }
 
     const llmData = await llmResponse.json();
     const text = llmData.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -327,15 +344,319 @@ Content: ${rawJob.content.substring(0, 15000)}`
   }
 }
 
+// ─── Company Research (Firecrawl /search + /scrape + Gemini) ─────────────────
+
+async function handleCompanyResearch(firecrawlKey: string, geminiKey: string, company: string, jobTitle: string): Promise<Record<string, unknown>> {
+  console.log(`[COMPANY_RESEARCH] Researching: ${company}`);
+
+  // 1. Search for company's own website + about page
+  const [companyResults, newsResults] = await Promise.all([
+    firecrawlSearch(firecrawlKey, `${company} official website about mission culture engineering`, 4),
+    firecrawlSearch(firecrawlKey, `${company} news funding product launch 2024 2025`, 3),
+  ]);
+
+  // Prefer the company's own domain (not aggregators)
+  const aggregatorDomains = ['linkedin', 'glassdoor', 'indeed', 'crunchbase', 'wikipedia', 'pitchbook', 'bloomberg'];
+  const companyPage = companyResults.find(r =>
+    !aggregatorDomains.some(d => r.url.toLowerCase().includes(d))
+  ) || companyResults[0];
+
+  // 2. Scrape deeper if the search result markdown is thin
+  let companyContent = companyPage?.markdown || '';
+  if (companyContent.length < 500 && companyPage?.url) {
+    console.log(`[COMPANY_RESEARCH] Scraping: ${companyPage.url}`);
+    const scraped = await firecrawlScrapeUrl(firecrawlKey, companyPage.url, 12000);
+    if (scraped.length > companyContent.length) companyContent = scraped;
+  }
+
+  // 3. Scrape an about/team page if found
+  const aboutPage = companyResults.find(r =>
+    (r.url.includes('/about') || r.url.includes('/team') || r.url.includes('/company')) &&
+    !aggregatorDomains.some(d => r.url.toLowerCase().includes(d))
+  );
+  let aboutContent = '';
+  if (aboutPage && aboutPage.url !== companyPage?.url) {
+    aboutContent = aboutPage.markdown || await firecrawlScrapeUrl(firecrawlKey, aboutPage.url, 8000);
+  }
+
+  const newsContent = newsResults
+    .map(r => `**${r.title}** (${r.url})\n${r.markdown?.substring(0, 400)}`)
+    .join('\n\n---\n\n');
+
+  const combinedContent = [
+    companyContent.substring(0, 6000),
+    aboutContent.substring(0, 2000),
+  ].filter(Boolean).join('\n\n---\n\n');
+
+  // 4. Parse with Gemini into structured intel
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 25000);
+  try {
+    const llmResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
+      body: JSON.stringify({
+        contents: [{
+          role: 'user',
+          parts: [{
+            text: `Extract structured company intelligence from the content below.
+Company: ${company}
+Target Role: ${jobTitle}
+
+Website Content:
+${combinedContent}
+
+Recent News:
+${newsContent.substring(0, 2000)}
+
+Return JSON with these fields:
+- mission: company mission/vision statement (1-2 sentences)
+- industry: industry/sector
+- stage: company stage (e.g. "Public", "Series B startup", "Enterprise", "Bootstrapped")
+- tech_stack: array of technologies they use (from job descriptions, engineering blog, etc.)
+- culture_signals: array of 3-5 culture/values keywords (e.g. "remote-first", "ownership", "fast-paced")
+- recent_news: array of up to 3 recent notable events (funding, product launch, expansion)
+- headcount: approximate employee count if mentioned (string like "500-1000" or "unknown")
+- key_products: array of main products/services (up to 4)
+- interview_tip: one specific tip for interviewing at this company based on their culture/focus
+- source_url: the main company URL you found
+
+Return only valid JSON, no markdown code blocks.`
+          }]
+        }],
+        generationConfig: { responseMimeType: 'application/json' }
+      }),
+    });
+    clearTimeout(timeoutId);
+
+    if (!llmResponse.ok) throw new Error(`Gemini ${llmResponse.status}`);
+    const llmData = await llmResponse.json();
+    const text = llmData.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) throw new Error('No Gemini response');
+
+    const parsed = JSON.parse(text);
+    return {
+      ...parsed,
+      source_url: parsed.source_url || companyPage?.url || '',
+      _scraped: true,
+    };
+  } catch (err) {
+    clearTimeout(timeoutId);
+    console.error('[COMPANY_RESEARCH] Gemini parse error:', err);
+    // Return partial data from search results
+    return {
+      mission: '',
+      industry: '',
+      stage: 'Unknown',
+      tech_stack: [],
+      culture_signals: [],
+      recent_news: newsResults.slice(0, 3).map(r => r.title).filter(Boolean),
+      headcount: 'unknown',
+      key_products: [],
+      interview_tip: `Research ${company}'s recent announcements before your interview.`,
+      source_url: companyPage?.url || '',
+      _scraped: false,
+    };
+  }
+}
+
+// ─── Stakeholder Search (Firecrawl /search for real people) ──────────────────
+
+async function handleStakeholderSearch(firecrawlKey: string, geminiKey: string, company: string, jobTitle: string): Promise<Array<Record<string, unknown>>> {
+  console.log(`[STAKEHOLDERS] Searching for people at: ${company}`);
+
+  // Search for people at the company — targeting team/about pages and public profiles
+  const [teamResults, recruiterResults] = await Promise.all([
+    firecrawlSearch(firecrawlKey, `${company} engineering team managers linkedin site:linkedin.com/in`, 5),
+    firecrawlSearch(firecrawlKey, `${company} recruiter talent acquisition "hiring" site:linkedin.com`, 3),
+  ]);
+
+  const allResults = [...teamResults, ...recruiterResults];
+  const linkedinProfiles = allResults.filter(r => r.url.includes('linkedin.com/in/'));
+
+  if (linkedinProfiles.length === 0) {
+    // Try scraping the company's team/about page instead
+    const teamPage = await firecrawlSearch(firecrawlKey, `${company} team members about people`, 3);
+    const aboutResult = teamPage.find(r =>
+      (r.url.includes('/about') || r.url.includes('/team') || r.url.includes('/people')) &&
+      !r.url.includes('linkedin') && !r.url.includes('glassdoor')
+    );
+
+    if (aboutResult) {
+      const content = aboutResult.markdown || await firecrawlScrapeUrl(firecrawlKey, aboutResult.url, 10000);
+
+      // Extract people with Gemini
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
+      try {
+        const llmResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            contents: [{
+              role: 'user',
+              parts: [{
+                text: `Extract a list of people (employees, leaders, team members) from this company page.
+Company: ${company}
+
+Content:
+${content.substring(0, 8000)}
+
+Return JSON array of up to 6 people:
+[{ "name": "...", "role": "...", "linkedin_url": "" }]
+
+Only include people with names and roles. Return empty array [] if none found.
+Return only valid JSON array, no markdown.`
+              }]
+            }],
+            generationConfig: { responseMimeType: 'application/json' }
+          }),
+        });
+        clearTimeout(timeoutId);
+        if (llmResponse.ok) {
+          const llmData = await llmResponse.json();
+          const text = llmData.candidates?.[0]?.content?.parts?.[0]?.text;
+          const people = JSON.parse(text || '[]');
+          if (Array.isArray(people) && people.length > 0) {
+            return people.map((p: Record<string, unknown>) => ({
+              name: p.name,
+              role: p.role,
+              profile_url: p.linkedin_url || `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(String(p.name) + ' ' + company)}`,
+              avatar_url: '',
+            }));
+          }
+        }
+      } catch (err) {
+        clearTimeout(timeoutId);
+        console.error('[STAKEHOLDERS] Gemini parse error:', err);
+      }
+    }
+    return []; // Fall back to recruiter_engine's LinkedIn search links
+  }
+
+  // Extract name + role from LinkedIn profile URLs and their markdown snippets
+  return linkedinProfiles.slice(0, 6).map(r => {
+    const nameFromUrl = r.url.split('/in/')[1]?.split('?')[0]?.replace(/-/g, ' ') || '';
+    const name = nameFromUrl.split(' ').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    return {
+      name: name || r.title.split(' - ')[0] || 'Employee',
+      role: r.title.split(' - ')[1] || 'Employee',
+      profile_url: r.url,
+      avatar_url: '',
+    };
+  });
+}
+
+// ─── Careers Page Crawl (Firecrawl /scrape + Gemini multi-job extraction) ────
+
+async function handleCareersCrawl(firecrawlKey: string, geminiKey: string, careersUrl: string): Promise<Array<Record<string, unknown>>> {
+  console.log(`[CAREERS_CRAWL] Scraping: ${careersUrl}`);
+
+  const markdown = await firecrawlScrapeUrl(firecrawlKey, careersUrl, 20000);
+  if (!markdown || markdown.length < 100) {
+    console.error('[CAREERS_CRAWL] Empty content from careers page');
+    return [];
+  }
+
+  // Parse multiple job listings from the page with Gemini
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
+  try {
+    const llmResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
+      body: JSON.stringify({
+        contents: [{
+          role: 'user',
+          parts: [{
+            text: `Extract all job listings from this careers page content. This is a company careers page.
+
+URL: ${careersUrl}
+Content:
+${markdown.substring(0, 20000)}
+
+Return a JSON array of job listings. Each job should have:
+- title: job title (clean, no suffixes)
+- company: company name (infer from URL or content)
+- location: location or "Remote"
+- salary_range: if mentioned, else "Not specified"
+- description: role description/requirements (up to 500 chars)
+- url: apply link or job URL if visible, else use the careers page URL
+- employment_type: "Full-time", "Part-time", "Contract", etc.
+
+Return only valid JSON array. If no jobs found, return [].`
+          }]
+        }],
+        generationConfig: { responseMimeType: 'application/json' }
+      }),
+    });
+    clearTimeout(timeoutId);
+
+    if (!llmResponse.ok) throw new Error(`Gemini ${llmResponse.status}`);
+    const llmData = await llmResponse.json();
+    const text = llmData.candidates?.[0]?.content?.parts?.[0]?.text;
+    const jobs = JSON.parse(text || '[]');
+
+    if (!Array.isArray(jobs)) return [];
+
+    const domain = new URL(careersUrl).hostname.replace('www.', '').split('.')[0];
+    const company = jobs[0]?.company || domain.charAt(0).toUpperCase() + domain.slice(1);
+
+    return jobs.map((j: Record<string, unknown>) => {
+      const title = sanitizeJobTitle(String(j.title || 'Unknown Role'));
+      const comp = String(j.company || company);
+      return {
+        title,
+        company: comp,
+        location: j.location || 'Not specified',
+        salary_range: j.salary_range || 'Not specified',
+        description: String(j.description || '').substring(0, 5000),
+        source: 'Careers Page',
+        freshness_score: 0.9,
+        credibility_score: 0.95,
+        url: String(j.url || careersUrl),
+        posted_at: new Date().toISOString(),
+        tech_stack: extractTechStack(String(j.description || '')),
+        job_hash: generateJobHash(comp, title),
+        raw_data: { careers_url: careersUrl },
+      };
+    });
+  } catch (err) {
+    clearTimeout(timeoutId);
+    console.error('[CAREERS_CRAWL] Error:', err);
+    return [];
+  }
+}
+
+// ─── Salary Market Data (Firecrawl /search for real comp data) ───────────────
+
+async function handleSalaryResearch(firecrawlKey: string, role: string, location: string): Promise<string> {
+  console.log(`[SALARY_RESEARCH] Fetching market data for: ${role} in ${location || 'US'}`);
+
+  const locationQuery = location && location.toLowerCase() !== 'remote' ? `${location}` : 'United States';
+
+  const [levelsResults, jobResults] = await Promise.all([
+    firecrawlSearch(firecrawlKey, `site:levels.fyi ${role} salary compensation`, 2),
+    firecrawlSearch(firecrawlKey, `${role} salary ${locationQuery} 2024 2025 compensation range`, 3),
+  ]);
+
+  const allContent = [...levelsResults, ...jobResults]
+    .map(r => `Source: ${r.url}\n${r.markdown?.substring(0, 800)}`)
+    .join('\n\n---\n\n');
+
+  return allContent.substring(0, 6000);
+}
+
 // ─── Main handler ──────────────────────────────────────────────────────────────
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
-  // Health check
   if (isHealthCheckRequest(req)) {
     return new Response(
       JSON.stringify({ status: 'healthy', service: 'crawl-jobs' }),
@@ -349,7 +670,6 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
     if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
-      console.error('[CONFIG] Missing Supabase env vars');
       return new Response(JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
@@ -370,20 +690,76 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const isAllowed = await checkRateLimit(supabase, user.id, 'crawl-jobs', RATE_LIMIT_MAX_REQUESTS, RATE_LIMIT_WINDOW_SECONDS);
-    if (!isAllowed) {
-      return new Response(JSON.stringify({ success: false, error: GENERIC_RATE_LIMIT_ERROR }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': String(RATE_LIMIT_WINDOW_SECONDS) } });
+    const { RateLimiter } = await import('../_shared/rate-limiter.ts');
+    const limiter = new RateLimiter(supabase, user.id);
+    const { allowed, error: limitError } = await limiter.isAllowed('crawl-jobs', {
+      free: { max: 5,  window: 60 },
+      pro:  { max: 20, window: 60 },
+    });
+    if (!allowed) {
+      return new Response(JSON.stringify({ success: false, error: limitError || GENERIC_RATE_LIMIT_ERROR }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': '60' } });
     }
 
     console.log('[AUTH] User:', user.id);
 
     const body = await req.json();
-    const { keywords, url, location, locations, remotePolicy, targetRoles } = body;
+    const { mode, keywords, url, location, locations, remotePolicy, targetRoles } = body;
+
+    const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+    const jsearchApiKey = Deno.env.get('JSEARCH_API_KEY');
+
+    // ── COMPANY RESEARCH MODE ─────────────────────────────────────────────────
+    if (mode === 'company_research') {
+      if (!firecrawlApiKey || !geminiApiKey) {
+        return new Response(JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      const research = await handleCompanyResearch(firecrawlApiKey, geminiApiKey, body.company, body.title || '');
+      return new Response(JSON.stringify({ success: true, research }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    // ── STAKEHOLDER SEARCH MODE ──────────────────────────────────────────────
+    if (mode === 'stakeholder_search') {
+      if (!firecrawlApiKey || !geminiApiKey) {
+        return new Response(JSON.stringify({ success: false, stakeholders: [] }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      const stakeholders = await handleStakeholderSearch(firecrawlApiKey, geminiApiKey, body.company, body.title || '');
+      return new Response(JSON.stringify({ success: true, stakeholders }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    // ── CAREERS PAGE CRAWL MODE ──────────────────────────────────────────────
+    if (mode === 'careers_crawl') {
+      if (!firecrawlApiKey || !geminiApiKey || !body.careers_url) {
+        return new Response(JSON.stringify({ success: false, error: 'Missing careers_url or API keys' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      const jobs = await handleCareersCrawl(firecrawlApiKey, geminiApiKey, body.careers_url);
+
+      if (jobs.length > 0) {
+        let inserted = 0;
+        for (const job of jobs.slice(0, MAX_JOBS_PER_PASS)) {
+          const { error } = await supabase.from('job_listings').upsert(job, { onConflict: 'job_hash', ignoreDuplicates: true });
+          if (!error) inserted++;
+        }
+        console.log(`[CAREERS_CRAWL] Inserted ${inserted} of ${jobs.length} jobs`);
+      }
+
+      return new Response(JSON.stringify({ success: true, jobs, total: jobs.length }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    // ── SALARY RESEARCH MODE ─────────────────────────────────────────────────
+    if (mode === 'salary_research') {
+      if (!firecrawlApiKey) {
+        return new Response(JSON.stringify({ success: false, market_data: '' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      const market_data = await handleSalaryResearch(firecrawlApiKey, body.role || '', body.location || '');
+      return new Response(JSON.stringify({ success: true, market_data }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
 
     // ─── Cleanup Stale Jobs (older than 30 days) ──────────────────────────
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
+
     const { error: cleanupError, count: deletedCount } = await supabase
       .from('job_listings')
       .delete({ count: 'exact' })
@@ -395,17 +771,12 @@ serve(async (req) => {
       console.log(`[CLEANUP] Pruned ${deletedCount || 0} stale jobs older than 30 days`);
     }
 
-    const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-    const jsearchApiKey = Deno.env.get('JSEARCH_API_KEY');
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const allJobs: any[] = [];
 
     if (url) {
-      // ── URL SCRAPE MODE (uses Firecrawl + Gemini) ──────────────────────────
+      // ── URL SCRAPE MODE (Firecrawl + Gemini) ──────────────────────────────
       if (!firecrawlApiKey || !geminiApiKey) {
-        console.error('[CONFIG] Missing Firecrawl or Gemini key for URL scrape');
         return new Response(JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
@@ -420,15 +791,13 @@ serve(async (req) => {
       if (normalized) allJobs.push(normalized);
 
     } else {
-      // ── SEARCH MODE (uses JSearch) ─────────────────────────────────────────
+      // ── SEARCH MODE (JSearch) ─────────────────────────────────────────────
       if (!jsearchApiKey) {
-        console.error('[CONFIG] Missing JSEARCH_API_KEY — cannot run job search');
         return new Response(JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
       const searchRoles  = Array.isArray(targetRoles) ? targetRoles.filter(Boolean).map(String) : [];
       const searchKws    = Array.isArray(keywords) ? keywords.filter(Boolean).map(String) : [];
-      // Prefer the new locations array; fall back to a single location string for backward compat
       const searchLocs: string[] = Array.isArray(locations) && locations.length > 0
         ? locations.filter(Boolean).map(String).slice(0, 2)
         : (typeof location === 'string' && location.trim() ? [location.trim()] : []);
@@ -437,39 +806,32 @@ serve(async (req) => {
       const primaryRole = searchRoles[0] || 'software engineer';
       const queries: string[] = [];
 
-      // For each preferred location, build a "role + location" query + optional keywords query
-      // If no location preference, build queries without location suffix
       const effectiveLocs = searchLocs.length > 0 ? searchLocs : [''];
       for (const loc of effectiveLocs) {
         const locSuffix = loc ? ` ${loc}` : '';
-        // Role + location
         queries.push(`${primaryRole}${locSuffix}`.trim());
-        // Role + top keywords + location (only for first location to stay under quota)
         if (loc === effectiveLocs[0] && searchKws.length > 0) {
           const keywordsForQuery = searchKws.slice(0, 3).join(' ');
           queries.push(`${primaryRole} ${keywordsForQuery}${locSuffix}`.trim());
         }
       }
 
-      // Alternative role query (without extra location, deduplication handles overlap)
       if (searchRoles[1] && queries.length < 4) {
         const locSuffix = searchLocs[0] ? ` ${searchLocs[0]}` : '';
         queries.push(`${searchRoles[1]}${locSuffix}`.trim());
       }
 
-      // Contract / freelance variant to surface gig opportunities
       if (queries.length < 5) {
         const locSuffix = searchLocs[0] ? ` ${searchLocs[0]}` : '';
         queries.push(`${primaryRole} contract${locSuffix}`.trim());
       }
 
-      console.log(`[JSEARCH] Running ${queries.length} queries for locations: ${searchLocs.join(', ') || '(any)'}`);
+      console.log(`[JSEARCH] Running ${queries.length} queries`);
 
       const searchResults = await Promise.allSettled(
         queries.map(q => jsearchFetch(jsearchApiKey, q, isRemote))
       );
 
-      // Deduplicate by job_id across queries
       const seenIds = new Set<string>();
       for (const result of searchResults) {
         if (result.status !== 'fulfilled') continue;
@@ -490,7 +852,6 @@ serve(async (req) => {
       );
     }
 
-    // Upsert into job_listings
     let inserted = 0;
     let duplicates = 0;
 

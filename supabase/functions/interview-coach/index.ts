@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 // SECURITY: Generic error messages to avoid information disclosure
@@ -124,19 +124,18 @@ serve(async (req) => {
     // Use service role for rate limiting
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // SECURITY: Server-side rate limiting - check BEFORE any business logic
-    const isAllowed = await checkRateLimit(
-      supabase,
-      user.id,
-      'interview-coach',
-      RATE_LIMIT_MAX_REQUESTS,
-      RATE_LIMIT_WINDOW_SECONDS
-    );
+    // SECURITY: Server-side rate limiting with pro/free tier support
+    const { RateLimiter } = await import('../_shared/rate-limiter.ts');
+    const limiter = new RateLimiter(supabase, user.id);
+    const { allowed, error: limitError } = await limiter.isAllowed('interview-coach', {
+      free: { max: 20, window: 60 },
+      pro:  { max: 60, window: 60 },
+    });
 
-    if (!isAllowed) {
+    if (!allowed) {
       console.log('[RATE_LIMIT] User rate limited:', user.id);
       return new Response(
-        JSON.stringify({ success: false, error: GENERIC_RATE_LIMIT_ERROR }),
+        JSON.stringify({ success: false, error: limitError || GENERIC_RATE_LIMIT_ERROR }),
         { 
           status: 429, 
           headers: { 
@@ -166,15 +165,59 @@ serve(async (req) => {
 
     // Handle "Briefing Generation" mode (Structured Output)
     if (mode === 'generate_briefing') {
+        // Fetch real company intelligence via Firecrawl before generating briefing
+        let companyIntel = '';
+        const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
+        if (firecrawlApiKey && job?.company) {
+            try {
+                const supabaseUrl2 = Deno.env.get('SUPABASE_URL')!;
+                const supabaseServiceKey2 = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+                // Call the crawl-jobs function in company_research mode using service role
+                const researchResponse = await fetch(`${supabaseUrl2}/functions/v1/crawl-jobs`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${supabaseServiceKey2}`,
+                        'Content-Type': 'application/json',
+                        // Bypass the auth check by using service role — crawl-jobs verifies user JWT
+                        // so we call Firecrawl search directly here instead
+                    },
+                });
+                // Direct Firecrawl search (faster than going through crawl-jobs with auth)
+                const searchResponse = await fetch('https://api.firecrawl.dev/v1/search', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${firecrawlApiKey}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        query: `${job.company} company mission culture engineering team 2024 2025`,
+                        limit: 3,
+                        scrapeOptions: { formats: ['markdown'] }
+                    }),
+                    signal: AbortSignal.timeout(12000),
+                });
+                if (searchResponse.ok) {
+                    const searchData = await searchResponse.json();
+                    const results = searchData.data || [];
+                    companyIntel = results
+                        .map((r: {title: string; url: string; markdown: string}) =>
+                            `**${r.title}** (${r.url})\n${(r.markdown || '').substring(0, 800)}`)
+                        .join('\n\n---\n\n');
+                    console.log(`[BRIEFING] Fetched company intel: ${companyIntel.length} chars`);
+                }
+            } catch (err) {
+                console.warn('[BRIEFING] Company research failed (non-fatal):', err);
+            }
+        }
+
         const briefingPrompt = `You are an elite interview coach. Generate a strategic interview preparation dossier for:
         Role: ${job?.title}
         Company: ${job?.company}
         Description: ${job?.description?.substring(0, 1000)}
 
+        ${companyIntel ? `Real Company Intelligence (scraped from their website and recent news):\n${companyIntel.substring(0, 3000)}` : ''}
+
         Return a JSON object with:
-        1. Company Profile (infer from name/industry knowledge)
+        1. Company Profile (use the real intelligence above, not just AI knowledge)
         2. 5 Specific Technical Questions based on the stack
-        3. 4 Behavioral Questions (culture fit)
+        3. 4 Behavioral Questions (culture fit, based on real company values if found)
         4. 3 "Red Flags" to watch out for
         5. 2 Interviewer Personas they might meet
         6. Evaluation Criteria (what they grade on)

@@ -3,48 +3,13 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 // SECURITY: Generic error messages to avoid information disclosure
 const GENERIC_SERVICE_ERROR = 'Service temporarily unavailable';
 const GENERIC_AUTH_ERROR = 'Authentication required';
 const GENERIC_RATE_LIMIT_ERROR = 'Too many requests. Please try again later.';
-
-// Rate limit configuration: 10 requests per minute (cheaper generation)
-const RATE_LIMIT_MAX_REQUESTS = 10;
-const RATE_LIMIT_WINDOW_SECONDS = 60;
-
-/**
- * SECURITY: Server-side rate limiting using Supabase
- */
-async function checkRateLimit(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
-  userId: string,
-  functionName: string,
-  maxRequests: number,
-  windowSeconds: number
-): Promise<boolean> {
-  try {
-    const { data, error } = await supabase.rpc('check_rate_limit', {
-      p_user_id: userId,
-      p_function_name: functionName,
-      p_max_requests: maxRequests,
-      p_window_seconds: windowSeconds
-    });
-
-    if (error) {
-      console.error('[RATE_LIMIT] Check failed, blocking request');
-      return false;
-    }
-
-    return data === true;
-  } catch (err) {
-    console.error('[RATE_LIMIT] Exception during check, blocking request');
-    return false;
-  }
-}
 
 /**
  * SECURITY: Detect health check / crawler requests
@@ -119,27 +84,19 @@ serve(async (req) => {
     // Use service role for rate limiting
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // SECURITY: Server-side rate limiting - check BEFORE any business logic
-    const isAllowed = await checkRateLimit(
-      supabase,
-      user.id,
-      'generate-content',
-      RATE_LIMIT_MAX_REQUESTS,
-      RATE_LIMIT_WINDOW_SECONDS
-    );
+    // SECURITY: Server-side rate limiting with pro/free tier support
+    const { RateLimiter } = await import('../_shared/rate-limiter.ts');
+    const limiter = new RateLimiter(supabase, user.id);
+    const { allowed, error: limitError } = await limiter.isAllowed('generate-content', {
+      free: { max: 10, window: 60 },
+      pro:  { max: 40, window: 60 },
+    });
 
-    if (!isAllowed) {
+    if (!allowed) {
       console.log('[RATE_LIMIT] User rate limited:', user.id);
       return new Response(
-        JSON.stringify({ success: false, error: GENERIC_RATE_LIMIT_ERROR }),
-        { 
-          status: 429, 
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/json',
-            'Retry-After': String(RATE_LIMIT_WINDOW_SECONDS)
-          } 
-        }
+        JSON.stringify({ success: false, error: limitError || GENERIC_RATE_LIMIT_ERROR }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': '60' } }
       );
     }
 
