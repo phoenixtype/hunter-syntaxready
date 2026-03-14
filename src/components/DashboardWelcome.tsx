@@ -1,9 +1,8 @@
+import { CheckCircle2, ArrowRight, Sparkles, Target, Briefcase, Send, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, ArrowRight, Sparkles, Target, Briefcase, Send } from "lucide-react";
 import { CandidateProfile } from "@/lib/resume_engine";
 import { ApplicationMetrics } from "@/lib/application_engine";
 import { UserPreferences } from "@/lib/user_preferences";
-import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
 interface Props {
@@ -24,7 +23,6 @@ const DashboardWelcome = ({ profile, preferences, jobCount, appCount, metrics, o
     {
       icon: Sparkles,
       label: "Build your profile",
-      benefit: "Unlock AI match scores on every job listing",
       done: !!profile?.identity?.name,
       action: () => navigate("/resume-builder"),
       cta: "Build Profile",
@@ -32,7 +30,6 @@ const DashboardWelcome = ({ profile, preferences, jobCount, appCount, metrics, o
     {
       icon: Target,
       label: "Set job preferences",
-      benefit: "See only the roles that fit your goals and salary",
       done: !!(preferences?.target_roles?.length),
       action: () => onSetView?.("preferences"),
       cta: "Set Preferences",
@@ -40,7 +37,6 @@ const DashboardWelcome = ({ profile, preferences, jobCount, appCount, metrics, o
     {
       icon: Briefcase,
       label: "Discover jobs",
-      benefit: "Browse AI-curated listings matched to your skills",
       done: jobCount > 0,
       action: () => onSetView?.("jobs"),
       cta: "Browse Jobs",
@@ -48,7 +44,6 @@ const DashboardWelcome = ({ profile, preferences, jobCount, appCount, metrics, o
     {
       icon: Send,
       label: "Apply to your first role",
-      benefit: "Track every application in your personal Tracker",
       done: appCount > 0,
       action: () => onSetView?.("jobs"),
       cta: "Find a Role",
@@ -58,137 +53,64 @@ const DashboardWelcome = ({ profile, preferences, jobCount, appCount, metrics, o
   const completedCount = steps.filter(s => s.done).length;
   const allDone = completedCount === steps.length;
   const nextStep = steps.find(s => !s.done);
-  const progressPct = (completedCount / steps.length) * 100;
 
+  // All setup done — show compact metrics row
   if (allDone && metrics) {
     return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4 }}
-        className="rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/10 via-background to-background p-6 mb-6 overflow-hidden relative shadow-sm"
-      >
-        <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
-        
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-3">
-              <Sparkles className="w-3.5 h-3.5" /> Hunter Success Tracking
-            </div>
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
-              You're on fire, {firstName || "there"}! 🔥
-            </h2>
-            <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-              Your AI-automated job hunt is yielding results. Keep applying and crushing those interviews.
-            </p>
-          </div>
-
-          <div className="flex gap-4 sm:gap-6 mt-2 sm:mt-0 w-full sm:w-auto">
-            <div className="flex flex-col items-center justify-center bg-card border border-border/50 rounded-xl p-4 w-full sm:w-32 shadow-sm relative overflow-hidden group">
-              <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <span className="text-3xl font-black text-primary mb-0.5">{metrics.interviews}</span>
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Interviews</span>
-            </div>
-            <div className="flex flex-col items-center justify-center bg-card border border-border/50 rounded-xl p-4 w-full sm:w-32 shadow-sm relative overflow-hidden group">
-              <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <span className="text-3xl font-black text-emerald-500 mb-0.5">{metrics.offers}</span>
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Offers</span>
-            </div>
-          </div>
+      <div className="flex items-center gap-6 py-3 border-b border-border mb-6 text-sm">
+        <span className="text-muted-foreground">
+          {firstName ? `Hi, ${firstName}` : "Dashboard"}
+        </span>
+        <div className="flex items-center gap-5 ml-auto text-xs text-muted-foreground">
+          <span><strong className="text-foreground font-semibold">{appCount}</strong> applications</span>
+          <span><strong className="text-foreground font-semibold">{metrics.interviews}</strong> interviews</span>
+          <span><strong className="text-foreground font-semibold">{metrics.offers}</strong> offers</span>
         </div>
-      </motion.div>
+      </div>
     );
-  } else if (allDone) {
-      return null;
   }
 
+  if (allDone) return null;
+
+  // Onboarding checklist
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/6 via-background to-background p-5 sm:p-6 mb-6 overflow-hidden relative"
-    >
-      {/* Decorative blob */}
-      <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full bg-primary/5 blur-2xl pointer-events-none" />
-
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4 mb-5">
-        <div>
-          <h2 className="text-base font-bold">
-            {firstName ? `Welcome, ${firstName}` : "Get started with Hunter"}
-          </h2>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {completedCount === 0
-              ? "Complete these steps to unlock your personalised job feed"
-              : completedCount === 1
-              ? "Great start — a few more steps to supercharge your search"
-              : `Almost there — ${steps.length - completedCount} step${steps.length - completedCount > 1 ? "s" : ""} to go`}
-          </p>
-        </div>
-        <div className="shrink-0 flex flex-col items-center">
-          <span className="text-2xl font-black text-primary leading-none">{Math.round(progressPct)}%</span>
-          <span className="text-[10px] text-muted-foreground mt-0.5 uppercase tracking-wide">done</span>
-        </div>
+    <div className="border border-border rounded-md mb-6">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+        <span className="text-sm font-medium">Getting started</span>
+        <span className="text-xs text-muted-foreground">{completedCount} / {steps.length} complete</span>
       </div>
-
-      {/* Progress bar */}
-      <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden mb-5">
-        <motion.div
-          className="h-full bg-primary rounded-full"
-          initial={{ width: 0 }}
-          animate={{ width: `${progressPct}%` }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-        />
-      </div>
-
-      {/* Steps */}
-      <div className="grid sm:grid-cols-2 gap-2">
+      <div className="divide-y divide-border">
         {steps.map((step, i) => {
           const isNext = step === nextStep;
           return (
             <div
               key={i}
-              className={`flex items-start gap-3 rounded-xl p-3 transition-all ${
-                step.done
-                  ? "bg-primary/5 border border-primary/10"
-                  : isNext
-                  ? "bg-card border border-border shadow-sm"
-                  : "bg-card border border-border/50 opacity-60"
+              className={`flex items-center gap-3 px-4 py-2.5 text-sm ${
+                step.done ? "text-muted-foreground" : isNext ? "text-foreground" : "text-muted-foreground/60"
               }`}
             >
-              <div className={`mt-0.5 shrink-0 rounded-lg p-1.5 ${step.done ? "bg-primary/10" : "bg-muted"}`}>
-                {step.done ? (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
-                ) : (
-                  <step.icon className="w-3.5 h-3.5 text-muted-foreground" />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-xs font-semibold leading-tight ${step.done ? "line-through text-muted-foreground" : "text-foreground"}`}>
-                  {step.label}
-                </p>
-                {!step.done && (
-                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">{step.benefit}</p>
-                )}
-              </div>
+              {step.done ? (
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-primary" />
+              ) : (
+                <Circle className="w-4 h-4 shrink-0" />
+              )}
+              <span className={step.done ? "line-through" : ""}>{step.label}</span>
               {isNext && step.action && (
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-7 text-xs gap-1 px-2.5 shrink-0"
+                  className="ml-auto h-6 text-xs px-2.5 rounded-sm"
                   onClick={step.action}
                 >
                   {step.cta}
-                  <ArrowRight className="w-3 h-3" />
+                  <ArrowRight className="w-3 h-3 ml-1" />
                 </Button>
               )}
             </div>
           );
         })}
       </div>
-    </motion.div>
+    </div>
   );
 };
 

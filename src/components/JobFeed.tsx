@@ -297,10 +297,10 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                   : 'No jobs yet — click Find Jobs to search'}
       </p>
 
-      {/* Job Cards */}
-      <div className="space-y-3">
+      {/* Job List */}
+      <div className="border border-border rounded-md overflow-hidden divide-y divide-border">
         <AnimatePresence mode="popLayout">
-        {filteredJobs.map((job, idx) => {
+        {filteredJobs.map((job) => {
           const isExpanded = expandedJob === job.id;
           const isApplied = appliedJobIds.has(job.id);
           const isApplying = activeApplication?.jobId === job.id;
@@ -310,134 +310,120 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
             <motion.div
               key={job.id}
               layout
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96 }}
-              transition={{ duration: 0.3, delay: Math.min(idx * 0.04, 0.2) }}
-              className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 transition-all duration-200"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="bg-card"
             >
-              <div className="p-4 sm:p-5">
-                <div className="flex items-start gap-3">
-                  <div className="flex w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-primary/10 items-center justify-center shrink-0 border border-primary/10">
-                    <span className="text-sm font-bold text-primary">{job.company[0]}</span>
+              {/* Row */}
+              <div className="flex items-start gap-3 px-4 py-3 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => handleExpandJob(job.id)}>
+                {/* Company initial */}
+                <div className="w-7 h-7 rounded-sm bg-muted flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="text-xs font-medium text-muted-foreground">{job.company[0]}</span>
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <span className="text-sm font-medium leading-snug">{job.title}</span>
+                    <span className="text-xs text-muted-foreground shrink-0">{job.company}</span>
+                    {job.location && <span className="text-xs text-muted-foreground truncate hidden sm:block">{job.location}</span>}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <h3 className="font-semibold text-[15px] sm:text-base leading-snug line-clamp-2">{job.title}</h3>
-                        <div className="flex items-center gap-2 sm:gap-3 mt-1.5 text-xs text-muted-foreground flex-wrap">
-                          <span className="flex items-center gap-1.5"><Building2 className="w-3 h-3 shrink-0" />{job.company}</span>
-                          {job.location && <span className="flex items-center gap-1.5 truncate max-w-[140px] sm:max-w-none"><MapPin className="w-3 h-3 shrink-0" />{job.location}</span>}
-                          {job.match && (
-                            <MatchScoreTooltip match={job.match}>
-                              <span className={`inline-flex items-center font-semibold text-[11px] px-1.5 py-0.5 rounded-full border cursor-help ${
-                                job.match.overall_score >= 70
-                                  ? 'bg-primary/10 text-primary border-primary/20'
-                                  : job.match.overall_score >= 40
-                                  ? 'bg-warning/10 text-warning border-warning/20'
-                                  : 'bg-muted text-muted-foreground border-border'
-                              }`}>
-                                {job.match.overall_score}% match
-                              </span>
-                            </MatchScoreTooltip>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        {/* Bookmark */}
-                        <button
-                          onClick={() => {
-                            toggleSave(job.id);
-                            toast(jobSaved ? "Removed from saved" : "Saved to bookmarks");
-                          }}
-                          className={`p-2 rounded-xl transition-colors ${
-                            jobSaved
-                              ? "text-primary bg-primary/10"
-                              : "text-muted-foreground/60 hover:text-primary hover:bg-primary/5 active:bg-primary/10"
-                          }`}
-                          title={jobSaved ? "Remove bookmark" : "Save job"}
-                        >
-                          <Bookmark className={`w-4 h-4 ${jobSaved ? "fill-current" : ""}`} />
-                        </button>
-                        {/* Dismiss */}
-                        <button
-                          onClick={() => handleDismiss(job)}
-                          className="p-2 rounded-xl text-muted-foreground/60 hover:text-destructive hover:bg-destructive/5 active:bg-destructive/10 transition-colors"
-                          title="Dismiss job"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-
-                    <p className="text-sm text-muted-foreground mt-2.5 line-clamp-2 leading-relaxed">{job.description}</p>
-
-                    <div className="flex items-center gap-2 mt-3 flex-wrap">
-                      {job.salary_range ? (
-                        <span className="text-xs font-mono font-semibold text-foreground/80 bg-muted px-2 py-0.5 rounded-md">{job.salary_range}</span>
-                      ) : (
-                        <span className="text-[10px] text-muted-foreground/60 italic">Salary not listed</span>
-                      )}
-                      <SalaryInsights
-                        jobTitle={job.title}
-                        company={job.company}
-                        location={job.location}
-                        salaryRange={job.salary_range}
-                        description={job.description}
-                      />
-                      <Badge variant="outline" className="text-[10px] font-medium rounded-full">{job.source}</Badge>
-                      {job.freshness_score > 0.9 && (
-                        <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px] rounded-full gap-0.5"><Sparkles className="w-2.5 h-2.5" /> New</Badge>
-                      )}
-                    </div>
-
-                    {/* Simplified actions */}
-                    <JobCardActions
-                      isApplied={isApplied}
-                      isApplying={isApplying}
-                      isTailoring={tailoringJobId === job.id}
-                      jobUrl={job.url || "#"}
-                      onApply={() => handleApply(job)}
-                      onTailor={() => handleTailor(job)}
-                      onPrep={() => navigate(`/interview-coach?title=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}&desc=${encodeURIComponent(job.description?.substring(0, 500) || '')}`)}
-                      onIntel={() => handleExpandJob(job.id)}
-                      isExpanded={isExpanded}
-                    />
-
-                    {isApplying && activeApplication && (
-                      <div className="mt-3 space-y-1">
-                        <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
-                          <div className="h-full bg-primary transition-all duration-300" style={{ width: `${activeApplication.progress}%` }} />
-                        </div>
-                        <p className="text-[10px] text-muted-foreground font-mono">{activeApplication.logs[activeApplication.logs.length - 1]}</p>
-                      </div>
+                  <div className="flex items-center gap-2.5 mt-0.5 flex-wrap">
+                    {job.match && (
+                      <MatchScoreTooltip match={job.match}>
+                        <span className="text-xs text-muted-foreground cursor-help">{job.match.overall_score}% match</span>
+                      </MatchScoreTooltip>
                     )}
+                    {job.salary_range && (
+                      <span className="text-xs text-muted-foreground">{job.salary_range}</span>
+                    )}
+                    {job.freshness_score > 0.9 && (
+                      <span className="text-[10px] text-primary font-medium">New</span>
+                    )}
+                    <span className="text-[10px] text-muted-foreground/50">{job.source}</span>
                   </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    onClick={() => { toggleSave(job.id); toast(jobSaved ? "Removed from saved" : "Saved"); }}
+                    className={`p-1.5 rounded-sm transition-colors ${jobSaved ? "text-foreground" : "text-muted-foreground/40 hover:text-muted-foreground"}`}
+                    title={jobSaved ? "Remove bookmark" : "Save job"}
+                  >
+                    <Bookmark className={`w-3.5 h-3.5 ${jobSaved ? "fill-current" : ""}`} />
+                  </button>
+                  <button
+                    onClick={() => handleDismiss(job)}
+                    className="p-1.5 rounded-sm text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+                    title="Dismiss"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
 
+              {/* Expanded detail */}
               {isExpanded && (
-                <div className="border-t border-border p-4 sm:p-5 bg-muted/20 animate-fade-in">
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-3">Hiring Team</p>
-                  {stakeholders[job.id] ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="px-4 pb-4 border-t border-border/50 bg-muted/20">
+                  <p className="text-sm text-muted-foreground py-3 leading-relaxed line-clamp-3">{job.description}</p>
+
+                  <div className="flex items-center gap-2 mb-3 flex-wrap">
+                    <SalaryInsights
+                      jobTitle={job.title}
+                      company={job.company}
+                      location={job.location}
+                      salaryRange={job.salary_range}
+                      description={job.description}
+                    />
+                  </div>
+
+                  <JobCardActions
+                    isApplied={isApplied}
+                    isApplying={isApplying}
+                    isTailoring={tailoringJobId === job.id}
+                    jobUrl={job.url || "#"}
+                    onApply={() => handleApply(job)}
+                    onTailor={() => handleTailor(job)}
+                    onPrep={() => navigate(`/interview-coach?title=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}&desc=${encodeURIComponent(job.description?.substring(0, 500) || '')}`)}
+                    onIntel={() => handleExpandJob(job.id)}
+                    isExpanded={isExpanded}
+                  />
+
+                  {isApplying && activeApplication && (
+                    <div className="mt-3 space-y-1">
+                      <div className="h-0.5 w-full bg-muted overflow-hidden rounded-full">
+                        <div className="h-full bg-primary transition-all duration-300" style={{ width: `${activeApplication.progress}%` }} />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground font-mono">{activeApplication.logs[activeApplication.logs.length - 1]}</p>
+                    </div>
+                  )}
+
+                  {/* Hiring team */}
+                  {stakeholders[job.id] && (
+                    <div className="mt-4 pt-3 border-t border-border/40 space-y-1.5">
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Hiring team</p>
                       {stakeholders[job.id].map((person, i) => (
                         <a key={i} href={person.profile_url} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center gap-3 p-3 rounded-xl bg-card hover:bg-accent/60 transition-colors border border-border/60">
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold shrink-0 border border-primary/10">{person.name?.[0] || '?'}</div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs font-semibold truncate">{person.name}</p>
-                            <p className="text-[10px] text-muted-foreground truncate mt-0.5">{person.role}</p>
-                          </div>
-                          <ExternalLink className="w-3 h-3 text-muted-foreground/60 shrink-0" />
+                          className="flex items-center gap-2.5 py-1.5 text-sm hover:text-primary transition-colors">
+                          <div className="w-6 h-6 rounded-sm bg-muted flex items-center justify-center text-xs font-medium shrink-0">{person.name?.[0] || '?'}</div>
+                          <span className="font-medium text-xs">{person.name}</span>
+                          <span className="text-xs text-muted-foreground">{person.role}</span>
+                          <ExternalLink className="w-3 h-3 text-muted-foreground/50 ml-auto shrink-0" />
                         </a>
                       ))}
                     </div>
-                  ) : (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground py-2"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Finding hiring team...</div>
+                  )}
+                  {expandedJob === job.id && !stakeholders[job.id] && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-3 pt-3 border-t border-border/40">
+                      <Loader2 className="w-3 h-3 animate-spin" /> Finding hiring team...
+                    </div>
                   )}
                 </div>
               )}
+
             </motion.div>
           );
         })}

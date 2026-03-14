@@ -247,20 +247,18 @@ const Dashboard = () => {
                 onClick={() => setActiveView(item.id)}
                 title={sidebarCollapsed ? item.label : undefined}
                 aria-current={activeView === item.id ? "page" : undefined}
-                className={`w-full flex items-center gap-2.5 rounded-lg text-sm font-medium transition-all ${
-                  sidebarCollapsed ? "justify-center p-2" : "px-3 py-2"
+                className={`w-full flex items-center gap-2 rounded-md text-sm transition-colors ${
+                  sidebarCollapsed ? "justify-center p-2" : "px-2.5 py-1.5"
                 } ${
                   activeView === item.id
-                    ? "bg-primary/12 text-primary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
+                    ? "bg-muted text-foreground font-medium"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60 font-normal"
                 }`}
               >
-                <item.icon className={`w-4 h-4 shrink-0 ${activeView === item.id ? "text-primary" : ""}`} />
+                <item.icon className="w-4 h-4 shrink-0" />
                 {!sidebarCollapsed && item.label}
                 {!sidebarCollapsed && item.id === "applications" && appCount > 0 && (
-                  <Badge variant="secondary" className="ml-auto text-[10px] h-5 min-w-[20px] flex items-center justify-center px-1.5 bg-primary/10 text-primary border-0">
-                    {appCount}
-                  </Badge>
+                  <span className="ml-auto text-[11px] text-muted-foreground tabular-nums">{appCount}</span>
                 )}
               </button>
             ))}
@@ -284,12 +282,12 @@ const Dashboard = () => {
                       else if (tool.modal === 'postInterview') setShowPostInterview(true);
                       else if (tool.modal === 'linkedin') setShowLinkedIn(true);
                     }}
-                    className={`w-full flex items-center gap-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-all ${
-                      sidebarCollapsed ? "justify-center p-2" : "px-3 py-1.5"
+                    className={`w-full flex items-center gap-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors font-normal ${
+                      sidebarCollapsed ? "justify-center p-2" : "px-2.5 py-1.5"
                     }`}
                   >
-                    <tool.icon className="w-3.5 h-3.5 shrink-0" />
-                    {!sidebarCollapsed && <span className="truncate text-[13px]">{tool.title}</span>}
+                    <tool.icon className="w-4 h-4 shrink-0" />
+                    {!sidebarCollapsed && <span className="truncate">{tool.title}</span>}
                   </button>
                 ))}
               </div>
@@ -307,22 +305,22 @@ const Dashboard = () => {
             onClick={() => setActiveView("settings")}
             title={sidebarCollapsed ? "Settings" : undefined}
             aria-current={activeView === "settings" ? "page" : undefined}
-            className={`w-full flex items-center gap-2.5 rounded-lg text-sm font-medium transition-all ${
-              sidebarCollapsed ? "justify-center p-2" : "px-3 py-2"
+            className={`w-full flex items-center gap-2 rounded-md text-sm transition-colors ${
+              sidebarCollapsed ? "justify-center p-2" : "px-2.5 py-1.5"
             } ${
               activeView === "settings"
-                ? "bg-primary/12 text-primary"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
+                ? "bg-muted text-foreground font-medium"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/60 font-normal"
             }`}
           >
-            <Settings className={`w-4 h-4 shrink-0 ${activeView === "settings" ? "text-primary" : ""}`} />
+            <Settings className="w-4 h-4 shrink-0" />
             {!sidebarCollapsed && "Settings"}
           </button>
           <button
             onClick={handleSignOut}
             title={sidebarCollapsed ? "Sign out" : undefined}
-            className={`w-full flex items-center gap-2.5 rounded-lg text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors ${
-              sidebarCollapsed ? "justify-center p-2" : "px-3 py-2"
+            className={`w-full flex items-center gap-2 rounded-md text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors font-normal ${
+              sidebarCollapsed ? "justify-center p-2" : "px-2.5 py-1.5"
             }`}
           >
             <LogOut className="w-4 h-4" />
