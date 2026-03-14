@@ -18,7 +18,7 @@ import {
   Sparkles, GraduationCap, FileText, Download, Loader2, Check, Layout,
   Eye, ShieldCheck, Copy, Share
 } from "lucide-react";
-import { exportResumeToPdf, exportResumeToDocx } from "@/lib/pdf_export";
+import { exportResumeToDocx } from "@/lib/pdf_export";
 import { analyzeResumeForJob, ATSResult } from "@/lib/ats_engine";
 import PageHeader from "@/components/PageHeader";
 import DashboardSkeleton from "@/components/DashboardSkeleton";
@@ -217,12 +217,23 @@ const ResumeBuilder = () => {
     }
   };
 
-  const handleDownloadPdf = async () => {
-    try {
-      await exportResumeToPdf(formData, `${formData.identity.name || "resume"}_hunter.pdf`, { onePage: true });
-    } catch {
-      toast.error("PDF export failed", { description: "Try the DOCX option instead." });
-    }
+  const handleDownloadPdf = () => {
+    if (!generatedHtml) return;
+    // Use a hidden iframe so the exact AI-rendered HTML is printed —
+    // matches the preview 1:1 and avoids popup blockers.
+    const iframe = document.createElement("iframe");
+    iframe.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:850px;height:1200px;border:none;";
+    document.body.appendChild(iframe);
+    const doc = iframe.contentDocument!;
+    doc.open();
+    doc.write(generatedHtml);
+    doc.close();
+    iframe.onload = () => {
+      setTimeout(() => {
+        iframe.contentWindow!.print();
+        setTimeout(() => document.body.removeChild(iframe), 2000);
+      }, 300);
+    };
   };
 
   const canProceed = () => {
