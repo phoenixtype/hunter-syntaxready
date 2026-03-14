@@ -612,7 +612,7 @@ const ResumeBuilder = () => {
               {!generated && (
                 <Card className="border-border bg-card">
                   <CardContent className="p-6 space-y-4">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
                       <div><span className="text-muted-foreground">Name</span><p className="font-medium">{formData.identity.name || "—"}</p></div>
                       <div><span className="text-muted-foreground">Email</span><p className="font-medium">{formData.identity.email || "—"}</p></div>
                       <div><span className="text-muted-foreground">Experience</span><p className="font-medium">{formData.experience_atoms.length} position(s)</p></div>
@@ -680,7 +680,7 @@ const ResumeBuilder = () => {
                     <iframe
                       srcDoc={generatedHtml}
                       title="Resume Preview"
-                      className="w-full h-[600px] bg-white"
+                      className="w-full h-80 md:h-[600px] bg-white"
                       sandbox="allow-same-origin"
                     />
                   </div>

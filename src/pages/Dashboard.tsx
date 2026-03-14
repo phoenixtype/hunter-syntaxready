@@ -502,7 +502,7 @@ const Dashboard = () => {
                   <p className="text-sm text-muted-foreground">Manage your profile and job preferences.</p>
                 </div>
                 {/* Tabs */}
-                <div className="flex gap-1 bg-muted/50 p-1 rounded-md border border-border w-fit">
+                <div className="flex gap-1 bg-muted/50 p-1 rounded-md border border-border w-full sm:w-fit overflow-x-auto">
                   <Button
                     variant={settingsTab === "profile" ? "secondary" : "ghost"}
                     size="sm"

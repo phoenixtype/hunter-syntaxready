@@ -302,7 +302,7 @@ const Profile = () => {
                         <section className="space-y-4">
                             <h2 className="text-xl font-semibold">Personal Information</h2>
                             <Card className="border-border bg-card">
-                                <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                                     <div>
                                         <Label className="text-muted-foreground">Full Name</Label>
                                         <p className="text-lg font-medium">{formData.identity.name}</p>
@@ -518,7 +518,7 @@ const Profile = () => {
                                                         />
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"

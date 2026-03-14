@@ -279,7 +279,7 @@ const Index = () => {
               <p className="text-lg text-muted-foreground">Three steps to your next job offer.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
               {[
                 { step: "01", title: "Build your profile", desc: "Walk through a guided flow to enter your experience, skills, and education. Hunter generates a polished, ATS-ready resume." },
                 { step: "02", title: "Find matching roles", desc: "Tell Hunter what roles you want and where. It searches live job boards and ranks matches by fit in real time." },

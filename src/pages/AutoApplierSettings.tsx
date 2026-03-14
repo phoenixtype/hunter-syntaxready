@@ -314,7 +314,7 @@ const JobHuntPlanner = () => {
                         <Label>Preferred Locations</Label>
                         <LocationPicker locations={locations} onChange={setLocations} />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label>Years of Experience</Label>
                           <Input type="number" value={yearsExp} onChange={e => setYearsExp(e.target.value)} placeholder="5" />
