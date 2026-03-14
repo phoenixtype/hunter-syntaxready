@@ -121,21 +121,7 @@ export const quickHealthCheck = async (): Promise<boolean> => {
 /**
  * Log health status to console with formatting
  */
-export const logHealthStatus = (status: DatabaseHealthStatus): void => {
-    
-    if (status.healthy) {
-        // Log healthy status
-    } else {
-        if (status.missingTables.length > 0) {
-            // Log missing tables
-        }
-        
-        if (status.missingFunctions.length > 0) {
-            // Log missing functions
-        }
-        
-        if (status.recommendations.length > 0) {
-            // Log recommendations
-        }
-    }
+export const logHealthStatus = (_status: DatabaseHealthStatus): void => {
+  // Intentionally silent — health status is consumed by the UI, not the console.
+  // This function exists as a hook point for future observability integrations.
 };
