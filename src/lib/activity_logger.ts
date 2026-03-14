@@ -137,7 +137,7 @@ export const logActivity = async (
       });
   } catch (err) {
     // SECURITY: Don't expose error details to console
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.error('Failed to persist log');
     }
   }
@@ -164,7 +164,7 @@ export const fetchLogsFromDatabase = async (userId: string, limit: number = 50):
       .limit(limit);
 
     if (error) {
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env.DEV) {
         console.error('Error fetching logs');
       }
       return [];
@@ -188,8 +188,8 @@ export const fetchLogsFromDatabase = async (userId: string, limit: number = 50):
     notifySubscribers();
 
     return logs;
-  } catch (err) {
-    if (process.env.NODE_ENV === 'development') {
+  } catch {
+    if (import.meta.env.DEV) {
       console.error('Error fetching logs');
     }
     return [];

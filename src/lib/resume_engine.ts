@@ -266,10 +266,16 @@ export async function extractTextFromFile(file: File): Promise<string> {
             // Iterate over all pages
             for (let i = 1; i <= pdf.numPages; i++) {
               let pageText = '';
+              let lastY = -1;
+
+              const page = await pdf.getPage(i);
+              const textContent = await page.getTextContent();
 
               // Sort items by Y (top to bottom) then X (left to right) to handle multi-column layouts
               // PDF coordinates: (0,0) is bottom-left. Higher Y = higher on page.
-              const items = textContent.items.map(item => item as { str: string, transform: number[], width: number, height: number });
+              const items = textContent.items
+                .filter((item) => 'str' in item)
+                .map(item => item as unknown as { str: string, transform: number[], width: number, height: number });
 
               items.sort((a, b) => {
                 const yDiff = b.transform[5] - a.transform[5];
@@ -387,13 +393,13 @@ export const getCandidateProfile = async (userId: string): Promise<CandidateProf
     // onboarding: _gender, _work_auth, _age, _search_status, _exp_level, _job_values, _summary)
     // are preserved when the profile is loaded then saved again from Profile.tsx.
     const identity = (data.identity || {}) as Record<string, unknown>;
-    const profileIdentity = {
-      ...identity,                                    // keep all _underscore fields
-      name: identity?.name || 'Unknown Candidate',
-      email: identity?.email || '',
-      phone: identity?.phone || '',
-      location: identity?.location || '',
-      links: Array.isArray(identity?.links) ? identity.links : []
+    const profileIdentity: CandidateProfile['identity'] = {
+      ...(identity as Record<string, string>),        // keep all _underscore fields
+      name: (identity?.name as string) || 'Unknown Candidate',
+      email: (identity?.email as string) || '',
+      phone: (identity?.phone as string) || '',
+      location: (identity?.location as string) || '',
+      links: Array.isArray(identity?.links) ? (identity.links as string[]) : []
     };
 
     return {
@@ -403,7 +409,7 @@ export const getCandidateProfile = async (userId: string): Promise<CandidateProf
       education: (data.education as unknown as Education[]) || [],
       resume_file_url: data.resume_file_url || undefined,
       // summary is embedded in the identity JSONB (no separate DB column)
-      summary: identity?._summary || undefined
+      summary: (identity?._summary as string) || undefined
     };
   } catch {
     return null;
@@ -417,15 +423,17 @@ export const saveCandidateProfile = async (userId: string, profile: CandidatePro
     ? { ...profile.identity, _summary: profile.summary }
     : profile.identity;
 
+  const payload = {
+    user_id: userId,
+    identity: identityPayload as unknown as import('@/integrations/supabase/types').Json,
+    skills: profile.skills as unknown as import('@/integrations/supabase/types').Json,
+    experience_atoms: profile.experience_atoms as unknown as import('@/integrations/supabase/types').Json,
+    education: profile.education as unknown as import('@/integrations/supabase/types').Json,
+  };
+
   const { error } = await supabase
     .from('candidate_profiles')
-    .upsert({
-      user_id: userId,
-      identity: identityPayload as unknown as Record<string, unknown>,
-      skills: profile.skills as unknown as Record<string, unknown>[],
-      experience_atoms: profile.experience_atoms as unknown as Record<string, unknown>[],
-      education: profile.education as unknown as Record<string, unknown>[]
-    }, { onConflict: 'user_id' });
+    .upsert(payload, { onConflict: 'user_id' });
 
   if (error) {
     throw error;

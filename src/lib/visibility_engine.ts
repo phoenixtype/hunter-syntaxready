@@ -61,6 +61,7 @@ export const calculateVisibilityScore = async (
             signalStrength: 0,
             completeness: 0,
             roleFitLikelihood: 0,
+            radarData: [],
             breakdown: [
                 { category: "Profile Status", score: 0, feedback: "No profile detected. Build your profile to activate scoring." }
             ],
