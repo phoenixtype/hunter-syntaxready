@@ -1,5 +1,4 @@
 import { CandidateProfile } from "./resume_engine";
-import { Application } from "./application_engine";
 
 export interface SkillRecommendation {
   name: string;
@@ -20,8 +19,6 @@ export const getSkillDevelopmentAdvice = async (
   
   // 1. Analyze skills required by recently applied jobs
   applications.slice(0, 10).forEach(app => {
-    // Assuming application data includes job metadata if fetched correctly
-    // If not, we rely on the recommended jobs which are usually matched to user's target roles
     const techStack = app.job_metadata?.tech_stack || [];
     techStack.forEach((skill: string) => {
       const s = skill.toLowerCase();
@@ -37,7 +34,7 @@ export const getSkillDevelopmentAdvice = async (
     techStack.forEach((skill: string) => {
       const s = skill.toLowerCase();
       if (!currentSkills.has(s)) {
-        requiredSkillFrequency[s] = (requiredSkillFrequency[s] || 0) + 2; // Weight recommendations higher
+        requiredSkillFrequency[s] = (requiredSkillFrequency[s] || 0) + 2;
       }
     });
   });
@@ -58,7 +55,6 @@ export const getSkillDevelopmentAdvice = async (
 
   const recommendations: SkillRecommendation[] = [];
 
-  // Convert frequency map to sorted recommendations
   const sortedGaps = Object.entries(requiredSkillFrequency)
     .sort(([, a], [, b]) => b - a)
     .slice(0, 5);
@@ -79,7 +75,6 @@ export const getSkillDevelopmentAdvice = async (
     });
   });
 
-  // If no gaps found (rare), provide some proactive growth tips
   if (recommendations.length === 0) {
     recommendations.push({
       name: 'AI Agent Orchestration',

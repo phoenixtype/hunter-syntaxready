@@ -423,15 +423,17 @@ export const saveCandidateProfile = async (userId: string, profile: CandidatePro
     ? { ...profile.identity, _summary: profile.summary }
     : profile.identity;
 
+  const payload = {
+    user_id: userId,
+    identity: identityPayload as unknown as import('@/integrations/supabase/types').Json,
+    skills: profile.skills as unknown as import('@/integrations/supabase/types').Json,
+    experience_atoms: profile.experience_atoms as unknown as import('@/integrations/supabase/types').Json,
+    education: profile.education as unknown as import('@/integrations/supabase/types').Json,
+  };
+
   const { error } = await supabase
     .from('candidate_profiles')
-    .upsert({
-      user_id: userId,
-      identity: identityPayload as unknown as Record<string, unknown>,
-      skills: profile.skills as unknown as Record<string, unknown>[],
-      experience_atoms: profile.experience_atoms as unknown as Record<string, unknown>[],
-      education: profile.education as unknown as Record<string, unknown>[]
-    }, { onConflict: 'user_id' });
+    .upsert(payload, { onConflict: 'user_id' });
 
   if (error) {
     throw error;

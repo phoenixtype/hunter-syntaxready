@@ -1,28 +1,15 @@
-import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useResume } from "@/hooks/useResume";
 import { useDashboardData } from "@/hooks/useDashboardData";
-import { getSkillDevelopmentAdvice, SkillRecommendation } from "@/lib/skill_coach_engine";
+import { SkillRecommendation } from "@/lib/skill_coach_engine";
 import { Brain, GraduationCap, TrendingUp, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { useState } from "react";
 
 const SkillCoachWidget = () => {
-  const { profile } = useResume();
-  const { applications, jobRecommendations } = useDashboardData();
-  const [recommendations, setRecommendations] = useState<SkillRecommendation[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { skillRecommendations, isLoading } = useDashboardData();
   const [expanded, setExpanded] = useState(false);
 
-  useEffect(() => {
-    if (!profile) return;
-    setLoading(true);
-    getSkillDevelopmentAdvice(profile, applications || [], jobRecommendations || [])
-      .then(setRecommendations)
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [profile, applications, jobRecommendations]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="rounded-md border border-border bg-card p-5 flex items-center justify-center h-24">
         <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
@@ -30,9 +17,9 @@ const SkillCoachWidget = () => {
     );
   }
 
-  if (recommendations.length === 0) return null;
+  if (skillRecommendations.length === 0) return null;
 
-  const visible = expanded ? recommendations : recommendations.slice(0, 2);
+  const visible = expanded ? skillRecommendations : skillRecommendations.slice(0, 2);
 
   return (
     <div className="rounded-md border border-border bg-card p-5 space-y-4">
@@ -55,7 +42,7 @@ const SkillCoachWidget = () => {
 
       {/* Recommendations list */}
       <div className="border border-border rounded-md overflow-hidden divide-y divide-border">
-        {visible.map((rec, idx) => (
+        {visible.map((rec: SkillRecommendation, idx: number) => (
           <div key={idx} className="flex items-start gap-3 p-3 bg-card hover:bg-muted/30 transition-colors">
             <div className="w-6 h-6 rounded-md bg-muted flex items-center justify-center shrink-0 mt-0.5">
               {rec.type === "certification"
@@ -83,7 +70,7 @@ const SkillCoachWidget = () => {
       </div>
 
       {/* CTA */}
-      {recommendations.length > 2 && (
+      {skillRecommendations.length > 2 && (
         <div className="pt-1 border-t border-border">
           <Button
             variant="ghost"
@@ -94,7 +81,7 @@ const SkillCoachWidget = () => {
             {expanded ? (
               <><ChevronUp className="w-3.5 h-3.5" />Show less</>
             ) : (
-              <><ChevronDown className="w-3.5 h-3.5" />View {recommendations.length - 2} more growth areas</>
+              <><ChevronDown className="w-3.5 h-3.5" />View {skillRecommendations.length - 2} more growth areas</>
             )}
           </Button>
         </div>
