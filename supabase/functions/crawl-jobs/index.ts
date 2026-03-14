@@ -259,7 +259,7 @@ async function normalizeWithGemini(geminiKey: string, rawJob: { title: string; u
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30000);
   try {
-    const llmResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
+    const llmResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       signal: controller.signal,
