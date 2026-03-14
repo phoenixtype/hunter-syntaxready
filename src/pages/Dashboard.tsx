@@ -548,12 +548,13 @@ const Dashboard = () => {
       {/* Modals */}
       <PostInterviewModal isOpen={showPostInterview} onClose={() => setShowPostInterview(false)} companyName="" profile={profile} />
       <LinkedInOptimizer isOpen={showLinkedIn} onClose={() => setShowLinkedIn(false)} profile={profile} />
-      <VisibilityCoachModal 
-        isOpen={showCoach} 
-        onClose={() => setShowCoach(false)} 
-        profile={profile} 
-        score={visibility} 
+      <VisibilityCoachModal
+        isOpen={showCoach}
+        onClose={() => setShowCoach(false)}
+        profile={profile}
+        score={visibility}
         skillRecommendations={skillRecommendations || []}
+        preferences={preferences}
       />
       
       {/* Subscription Gate — block dashboard if on FREE tier and has profile */}

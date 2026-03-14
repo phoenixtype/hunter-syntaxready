@@ -3,9 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Bot, Zap, Target, Network, ArrowRight, Loader2, Rocket, ShieldCheck, TrendingUp, BarChart3, CheckCircle2, Sparkles } from "lucide-react";
+import { Bot, Zap, Target, Network, ArrowRight, Loader2, Rocket, ShieldCheck, TrendingUp, BarChart3, CheckCircle2, Sparkles, AlertCircle } from "lucide-react";
 import { CandidateProfile } from "@/lib/resume_engine";
 import { VisibilityScore, CoachAdvice, getCoachAdvice } from "@/lib/visibility_engine";
+import { UserPreferences } from "@/lib/user_preferences";
 import { useNavigate } from "react-router-dom";
 import { SkillRecommendation } from "@/lib/skill_coach_engine";
 import { Badge } from "@/components/ui/badge";
@@ -16,9 +17,10 @@ interface VisibilityCoachModalProps {
   profile: CandidateProfile | null;
   score: VisibilityScore | null;
   skillRecommendations: SkillRecommendation[];
+  preferences?: UserPreferences | null;
 }
 
-const VisibilityCoachModal = ({ isOpen, onClose, profile, score, skillRecommendations }: VisibilityCoachModalProps) => {
+const VisibilityCoachModal = ({ isOpen, onClose, profile, score, skillRecommendations, preferences }: VisibilityCoachModalProps) => {
   const [loading, setLoading] = useState(true);
   const [advice, setAdvice] = useState<CoachAdvice[]>([]);
   const navigate = useNavigate();
@@ -28,7 +30,7 @@ const VisibilityCoachModal = ({ isOpen, onClose, profile, score, skillRecommenda
       const loadAdvice = async () => {
         setLoading(true);
         try {
-          const result = await getCoachAdvice(profile, score);
+          const result = await getCoachAdvice(profile, score, preferences);
           setAdvice(result);
         } catch (error) {
           console.error("Failed to load coach advice:", error);
@@ -38,7 +40,7 @@ const VisibilityCoachModal = ({ isOpen, onClose, profile, score, skillRecommenda
       };
       loadAdvice();
     }
-  }, [isOpen, profile, score]);
+  }, [isOpen, profile, score, preferences]);
 
   const getIcon = (type: CoachAdvice['type']) => {
     switch (type) {
@@ -172,17 +174,94 @@ const VisibilityCoachModal = ({ isOpen, onClose, profile, score, skillRecommenda
                         <div key={idx} className="rounded-md border border-border bg-card p-4 space-y-2">
                           <div className="flex items-center justify-between">
                             <span className="text-xs font-medium text-foreground">{item.category}</span>
-                            <span className="text-sm font-semibold tabular-nums">{item.score}%</span>
+                            <span className={`text-sm font-semibold tabular-nums ${item.score >= 70 ? 'text-emerald-500' : item.score >= 40 ? 'text-amber-500' : 'text-destructive'}`}>{item.score}%</span>
                           </div>
                           <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-primary rounded-full transition-all duration-700"
+                              className={`h-full rounded-full transition-all duration-700 ${item.score >= 70 ? 'bg-emerald-500' : item.score >= 40 ? 'bg-amber-500' : 'bg-destructive'}`}
                               style={{ width: `${item.score}%` }}
                             />
                           </div>
                           <p className="text-xs text-muted-foreground leading-relaxed">{item.feedback}</p>
                         </div>
                       ))}
+
+                      {/* Role Fit Detail Card */}
+                      {score?.roleFitDetail && (
+                        <div className="rounded-md border border-border bg-card p-4 space-y-3">
+                          <div className="flex items-center gap-2">
+                            <Target className="h-4 w-4 text-primary" />
+                            <h4 className="text-sm font-medium">Role Fit Breakdown</h4>
+                            <span className={`ml-auto text-xs font-semibold px-2 py-0.5 rounded-full ${
+                              score.roleFitLikelihood >= 70 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
+                              score.roleFitLikelihood >= 40 ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' :
+                              'bg-destructive/10 text-destructive'
+                            }`}>
+                              {score.roleFitLikelihood}% likely to be chosen
+                            </span>
+                          </div>
+
+                          {score.roleFitDetail.targetRoles.length === 0 ? (
+                            <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                              <AlertCircle className="h-3.5 w-3.5 text-amber-500 mt-0.5 shrink-0" />
+                              <span>No target roles set. Go to <button className="underline text-primary" onClick={() => { navigate('/auto-applier-settings'); onClose(); }}>Job Preferences</button> to define the roles you're seeking.</span>
+                            </div>
+                          ) : (
+                            <div className="space-y-2.5">
+                              <div>
+                                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">Targeting</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {score.roleFitDetail.targetRoles.map(role => (
+                                    <span key={role} className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-medium">{role}</span>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">Matched signals</p>
+                                  {score.roleFitDetail.alignedKeywords.length > 0 ? (
+                                    <div className="flex flex-wrap gap-1">
+                                      {score.roleFitDetail.alignedKeywords.slice(0, 6).map(kw => (
+                                        <span key={kw} className="px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-medium flex items-center gap-1">
+                                          <CheckCircle2 className="h-2.5 w-2.5" />{kw}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <p className="text-xs text-muted-foreground">None found yet</p>
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">Missing signals</p>
+                                  {score.roleFitDetail.missingKeywords.length > 0 ? (
+                                    <div className="flex flex-wrap gap-1">
+                                      {score.roleFitDetail.missingKeywords.slice(0, 6).map(kw => (
+                                        <span key={kw} className="px-1.5 py-0.5 rounded-md bg-destructive/10 text-destructive text-[10px] font-medium flex items-center gap-1">
+                                          <AlertCircle className="h-2.5 w-2.5" />{kw}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <p className="text-xs text-muted-foreground">All matched!</p>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="flex flex-wrap gap-3 pt-1 text-[11px] text-muted-foreground border-t border-border">
+                                <span className={`flex items-center gap-1 ${score.roleFitDetail.levelMatch ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                                  <CheckCircle2 className="h-3 w-3" />
+                                  Experience level {score.roleFitDetail.levelMatch ? 'aligned' : 'may not match'}
+                                </span>
+                                <span className={`flex items-center gap-1 ${score.roleFitDetail.summaryMentionsRole ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                                  <CheckCircle2 className="h-3 w-3" />
+                                  Summary {score.roleFitDetail.summaryMentionsRole ? 'references target role' : 'not role-specific'}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </TabsContent>
 
                     {/* Market Info Tab */}

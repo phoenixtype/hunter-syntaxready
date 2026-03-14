@@ -77,16 +77,17 @@ export const useDashboardData = () => {
         staleTime: 1000 * 60 * 2,
     });
 
-    // 3. Visibility Score — keyed on profileId (stable scalar), not the profile object.
-    // Also guarded with !!profileId so an empty object {} doesn't trigger the query.
+    // 3. Visibility Score — keyed on userId + target roles so it re-runs when the user
+    // updates their job preferences. Preferences are loaded before this query fires
+    // because the enabled guard uses !!profile (which loads after auth + preferences).
     const {
         data: visibility,
         isLoading: visibilityLoading,
         error: visibilityError,
     } = useQuery<VisibilityScore | null>({
-        queryKey: ["visibilityScore", userId],
+        queryKey: ["visibilityScore", userId, preferences?.target_roles?.join(',') ?? '', preferences?.experience_level ?? ''],
         queryFn: () =>
-            profile ? calculateVisibilityScore(profile) : Promise.resolve(null),
+            profile ? calculateVisibilityScore(profile, preferences) : Promise.resolve(null),
         enabled: !!profile && !!userId,
         staleTime: 1000 * 60 * 2,
     });

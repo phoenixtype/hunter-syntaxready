@@ -1,4 +1,4 @@
-import { Sparkles, BarChart3, TrendingUp, Info, Activity } from "lucide-react";
+import { Sparkles, BarChart3, TrendingUp, Info, Activity, Target } from "lucide-react";
 import { VisibilityScore } from "@/lib/visibility_engine";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -32,8 +32,8 @@ const VisibilityScoreWidget = ({ score, onConsultCoach }: VisibilityScoreWidgetP
                     <Info className="h-3 w-3" />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent className="max-w-[220px] p-3 text-xs leading-relaxed">
-                  Your visibility index measures how ATS algorithms and recruiters perceive your profile across 5 dimensions: completeness, ATS indexing, recruiter appeal, signal strength, and market fit.
+                <TooltipContent className="max-w-[240px] p-3 text-xs leading-relaxed">
+                  Your visibility index measures how ATS algorithms and recruiters perceive your profile across 6 dimensions — including role fit likelihood: how likely you are to be found and selected for the specific roles you're targeting.
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -92,6 +92,20 @@ const VisibilityScoreWidget = ({ score, onConsultCoach }: VisibilityScoreWidgetP
             />
           </RadarChart>
         </ResponsiveContainer>
+      </div>
+
+      {/* Role Fit row */}
+      <div className="flex items-center justify-between text-xs px-0.5">
+        <span className="flex items-center gap-1.5 text-muted-foreground">
+          <Target className="h-3 w-3" />
+          Role fit likelihood
+        </span>
+        <span className={`font-semibold tabular-nums ${
+          score.roleFitLikelihood >= 70 ? 'text-emerald-500' :
+          score.roleFitLikelihood >= 40 ? 'text-amber-500' : 'text-destructive'
+        }`}>
+          {score.roleFitLikelihood}%
+        </span>
       </div>
 
       {/* CTA */}

@@ -1,4 +1,4 @@
-import { Brain, TrendingUp, GraduationCap, Info, Sparkles } from "lucide-react";
+import { Brain, TrendingUp, GraduationCap, Info, Sparkles, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -44,20 +44,48 @@ const InsightsView = ({ visibility, skillRecommendations, profile, onConsultCoac
                     <Info className="h-3.5 w-3.5" />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent className="max-w-[220px] text-xs leading-relaxed">
-                  How ATS algorithms and recruiters perceive your profile across 5 dimensions.
+                <TooltipContent className="max-w-[240px] text-xs leading-relaxed">
+                  How ATS algorithms and recruiters perceive your profile across 6 dimensions — including how likely you are to be found and selected for the specific roles you're targeting.
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
 
           <div className="rounded-md border border-border bg-card p-6 space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-4xl font-bold tracking-tight">{visibility.totalScore}%</div>
-                <p className="text-sm text-muted-foreground mt-1">Overall visibility score</p>
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-3">
+                <div>
+                  <div className="text-4xl font-bold tracking-tight">{visibility.totalScore}%</div>
+                  <p className="text-sm text-muted-foreground mt-1">Overall visibility score</p>
+                </div>
+                {/* Role fit likelihood inline indicator */}
+                <div className="flex items-center gap-2">
+                  <Target className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-muted-foreground">
+                        {visibility.roleFitDetail.targetRoles.length > 0
+                          ? `Role fit: ${visibility.roleFitDetail.targetRoles[0]}${visibility.roleFitDetail.targetRoles.length > 1 ? ` +${visibility.roleFitDetail.targetRoles.length - 1}` : ''}`
+                          : 'Role fit: no target roles set'}
+                      </span>
+                      <span className={`text-xs font-semibold tabular-nums ${
+                        visibility.roleFitLikelihood >= 70 ? 'text-emerald-500' :
+                        visibility.roleFitLikelihood >= 40 ? 'text-amber-500' : 'text-destructive'
+                      }`}>{visibility.roleFitLikelihood}%</span>
+                    </div>
+                    <div className="h-1 w-32 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-700 ${
+                          visibility.roleFitLikelihood >= 70 ? 'bg-emerald-500' :
+                          visibility.roleFitLikelihood >= 40 ? 'bg-amber-500' : 'bg-destructive'
+                        }`}
+                        style={{ width: `${visibility.roleFitLikelihood}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="text-right">
+              <div className="text-right shrink-0">
                 {visibility.totalScore >= 80 && (
                   <Badge className="text-xs">Top 5%</Badge>
                 )}
