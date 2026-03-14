@@ -16,9 +16,8 @@ import ThemeToggle from "@/components/ThemeToggle";
 import MobileNav from "@/components/MobileNav";
 import SkipLink from "@/components/SkipLink";
 import { useResume } from "@/hooks/useResume";
-import { SubscriptionTier } from "@/lib/subscription";
+import { SubscriptionTier, upgradeToPro } from "@/lib/subscription";
 import PostInterviewModal from "@/components/PostInterviewModal";
-import PricingModal from "@/components/PricingModal";
 import LinkedInOptimizer from "@/components/LinkedInOptimizer";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useDashboardData } from "@/hooks/useDashboardData";
@@ -114,17 +113,11 @@ const Dashboard = () => {
     localStorage.setItem("hunter_dashboard_view", activeView);
   }, [activeView]);
   const [showPostInterview, setShowPostInterview] = useState(false);
-  const [showPricing, setShowPricing] = useState(false);
   const [showLinkedIn, setShowLinkedIn] = useState(false);
   const [showCoach, setShowCoach] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
 
   useEffect(() => {
-    if (location.state?.showPricing) {
-      setShowPricing(true);
-      window.history.replaceState({}, document.title);
-    }
-
     // Handle checkout redirection success
     const params = new URLSearchParams(location.search);
     if (params.get('checkout') === 'success') {
@@ -356,7 +349,7 @@ const Dashboard = () => {
             {subscription?.tier !== SubscriptionTier.FREE && subscription?.tier ? (
               <Badge className="bg-primary/10 text-primary border-primary/20 text-xs font-semibold">Pro</Badge>
             ) : (
-              <Button size="sm" variant="outline" onClick={() => setShowPricing(true)} className="text-xs h-8 hidden sm:flex gap-1.5">
+              <Button size="sm" variant="outline" onClick={() => upgradeToPro().catch(() => {})} className="text-xs h-8 hidden sm:flex gap-1.5">
                 <Zap className="w-3 h-3" />
                 Upgrade to Pro
               </Button>
@@ -554,7 +547,6 @@ const Dashboard = () => {
 
       {/* Modals */}
       <PostInterviewModal isOpen={showPostInterview} onClose={() => setShowPostInterview(false)} companyName="" profile={profile} />
-      <PricingModal isOpen={showPricing} onClose={() => setShowPricing(false)} />
       <LinkedInOptimizer isOpen={showLinkedIn} onClose={() => setShowLinkedIn(false)} profile={profile} />
       <VisibilityCoachModal 
         isOpen={showCoach} 

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { getPreferences, savePreferences, UserPreferences } from "@/lib/user_preferences";
 import { useSubscription } from "@/hooks/useSubscription";
-import PricingModal from "./PricingModal";
+import { upgradeToPro } from "@/lib/subscription";
 
 const NotificationSettings = () => {
   const { user } = useAuth();
@@ -16,7 +16,6 @@ const NotificationSettings = () => {
   const [saving, setSaving] = useState(false);
   const [prefs, setPrefs] = useState<UserPreferences | null>(null);
   const { canAccess } = useSubscription();
-  const [showPricingModal, setShowPricingModal] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -36,7 +35,10 @@ const NotificationSettings = () => {
     if (!user || !prefs) return;
 
     if (type === 'sms' && checked && !canAccess('sms_notifications')) {
-      setShowPricingModal(true);
+      toast("Hunter Pro required", {
+        description: "SMS notifications are a Pro feature.",
+        action: { label: "Upgrade", onClick: () => upgradeToPro().catch(() => {}) },
+      });
       return;
     }
     
@@ -141,10 +143,6 @@ const NotificationSettings = () => {
         </div>
       </div>
       
-      <PricingModal 
-        isOpen={showPricingModal} 
-        onClose={() => setShowPricingModal(false)} 
-      />
     </div>
   );
 };

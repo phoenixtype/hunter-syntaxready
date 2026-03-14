@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { useSubscription } from "@/hooks/useSubscription";
-import PricingModal from "@/components/PricingModal";
+import { upgradeToPro } from "@/lib/subscription";
 
 type Message = { role: "user" | "assistant"; content: string };
 type Mode = "behavioral" | "technical" | "negotiation";
@@ -83,7 +83,6 @@ const InterviewCoach = () => {
   }, [sessionKey]);
   
   const { canAccess } = useSubscription();
-  const [showPricingModal, setShowPricingModal] = useState(false);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -94,7 +93,10 @@ const InterviewCoach = () => {
   const startInterview = async (selectedMode: Mode) => {
     // Only Negotiation requires Pro — Behavioral and Technical are free for all users.
     if (selectedMode === 'negotiation' && !canAccess('negotiation_coach')) {
-      setShowPricingModal(true);
+      toast("Hunter Pro required", {
+        description: "Negotiation Coach is a Pro feature. Upgrade to access it.",
+        action: { label: "Upgrade", onClick: () => upgradeToPro().catch(() => {}) },
+      });
       return;
     }
 
@@ -311,10 +313,6 @@ const InterviewCoach = () => {
           </div>
         </>
       )}
-      <PricingModal 
-        isOpen={showPricingModal} 
-        onClose={() => setShowPricingModal(false)} 
-      />
     </div>
   );
 };
