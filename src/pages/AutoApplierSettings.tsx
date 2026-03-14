@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import TagInput from "@/components/ui/tag-input";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
@@ -46,11 +47,11 @@ const JobHuntPlanner = () => {
   const [portfolioUrl, setPortfolioUrl] = useState("");
 
   // Search preferences
-  const [jobTitles, setJobTitles] = useState("");
+  const [jobTitles, setJobTitles] = useState<string[]>([]);
   const [locations, setLocations] = useState<string[]>([]);
   const [yearsExp, setYearsExp] = useState("");
   const [workSetup, setWorkSetup] = useState("any");
-  const [blacklist, setBlacklist] = useState("");
+  const [blacklist, setBlacklist] = useState<string[]>([]);
 
   // Application defaults
   const [requireSponsorship, setRequireSponsorship] = useState(false);
@@ -80,7 +81,7 @@ const JobHuntPlanner = () => {
     const loadPrefs = async () => {
       const prefs = await getPreferences(user.id);
       if (prefs) {
-        setJobTitles(prefs.target_roles?.join(", ") || "");
+        setJobTitles(prefs.target_roles || []);
         setLocations(prefs.locations || []);
         setWorkSetup(prefs.remote_policy || "any");
         setExpectedSalary(prefs.min_salary_usd?.toString() || "");
@@ -99,7 +100,7 @@ const JobHuntPlanner = () => {
         .eq('user_id', user.id)
         .maybeSingle();
       if (weightsData?.banned_companies) {
-        setBlacklist(weightsData.banned_companies.join(", "));
+        setBlacklist(weightsData.banned_companies);
       }
 
       setLoading(false);
@@ -112,7 +113,7 @@ const JobHuntPlanner = () => {
     setSaving(true);
     try {
       await savePreferences(user.id, {
-        target_roles: jobTitles.split(",").map(s => s.trim()).filter(Boolean),
+        target_roles: jobTitles,
         locations,
         remote_policy: workSetup as UserPreferences["remote_policy"],
         min_salary_usd: parseInt(expectedSalary) || 100000,
@@ -150,7 +151,7 @@ const JobHuntPlanner = () => {
 
       await saveCandidateProfile(user.id, currentProfile);
 
-      const bannedCompanies = blacklist.split(",").map(s => s.trim()).filter(Boolean);
+      const bannedCompanies = blacklist;
       await supabase
         .from('learning_weights')
         .upsert({ user_id: user.id, banned_companies: bannedCompanies }, { onConflict: 'user_id' });
@@ -170,8 +171,8 @@ const JobHuntPlanner = () => {
     try {
       const { triggerJobCrawl } = await import("@/lib/crawler_engine");
       await triggerJobCrawl({
-        keywords: jobTitles.split(",").map(s => s.trim()).filter(Boolean),
-        targetRoles: jobTitles.split(",").map(s => s.trim()).filter(Boolean),
+        keywords: jobTitles,
+        targetRoles: jobTitles,
         location: locations[0] || currentLocation || undefined,
         remotePolicy: workSetup,
       });
@@ -306,8 +307,8 @@ const JobHuntPlanner = () => {
                     </div>
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label>Target Job Titles <span className="text-muted-foreground font-normal">(comma-separated)</span></Label>
-                        <Input value={jobTitles} onChange={e => setJobTitles(e.target.value)} placeholder="Software Engineer, Full-Stack Developer, SWE" />
+                        <Label>Target Job Titles</Label>
+                        <TagInput value={jobTitles} onChange={setJobTitles} placeholder="Type a title and press Enter…" />
                       </div>
                       <div className="space-y-2">
                         <Label>Preferred Locations</Label>
@@ -334,11 +335,12 @@ const JobHuntPlanner = () => {
                       </div>
                       <div className="space-y-2 pt-4 border-t border-border">
                         <Label className="text-destructive/80">Companies to Exclude</Label>
-                        <Input
+                        <TagInput
                           value={blacklist}
-                          onChange={e => setBlacklist(e.target.value)}
-                          placeholder="e.g. Crossover, Revature"
-                          className="border-destructive/20 focus:border-destructive/50"
+                          onChange={setBlacklist}
+                          placeholder="e.g. Crossover, Revature — press Enter to add"
+                          className="border-destructive/20 focus-within:ring-destructive/40"
+                          tagClassName="border-destructive/20 bg-destructive/5 text-destructive"
                         />
                         <p className="text-xs text-muted-foreground">Hunter will deprioritize these companies in your feed.</p>
                       </div>
