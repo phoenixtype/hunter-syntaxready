@@ -233,8 +233,8 @@ const ResumeBuilder = () => {
     iframe.onload = () => {
       setTimeout(() => {
         iframe.contentWindow!.print();
-        setTimeout(() => document.body.removeChild(iframe), 2000);
-      }, 300);
+        setTimeout(() => { if (document.body.contains(iframe)) document.body.removeChild(iframe); }, 3000);
+      }, 600);
     };
   };
 
@@ -259,10 +259,8 @@ const ResumeBuilder = () => {
 
   const handleShare = async () => {
     try {
-      await navigator.clipboard.writeText("I just generated an incredibly optimized ATS Resume using Hunter AI! 👉 https://hunter.syntaxready.com");
-      toast.success("Link copied! 🎉", {
-        description: "5 free Auto-Applies have been added to your account as a thank you!"
-      });
+      await navigator.clipboard.writeText(`Check out Hunter AI — the autonomous job search agent! ${window.location.origin}`);
+      toast.success("Link copied!", { description: "Share Hunter with your network." });
     } catch {
       toast.error("Failed to copy link");
     }
@@ -681,7 +679,7 @@ const ResumeBuilder = () => {
                       srcDoc={generatedHtml}
                       title="Resume Preview"
                       className="w-full h-80 md:h-[600px] bg-white"
-                      sandbox="allow-same-origin"
+                      sandbox=""
                     />
                   </div>
                 </div>
@@ -779,7 +777,7 @@ const ResumeBuilder = () => {
               <Button
                 onClick={goNext}
                 disabled={!canProceed()}
-                className="gap-2  hover: transition-all"
+                className="gap-2 transition-all"
               >
                 Continue
                 <ArrowRight className="w-4 h-4" />

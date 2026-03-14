@@ -85,14 +85,16 @@ const Profile = () => {
         if (savedDraft) {
             try {
                 const draft = JSON.parse(savedDraft);
-                // Simple heuristic: if draft name/email/etc differs from current formData, offer to restore or just notify
-                // For now, we'll just check if it's different and maybe log it or auto-restore if formData is "clean"
                 if (JSON.stringify(draft) !== JSON.stringify(profile)) {
-                    // console.log("[PROFILE] Local draft detected, could restore...");
-                    // toast.info("Found an unsaved draft from your last visit");
+                    toast.info("Unsaved draft restored", {
+                        description: "We found changes from your last session and applied them.",
+                        duration: 5000,
+                    });
+                    setFormData(draft);
                 }
             } catch (e) {
                 console.error("Failed to parse profile draft", e);
+                localStorage.removeItem(`hunter_profile_draft_${user.id}`);
             }
         }
     }, [mode, user?.id, formData, profile]);

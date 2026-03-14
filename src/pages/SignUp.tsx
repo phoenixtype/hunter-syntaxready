@@ -87,7 +87,6 @@ const SignUp = () => {
                 id="fullName"
                 type="text"
                 placeholder="John Doe"
-                className=""
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 disabled={isLoading}
@@ -101,7 +100,6 @@ const SignUp = () => {
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                className=""
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}

@@ -93,7 +93,7 @@ const InterviewCoach = () => {
   const startInterview = async (selectedMode: Mode) => {
     // Only Negotiation requires Pro — Behavioral and Technical are free for all users.
     if (selectedMode === 'negotiation' && !canAccess('negotiation_coach')) {
-      toast("Hunter Pro required", {
+      toast.warning("Hunter Pro required", {
         description: "Negotiation Coach is a Pro feature. Upgrade to access it.",
         action: { label: "Upgrade", onClick: () => upgradeToPro().catch(() => {}) },
       });

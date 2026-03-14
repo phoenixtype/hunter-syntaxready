@@ -27,7 +27,6 @@ import NotificationSettings from "@/components/NotificationSettings";
 import ProfilePanel from "@/components/ProfilePanel";
 import PreferencesPanel from "@/components/PreferencesPanel";
 import InsightsView from "@/components/InsightsView";
-import SkillCoachWidget from "@/components/SkillCoachWidget";
 import VisibilityCoachModal from "@/components/VisibilityCoachModal";
 import SubscriptionGate from "@/components/auth/SubscriptionGate";
 import {
@@ -129,7 +128,7 @@ const Dashboard = () => {
       const interval = setInterval(async () => {
         attempts++;
         const { data } = await refetchSubscription();
-        if (data?.tier === SubscriptionTier.PRO || attempts > 5) {
+        if (data?.tier === SubscriptionTier.PRO || attempts > 15) {
           clearInterval(interval);
           if (data?.tier === SubscriptionTier.PRO) {
             toast.success("Hunter Pro is now active! 🚀");
@@ -481,9 +480,7 @@ const Dashboard = () => {
                   profile={profile}
                   onConsultCoach={() => setShowCoach(true)}
                 />
-                <div className="mt-6">
-                  <SkillCoachWidget />
-                </div>
+
               </WidgetErrorBoundary>
             </div>
           )}

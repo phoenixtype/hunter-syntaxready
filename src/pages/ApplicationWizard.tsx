@@ -29,7 +29,8 @@ const ApplicationWizard = () => {
 
     const handleAnalyze = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!url || !profile) return;
+        if (!url) { toast.error("Paste a job posting URL to continue."); return; }
+        if (!profile) { toast.error("Complete your profile first", { description: "Go to Profile and add your experience and skills." }); return; }
 
         setLoading(true);
         setStep('analyzing');
