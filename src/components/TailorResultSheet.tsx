@@ -110,7 +110,7 @@ const TailorResultSheet = ({ open, onClose, content, job }: TailorResultSheetPro
                 </div>
 
                 {/* Cover letter collapsible */}
-                <div className="border border-border rounded-xl overflow-hidden">
+                <div className="border border-border rounded-md overflow-hidden">
                     <button
                         type="button"
                         onClick={() => setShowCoverLetter(v => !v)}

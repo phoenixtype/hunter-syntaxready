@@ -6,7 +6,7 @@ export const DashboardSkeleton = () => {
       {/* Sidebar skeleton */}
       <aside className="hidden lg:flex flex-col w-[272px] border-r border-border bg-card">
         <div className="h-16 flex items-center px-5 border-b border-border">
-          <Skeleton className="w-9 h-9 rounded-xl" />
+          <Skeleton className="w-9 h-9 rounded-md" />
           <Skeleton className="w-20 h-5 ml-3" />
         </div>
         <div className="px-4 py-4 border-b border-border">
@@ -20,7 +20,7 @@ export const DashboardSkeleton = () => {
         </div>
         <div className="px-3 py-4 space-y-1">
           {[1, 2, 3, 4].map(i => (
-            <Skeleton key={i} className="w-full h-11 rounded-xl" />
+            <Skeleton key={i} className="w-full h-11 rounded-md" />
           ))}
         </div>
       </aside>
@@ -47,7 +47,7 @@ export const DashboardSkeleton = () => {
 
         <main className="p-4 sm:p-6 max-w-5xl mx-auto w-full">
           {/* Welcome card skeleton */}
-          <div className="rounded-xl border border-border p-5 mb-6 space-y-4">
+          <div className="rounded-md border border-border p-5 mb-6 space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-1.5">
                 <Skeleton className="w-48 h-5" />
@@ -75,9 +75,9 @@ export const DashboardSkeleton = () => {
 
           {/* Job cards */}
           {[1, 2, 3].map(i => (
-            <div key={i} className="p-5 rounded-xl border border-border mb-3 space-y-3">
+            <div key={i} className="p-5 rounded-md border border-border mb-3 space-y-3">
               <div className="flex gap-3.5">
-                <Skeleton className="w-11 h-11 rounded-xl hidden sm:block" />
+                <Skeleton className="w-11 h-11 rounded-md hidden sm:block" />
                 <div className="flex-1 space-y-2">
                   <Skeleton className="w-3/5 h-5" />
                   <Skeleton className="w-2/5 h-3.5" />

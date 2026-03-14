@@ -12,7 +12,6 @@ import { recordFeedback } from "@/lib/learning_engine";
 import { ExternalLink, Sparkles, RefreshCw, Loader2, Globe, Search, MapPin, Building2, X, Bookmark } from "lucide-react";
 import SalaryInsights from "./SalaryInsights";
 import { useEffect, useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import JobFiltersBar, { JobFilters, DEFAULT_FILTERS, hasActiveFilters } from "./JobFiltersBar";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -304,7 +303,6 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
 
       {/* Job List */}
       <div className="border border-border rounded-md overflow-hidden divide-y divide-border">
-        <AnimatePresence mode="popLayout">
         {filteredJobs.map((job) => {
           const isExpanded = expandedJob === job.id;
           const isApplied = appliedJobIds.has(job.id);
@@ -312,13 +310,8 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
           const jobSaved = isSaved(job.id);
 
           return (
-            <motion.div
+            <div
               key={job.id}
-              layout
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
               className="bg-card"
             >
               {/* Row */}
@@ -371,7 +364,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
 
               {/* Expanded detail */}
               {isExpanded && (
-                <div className="px-4 pb-4 border-t border-border/50 bg-muted/20">
+                <div className="px-4 pb-4 border-t border-border bg-muted/20">
                   <p className="text-sm text-muted-foreground py-3 leading-relaxed whitespace-pre-line">{job.description}</p>
 
                   <div className="flex items-center gap-2 mb-3 flex-wrap">
@@ -407,7 +400,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
 
                   {/* Hiring team */}
                   {stakeholders[job.id] && (
-                    <div className="mt-4 pt-3 border-t border-border/40 space-y-1.5">
+                    <div className="mt-4 pt-3 border-t border-border space-y-1.5">
                       <p className="text-xs font-medium text-muted-foreground mb-2">Hiring team</p>
                       {stakeholders[job.id].map((person, i) => (
                         <a key={i} href={person.profile_url} target="_blank" rel="noopener noreferrer"
@@ -421,17 +414,16 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                     </div>
                   )}
                   {expandedJob === job.id && !stakeholders[job.id] && (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-3 pt-3 border-t border-border/40">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-3 pt-3 border-t border-border">
                       <Loader2 className="w-3 h-3 animate-spin" /> Finding hiring team...
                     </div>
                   )}
                 </div>
               )}
 
-            </motion.div>
+            </div>
           );
         })}
-        </AnimatePresence>
 
         {/* Pagination */}
         {totalPages > 1 && !loading && (
@@ -481,8 +473,8 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
 
         {/* Empty */}
         {filteredJobs.length === 0 && !loading && (
-          <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-border rounded-xl bg-muted/20">
-            <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center mb-5">
+          <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-border rounded-md bg-muted/20">
+            <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center mb-5">
               {showSavedOnly ? <Bookmark className="w-7 h-7 text-muted-foreground/60" /> : <Search className="w-7 h-7 text-muted-foreground/60" />}
             </div>
             {showSavedOnly ? (

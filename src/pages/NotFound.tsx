@@ -20,14 +20,14 @@ const NotFound = () => {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
           {!loading && user ? (
             <Link to="/dashboard" className="w-full sm:w-auto">
-              <Button className="w-full h-12 rounded-xl gap-2">
+              <Button className="w-full h-12 rounded-md gap-2">
                 <LayoutDashboard className="w-4 h-4" />
                 Go to Dashboard
               </Button>
             </Link>
           ) : (
             <Link to="/" className="w-full sm:w-auto">
-              <Button className="w-full h-12 rounded-xl gap-2">
+              <Button className="w-full h-12 rounded-md gap-2">
                 <Home className="w-4 h-4" />
                 Go Home
               </Button>
@@ -35,7 +35,7 @@ const NotFound = () => {
           )}
           <Button
             variant="outline"
-            className="w-full sm:w-auto h-12 rounded-xl gap-2"
+            className="w-full sm:w-auto h-12 rounded-md gap-2"
             onClick={() => window.history.back()}
           >
             <ArrowLeft className="w-4 h-4" />

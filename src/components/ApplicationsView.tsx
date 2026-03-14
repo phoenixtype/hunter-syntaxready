@@ -16,7 +16,7 @@ import { getApplicationHistory, ApplicationRecord, updateApplicationStatus } fro
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
+
 import {
   DndContext,
   closestCenter,
@@ -213,7 +213,7 @@ export const ApplicationsView = () => {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+        <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center mb-4">
           <AlertCircle className="w-6 h-6 text-destructive" />
         </div>
         <h3 className="font-semibold mb-1">Failed to load applications</h3>
@@ -323,7 +323,7 @@ export const ApplicationsView = () => {
         </div>
         
         {applications.length > 0 && (
-          <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-md border border-border/50">
+          <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-md border border-border">
             <Button
               variant={viewMode === "board" ? "secondary" : "ghost"}
               size="sm"
@@ -352,20 +352,20 @@ export const ApplicationsView = () => {
       {/* Analytics */}
       {applications.length > 0 && <ApplicationAnalytics applications={applications} />}
 
-      <AnimatePresence mode="wait">
+      
       {applications.length === 0 ? (
-        <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mb-4">
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center mb-4">
             <Briefcase className="w-6 h-6 text-muted-foreground" />
           </div>
           <h3 className="font-semibold mb-1">Nothing tracked yet</h3>
           <p className="text-sm text-muted-foreground max-w-xs">
             When you click <strong>Apply Now</strong> on a job, it'll show up here so you can track its progress.
           </p>
-        </motion.div>
+        </div>
       ) : viewMode === "board" ? (
         /* Kanban Board with DnD */
-        <motion.div key="board" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
+        <div>
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -409,7 +409,7 @@ export const ApplicationsView = () => {
             ) : null}
           </DragOverlay>
         </DndContext>
-        </motion.div>
+        </div>
       ) : (
         /* List View */
         <div key="list" className="space-y-4">
@@ -543,7 +543,7 @@ export const ApplicationsView = () => {
           )}
         </div>
       )}
-      </AnimatePresence>
+      
 
       <ApplicationDetailSheet
         app={detailApp}

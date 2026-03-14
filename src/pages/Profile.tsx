@@ -243,7 +243,7 @@ const Profile = () => {
     }
 
     return (
-        <div className="min-h-screen bg-background text-foreground bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background pb-24 lg:pb-12 safe-area-inset-bottom">
+        <div className="min-h-screen bg-background text-foreground  pb-24 lg:pb-12 safe-area-inset-bottom">
             <SEOHead title="Profile" description="Manage your candidate profile, experience, and skills." path="/profile" noIndex />
             <PageHeader
                 breadcrumbs={[
@@ -261,7 +261,7 @@ const Profile = () => {
                         {mode === 'edit' && (
                             <>
                                 <Button variant="ghost" size="sm" onClick={handleCancel}>Cancel</Button>
-                                <Button size="sm" onClick={() => setMode('preview')} className="shadow-glow hover:shadow-glow-lg transition-all">
+                                <Button size="sm" onClick={() => setMode('preview')} className=" hover: transition-all">
                                     <Eye className="w-4 h-4 sm:mr-2" />
                                     <span className="hidden sm:inline">Preview</span>
                                 </Button>
@@ -270,7 +270,7 @@ const Profile = () => {
                         {mode === 'preview' && (
                             <>
                                 <Button variant="ghost" size="sm" onClick={() => setMode('edit')}>Back</Button>
-                                <Button size="sm" onClick={handleSave} disabled={isSaving} className="shadow-glow hover:shadow-glow-lg transition-all">
+                                <Button size="sm" onClick={handleSave} disabled={isSaving} className=" hover: transition-all">
                                     {isSaving ? (
                                         <Loader2 className="w-4 h-4 animate-spin" />
                                     ) : (
@@ -301,7 +301,7 @@ const Profile = () => {
                         {/* Identity */}
                         <section className="space-y-4">
                             <h2 className="text-xl font-semibold">Personal Information</h2>
-                            <Card className="border-border bg-card/50 backdrop-blur-sm shadow-elevated">
+                            <Card className="border-border bg-card">
                                 <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div>
                                         <Label className="text-muted-foreground">Full Name</Label>
@@ -342,7 +342,7 @@ const Profile = () => {
                             <h2 className="text-xl font-semibold">Experience</h2>
                             <div className="space-y-4">
                                 {formData.experience_atoms.map((exp, idx) => (
-                                    <Card key={idx} className="border-border bg-card/50 backdrop-blur-sm shadow-elevated hover:border-primary/30 transition-all hover:translate-y-[-2px]">
+                                    <Card key={idx} className="border-border bg-card hover:border-primary/30 transition-colors">
                                         <CardContent className="p-6 space-y-2">
                                             <div className="flex justify-between items-start">
                                                 <div>
@@ -364,7 +364,7 @@ const Profile = () => {
                             <h2 className="text-xl font-semibold">Education</h2>
                             <div className="grid gap-4">
                                 {formData.education.map((edu, idx) => (
-                                    <Card key={idx} className="border-border bg-card/50 backdrop-blur-sm shadow-elevated hover:border-primary/30 transition-all hover:translate-y-[-2px]">
+                                    <Card key={idx} className="border-border bg-card hover:border-primary/30 transition-colors">
                                         <CardContent className="p-6 flex justify-between items-start">
                                             <div>
                                                 <h3 className="font-semibold">{edu.school}</h3>
@@ -384,7 +384,7 @@ const Profile = () => {
                             <h2 className="text-xl font-semibold">Skills</h2>
                             <div className="flex flex-wrap gap-2">
                                 {formData.skills.map((s, i) => (
-                                    <Badge key={i} variant="secondary" className="px-3 py-1.5 text-sm bg-primary/10 text-primary border-primary/20">{s.name}</Badge>
+                                    <Badge key={i} variant="secondary" className="px-3 py-1.5 text-sm">{s.name}</Badge>
                                 ))}
                             </div>
                         </section>
@@ -396,7 +396,7 @@ const Profile = () => {
                                 <h2 className="text-xl font-semibold">Additional Information</h2>
                                 <div className="space-y-4">
                                     {formData.custom_sections.map((section, idx) => (
-                                        <Card key={idx} className="border-border bg-card hover:border-primary/30 transition-all hover:translate-y-[-2px]">
+                                        <Card key={idx} className="border-border bg-card hover:border-primary/30 transition-colors">
                                             <CardContent className="p-6 space-y-2">
                                                 <h3 className="text-lg font-bold">{section.title}</h3>
                                                 <Separator className="my-2" />
@@ -447,7 +447,7 @@ const Profile = () => {
                                                 <Input
                                                     value={formData.identity.phone || ""}
                                                     onChange={(e) => updateIdentity("phone", e.target.value)}
-                                                    className="bg-background/50 border-border focus:border-primary rounded-xl"
+                                                    className="bg-background/50 border-border focus:border-primary"
                                                 />
                                             </div>
                                         </div>
@@ -470,7 +470,7 @@ const Profile = () => {
                                         <Textarea
                                             value={formData.summary || ""}
                                             onChange={(e) => setFormData(prev => prev ? ({ ...prev, summary: e.target.value }) : null)}
-                                            className="min-h-[120px] bg-background/50 border-border focus:border-primary rounded-xl resize-y text-lg"
+                                            className="min-h-[120px] bg-background/50 border-border focus:border-primary rounded-md resize-y text-lg"
                                             placeholder="Brief professional summary..."
                                         />
                                     </CardContent>
@@ -552,7 +552,7 @@ const Profile = () => {
                                                     value={exp.content}
                                                     onChange={(e) => updateExperience(index, "content", e.target.value)}
                                                     onKeyDown={(e) => handleBulletKeyDown(e, exp.content, (val) => updateExperience(index, "content", val))}
-                                                    className="min-h-[100px] bg-background/50 border-border focus:border-primary rounded-xl resize-y"
+                                                    className="min-h-[100px] bg-background/50 border-border focus:border-primary rounded-md resize-y"
                                                     placeholder="• Led a team of 5 engineers…&#10;• Improved performance by 30%&#10;&#10;Press Enter to add a new bullet."
                                                 />
                                             </CardContent>
@@ -623,7 +623,7 @@ const Profile = () => {
                                     <CardContent className="p-6 space-y-4">
                                         <div className="flex flex-wrap gap-2">
                                             {formData.skills.map((skill, index) => (
-                                                <Badge key={index} variant="secondary" className="pl-3 pr-1.5 py-1.5 h-8 text-sm gap-1 bg-primary/10 text-primary border-primary/20 animate-scale-in">
+                                                <Badge key={index} variant="secondary" className="pl-3 pr-1.5 py-1.5 h-8 text-sm gap-1 ">
                                                     {skill.name}
                                                     <button
                                                         onClick={() => removeSkill(index)}
@@ -643,9 +643,9 @@ const Profile = () => {
                                                         e.currentTarget.value = "";
                                                     }
                                                 }}
-                                                className="bg-background/50 border-border focus:border-primary rounded-xl"
+                                                className="bg-background/50 border-border focus:border-primary"
                                             />
-                                            <Button variant="secondary" size="icon" className="rounded-xl" onClick={() => {
+                                            <Button variant="secondary" size="icon" className="rounded-md" onClick={() => {
                                                 const input = document.querySelector('input[placeholder="Add a skill..."]') as HTMLInputElement;
                                                 if (input) {
                                                     addSkill(input.value);
@@ -713,7 +713,7 @@ const Profile = () => {
                                                         newSections[idx].content = e.target.value.split('\n');
                                                         setFormData(prev => prev ? ({ ...prev, custom_sections: newSections }) : null);
                                                     }}
-                                                    className="min-h-[100px] bg-background/50 border-border focus:border-primary rounded-xl resize-y"
+                                                    className="min-h-[100px] bg-background/50 border-border focus:border-primary rounded-md resize-y"
                                                     placeholder="List items (one per line)..."
                                                 />
                                                 <p className="text-xs text-muted-foreground">One item per line</p>

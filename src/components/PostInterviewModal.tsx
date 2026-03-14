@@ -167,7 +167,7 @@ const PostInterviewModal = ({ isOpen, onClose, companyName = "", profile }: Post
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-sm font-medium text-muted-foreground">Negotiation Script</label>
-                                            <div className="p-3 bg-muted rounded-xl text-sm border border-border prose prose-sm dark:prose-invert max-w-none">
+                                            <div className="p-3 bg-muted rounded-md text-sm border border-border prose prose-sm dark:prose-invert max-w-none">
                                                 <ReactMarkdown>{strategy.script}</ReactMarkdown>
                                             </div>
                                         </div>

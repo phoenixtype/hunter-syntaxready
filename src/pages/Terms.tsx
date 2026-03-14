@@ -33,7 +33,7 @@ const Terms = () => {
         </div>
 
         {/* Quick Summary Card */}
-        <Card className="mb-12 border-primary/20 bg-primary/5">
+        <Card className="mb-12 border-border bg-muted/30">
           <CardContent className="p-6">
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <FileText className="w-5 h-5 text-primary" />

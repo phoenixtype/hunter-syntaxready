@@ -434,7 +434,7 @@ const Onboarding = () => {
         </div>
 
         {/* ── Card ─────────────────────────────────────────────────────── */}
-        <div className="bg-card rounded-xl border border-border/50 shadow-sm overflow-hidden">
+        <div className="bg-card rounded-md border border-border shadow-sm overflow-hidden">
 
           {/* Progress bar */}
           <div className="h-[3px] bg-muted/60">
@@ -472,7 +472,7 @@ const Onboarding = () => {
             {currentStep === "method" && (
               <div className="animate-fade-in py-3">
                 <div className="text-center space-y-3 mb-8">
-                  <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto">
+                  <div className="w-14 h-14 rounded-md bg-primary/10 flex items-center justify-center mx-auto">
                     <Zap className="w-6 h-6 text-primary" />
                   </div>
                   <h1 className="text-2xl font-bold tracking-tight">Let's build your profile</h1>
@@ -485,7 +485,7 @@ const Onboarding = () => {
                   {STEPS.filter(s => s.id !== "method").map(s => {
                     const Icon = s.icon;
                     return (
-                      <div key={s.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors">
+                      <div key={s.id} className="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-muted/50 transition-colors">
                         <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                           <Icon className="w-3.5 h-3.5 text-primary" />
                         </div>
@@ -542,7 +542,7 @@ const Onboarding = () => {
                       key={option.id}
                       type="button"
                       onClick={() => setSearchStatus(option.id)}
-                      className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all duration-200 ${
+                      className={`w-full flex items-center gap-4 p-4 rounded-md border-2 text-left transition-all duration-200 ${
                         searchStatus === option.id
                           ? "border-primary bg-primary/8 shadow-sm"
                           : "border-border hover:border-primary/40 hover:bg-muted/30"
@@ -580,7 +580,7 @@ const Onboarding = () => {
                       key={level.id}
                       type="button"
                       onClick={() => setExperienceLevel(level.id)}
-                      className={`flex flex-col items-start gap-2 p-4 rounded-xl border-2 text-left transition-all duration-200 ${
+                      className={`flex flex-col items-start gap-2 p-4 rounded-md border-2 text-left transition-all duration-200 ${
                         experienceLevel === level.id
                           ? "border-primary bg-primary/8 shadow-sm"
                           : "border-border hover:border-primary/40 hover:bg-muted/30"
@@ -609,7 +609,7 @@ const Onboarding = () => {
                 <IdentityStep profile={profile} setProfile={setProfile} />
 
                 {/* Personal details */}
-                <div className="mt-5 pt-5 border-t border-border/50 space-y-4">
+                <div className="mt-5 pt-5 border-t border-border space-y-4">
                   <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">Personal details <span className="font-normal normal-case">— optional, helps match relevant roles</span></p>
 
                   {/* Gender */}
@@ -621,7 +621,7 @@ const Onboarding = () => {
                           key={g}
                           type="button"
                           onClick={() => setGender(prev => prev === g ? "" : g)}
-                          className={`flex-1 h-10 rounded-xl border-2 text-sm font-medium capitalize transition-all ${
+                          className={`flex-1 h-10 rounded-md border-2 text-sm font-medium capitalize transition-all ${
                             gender === g
                               ? "border-primary bg-primary/10 text-primary"
                               : "border-border text-muted-foreground hover:border-primary/40 hover:bg-muted/30"
@@ -673,7 +673,7 @@ const Onboarding = () => {
                 </div>
                 <div className="space-y-3">
                   {profile.experience_atoms.map((exp, idx) => (
-                    <div key={exp.id || idx} className="p-4 rounded-xl border border-border bg-muted/30 space-y-3 animate-fade-in-up">
+                    <div key={exp.id || idx} className="p-4 rounded-md border border-border bg-muted/30 space-y-3 animate-fade-in-up">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-primary/60 bg-primary/10 rounded-md px-2 py-0.5">#{idx + 1}</span>
                         <button onClick={() => removeExperience(idx)} className="p-1.5 text-muted-foreground hover:text-destructive transition-colors">
@@ -708,7 +708,7 @@ const Onboarding = () => {
                   ))}
                   <button
                     onClick={addExperience}
-                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border-2 border-dashed border-border hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all text-sm"
+                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-md border-2 border-dashed border-border hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all text-sm"
                   >
                     <Plus className="w-4 h-4" />
                     {profile.experience_atoms.length === 0 ? "Add your first position" : "Add another position"}
@@ -737,7 +737,7 @@ const Onboarding = () => {
                 </div>
                 <div className="space-y-3">
                   {profile.education.map((edu, idx) => (
-                    <div key={idx} className="p-4 rounded-xl border border-border bg-muted/30 space-y-3 animate-fade-in-up">
+                    <div key={idx} className="p-4 rounded-md border border-border bg-muted/30 space-y-3 animate-fade-in-up">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-primary/60 bg-primary/10 rounded-md px-2 py-0.5">#{idx + 1}</span>
                         <button onClick={() => removeEducation(idx)} className="p-1.5 text-muted-foreground hover:text-destructive transition-colors">
@@ -787,7 +787,7 @@ const Onboarding = () => {
                   ))}
                   <button
                     onClick={addEducation}
-                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border-2 border-dashed border-border hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all text-sm"
+                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-md border-2 border-dashed border-border hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all text-sm"
                   >
                     <Plus className="w-4 h-4" />
                     {profile.education.length === 0 ? "Add your first degree" : "Add another degree"}
@@ -862,7 +862,7 @@ const Onboarding = () => {
                           key={mode}
                           type="button"
                           onClick={() => setRemotePolicy(mode)}
-                          className={`h-10 rounded-xl text-sm font-medium border-2 transition-all ${
+                          className={`h-10 rounded-md text-sm font-medium border-2 transition-all ${
                             remotePolicy === mode
                               ? "bg-primary text-primary-foreground border-primary shadow-sm"
                               : "bg-background border-border hover:border-primary/40 text-muted-foreground"
@@ -916,7 +916,7 @@ const Onboarding = () => {
 
           {/* ── Card footer navigation ─────────────────────────────────── */}
           {currentStep !== "method" && (
-            <div className="sticky bottom-0 z-20 px-6 sm:px-8 py-4 flex items-center justify-between border-t border-border/40 bg-background/80 backdrop-blur-sm -mx-6 sm:-mx-8 safe-area-inset-bottom">
+            <div className="sticky bottom-0 z-20 px-6 sm:px-8 py-4 flex items-center justify-between border-t border-border bg-background/80 backdrop-blur-sm -mx-6 sm:-mx-8 safe-area-inset-bottom">
               <Button
                 variant="ghost"
                 onClick={goBack}
@@ -967,7 +967,7 @@ function IdentityStep({ profile, setProfile }: { profile: CandidateProfile; setP
     <div className="space-y-5">
       {/* Avatar / name preview */}
       {name && (
-        <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/40 border border-border">
+        <div className="flex items-center gap-3 p-4 rounded-md bg-muted/40 border border-border">
           <div className="h-11 w-11 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
             <span className="text-sm font-bold text-primary">{initials || "?"}</span>
           </div>
@@ -1066,7 +1066,7 @@ function SkillsStep({ skills, onAdd, onRemove }: { skills: Skill[]; onAdd: (name
   return (
     <div className="space-y-5">
       {skills.length > 0 ? (
-        <div className="flex flex-wrap gap-2 p-4 rounded-xl bg-muted/30 border border-border min-h-[60px]">
+        <div className="flex flex-wrap gap-2 p-4 rounded-md bg-muted/30 border border-border min-h-[60px]">
           {skills.map((s, i) => (
             <Badge key={i} variant="secondary" className="pl-3 pr-1.5 py-1.5 gap-1 text-sm bg-primary/10 text-primary border-primary/20 animate-scale-in">
               {s.name}
@@ -1075,7 +1075,7 @@ function SkillsStep({ skills, onAdd, onRemove }: { skills: Skill[]; onAdd: (name
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center p-8 rounded-xl border-2 border-dashed border-border text-center">
+        <div className="flex flex-col items-center justify-center p-8 rounded-md border-2 border-dashed border-border text-center">
           <Sparkles className="w-8 h-8 text-muted-foreground/40 mb-2" />
           <p className="text-sm text-muted-foreground">No skills yet — add some below or pick from suggestions</p>
         </div>

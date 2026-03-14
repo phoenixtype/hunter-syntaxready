@@ -196,7 +196,7 @@ const InterviewCoach = () => {
       {/* Content */}
       {!started ? (
         <div className="flex-1 flex flex-col items-center justify-center p-6 max-w-lg mx-auto text-center">
-          <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
+          <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center mb-6">
             <BrainCircuit className="w-7 h-7 text-primary" />
           </div>
           <h2 className="text-2xl font-bold mb-2">Interview Practice</h2>
@@ -232,16 +232,16 @@ const InterviewCoach = () => {
                 key={m.id}
                 onClick={() => startInterview(m.id)}
                 disabled={!jobTitle.trim()}
-                className="flex items-center gap-4 p-4 rounded-xl border border-border bg-card hover:border-primary/30 hover:bg-primary/5 transition-all text-left disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex items-center gap-4 p-4 rounded-md border border-border bg-card hover:border-primary/30 hover:bg-muted/30 transition-colors text-left disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 rounded-md bg-muted flex items-center justify-center shrink-0">
                   <m.icon className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="font-semibold text-sm">{m.label}</p>
                     {m.id === 'negotiation' && !canAccess('negotiation_coach') && (
-                      <Badge variant="secondary" className="text-[10px] h-4 px-1.5 bg-primary/10 text-primary border-0">Pro</Badge>
+                      <Badge variant="secondary" className="text-[10px] h-4 px-1.5 ">Pro</Badge>
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground">{m.desc}</p>
@@ -261,7 +261,7 @@ const InterviewCoach = () => {
               {messages.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div
-                    className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                    className={`max-w-[85%] rounded-md px-4 py-3 text-sm leading-relaxed ${
                       msg.role === "user"
                         ? "bg-primary text-primary-foreground rounded-br-md"
                         : "bg-card border border-border rounded-bl-md"
@@ -279,7 +279,7 @@ const InterviewCoach = () => {
               ))}
               {loading && (
                 <div className="flex justify-start">
-                  <div className="bg-card border border-border rounded-2xl rounded-bl-md px-4 py-3">
+                  <div className="bg-card border border-border rounded-md rounded-bl-md px-4 py-3">
                     <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
                   </div>
                 </div>

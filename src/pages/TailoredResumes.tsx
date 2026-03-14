@@ -144,7 +144,7 @@ const TailoredResumes = () => {
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           </div>
         ) : resumes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-border rounded-xl">
+          <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-border rounded-md">
             <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mb-4">
               <FileText className="w-6 h-6 text-muted-foreground" />
             </div>

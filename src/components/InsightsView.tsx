@@ -18,7 +18,7 @@ const InsightsView = ({ visibility, skillRecommendations, profile, onConsultCoac
   if (!profile) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
-        <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
+        <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center">
           <Sparkles className="w-5 h-5 text-muted-foreground" />
         </div>
         <div>
@@ -59,7 +59,7 @@ const InsightsView = ({ visibility, skillRecommendations, profile, onConsultCoac
               </div>
               <div className="text-right">
                 {visibility.totalScore >= 80 && (
-                  <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">Top 5%</Badge>
+                  <Badge className="text-xs">Top 5%</Badge>
                 )}
               </div>
             </div>
@@ -105,11 +105,11 @@ const InsightsView = ({ visibility, skillRecommendations, profile, onConsultCoac
               {skillRecommendations.slice(0, 5).map((rec, idx) => (
                 <div
                   key={idx}
-                  className="flex items-start gap-3 p-3 rounded-lg border border-border/60 bg-muted/20 hover:bg-muted/40 transition-colors"
+                  className="flex items-start gap-3 p-3 rounded-lg border border-border bg-muted/20 hover:bg-muted/40 transition-colors"
                 >
                   <div className="mt-0.5 shrink-0">
                     {rec.type === "certification" ? (
-                      <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
+                      <div className="w-6 h-6 rounded-md bg-muted flex items-center justify-center">
                         <GraduationCap className="w-3.5 h-3.5 text-primary" />
                       </div>
                     ) : (
@@ -122,7 +122,7 @@ const InsightsView = ({ visibility, skillRecommendations, profile, onConsultCoac
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-medium">{rec.name}</span>
                       {rec.demand_trend === "rising" && (
-                        <Badge variant="outline" className="text-[10px] h-4 px-1.5 border-primary/30 text-primary bg-primary/5">
+                        <Badge variant="outline" className="text-[10px] h-4 px-1.5">
                           <TrendingUp className="w-2.5 h-2.5 mr-1" />
                           Rising
                         </Badge>
@@ -139,7 +139,7 @@ const InsightsView = ({ visibility, skillRecommendations, profile, onConsultCoac
 
       {!visibility && !skillRecommendations.length && (
         <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
+          <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center">
             <Sparkles className="w-5 h-5 text-muted-foreground" />
           </div>
           <div>

@@ -50,7 +50,7 @@ const PageHeader = ({ breadcrumbs, icon, actions, sticky = true }: PageHeaderPro
 
         {/* Icon */}
         {icon && (
-          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-md bg-muted flex items-center justify-center shrink-0">
             {icon}
           </div>
         )}

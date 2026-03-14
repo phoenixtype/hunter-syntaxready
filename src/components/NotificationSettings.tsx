@@ -78,15 +78,15 @@ const NotificationSettings = () => {
   return (
     <div className="space-y-6 animate-fade-in max-w-3xl">
       {/* Live status */}
-      <div className="rounded-xl border border-primary/20 bg-primary/5 p-5 space-y-4">
+      <div className="rounded-md border border-border bg-muted/50 p-5 space-y-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-md bg-muted flex items-center justify-center">
             <Zap className="w-5 h-5 text-primary" />
           </div>
           <div>
             <h3 className="text-sm font-semibold flex items-center gap-2">
               Real-time alerts active
-              <Badge className="bg-primary/15 text-primary border-primary/20 text-[10px]">Live</Badge>
+              <Badge className="text-[10px]">Live</Badge>
             </h3>
             <p className="text-xs text-muted-foreground">You'll see toast notifications in real-time while using Hunter.</p>
           </div>
@@ -106,7 +106,7 @@ const NotificationSettings = () => {
 
       {/* Email/SMS toggles */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className={`flex items-center justify-between gap-3 p-4 rounded-xl border transition-colors ${emailAlerts ? 'border-primary/50 bg-primary/5' : 'border-border bg-card'}`}>
+        <div className={`flex items-center justify-between gap-3 p-4 rounded-md border transition-colors ${emailAlerts ? 'border-primary/30 bg-muted' : 'border-border bg-card'}`}>
           <div className="flex gap-3">
             <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${emailAlerts ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
               <Mail className="w-4 h-4" />
@@ -123,7 +123,7 @@ const NotificationSettings = () => {
           />
         </div>
         
-        <div className={`flex items-center justify-between gap-3 p-4 rounded-xl border transition-colors ${smsAlerts ? 'border-primary/50 bg-primary/5' : 'border-border bg-card'}`}>
+        <div className={`flex items-center justify-between gap-3 p-4 rounded-md border transition-colors ${smsAlerts ? 'border-primary/30 bg-muted' : 'border-border bg-card'}`}>
           <div className="flex gap-3">
             <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${smsAlerts ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
               <Smartphone className="w-4 h-4" />

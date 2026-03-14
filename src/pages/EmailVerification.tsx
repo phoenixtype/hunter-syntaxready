@@ -112,13 +112,13 @@ const EmailVerification = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background transition-colors duration-500 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <div className="w-full max-w-md animate-scale-in">
-        <div className="bg-card backdrop-blur-xl border border-border shadow-sm rounded-xl p-6 sm:p-8 space-y-6 text-center">
+        <div className="bg-card border border-border shadow-sm rounded-md p-6 sm:p-8 space-y-6 text-center">
           {status === 'loading' && (
             <>
-              <div className="w-20 h-20 mx-auto rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center animate-pulse shadow-glow">
-                <Loader2 className="w-10 h-10 text-primary animate-spin" />
+              <div className="w-14 h-14 mx-auto rounded-md bg-muted flex items-center justify-center">
+                <Loader2 className="w-7 h-7 text-muted-foreground animate-spin" />
               </div>
               <div className="space-y-2">
                 <h1 className="text-2xl font-semibold tracking-tight">Verifying your email...</h1>
@@ -129,8 +129,8 @@ const EmailVerification = () => {
 
           {status === 'success' && (
             <>
-              <div className="w-20 h-20 mx-auto rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center shadow-glow">
-                <CheckCircle2 className="w-10 h-10 text-primary animate-bounce" />
+              <div className="w-14 h-14 mx-auto rounded-md bg-muted flex items-center justify-center">
+                <CheckCircle2 className="w-7 h-7 text-primary" />
               </div>
               <div className="space-y-2">
                 <h1 className="text-2xl font-semibold tracking-tight">Email Verified!</h1>
@@ -147,8 +147,8 @@ const EmailVerification = () => {
 
           {status === 'error' && (
             <>
-              <div className="w-16 h-16 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
-                <XCircle className="w-8 h-8 text-destructive" />
+              <div className="w-14 h-14 mx-auto rounded-md bg-destructive/10 flex items-center justify-center">
+                <XCircle className="w-7 h-7 text-destructive" />
               </div>
               <div className="space-y-2">
                 <h1 className="text-2xl font-semibold tracking-tight">Verification Failed</h1>
@@ -158,12 +158,12 @@ const EmailVerification = () => {
               </div>
               <div className="space-y-3 pt-4">
                 <Link to="/signup">
-                  <Button variant="outline" className="w-full h-12 rounded-xl border-border hover:bg-muted transition-all">
+                  <Button variant="outline" className="w-full h-10 rounded-md border-border hover:bg-muted">
                     Try signing up again
                   </Button>
                 </Link>
                 <Link to="/login">
-                  <Button className="w-full h-12 rounded-xl shadow-glow transition-all">
+                  <Button className="w-full h-10 rounded-md">
                     Go to Login
                   </Button>
                 </Link>
@@ -173,7 +173,7 @@ const EmailVerification = () => {
 
           {status === 'pending' && (
             <>
-              <div className="w-20 h-20 mx-auto rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center shadow-glow">
+              <div className="w-14 h-14 mx-auto rounded-md bg-muted flex items-center justify-center">
                 <Mail className="w-10 h-10 text-primary" />
               </div>
               <div className="space-y-2">
@@ -236,7 +236,7 @@ const EmailVerification = () => {
 
               <div className="space-y-3 pt-6">
                 <Link to="/login">
-                  <Button className="w-full h-12 rounded-xl shadow-glow hover:shadow-glow-lg transition-all">
+                  <Button className="w-full h-10 rounded-md">
                     Already Verified? Sign In <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </Link>

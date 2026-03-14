@@ -398,7 +398,7 @@ const ResumeBuilder = () => {
                 ))}
                 <button
                   onClick={addExperience}
-                  className="w-full flex items-center justify-center gap-2 py-4 rounded-xl border-2 border-dashed border-border hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all"
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-md border-2 border-dashed border-border hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all"
                 >
                   <Plus className="w-5 h-5" /> Add Position
                 </button>
@@ -447,7 +447,7 @@ const ResumeBuilder = () => {
                 ))}
                 <button
                   onClick={addEducation}
-                  className="w-full flex items-center justify-center gap-2 py-4 rounded-xl border-2 border-dashed border-border hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all"
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-md border-2 border-dashed border-border hover:border-primary/50 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all"
                 >
                   <Plus className="w-5 h-5" /> Add Education
                 </button>
@@ -523,7 +523,7 @@ const ResumeBuilder = () => {
                   {TEMPLATES.map(t => (
                     <label
                       key={t.id}
-                      className={`flex flex-col gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                      className={`flex flex-col gap-3 p-4 rounded-md border-2 cursor-pointer transition-all ${
                         selectedTemplate === t.id
                           ? `border-primary bg-primary/5 shadow-md`
                           : "border-border hover:border-primary/30 hover:shadow-sm"
@@ -550,7 +550,7 @@ const ResumeBuilder = () => {
                         </div>
                       </div>
                       {/* Mini preview */}
-                      <div className={`h-20 sm:h-24 rounded-lg ${t.preview} border border-border/50 p-3 flex flex-col justify-between`}>
+                      <div className={`h-20 sm:h-24 rounded-lg ${t.preview} border border-border p-3 flex flex-col justify-between`}>
                         <div className="space-y-1">
                           <div className="h-2.5 bg-foreground/25 rounded w-2/5" />
                           <div className="h-1.5 bg-foreground/10 rounded w-3/5" />
@@ -579,7 +579,7 @@ const ResumeBuilder = () => {
                       className={`w-10 h-10 rounded-full transition-all flex items-center justify-center ${color.bg} ${
                         accentColor.id === color.id 
                           ? `ring-2 ring-offset-2 ring-offset-background ${color.ring} scale-110 shadow-md` 
-                          : 'hover:scale-105 opacity-80 hover:opacity-100 border border-black/10 dark:border-white/10'
+                          : 'opacity-70 hover:opacity-100 border border-border'
                       }`}
                       title={color.name}
                     >
@@ -660,7 +660,7 @@ const ResumeBuilder = () => {
                     <Eye className="w-3.5 h-3.5" />
                     <span>Resume preview — scroll to review</span>
                   </div>
-                  <div className="border border-border rounded-xl overflow-hidden shadow-sm">
+                  <div className="border border-border rounded-md overflow-hidden shadow-sm">
                     <iframe
                       srcDoc={generatedHtml}
                       title="Resume Preview"
@@ -678,7 +678,7 @@ const ResumeBuilder = () => {
                     size="lg"
                     onClick={handleGenerate}
                     disabled={generating}
-                    className="w-full max-w-md h-14 text-base shadow-glow hover:shadow-glow-lg transition-all"
+                    className="w-full max-w-md h-14 text-base  hover: transition-all"
                   >
                     {generating ? (
                       <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Generating…</>
@@ -691,7 +691,7 @@ const ResumeBuilder = () => {
                     <Button
                       size="lg"
                       onClick={handlePrintPdf}
-                      className="w-full max-w-md h-14 text-base gap-2 shadow-glow hover:shadow-glow-lg"
+                      className="w-full max-w-md h-14 text-base gap-2  hover:"
                     >
                       <Printer className="w-5 h-5" />
                       Save as PDF
@@ -763,7 +763,7 @@ const ResumeBuilder = () => {
               <Button
                 onClick={goNext}
                 disabled={!canProceed()}
-                className="gap-2 shadow-glow hover:shadow-glow-lg transition-all"
+                className="gap-2  hover: transition-all"
               >
                 Continue
                 <ArrowRight className="w-4 h-4" />

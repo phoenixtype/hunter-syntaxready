@@ -170,7 +170,7 @@ const ApplicationWizard = () => {
                                         <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Required Skills Matching</h4>
                                         <div className="flex flex-wrap gap-2">
                                             {job.tech_stack?.map((tech, i) => (
-                                                <Badge key={i} variant="secondary" className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">{tech}</Badge>
+                                                <Badge key={i} variant="secondary" className="">{tech}</Badge>
                                             ))}
                                         </div>
                                     </div>
@@ -190,7 +190,7 @@ const ApplicationWizard = () => {
                                     <CardContent className="p-6 space-y-6">
                                         <div className="space-y-3">
                                             <div className="flex items-center gap-2 font-medium">
-                                                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                                                <div className="w-7 h-7 rounded-md bg-muted flex items-center justify-center">
                                                   <FileCheck className="w-4 h-4" />
                                                 </div>
                                                 Tailored Resume
@@ -209,12 +209,12 @@ const ApplicationWizard = () => {
 
                                         <div className="pt-6 border-t border-border space-y-3">
                                             <div className="flex items-center gap-2 font-medium">
-                                                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                                                <div className="w-7 h-7 rounded-md bg-muted flex items-center justify-center">
                                                   <FileText className="w-4 h-4" />
                                                 </div>
                                                 Cover Letter
                                             </div>
-                                            <p className="text-sm text-muted-foreground italic bg-muted/50 p-4 rounded-xl border border-border line-clamp-4">"{tailoredAssets.coverLetter}"</p>
+                                            <p className="text-sm text-muted-foreground italic bg-muted/50 p-4 rounded-md border border-border line-clamp-4">"{tailoredAssets.coverLetter}"</p>
                                             <Button variant="outline" className="w-full" onClick={() => {
                                                 if (tailoredAssets?.coverLetter) {
                                                     navigator.clipboard.writeText(tailoredAssets.coverLetter);
@@ -244,7 +244,7 @@ const ApplicationWizard = () => {
                                                     href={person.profile_url}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="group flex items-center justify-between gap-4 p-3.5 rounded-xl hover:bg-muted transition-all border border-border hover:border-primary/20"
+                                                    className="group flex items-center justify-between gap-4 p-3.5 rounded-md hover:bg-muted transition-all border border-border hover:border-primary/20"
                                                 >
                                                     <div className="flex items-center gap-3">
                                                       <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">

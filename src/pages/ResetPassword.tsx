@@ -82,7 +82,7 @@ const ResetPassword = () => {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
         <div className="w-full max-w-md">
-          <div className="bg-card border border-border shadow-sm rounded-xl p-6 sm:p-8 space-y-6 text-center">
+          <div className="bg-card border border-border shadow-sm rounded-md p-6 sm:p-8 space-y-6 text-center">
             <h1 className="text-2xl font-bold tracking-tight">Invalid or Expired Link</h1>
             <p className="text-muted-foreground text-sm">
               This password reset link is no longer valid. Please request a new one.
@@ -105,8 +105,8 @@ const ResetPassword = () => {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
         <div className="w-full max-w-md">
-          <div className="bg-card border border-border shadow-sm rounded-xl p-6 sm:p-8 space-y-6 text-center">
-            <div className="w-14 h-14 mx-auto rounded-xl bg-primary/10 flex items-center justify-center">
+          <div className="bg-card border border-border shadow-sm rounded-md p-6 sm:p-8 space-y-6 text-center">
+            <div className="w-14 h-14 mx-auto rounded-md bg-primary/10 flex items-center justify-center">
               <CheckCircle2 className="w-7 h-7 text-primary" />
             </div>
             <h1 className="text-2xl font-bold tracking-tight">Password Updated!</h1>
@@ -126,7 +126,7 @@ const ResetPassword = () => {
           Back to Login
         </Link>
 
-        <div className="bg-card border border-border shadow-sm rounded-xl p-6 sm:p-8 space-y-6">
+        <div className="bg-card border border-border shadow-sm rounded-md p-6 sm:p-8 space-y-6">
           <div className="space-y-1.5 text-center">
             <h1 className="text-2xl font-bold tracking-tight">Set New Password</h1>
             <p className="text-muted-foreground text-sm">Enter your new password below.</p>

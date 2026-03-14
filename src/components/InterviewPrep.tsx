@@ -107,7 +107,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                                     <Building2 className="w-5 h-5 text-foreground" />
                                                     Company Profile
                                                 </h3>
-                                                <div className="p-5 rounded-xl bg-card border border-border space-y-4">
+                                                <div className="p-5 rounded-md bg-card border border-border space-y-4">
                                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                                         <div>
                                                             <div className="text-muted-foreground text-xs uppercase tracking-wider mb-1">Industry</div>
@@ -132,7 +132,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                                 </h3>
                                                 <div className="space-y-3">
                                                     {material.company_profile.recent_news.map((news, i) => (
-                                                        <div key={i} className="p-3 text-sm rounded-xl bg-secondary border border-border">
+                                                        <div key={i} className="p-3 text-sm rounded-md bg-secondary border border-border">
                                                             {news}
                                                         </div>
                                                     ))}
@@ -148,7 +148,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                             </h3>
                                             <div className="grid md:grid-cols-3 gap-4">
                                                 {material.evaluation_criteria.map((crit, i) => (
-                                                    <div key={i} className="p-4 rounded-xl bg-card border border-border">
+                                                    <div key={i} className="p-4 rounded-md bg-card border border-border">
                                                         <div className="flex justify-between items-start mb-2">
                                                             <div className="font-medium">{crit.dimension}</div>
                                                             <Badge variant={crit.weight === 'High' ? 'default' : 'secondary'} className="text-[10px]">
@@ -171,7 +171,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                             </h3>
                                             <div className="grid md:grid-cols-2 gap-4">
                                                 {material.interviewer_insights.map((person, i) => (
-                                                    <div key={i} className="flex gap-4 p-4 rounded-xl bg-card border border-border">
+                                                    <div key={i} className="flex gap-4 p-4 rounded-md bg-card border border-border">
                                                         <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-foreground font-bold shrank-0">
                                                             {person.role[0]}
                                                         </div>
@@ -194,7 +194,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                                 </div>
                                                 <div className="grid gap-2">
                                                     {material.company_values.map((val, i) => (
-                                                        <div key={i} className="p-4 rounded-xl bg-secondary border border-border text-sm font-medium">
+                                                        <div key={i} className="p-4 rounded-md bg-secondary border border-border text-sm font-medium">
                                                             {val}
                                                         </div>
                                                     ))}
@@ -207,7 +207,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                                 </div>
                                                 <div className="grid gap-2">
                                                     {material.red_flags_to_watch.map((flag, i) => (
-                                                        <div key={i} className="p-4 rounded-xl bg-destructive/5 border border-destructive/10 text-sm text-destructive">
+                                                        <div key={i} className="p-4 rounded-md bg-destructive/5 border border-destructive/10 text-sm text-destructive">
                                                             {flag}
                                                         </div>
                                                     ))}
@@ -222,7 +222,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                                 <h3 className="text-sm font-semibold">Technical Review</h3>
                                                 <div className="space-y-3">
                                                     {material.technical_questions.map((q, i) => (
-                                                         <div key={i} className="p-4 rounded-xl bg-secondary border border-border text-sm leading-relaxed">
+                                                         <div key={i} className="p-4 rounded-md bg-secondary border border-border text-sm leading-relaxed">
                                                             {q}
                                                         </div>
                                                     ))}
@@ -232,7 +232,7 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
                                                 <h3 className="text-sm font-semibold">Behavioral & Leadership</h3>
                                                 <div className="space-y-3">
                                                     {material.behavioral_questions.map((q, i) => (
-                                                        <div key={i} className="p-4 rounded-xl bg-secondary border border-border text-sm leading-relaxed">
+                                                        <div key={i} className="p-4 rounded-md bg-secondary border border-border text-sm leading-relaxed">
                                                             {q}
                                                         </div>
                                                     ))}

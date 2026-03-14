@@ -76,7 +76,7 @@ export default function SalaryInsights({ jobTitle, company, location, salaryRang
 
         {!data && !loading && (
           <div className="flex flex-col items-center py-8 gap-4 text-center">
-            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center">
               <Sparkles className="w-6 h-6 text-primary" />
             </div>
             <div>
@@ -109,12 +109,12 @@ export default function SalaryInsights({ jobTitle, company, location, salaryRang
             <div className="space-y-4 pr-2">
               {/* Range & Position */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-xl border border-border bg-card p-3 text-center">
+                <div className="rounded-md border border-border bg-card p-3 text-center">
                   <DollarSign className="w-4 h-4 text-primary mx-auto mb-1" />
                   <p className="text-sm font-bold">{data.estimatedRange}</p>
                   <p className="text-[10px] text-muted-foreground">Estimated Range</p>
                 </div>
-                <div className="rounded-xl border border-border bg-card p-3 text-center">
+                <div className="rounded-md border border-border bg-card p-3 text-center">
                   <TrendingUp className="w-4 h-4 text-primary mx-auto mb-1" />
                   <p className="text-sm font-bold">{data.marketPosition}</p>
                   <p className="text-[10px] text-muted-foreground">Market Position</p>
@@ -141,7 +141,7 @@ export default function SalaryInsights({ jobTitle, company, location, salaryRang
               {/* Negotiation Script */}
               <div className="space-y-2">
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Negotiation Script</h4>
-                <div className="rounded-xl border border-border bg-muted/30 p-3 text-xs leading-relaxed prose prose-sm max-w-none dark:prose-invert">
+                <div className="rounded-md border border-border bg-muted/30 p-3 text-xs leading-relaxed prose prose-sm max-w-none dark:prose-invert">
                   <ReactMarkdown>{data.negotiationScript}</ReactMarkdown>
                 </div>
               </div>

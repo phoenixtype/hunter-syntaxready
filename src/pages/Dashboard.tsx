@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
+
 import JobFeed from "@/components/JobFeed";
 import DashboardSkeleton from "@/components/DashboardSkeleton";
 import DashboardWelcome from "@/components/DashboardWelcome";
@@ -270,7 +270,7 @@ const Dashboard = () => {
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 px-3 mb-1">{section.label}</p>
               )}
               {sidebarCollapsed && (
-                <div className="w-6 mx-auto border-t border-border/50 my-1" />
+                <div className="w-6 mx-auto border-t border-border my-1" />
               )}
               <div className="space-y-0.5">
                 {section.tools.map((tool) => (
@@ -331,10 +331,10 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen min-w-0">
-        <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-xl border-b border-border h-14 flex items-center justify-between px-4 sm:px-6">
+        <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-sm border-b border-border h-14 flex items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-4">
             <Link to="/" className="sm:hidden flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-sm">
+              <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center shadow-sm">
                 <span className="text-primary-foreground font-bold text-sm">H</span>
               </div>
             </Link>
@@ -383,12 +383,12 @@ const Dashboard = () => {
                 activeView === item.id ? "text-primary" : "text-muted-foreground active:text-foreground"
               }`}
             >
-              <div className={`p-1.5 rounded-xl transition-colors ${activeView === item.id ? "bg-primary/10" : ""}`}>
+              <div className={`p-1.5 rounded-md transition-colors ${activeView === item.id ? "bg-muted" : ""}`}>
                 <item.icon className="w-5 h-5" />
               </div>
               <span>{item.label}</span>
               {activeView === item.id && (
-                <motion.div layoutId="activeTab" className="absolute bottom-0 w-10 h-0.5 bg-primary rounded-full" transition={{ type: "spring", bounce: 0.2, duration: 0.6 }} />
+                <div className="absolute bottom-0 w-10 h-0.5 bg-primary rounded-full" />
               )}
             </button>
           ))}
@@ -401,13 +401,13 @@ const Dashboard = () => {
                   activeView === "settings" ? "text-primary" : "text-muted-foreground active:text-foreground"
                 }`}
               >
-                <div className={`p-1.5 rounded-xl transition-colors ${activeView === "settings" ? "bg-primary/10" : ""}`}>
+                <div className={`p-1.5 rounded-md transition-colors ${activeView === "settings" ? "bg-muted" : ""}`}>
                   <MoreHorizontal className="w-5 h-5" />
                 </div>
                 <span>More</span>
               </button>
             </SheetTrigger>
-            <SheetContent side="bottom" className="rounded-t-2xl pb-safe max-h-[70vh] overflow-y-auto">
+            <SheetContent side="bottom" className="rounded-t-md pb-safe max-h-[70vh] overflow-y-auto">
               <SheetHeader>
                 <SheetTitle>More</SheetTitle>
               </SheetHeader>
@@ -424,7 +424,7 @@ const Dashboard = () => {
                           else if (tool.modal === 'postInterview') { setShowPostInterview(true); setMoreOpen(false); }
                           else if (tool.modal === 'linkedin') { setShowLinkedIn(true); setMoreOpen(false); }
                         }}
-                        className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-foreground hover:bg-muted/70 active:bg-muted transition-colors"
+                        className="w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm text-foreground hover:bg-muted/70 active:bg-muted transition-colors"
                       >
                         <tool.icon className="w-4 h-4 text-muted-foreground" /> {tool.title}
                       </button>
@@ -435,25 +435,25 @@ const Dashboard = () => {
                 <div className="border-t border-border pt-3 space-y-1">
                   <button
                     onClick={() => { setActiveView("settings"); setSettingsTab("profile"); setMoreOpen(false); }}
-                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/70 active:bg-muted transition-colors"
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium text-foreground hover:bg-muted/70 active:bg-muted transition-colors"
                   >
                     <User className="w-4 h-4" /> Profile
                   </button>
                   <button
                     onClick={() => { setActiveView("settings"); setSettingsTab("preferences"); setMoreOpen(false); }}
-                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/70 active:bg-muted transition-colors"
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium text-foreground hover:bg-muted/70 active:bg-muted transition-colors"
                   >
                     <Settings className="w-4 h-4" /> Preferences
                   </button>
                   <button
                     onClick={() => { setActiveView("settings"); setSettingsTab("alerts"); setMoreOpen(false); }}
-                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/70 active:bg-muted transition-colors"
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium text-foreground hover:bg-muted/70 active:bg-muted transition-colors"
                   >
                     <Bell className="w-4 h-4" /> Alerts
                   </button>
                   <button
                     onClick={() => { handleSignOut(); setMoreOpen(false); }}
-                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/5 active:bg-destructive/10 transition-colors"
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium text-destructive hover:bg-destructive/5 active:bg-destructive/10 transition-colors"
                   >
                     <LogOut className="w-4 h-4" /> Sign out
                   </button>
@@ -509,7 +509,7 @@ const Dashboard = () => {
                   <p className="text-sm text-muted-foreground">Manage your profile and job preferences.</p>
                 </div>
                 {/* Tabs */}
-                <div className="flex gap-1 bg-muted/50 p-1 rounded-lg border border-border/50 w-fit">
+                <div className="flex gap-1 bg-muted/50 p-1 rounded-lg border border-border w-fit">
                   <Button
                     variant={settingsTab === "profile" ? "secondary" : "ghost"}
                     size="sm"

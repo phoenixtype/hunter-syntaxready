@@ -243,7 +243,7 @@ const JobHuntPlanner = () => {
                 <button
                   key={step.num}
                   onClick={() => setActiveStep(step.num)}
-                  className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl text-left transition-all duration-200 shrink-0 md:shrink md:w-full ${
+                  className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-md text-left transition-all duration-200 shrink-0 md:shrink md:w-full ${
                     activeStep === step.num
                       ? "bg-primary/10 border border-primary/30"
                       : "hover:bg-muted border border-transparent opacity-70 hover:opacity-100"
@@ -354,14 +354,14 @@ const JobHuntPlanner = () => {
                       <p className="text-sm text-muted-foreground">Common answers to questions on job application forms.</p>
                     </div>
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-muted/30">
+                      <div className="flex items-center justify-between p-4 rounded-md border border-border bg-muted/30">
                         <div>
                           <Label className="text-sm font-medium">Require Visa Sponsorship?</Label>
                           <p className="text-xs text-muted-foreground mt-0.5">Will you now or in the future require work authorization?</p>
                         </div>
                         <Switch checked={requireSponsorship} onCheckedChange={setRequireSponsorship} />
                       </div>
-                      <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-muted/30">
+                      <div className="flex items-center justify-between p-4 rounded-md border border-border bg-muted/30">
                         <div>
                           <Label className="text-sm font-medium">Active Security Clearance</Label>
                           <p className="text-xs text-muted-foreground mt-0.5">Do you hold a current government security clearance?</p>
@@ -404,7 +404,7 @@ const JobHuntPlanner = () => {
                         <p className="text-xs text-muted-foreground/70">Higher intensity means Hunter searches across more query variations and surfaces a broader range of matching roles.</p>
                       </div>
 
-                      <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-muted/30">
+                      <div className="flex items-center justify-between p-4 rounded-md border border-border bg-muted/30">
                         <div>
                           <Label className="text-sm font-medium">Conservative Matching</Label>
                           <p className="text-xs text-muted-foreground mt-0.5">Only surface roles that closely match your target titles and required skills.</p>
