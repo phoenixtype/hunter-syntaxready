@@ -64,6 +64,9 @@ const AdminAnalytics = () => {
             .limit(100)
         ]);
 
+        if (analyticsResult.error) {
+          console.error("Analytics RPC error:", analyticsResult.error.message);
+        }
         const analytics = analyticsResult.data as Record<string, unknown> | null;
 
         // Process application status distribution from RPC result
@@ -131,25 +134,21 @@ const AdminAnalytics = () => {
             title="Total Users"
             value={data?.totalUsers || 0}
             icon={Users}
-            change="+12%"
           />
           <MetricCard
             title="Applications"
             value={data?.totalApplications || 0}
             icon={Briefcase}
-            change="+28%"
           />
           <MetricCard
             title="Resumes Parsed"
             value={data?.totalResumes || 0}
             icon={FileText}
-            change="+15%"
           />
           <MetricCard
             title="Jobs Indexed"
             value={data?.totalJobs || 0}
             icon={TrendingUp}
-            change="+8%"
           />
         </div>
 
@@ -169,7 +168,7 @@ const AdminAnalytics = () => {
                   Activity Over Time
                 </CardTitle>
                 <CardDescription>
-                  Platform activity and engagement trends
+                  Your activity over the past 100 events
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -259,7 +258,7 @@ const AdminAnalytics = () => {
                   Feature Usage
                 </CardTitle>
                 <CardDescription>
-                  Most used platform features
+                  Your most-used features (based on your activity)
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -333,16 +332,14 @@ const AdminAnalytics = () => {
 };
 
 // Helper Components
-const MetricCard = ({ 
-  title, 
-  value, 
-  icon: Icon, 
-  change 
-}: { 
-  title: string; 
-  value: number; 
-  icon: React.ElementType; 
-  change: string;
+const MetricCard = ({
+  title,
+  value,
+  icon: Icon,
+}: {
+  title: string;
+  value: number;
+  icon: React.ElementType;
 }) => (
   <Card className="border-border hover:border-primary/30 transition-colors">
     <CardContent className="p-6">
@@ -350,7 +347,6 @@ const MetricCard = ({
         <div>
           <p className="text-sm text-muted-foreground">{title}</p>
           <p className="text-3xl font-bold mt-1">{value.toLocaleString()}</p>
-          <p className="text-xs text-primary mt-1">{change} vs last month</p>
         </div>
         <div className="p-3 bg-muted rounded-md">
           <Icon className="w-6 h-6 text-primary" />
@@ -375,17 +371,6 @@ const generateGrowthData = (logs: { created_at: string }[]) => {
     const date = new Date(log.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     counts[date] = (counts[date] || 0) + 1;
   });
-
-  // If no data, generate placeholder
-  if (Object.keys(counts).length === 0) {
-    const today = new Date();
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      counts[label] = Math.floor(Math.random() * 50) + 10;
-    }
-  }
 
   return Object.entries(counts).map(([date, count]) => ({ date, count }));
 };

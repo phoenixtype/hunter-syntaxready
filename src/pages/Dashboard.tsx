@@ -140,7 +140,7 @@ const Dashboard = () => {
 
       return () => clearInterval(interval);
     }
-  }, [location.state, location.search, location.pathname, navigate, refetchSubscription]);
+  }, [location.search, navigate, refetchSubscription]); // location.pathname excluded — it would re-trigger the poll on every nav
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
     try { return localStorage.getItem("hunter_sidebar_collapsed") === "true"; } catch { return false; }
   });
@@ -176,8 +176,8 @@ const Dashboard = () => {
   }
 
   const initials = profile?.identity?.name
-    ? profile.identity.name.split(' ').map(n => n[0]).join('').slice(0, 2)
-    : user?.email?.charAt(0).toUpperCase() || '?';
+    ? profile.identity.name.split(/\s+/).filter(Boolean).map(n => n[0]?.toUpperCase() ?? '').join('').slice(0, 2) || '?'
+    : (user?.email?.charAt(0) ?? '').toUpperCase() || '?';
 
   return (
     <div className="min-h-screen bg-background text-foreground flex" data-hide-footer>

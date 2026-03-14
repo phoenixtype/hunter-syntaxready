@@ -290,6 +290,7 @@ export const ApplicationsView = () => {
             <SelectItem value="accepted">Accepted</SelectItem>
             <SelectItem value="rejected">Rejected</SelectItem>
             <SelectItem value="declined">Declined</SelectItem>
+            <SelectItem value="withdrawn">Withdrawn</SelectItem>
           </SelectContent>
         </Select>
         <div className="flex items-center gap-1">

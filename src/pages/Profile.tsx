@@ -66,38 +66,50 @@ const Profile = () => {
         // We remove the overly aggressive auto-update that was causing state loss
     }, [profile, user?.id, location.state, formData]);
 
-    // Auto-save draft to localStorage (debounced)
+    // Auto-save draft to localStorage (debounced 2 s)
     useEffect(() => {
         if (!user?.id || mode !== 'edit' || !formData) return;
 
         const timer = setTimeout(() => {
-            localStorage.setItem(`hunter_profile_draft_${user.id}`, JSON.stringify(formData));
+            try {
+                localStorage.setItem(`hunter_profile_draft_${user.id}`, JSON.stringify(formData));
+            } catch {
+                // Ignore storage quota / private-browsing errors
+            }
         }, 2000);
- 
+
         return () => clearTimeout(timer);
     }, [formData, mode, user?.id]);
 
-    // Check for draft on mount or mode change
+    // Check for draft ONCE when entering edit mode — intentionally omits formData
+    // from deps to avoid running on every keystroke which would create an infinite
+    // loop: edit → setFormData(draft) → effect re-runs → setFormData(draft) → …
     useEffect(() => {
-        if (!user?.id || mode !== 'edit' || !formData) return;
+        if (!user?.id || mode !== 'edit') return;
 
-        const savedDraft = localStorage.getItem(`hunter_profile_draft_${user.id}`);
-        if (savedDraft) {
-            try {
-                const draft = JSON.parse(savedDraft);
-                if (JSON.stringify(draft) !== JSON.stringify(profile)) {
-                    toast.info("Unsaved draft restored", {
-                        description: "We found changes from your last session and applied them.",
-                        duration: 5000,
-                    });
-                    setFormData(draft);
-                }
-            } catch (e) {
-                console.error("Failed to parse profile draft", e);
-                localStorage.removeItem(`hunter_profile_draft_${user.id}`);
-            }
+        let raw: string | null = null;
+        try {
+            raw = localStorage.getItem(`hunter_profile_draft_${user.id}`);
+        } catch {
+            return; // private-browsing or quota error
         }
-    }, [mode, user?.id, formData, profile]);
+        if (!raw) return;
+
+        try {
+            const draft = JSON.parse(raw);
+            if (JSON.stringify(draft) !== JSON.stringify(profile)) {
+                toast.info("Unsaved draft restored", {
+                    description: "We found changes from your last session and applied them.",
+                    duration: 5000,
+                });
+                setFormData(draft);
+            }
+        } catch (e) {
+            console.error("Failed to parse profile draft", e);
+            try { localStorage.removeItem(`hunter_profile_draft_${user.id}`); } catch { /* ignore */ }
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mode, user?.id]); // ← deliberately excludes formData and profile
 
     const handleSave = async () => {
         if (!user || !formData) return;

@@ -44,9 +44,9 @@ const Settings = () => {
         tailoredResumesResult,
         feedbackResult,
       ] = await Promise.all([
-        supabase.from('profiles').select('*').eq('id', user.id).single(),
-        supabase.from('user_preferences').select('*').eq('user_id', user.id).single(),
-        supabase.from('candidate_profiles').select('*').eq('user_id', user.id).single(),
+        supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+        supabase.from('user_preferences').select('*').eq('user_id', user.id).maybeSingle(),
+        supabase.from('candidate_profiles').select('*').eq('user_id', user.id).maybeSingle(),
         supabase.from('application_history').select('*').eq('user_id', user.id),
         supabase.from('tailored_resumes').select('*').eq('user_id', user.id),
         supabase.from('feedback_actions').select('*').eq('user_id', user.id),

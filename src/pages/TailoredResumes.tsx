@@ -82,22 +82,34 @@ const TailoredResumes = () => {
   }, [fetchResumes]);
 
   const handleDownloadPdf = (resume: TailoredResume) => {
-    const name = `${resume.job_title}_${resume.company}`.replace(/[^a-z0-9_]/gi, "_");
-    exportResumeToPdf(resume.tailored_profile, `${name}_resume.pdf`);
-    toast.success("PDF downloaded");
+    try {
+      const name = `${resume.job_title}_${resume.company}`.replace(/[^a-z0-9_]/gi, "_");
+      exportResumeToPdf(resume.tailored_profile, `${name}_resume.pdf`);
+      toast.success("PDF downloaded");
+    } catch {
+      toast.error("PDF download failed. Please try again.");
+    }
   };
 
   const handleDownloadDocx = async (resume: TailoredResume) => {
-    const name = `${resume.job_title}_${resume.company}`.replace(/[^a-z0-9_]/gi, "_");
-    await exportResumeToDocx(resume.tailored_profile, `${name}_resume.docx`);
-    toast.success("Word document downloaded");
+    try {
+      const name = `${resume.job_title}_${resume.company}`.replace(/[^a-z0-9_]/gi, "_");
+      await exportResumeToDocx(resume.tailored_profile, `${name}_resume.docx`);
+      toast.success("Word document downloaded");
+    } catch {
+      toast.error("DOCX download failed. Please try again.");
+    }
   };
 
   const handleCopyCoverLetter = async (resume: TailoredResume) => {
-    await navigator.clipboard.writeText(resume.cover_letter);
-    setCopiedId(resume.id);
-    toast.success("Cover letter copied!");
-    setTimeout(() => setCopiedId(null), 2000);
+    try {
+      await navigator.clipboard.writeText(resume.cover_letter);
+      setCopiedId(resume.id);
+      toast.success("Cover letter copied!");
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch {
+      toast.error("Failed to copy — please select the text manually.");
+    }
   };
 
   const handleDelete = async () => {
@@ -190,8 +202,8 @@ const TailoredResumes = () => {
 
                       {resume.changes_summary.length > 0 && (
                         <div className="mt-3 space-y-1">
-                          {resume.changes_summary.slice(0, 3).map((change, i) => (
-                            <div key={i} className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                          {resume.changes_summary.slice(0, 3).map((change) => (
+                            <div key={change} className="flex items-start gap-1.5 text-xs text-muted-foreground">
                               <Check className="w-3 h-3 text-primary mt-0.5 shrink-0" />
                               <span>{change}</span>
                             </div>
@@ -254,7 +266,7 @@ const TailoredResumes = () => {
                   <PaginationContent>
                     <PaginationItem>
                       <PaginationPrevious 
-                        href="#" 
+                        href="javascript:void(0)"
                         onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.max(1, p - 1)); }}
                         className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
                       />
@@ -271,7 +283,7 @@ const TailoredResumes = () => {
                         return (
                           <PaginationItem key={page}>
                             <PaginationLink 
-                              href="#"
+                              href="javascript:void(0)"
                               isActive={currentPage === page}
                               onClick={(e) => { e.preventDefault(); setCurrentPage(page); }}
                             >
@@ -297,8 +309,8 @@ const TailoredResumes = () => {
                     })}
 
                     <PaginationItem>
-                      <PaginationNext 
-                        href="#" 
+                      <PaginationNext
+                        href="javascript:void(0)"
                         onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.min(totalPages, p + 1)); }}
                         className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
                       />

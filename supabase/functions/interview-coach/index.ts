@@ -103,7 +103,7 @@ serve(async (req) => {
       console.error('[SECURITY] Missing required configuration');
       return new Response(
         JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -159,7 +159,7 @@ serve(async (req) => {
       console.error('[CONFIG] Missing required API key');
       return new Response(
         JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -295,7 +295,7 @@ serve(async (req) => {
                 console.error('[INTERVIEW] Briefing generation failed');
                 return new Response(
                     JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-                    { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                    { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
                 );
             }
 
@@ -319,7 +319,7 @@ serve(async (req) => {
             console.error('[INTERVIEW] Briefing error:', err);
             return new Response(
                 JSON.stringify({ success: false, error: 'Briefing generation timed out or failed' }),
-                { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                { status: 504, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
         }
 
@@ -414,7 +414,7 @@ Description: ${job.description}`;
             
             return new Response(
                 JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-                { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
         }
 
@@ -424,7 +424,7 @@ Description: ${job.description}`;
         if (!content) {
             return new Response(
                 JSON.stringify({ success: false, error: 'No response generated' }),
-                { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
         }
 
@@ -442,7 +442,7 @@ Description: ${job.description}`;
         console.error('[INTERVIEW] AI Chat error:', err);
         return new Response(
             JSON.stringify({ success: false, error: 'Interview coach timed out' }),
-            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 504, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
     }
 
@@ -451,7 +451,7 @@ Description: ${job.description}`;
     console.error('[ERROR] Interview coach error occurred');
     return new Response(
       JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
