@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import SEOHead from "@/components/SEOHead";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Briefcase, FileText, Search, Linkedin, MessageSquare, User, Settings, LogOut, Zap, Bot, GraduationCap, Bell, FolderOpen, Sparkles, MoreHorizontal, PanelLeftClose, PanelLeft } from "lucide-react";
+import { Briefcase, FileText, Search, Linkedin, MessageSquare, User, Settings, LogOut, Zap, Bot, GraduationCap, Bell, FolderOpen, TrendingUp, MoreHorizontal, PanelLeftClose, PanelLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -27,8 +27,7 @@ import { ApplicationsView } from "@/components/ApplicationsView";
 import NotificationSettings from "@/components/NotificationSettings";
 import ProfilePanel from "@/components/ProfilePanel";
 import PreferencesPanel from "@/components/PreferencesPanel";
-import VisibilityScoreWidget from "@/components/VisibilityScoreWidget";
-import SkillCoachWidget from "@/components/SkillCoachWidget";
+import InsightsView from "@/components/InsightsView";
 import VisibilityCoachModal from "@/components/VisibilityCoachModal";
 import SubscriptionGate from "@/components/auth/SubscriptionGate";
 import {
@@ -39,8 +38,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-type DashboardView = "jobs" | "applications" | "settings";
-const VALID_DASHBOARD_VIEWS: DashboardView[] = ["jobs", "applications", "settings"];
+type DashboardView = "jobs" | "applications" | "insights" | "settings";
+const VALID_DASHBOARD_VIEWS: DashboardView[] = ["jobs", "applications", "insights", "settings"];
 
 // Track which tabs have been visited for lazy initialization.
 // Uses useEffect (not render-time setState) to avoid illegal side effects during render
@@ -59,6 +58,7 @@ const useVisitedTabs = (activeView: DashboardView) => {
 const NAV_ITEMS = [
   { id: "jobs" as const, label: "Jobs", icon: Briefcase },
   { id: "applications" as const, label: "Tracker", icon: FileText },
+  { id: "insights" as const, label: "Insights", icon: TrendingUp },
 ];
 
 type SidebarTool = {
@@ -298,12 +298,6 @@ const Dashboard = () => {
         </nav>
 
         <div className="px-1.5 py-3 border-t border-border space-y-0.5">
-          {/* Only render widget when sidebar is expanded — it would overflow the 60px collapsed width */}
-          {!sidebarCollapsed && visibility && (
-            <div className="px-2 mb-4">
-              <VisibilityScoreWidget score={visibility} onConsultCoach={() => setShowCoach(true)} />
-            </div>
-          )}
           {sidebarCollapsed && (
             <button onClick={toggleSidebar} title="Expand sidebar" className="w-full flex justify-center p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors mb-1">
               <PanelLeft className="w-4 h-4" />
@@ -349,6 +343,7 @@ const Dashboard = () => {
             <h1 className="text-base font-semibold hidden sm:block text-foreground/80">
               {NAV_ITEMS.find(n => n.id === activeView)?.label ?? (activeView === "settings" ? "Settings" : activeView)}
             </h1>
+
           </div>
 
           <div className="flex items-center gap-2">
@@ -477,16 +472,25 @@ const Dashboard = () => {
             <div className={activeView !== "jobs" ? "hidden" : ""}>
               <WidgetErrorBoundary>
                 <DashboardWelcome profile={profile} preferences={preferences ?? null} jobCount={jobCount} appCount={appCount} metrics={metrics} onSetView={(v) => setActiveView(v as DashboardView)} />
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-6">
-                    <div className="md:col-span-8">
-                        <JobFeed profile={profile} preferences={preferences} />
-                    </div>
-                    <div className="md:col-span-4 space-y-6">
-                        <SkillCoachWidget />
-                    </div>
+                <div className="mt-6">
+                  <JobFeed profile={profile} preferences={preferences} />
                 </div>
               </WidgetErrorBoundary>
           </div>
+          )}
+
+          {/* Insights */}
+          {visitedTabs.has("insights") && (
+            <div className={activeView !== "insights" ? "hidden" : ""}>
+              <WidgetErrorBoundary>
+                <InsightsView
+                  visibility={visibility}
+                  skillRecommendations={skillRecommendations}
+                  profile={profile}
+                  onConsultCoach={() => setShowCoach(true)}
+                />
+              </WidgetErrorBoundary>
+            </div>
           )}
 
           {/* Applications - lazy init */}
