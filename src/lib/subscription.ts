@@ -1,5 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-import { logActivity } from "./activity_logger";
 
 export enum SubscriptionTier {
     FREE = 'free',
@@ -12,10 +11,10 @@ export type Feature = 'autopilot' | 'deep_intelligence' | 'unlimited_application
 export interface UserSubscription {
     tier: SubscriptionTier;
     features: Feature[];
-    usage: {
-        applications_this_month: number;
-        applications_limit: number;
-    }
+    stripeCustomerId?: string;
+    stripeSubscriptionId?: string;
+    cancelAtPeriodEnd?: boolean;
+    currentPeriodEnd?: string;
 }
 
 const TIER_FEATURES: Record<SubscriptionTier, Feature[]> = {
@@ -24,57 +23,50 @@ const TIER_FEATURES: Record<SubscriptionTier, Feature[]> = {
     [SubscriptionTier.ENTERPRISE]: ['autopilot', 'deep_intelligence', 'unlimited_applications', 'negotiation_coach', 'sms_notifications']
 };
 
+const FREE_SUBSCRIPTION: UserSubscription = {
+    tier: SubscriptionTier.FREE,
+    features: [],
+};
+
 export const getSubscription = async (): Promise<UserSubscription> => {
     try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return {
-            tier: SubscriptionTier.FREE,
-            features: [],
-            usage: { applications_this_month: 0, applications_limit: 20 }
-        };
+        if (!session) return FREE_SUBSCRIPTION;
 
-        const { data: subData } = await supabase
+        // Query by user_id only — trust the `tier` column set by the webhook.
+        // Previously filtered by status which would hide valid pro rows with status
+        // 'incomplete', 'past_due', or any future Stripe status we haven't enumerated.
+        const { data: subData, error } = await supabase
             .from('subscriptions')
-            .select('*')
+            .select('tier, stripe_customer_id, stripe_subscription_id, cancel_at_period_end, current_period_end, status')
             .eq('user_id', session.user.id)
-            .in('status', ['active', 'trialing'])
             .maybeSingle();
 
-        const tier = (subData?.tier as SubscriptionTier) || SubscriptionTier.FREE;
+        if (error) {
+            console.error('[getSubscription] DB error:', error.message);
+            return FREE_SUBSCRIPTION;
+        }
 
-        const startOfMonth = new Date();
-        startOfMonth.setDate(1);
-        startOfMonth.setHours(0, 0, 0, 0);
-        
-        const { count: applicationsCount } = await supabase
-            .from('application_history')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', session.user.id)
-            .gte('applied_at', startOfMonth.toISOString());
-
-        const usage = {
-            applications_this_month: applicationsCount || 0,
-            applications_limit: tier === SubscriptionTier.FREE ? 20 : 9999
-        };
+        // A canceled subscription has tier='free' written by the webhook,
+        // so we read tier directly — no status filtering needed.
+        const tier = (subData?.tier as SubscriptionTier) ?? SubscriptionTier.FREE;
 
         return {
             tier,
             features: TIER_FEATURES[tier],
-            usage
+            stripeCustomerId: subData?.stripe_customer_id ?? undefined,
+            stripeSubscriptionId: subData?.stripe_subscription_id ?? undefined,
+            cancelAtPeriodEnd: subData?.cancel_at_period_end ?? false,
+            currentPeriodEnd: subData?.current_period_end ?? undefined,
         };
     } catch (err) {
-        console.error('Failed to fetch subscription:', err);
-        return {
-            tier: SubscriptionTier.FREE,
-            features: [],
-            usage: { applications_this_month: 0, applications_limit: 20 }
-        };
+        console.error('[getSubscription] Unexpected error:', err);
+        return FREE_SUBSCRIPTION;
     }
 };
 
 /**
- * Check if the current subscription includes a specific feature.
- * Must be called with subscription data from the useSubscription hook.
+ * Check if a subscription includes a specific feature.
  */
 export const checkAccess = (feature: Feature, subscription?: UserSubscription | null): boolean => {
     if (!subscription) return false;
@@ -86,13 +78,26 @@ export const upgradeToPro = async (): Promise<void> => {
     if (!session) throw new Error("Not authenticated");
 
     const { data, error } = await supabase.functions.invoke('create-checkout', {
-        headers: {
-            Authorization: `Bearer ${session.access_token}`
-        }
+        headers: { Authorization: `Bearer ${session.access_token}` }
     });
 
     if (error || !data?.url) {
         throw new Error(error?.message || "Failed to create checkout session");
+    }
+
+    window.location.href = data.url;
+};
+
+export const openBillingPortal = async (): Promise<void> => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error("Not authenticated");
+
+    const { data, error } = await supabase.functions.invoke('create-portal', {
+        headers: { Authorization: `Bearer ${session.access_token}` }
+    });
+
+    if (error || !data?.url) {
+        throw new Error(error?.message || "Failed to open billing portal");
     }
 
     window.location.href = data.url;

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Zap, ShieldCheck, Sparkles, Rocket, ArrowRight, RefreshCw } from "lucide-react";
+import { Zap, ShieldCheck, Sparkles, Rocket, ArrowRight, RefreshCw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { upgradeToPro } from "@/lib/subscription";
 import { useState } from "react";
@@ -32,12 +32,16 @@ const SubscriptionGate = ({ onClose }: SubscriptionGateProps) => {
     try {
       const { data } = await refetch();
       if (data?.tier !== 'free') {
-        toast.success("Subscription detected! Welcome to Pro.");
+        toast.success("Pro subscription activated! Welcome to Hunter Pro.");
+        onClose?.();
       } else {
-        toast.info("Status refreshed. Still on Free tier.");
+        toast.info("Still on Free tier.", {
+          description: "If you completed payment, it can take up to 60 seconds to activate. Wait a moment and try again, or contact support@syntaxready.com.",
+          duration: 8000,
+        });
       }
-    } catch (error) {
-       toast.error("Failed to refresh status.");
+    } catch {
+      toast.error("Failed to refresh status. Please reload the page and try again.");
     } finally {
       setIsRefreshing(false);
     }
@@ -90,8 +94,17 @@ const SubscriptionGate = ({ onClose }: SubscriptionGateProps) => {
               disabled={loading}
               className="h-14 w-full rounded-2xl bg-primary text-base font-bold shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 gap-2"
             >
-              {loading ? "Initializing..." : "Activate Pro Access"}
-              {!loading && <ArrowRight className="h-4 w-4" />}
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Initializing...
+                </>
+              ) : (
+                <>
+                  Activate Pro Access
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
             </Button>
             
             <div className="flex justify-center">

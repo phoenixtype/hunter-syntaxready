@@ -34,8 +34,11 @@ const InterviewCoach = () => {
   const [jobCompany, setJobCompany] = useState(searchParams.get("company") || "");
   const jobDescription = searchParams.get("desc") || "";
 
-  // Stable session key — scoped to user + job so sessions don't bleed between roles
-  const sessionKey = user ? `hunter_ic_${user.id}_${jobTitle}_${jobCompany}` : null;
+  // Stable session key — scoped to user + job so sessions don't bleed between roles.
+  // Sanitize title/company to strip characters that could corrupt the key or collide.
+  const sessionKey = user
+    ? `hunter_ic_${user.id}_${jobTitle.trim().toLowerCase().replace(/[^a-z0-9]/g, '_')}_${jobCompany.trim().toLowerCase().replace(/[^a-z0-9]/g, '_')}`
+    : null;
 
   const [mode, setMode] = useState<Mode>("behavioral");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -89,7 +92,8 @@ const InterviewCoach = () => {
   }, [messages]);
 
   const startInterview = async (selectedMode: Mode) => {
-    if (!canAccess('negotiation_coach')) {
+    // Only Negotiation requires Pro — Behavioral and Technical are free for all users.
+    if (selectedMode === 'negotiation' && !canAccess('negotiation_coach')) {
       setShowPricingModal(true);
       return;
     }
@@ -233,8 +237,13 @@ const InterviewCoach = () => {
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <m.icon className="w-5 h-5 text-primary" />
                 </div>
-                <div>
-                  <p className="font-semibold text-sm">{m.label}</p>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-sm">{m.label}</p>
+                    {m.id === 'negotiation' && !canAccess('negotiation_coach') && (
+                      <Badge variant="secondary" className="text-[10px] h-4 px-1.5 bg-primary/10 text-primary border-0">Pro</Badge>
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground">{m.desc}</p>
                 </div>
               </button>

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { ApplicationRecord } from "@/lib/application_engine";
 import { TrendingUp, Send, MessageSquare, CheckCircle2, Clock, BarChart3 } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, Cell, FunnelChart, Funnel, LabelList } from "recharts";
+import { XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, Cell } from "recharts";
 import { format, subWeeks, startOfWeek, isAfter, differenceInDays, parseISO } from "date-fns";
 
 interface Props {
@@ -161,7 +161,7 @@ export default function ApplicationAnalytics({ applications }: Props) {
           {stats.avgDaysToResponse && (
             <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
               <Clock className="w-3 h-3" />
-              Avg. time to response: <span className="font-semibold text-foreground">{stats.avgDaysToResponse} days</span>
+              Avg. age of interview-stage apps: <span className="font-semibold text-foreground">{stats.avgDaysToResponse} days</span>
             </div>
           )}
         </div>

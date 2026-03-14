@@ -42,12 +42,17 @@ import {
 type DashboardView = "jobs" | "applications" | "settings";
 const VALID_DASHBOARD_VIEWS: DashboardView[] = ["jobs", "applications", "settings"];
 
-// Track which tabs have been visited for lazy initialization
+// Track which tabs have been visited for lazy initialization.
+// Uses useEffect (not render-time setState) to avoid illegal side effects during render
+// and double-invocations in React StrictMode.
 const useVisitedTabs = (activeView: DashboardView) => {
-  const [visited, setVisited] = useState<Set<DashboardView>>(new Set([activeView]));
-  if (!visited.has(activeView)) {
-    setVisited(prev => new Set(prev).add(activeView));
-  }
+  const [visited, setVisited] = useState<Set<DashboardView>>(() => new Set([activeView]));
+  useEffect(() => {
+    setVisited(prev => {
+      if (prev.has(activeView)) return prev;
+      return new Set(prev).add(activeView);
+    });
+  }, [activeView]);
   return visited;
 };
 
@@ -241,6 +246,7 @@ const Dashboard = () => {
                 key={item.id}
                 onClick={() => setActiveView(item.id)}
                 title={sidebarCollapsed ? item.label : undefined}
+                aria-current={activeView === item.id ? "page" : undefined}
                 className={`w-full flex items-center gap-2.5 rounded-lg text-sm font-medium transition-all ${
                   sidebarCollapsed ? "justify-center p-2" : "px-3 py-2"
                 } ${
@@ -292,9 +298,10 @@ const Dashboard = () => {
         </nav>
 
         <div className="px-1.5 py-3 border-t border-border space-y-0.5">
-          {visibility && (
+          {/* Only render widget when sidebar is expanded — it would overflow the 60px collapsed width */}
+          {!sidebarCollapsed && visibility && (
             <div className="px-2 mb-4">
-               <VisibilityScoreWidget score={visibility} onConsultCoach={() => setShowCoach(true)} />
+              <VisibilityScoreWidget score={visibility} onConsultCoach={() => setShowCoach(true)} />
             </div>
           )}
           {sidebarCollapsed && (
@@ -305,6 +312,7 @@ const Dashboard = () => {
           <button
             onClick={() => setActiveView("settings")}
             title={sidebarCollapsed ? "Settings" : undefined}
+            aria-current={activeView === "settings" ? "page" : undefined}
             className={`w-full flex items-center gap-2.5 rounded-lg text-sm font-medium transition-all ${
               sidebarCollapsed ? "justify-center p-2" : "px-3 py-2"
             } ${

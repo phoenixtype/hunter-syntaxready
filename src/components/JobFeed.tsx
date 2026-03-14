@@ -28,8 +28,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { useSubscription } from "@/hooks/useSubscription";
-import PricingModal from "./PricingModal";
 import { useSavedJobs } from "@/hooks/useSavedJobs";
 import MatchScoreTooltip from "./MatchScoreTooltip";
 import JobCardActions from "./JobCardActions";
@@ -60,8 +58,6 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   const [tailorResult, setTailorResult] = useState<{ content: TailoredContent; job: { title: string; company: string } } | null>(null);
   const [showSavedOnly, setShowSavedOnly] = useState(false);
   
-  const { subscription } = useSubscription();
-  const [showPricingModal, setShowPricingModal] = useState(false);
   const { toggleSave, isSaved, savedCount } = useSavedJobs();
 
   const filteredJobs = useMemo(() => {
@@ -148,11 +144,6 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   }, [user]);
 
   const handleApply = async (job: EnrichedJob) => {
-    if (subscription && subscription.usage.applications_this_month >= subscription.usage.applications_limit) {
-      toast.error("Application Limit Reached", { description: "Upgrade to Pro for unlimited applications." });
-      setShowPricingModal(true);
-      return;
-    }
     if (appliedJobIds.has(job.id)) { 
       // Do nothing, let the <a> tag handle navigation to the job URL
       return; 
@@ -202,11 +193,6 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   };
 
   const handleTailor = async (job: EnrichedJob) => {
-    if (subscription && subscription.usage.applications_this_month >= subscription.usage.applications_limit) {
-      toast.error("Application Limit Reached", { description: "Upgrade to Pro for unlimited applications." });
-      setShowPricingModal(true);
-      return;
-    }
     if (!profile) { toast.error("Build your profile first."); return; }
     setTailoringJobId(job.id);
     const toastId = toast.loading("Tailoring resume…", { description: `Optimizing for ${job.title} at ${job.company}` });
@@ -567,11 +553,6 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
         onClose={() => setTailorResult(null)}
         content={tailorResult?.content ?? null}
         job={tailorResult?.job ?? null}
-      />
-      
-      <PricingModal
-        isOpen={showPricingModal}
-        onClose={() => setShowPricingModal(false)}
       />
     </div>
   );

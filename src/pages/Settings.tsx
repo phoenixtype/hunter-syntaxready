@@ -6,9 +6,8 @@ import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -22,6 +21,8 @@ import {
 import { toast } from "sonner";
 import { Download, Trash2, Shield, Bell, Moon, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import NotificationSettings from "@/components/NotificationSettings";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -32,24 +33,23 @@ const Settings = () => {
   // Export all user data (GDPR compliance)
   const handleExportData = async () => {
     if (!user) return;
-    
+
     setIsExporting(true);
     try {
-      // Gather all user data from various tables
       const [
         profileResult,
         preferencesResult,
         candidateResult,
         applicationsResult,
         tailoredResumesResult,
-        feedbackResult
+        feedbackResult,
       ] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', user.id).single(),
         supabase.from('user_preferences').select('*').eq('user_id', user.id).single(),
         supabase.from('candidate_profiles').select('*').eq('user_id', user.id).single(),
         supabase.from('application_history').select('*').eq('user_id', user.id),
         supabase.from('tailored_resumes').select('*').eq('user_id', user.id),
-        supabase.from('feedback_actions').select('*').eq('user_id', user.id)
+        supabase.from('feedback_actions').select('*').eq('user_id', user.id),
       ]);
 
       const exportData = {
@@ -64,7 +64,6 @@ const Settings = () => {
         feedbackActions: feedbackResult.data || [],
       };
 
-      // Create and download JSON file
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -78,40 +77,48 @@ const Settings = () => {
       toast.success("Data exported successfully");
     } catch (error) {
       console.error("Export failed:", error);
-      toast.error("Failed to export data. Please try again.");
+      toast.error("Export failed. Please try again.");
     } finally {
       setIsExporting(false);
     }
   };
 
-  // Delete account and all user data (GDPR compliance)
+  // Delete account and all user data (GDPR compliance).
+  // Table data is deleted first, then the auth user record is removed via the
+  // delete-account edge function (requires service-role key, cannot be done client-side).
   const handleDeleteAccount = async () => {
     if (!user) return;
-    
+
     setIsDeleting(true);
     try {
-      // Delete data from all tables (cascading should handle most, but be explicit)
+      // 1. Delete all application data in parallel
       await Promise.all([
         supabase.from('feedback_actions').delete().eq('user_id', user.id),
         supabase.from('tailored_resumes').delete().eq('user_id', user.id),
         supabase.from('application_history').delete().eq('user_id', user.id),
         supabase.from('agent_activity_logs').delete().eq('user_id', user.id),
         supabase.from('learning_weights').delete().eq('user_id', user.id),
-        supabase.from('notification_preferences').delete().eq('user_id', user.id),
         supabase.from('candidate_profiles').delete().eq('user_id', user.id),
         supabase.from('user_preferences').delete().eq('user_id', user.id),
         supabase.from('subscriptions').delete().eq('user_id', user.id),
         supabase.from('profiles').delete().eq('id', user.id),
       ]);
 
-      // Sign out
+      // 2. Delete the auth user record via edge function (service role required)
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        await supabase.functions.invoke('delete-account', {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+      }
+
+      // 3. Sign out and redirect
       await signOut();
-      
-      toast.success("Account deleted successfully. We're sorry to see you go.");
+      toast.success("Your account has been permanently deleted.");
       navigate('/');
     } catch (error) {
       console.error("Delete failed:", error);
-      toast.error("Failed to delete account. Please contact support.");
+      toast.error("Account deletion failed. Please contact support@syntaxready.com.");
     } finally {
       setIsDeleting(false);
     }
@@ -128,8 +135,8 @@ const Settings = () => {
       />
 
       <main className="container max-w-3xl mx-auto px-4 pt-20 sm:pt-24 space-y-8 animate-fade-in pb-8">
-        
-        {/* Privacy & Data Section */}
+
+        {/* Privacy & Data */}
         <Card className="border-border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -141,8 +148,6 @@ const Settings = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            
-            {/* Export Data */}
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <Label className="text-base font-medium">Export Your Data</Label>
@@ -150,11 +155,7 @@ const Settings = () => {
                   Download a copy of all your data in JSON format
                 </p>
               </div>
-              <Button 
-                variant="outline" 
-                onClick={handleExportData}
-                disabled={isExporting}
-              >
+              <Button variant="outline" onClick={handleExportData} disabled={isExporting}>
                 {isExporting ? (
                   <Loader2 className="w-4 h-4 animate-spin mr-2" />
                 ) : (
@@ -166,7 +167,6 @@ const Settings = () => {
 
             <Separator />
 
-            {/* Delete Account */}
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <Label className="text-base font-medium text-destructive">Delete Account</Label>
@@ -203,7 +203,7 @@ const Settings = () => {
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction 
+                    <AlertDialogAction
                       onClick={handleDeleteAccount}
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     >
@@ -216,7 +216,7 @@ const Settings = () => {
           </CardContent>
         </Card>
 
-        {/* Notifications Section */}
+        {/* Notifications — uses the real persistent component, not ghost switches */}
         <Card className="border-border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -227,44 +227,12 @@ const Settings = () => {
               Configure how and when you receive notifications
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <Label className="text-base font-medium">Email Notifications</Label>
-                <p className="text-sm text-muted-foreground">
-                  Receive job alerts and application updates via email
-                </p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <Label className="text-base font-medium">Weekly Digest</Label>
-                <p className="text-sm text-muted-foreground">
-                  Get a summary of your job search activity each week
-                </p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <Label className="text-base font-medium">Marketing Emails</Label>
-                <p className="text-sm text-muted-foreground">
-                  Product updates, tips, and promotional content
-                </p>
-              </div>
-              <Switch />
-            </div>
+          <CardContent>
+            <NotificationSettings />
           </CardContent>
         </Card>
 
-        {/* Appearance Section */}
+        {/* Appearance */}
         <Card className="border-border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -278,11 +246,12 @@ const Settings = () => {
           <CardContent>
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <Label className="text-base font-medium">Dark Mode</Label>
+                <Label className="text-base font-medium">Theme</Label>
                 <p className="text-sm text-muted-foreground">
-                  Use the theme toggle in the corner to switch themes
+                  Switch between light and dark mode
                 </p>
               </div>
+              <ThemeToggle />
             </div>
           </CardContent>
         </Card>

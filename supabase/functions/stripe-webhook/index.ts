@@ -123,6 +123,43 @@ serve(async (req) => {
         break;
       }
 
+      // Fired when a subscription is first created (e.g. after checkout.session.completed).
+      // We handle this to catch cases where checkout.session.completed is delayed or missed.
+      case 'customer.subscription.created': {
+        const subscription = event.data.object;
+        const customerId = subscription.customer;
+
+        const { data: existingSub } = await supabase
+          .from('subscriptions')
+          .select('user_id')
+          .eq('stripe_customer_id', customerId)
+          .maybeSingle();
+
+        if (existingSub) {
+          const tier = subscription.status === 'active' || subscription.status === 'trialing'
+            ? 'pro' : 'free';
+
+          await supabase
+            .from('subscriptions')
+            .update({
+              tier,
+              status: subscription.status,
+              stripe_subscription_id: subscription.id,
+              current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+              cancel_at_period_end: subscription.cancel_at_period_end,
+              stripe_price_id: subscription.items?.data?.[0]?.price?.id,
+            })
+            .eq('user_id', existingSub.user_id);
+        } else {
+          // No existing row means checkout.session.completed hasn't run yet —
+          // the metadata.supabase_user_id is on the checkout session, not the subscription.
+          // Log and let checkout.session.completed handle it.
+          console.warn('[WEBHOOK] subscription.created: no matching customer row for', customerId);
+        }
+        break;
+      }
+
       case 'customer.subscription.updated': {
         const subscription = event.data.object;
         const customerId = subscription.customer;
@@ -170,6 +207,25 @@ serve(async (req) => {
               status: 'canceled',
               cancel_at_period_end: false,
             })
+            .eq('user_id', existingSub.user_id);
+        }
+        break;
+      }
+
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object;
+        const customerId = invoice.customer;
+
+        const { data: existingSub } = await supabase
+          .from('subscriptions')
+          .select('user_id')
+          .eq('stripe_customer_id', customerId)
+          .maybeSingle();
+
+        if (existingSub) {
+          await supabase
+            .from('subscriptions')
+            .update({ tier: 'pro', status: 'active' })
             .eq('user_id', existingSub.user_id);
         }
         break;
