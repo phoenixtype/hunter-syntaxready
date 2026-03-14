@@ -274,8 +274,8 @@ export async function extractTextFromFile(file: File): Promise<string> {
               // Sort items by Y (top to bottom) then X (left to right) to handle multi-column layouts
               // PDF coordinates: (0,0) is bottom-left. Higher Y = higher on page.
               const items = textContent.items
-                .filter((item): item is { str: string; transform: number[]; width: number; height: number } => 'str' in item)
-                .map(item => item as { str: string, transform: number[], width: number, height: number });
+                .filter((item) => 'str' in item)
+                .map(item => item as unknown as { str: string, transform: number[], width: number, height: number });
 
               items.sort((a, b) => {
                 const yDiff = b.transform[5] - a.transform[5];
