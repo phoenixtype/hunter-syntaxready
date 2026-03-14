@@ -164,7 +164,7 @@ export const fetchLogsFromDatabase = async (userId: string, limit: number = 50):
       .limit(limit);
 
     if (error) {
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env.DEV) {
         console.error('Error fetching logs');
       }
       return [];
