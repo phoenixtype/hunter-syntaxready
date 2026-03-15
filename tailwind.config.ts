@@ -86,6 +86,14 @@ export default {
         xl: "calc(var(--radius) + 4px)",
         "2xl": "calc(var(--radius) + 8px)",
       },
+      boxShadow: {
+        // MD3 Elevation levels
+        "md-1": "0 1px 2px 0 rgba(0,0,0,0.07), 0 1px 3px 1px rgba(0,0,0,0.05)",
+        "md-2": "0 1px 2px 0 rgba(0,0,0,0.08), 0 2px 6px 2px rgba(0,0,0,0.06)",
+        "md-3": "0 4px 8px 3px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.09)",
+        "md-4": "0 6px 10px 4px rgba(0,0,0,0.07), 0 2px 3px rgba(0,0,0,0.09)",
+        "md-5": "0 8px 12px 6px rgba(0,0,0,0.07), 0 4px 4px rgba(0,0,0,0.09)",
+      },
       keyframes: {
         "accordion-down": {
           from: { height: "0" },

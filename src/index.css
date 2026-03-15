@@ -6,103 +6,118 @@
 
 @layer base {
   :root {
-    /* Clean Professional Light Mode — Violet */
-    --background: 0 0% 100%;
-    --foreground: 220 20% 14%;
+    /* Material Design 3 — Professional Blue (Recruitment / Career) */
+
+    /* MD3 Surface */
+    --background: 210 25% 98%;
+    --foreground: 218 28% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 20% 14%;
+    --card-foreground: 218 28% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 14%;
+    --popover-foreground: 218 28% 12%;
 
-    --primary: 258 89% 62%;
+    /* MD3 Primary — deep trust-blue (#1565C0) */
+    --primary: 215 79% 43%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 258 20% 97%;
-    --secondary-foreground: 220 20% 14%;
+    /* MD3 Secondary — primary container (light blue tint) */
+    --secondary: 214 85% 94%;
+    --secondary-foreground: 215 79% 28%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 10% 46%;
+    /* MD3 Surface Variant */
+    --muted: 210 35% 95%;
+    --muted-foreground: 215 18% 46%;
 
-    --accent: 258 30% 95%;
-    --accent-foreground: 258 84% 40%;
+    /* MD3 Tertiary — amber/gold for CTAs and highlights */
+    --accent: 36 100% 50%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
+    /* MD3 Error */
+    --destructive: 4 90% 42%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 71% 45%;
+    /* Semantic tokens */
+    --success: 142 76% 36%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
+    --warning: 36 100% 47%;
     --warning-foreground: 0 0% 100%;
 
-    --info: 199 89% 48%;
+    --info: 207 90% 40%;
     --info-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 258 89% 62%;
+    /* MD3 Outline */
+    --border: 214 24% 88%;
+    --input: 214 24% 88%;
+    --ring: 215 79% 43%;
 
+    /* MD3 Shape — medium rounding */
     --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 99%;
-    --sidebar-foreground: 220 20% 14%;
-    --sidebar-primary: 258 89% 62%;
+    --sidebar-background: 210 30% 97%;
+    --sidebar-foreground: 218 28% 12%;
+    --sidebar-primary: 215 79% 43%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 258 20% 97%;
-    --sidebar-accent-foreground: 220 20% 14%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 258 89% 62%;
+    --sidebar-accent: 214 85% 94%;
+    --sidebar-accent-foreground: 215 79% 28%;
+    --sidebar-border: 214 24% 88%;
+    --sidebar-ring: 215 79% 43%;
   }
 
   .dark {
-    /* Deep, refined dark mode */
-    --background: 240 15% 6%;
-    --foreground: 210 20% 95%;
+    /* MD3 Dark — deep navy surface */
+    --background: 221 25% 8%;
+    --foreground: 210 50% 96%;
 
-    --card: 240 12% 9%;
-    --card-foreground: 210 20% 95%;
+    --card: 221 22% 12%;
+    --card-foreground: 210 50% 96%;
 
-    --popover: 240 12% 9%;
-    --popover-foreground: 210 20% 95%;
+    --popover: 221 22% 12%;
+    --popover-foreground: 210 50% 96%;
 
-    --primary: 258 85% 72%;
-    --primary-foreground: 240 15% 6%;
+    /* MD3 Primary dark — light blue (#90CAF9) */
+    --primary: 208 89% 76%;
+    --primary-foreground: 221 25% 8%;
 
-    --secondary: 240 10% 14%;
-    --secondary-foreground: 210 20% 95%;
+    /* MD3 Secondary dark */
+    --secondary: 221 18% 18%;
+    --secondary-foreground: 210 50% 96%;
 
-    --muted: 240 10% 14%;
-    --muted-foreground: 220 12% 55%;
+    --muted: 221 18% 16%;
+    --muted-foreground: 215 20% 55%;
 
-    --accent: 240 10% 17%;
-    --accent-foreground: 258 85% 78%;
+    /* MD3 Tertiary dark — lighter amber */
+    --accent: 36 100% 60%;
+    --accent-foreground: 221 25% 8%;
 
-    --destructive: 0 62% 40%;
-    --destructive-foreground: 210 20% 95%;
+    /* MD3 Error dark */
+    --destructive: 4 80% 60%;
+    --destructive-foreground: 221 25% 8%;
 
     --success: 142 71% 45%;
-    --success-foreground: 240 15% 6%;
+    --success-foreground: 221 25% 8%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 240 15% 6%;
+    --warning: 36 100% 55%;
+    --warning-foreground: 221 25% 8%;
 
-    --info: 199 89% 48%;
-    --info-foreground: 240 15% 6%;
+    --info: 207 89% 60%;
+    --info-foreground: 221 25% 8%;
 
-    --border: 240 8% 17%;
-    --input: 240 8% 17%;
-    --ring: 258 85% 72%;
+    /* MD3 Outline dark */
+    --border: 221 14% 22%;
+    --input: 221 14% 22%;
+    --ring: 208 89% 76%;
 
-    --sidebar-background: 240 15% 6%;
-    --sidebar-foreground: 210 20% 95%;
-    --sidebar-primary: 258 85% 72%;
-    --sidebar-primary-foreground: 240 15% 6%;
-    --sidebar-accent: 240 10% 14%;
-    --sidebar-accent-foreground: 210 20% 95%;
-    --sidebar-border: 240 8% 17%;
-    --sidebar-ring: 258 85% 72%;
+    --sidebar-background: 221 25% 8%;
+    --sidebar-foreground: 210 50% 96%;
+    --sidebar-primary: 208 89% 76%;
+    --sidebar-primary-foreground: 221 25% 8%;
+    --sidebar-accent: 221 18% 18%;
+    --sidebar-accent-foreground: 210 50% 96%;
+    --sidebar-border: 221 14% 22%;
+    --sidebar-ring: 208 89% 76%;
   }
 }
 
@@ -322,15 +337,15 @@
   @apply rounded-full px-3 py-0.5 text-xs font-medium;
 }
 
-/* Consistent shadow utilities */
+/* MD3 Shadow / Elevation utilities */
 .shadow-glow {
-  box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.3);
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.18), 0 1px 3px rgba(0,0,0,0.08);
 }
 .shadow-glow-lg {
-  box-shadow: 0 0 30px -5px hsl(var(--primary) / 0.4);
+  box-shadow: 0 0 0 4px hsl(var(--primary) / 0.22), 0 2px 6px rgba(0,0,0,0.10);
 }
 .shadow-elevated {
-  box-shadow: 0 4px 24px -4px hsl(var(--foreground) / 0.08);
+  box-shadow: 0 4px 8px 3px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.09);
 }
 
 /* Input focus enhancement */

@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
+import { openBillingPortal } from "@/lib/subscription";
 import SEOHead from "@/components/SEOHead";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -19,16 +22,30 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Download, Trash2, Shield, Bell, Moon, Loader2 } from "lucide-react";
+import { Download, Trash2, Shield, Bell, Moon, Loader2, CreditCard, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import NotificationSettings from "@/components/NotificationSettings";
 import ThemeToggle from "@/components/ThemeToggle";
+import { format } from "date-fns";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { subscription, isPro } = useSubscription();
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isOpeningPortal, setIsOpeningPortal] = useState(false);
+
+  const handleOpenBillingPortal = async () => {
+    setIsOpeningPortal(true);
+    try {
+      await openBillingPortal();
+    } catch (err) {
+      console.error("Billing portal error:", err);
+      toast.error("Could not open billing portal. Please try again.");
+      setIsOpeningPortal(false);
+    }
+  };
 
   // Export all user data (GDPR compliance)
   const handleExportData = async () => {
@@ -135,6 +152,105 @@ const Settings = () => {
       />
 
       <main className="container max-w-3xl mx-auto px-4 pt-20 sm:pt-24 space-y-8 animate-fade-in pb-8">
+
+        {/* Subscription */}
+        <Card className="border-border">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-primary" />
+              Subscription
+            </CardTitle>
+            <CardDescription>
+              Manage your plan and billing details
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <Label className="text-base font-medium">Current Plan</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant={isPro ? "default" : "secondary"} className="text-xs">
+                    {isPro ? "Hunter Pro" : "Free"}
+                  </Badge>
+                  {subscription?.cancelAtPeriodEnd && subscription.currentPeriodEnd && (
+                    <span className="text-xs text-warning font-medium">
+                      Cancels {format(new Date(subscription.currentPeriodEnd), "MMM d, yyyy")}
+                    </span>
+                  )}
+                  {isPro && !subscription?.cancelAtPeriodEnd && subscription?.currentPeriodEnd && (
+                    <span className="text-xs text-muted-foreground">
+                      Renews {format(new Date(subscription.currentPeriodEnd), "MMM d, yyyy")}
+                    </span>
+                  )}
+                </div>
+              </div>
+              {isPro ? (
+                <Button
+                  variant="outline"
+                  onClick={handleOpenBillingPortal}
+                  disabled={isOpeningPortal}
+                >
+                  {isOpeningPortal ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                  )}
+                  Manage Billing
+                </Button>
+              ) : (
+                <Button onClick={() => navigate("/dashboard")}>
+                  Upgrade to Pro
+                </Button>
+              )}
+            </div>
+
+            {isPro && (
+              <>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label className="text-base font-medium text-destructive">Cancel Subscription</Label>
+                    <p className="text-sm text-muted-foreground">
+                      You keep Pro access until the end of your billing period
+                    </p>
+                  </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/5 hover:border-destructive/60">
+                        Cancel Plan
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Cancel your subscription?</AlertDialogTitle>
+                        <AlertDialogDescription className="space-y-2">
+                          <p>
+                            You'll be taken to the billing portal to confirm cancellation. Your Pro features remain active until the end of your current billing period.
+                          </p>
+                          <p className="font-medium">
+                            You can resubscribe at any time.
+                          </p>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Keep my plan</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleOpenBillingPortal}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          {isOpeningPortal ? (
+                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                          ) : null}
+                          Continue to cancel
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Privacy & Data */}
         <Card className="border-border">
