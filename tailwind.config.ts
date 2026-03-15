@@ -20,8 +20,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Open Sans", "system-ui", "-apple-system", "sans-serif"],
-        display: ["Raleway", "Open Sans", "sans-serif"],
+        sans: ["Roboto", "system-ui", "-apple-system", "sans-serif"],
+        display: ["Roboto", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -88,10 +88,12 @@ export default {
         "2xl": "calc(var(--radius) + 8px)",
       },
       boxShadow: {
-        // Codementor card & hover shadows
-        "cm-card": "0px 0px 8px 0px rgba(0,0,0,0.16)",
-        "cm-hover": "0 6px 12px 0 rgba(51,51,51,0.10)",
-        "cm-deep": "0 5px 6px 0 rgba(51,51,51,0.25)",
+        // MD3 Elevation levels (Google surface model)
+        "md-1": "0px 1px 2px rgba(0,0,0,0.10), 0px 1px 3px 1px rgba(0,0,0,0.07)",
+        "md-2": "0px 1px 2px rgba(0,0,0,0.10), 0px 2px 6px 2px rgba(0,0,0,0.07)",
+        "md-3": "0px 4px 8px 3px rgba(0,0,0,0.07), 0px 1px 3px rgba(0,0,0,0.10)",
+        "md-4": "0px 6px 10px 4px rgba(0,0,0,0.07), 0px 2px 3px rgba(0,0,0,0.10)",
+        "md-5": "0px 8px 12px 6px rgba(0,0,0,0.07), 0px 4px 4px rgba(0,0,0,0.10)",
       },
       keyframes: {
         "accordion-down": {

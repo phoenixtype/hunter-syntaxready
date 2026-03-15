@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Raleway:wght@600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -6,113 +6,116 @@
 
 @layer base {
   :root {
-    /* Codementor design system — light mode */
+    /* Material Design 3 — Google light surface (Gmail / Drive / Calendar) */
 
-    /* Surface: #f7f7f7 background, white cards */
-    --background: 0 0% 97%;
-    --foreground: 0 0% 20%;           /* #333 */
+    /* Surface: #f8f9fa (Google's page bg), white cards */
+    --background: 210 17% 98%;        /* #f8f9fa */
+    --foreground: 225 6% 13%;         /* #202124 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 20%;
+    --card: 0 0% 100%;                /* #ffffff */
+    --card-foreground: 225 6% 13%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 20%;
+    --popover-foreground: 225 6% 13%;
 
-    /* Primary: #00b5e2 teal/cyan */
-    --primary: 193 100% 44%;
+    /* Primary: #1a73e8 — Google Blue */
+    --primary: 214 82% 51%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: #e8f5f9 light cyan tint */
-    --secondary: 194 55% 93%;
-    --secondary-foreground: 188 100% 27%; /* #007A8C */
+    /* Primary Container: #d3e3fd — tonal surface */
+    --secondary: 214 82% 90%;
+    --secondary-foreground: 221 100% 18%;
 
-    /* Muted: neutral light gray */
-    --muted: 0 0% 95%;
-    --muted-foreground: 0 0% 40%;     /* #666 */
+    /* Surface Variant: #f1f3f4 */
+    --muted: 210 14% 96%;
+    --muted-foreground: 210 5% 39%;   /* #5f6368 */
 
-    /* Accent: #44cccc hover teal */
-    --accent: 180 53% 53%;
-    --accent-foreground: 0 0% 100%;
+    /* Tertiary / accent — same container for hover tonal */
+    --accent: 214 82% 90%;
+    --accent-foreground: 214 82% 30%;
 
-    --destructive: 0 72% 51%;
+    /* Error: #d93025 — Google red */
+    --destructive: 5 85% 48%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 71% 38%;
+    /* Semantic — Google green / yellow */
+    --success: 134 61% 37%;           /* #34a853 */
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
+    --warning: 45 100% 50%;           /* #fbbc05 */
+    --warning-foreground: 0 0% 10%;
 
-    --info: 193 100% 44%;
+    --info: 214 82% 51%;
     --info-foreground: 0 0% 100%;
 
-    /* Border: very light gray */
-    --border: 0 0% 89%;
-    --input: 0 0% 89%;
-    --ring: 193 100% 44%;
+    /* Outline: #dadce0 */
+    --border: 220 14% 87%;
+    --input: 220 14% 87%;
+    --ring: 214 82% 51%;
 
-    /* Border radius: 4px buttons/inputs, 8px cards (--radius = 8px base) */
-    --radius: 0.5rem;
+    /* MD3 Medium shape — cards use rounded-2xl in JSX */
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 0 0% 20%;
-    --sidebar-primary: 193 100% 44%;
+    --sidebar-foreground: 225 6% 13%;
+    --sidebar-primary: 214 82% 51%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 194 55% 93%;
-    --sidebar-accent-foreground: 188 100% 27%;
-    --sidebar-border: 0 0% 89%;
-    --sidebar-ring: 193 100% 44%;
+    --sidebar-accent: 214 82% 90%;
+    --sidebar-accent-foreground: 221 100% 18%;
+    --sidebar-border: 220 14% 87%;
+    --sidebar-ring: 214 82% 51%;
   }
 
   .dark {
-    /* Codementor dark — dark navy (#003648 family) */
-    --background: 194 100% 9%;        /* deep #003648 tint */
-    --foreground: 0 0% 94%;
+    /* MD3 dark — Google dark surface (#131314 / #1e1e1e) */
+    --background: 240 4% 8%;          /* #131314 */
+    --foreground: 0 0% 89%;           /* #e3e3e3 */
 
-    --card: 192 80% 13%;
-    --card-foreground: 0 0% 94%;
+    --card: 0 0% 12%;                 /* #1e1e1e */
+    --card-foreground: 0 0% 89%;
 
-    --popover: 192 80% 13%;
-    --popover-foreground: 0 0% 94%;
+    --popover: 0 0% 15%;
+    --popover-foreground: 0 0% 89%;
 
-    /* Primary stays recognisably teal, brightened for dark bg */
-    --primary: 193 90% 55%;
-    --primary-foreground: 194 100% 9%;
+    /* Primary dark: #a8c7fa — Google Blue light variant */
+    --primary: 218 90% 82%;
+    --primary-foreground: 214 100% 14%;
 
-    --secondary: 192 60% 18%;
-    --secondary-foreground: 0 0% 94%;
+    /* Primary container dark: #004a77 tonal */
+    --secondary: 0 0% 17%;
+    --secondary-foreground: 218 90% 82%;
 
-    --muted: 192 50% 15%;
-    --muted-foreground: 194 20% 55%;
+    --muted: 0 0% 16%;
+    --muted-foreground: 240 5% 68%;   /* #adadb8 */
 
-    /* Accent: #44cccc — slightly brighter on dark */
-    --accent: 180 53% 58%;
-    --accent-foreground: 194 100% 9%;
+    --accent: 0 0% 19%;
+    --accent-foreground: 218 90% 82%;
 
-    --destructive: 0 62% 48%;
-    --destructive-foreground: 0 0% 94%;
+    --destructive: 0 75% 60%;
+    --destructive-foreground: 0 0% 89%;
 
-    --success: 142 71% 45%;
-    --success-foreground: 194 100% 9%;
+    --success: 134 61% 50%;
+    --success-foreground: 0 0% 10%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 194 100% 9%;
+    --warning: 45 100% 55%;
+    --warning-foreground: 0 0% 10%;
 
-    --info: 193 90% 55%;
-    --info-foreground: 194 100% 9%;
+    --info: 218 90% 82%;
+    --info-foreground: 214 100% 14%;
 
-    --border: 192 40% 20%;
-    --input: 192 40% 20%;
-    --ring: 193 90% 55%;
+    /* Outline dark: #3c4043 */
+    --border: 210 7% 24%;
+    --input: 210 7% 24%;
+    --ring: 218 90% 82%;
 
-    --sidebar-background: 194 100% 9%;
-    --sidebar-foreground: 0 0% 94%;
-    --sidebar-primary: 193 90% 55%;
-    --sidebar-primary-foreground: 194 100% 9%;
-    --sidebar-accent: 192 60% 18%;
-    --sidebar-accent-foreground: 0 0% 94%;
-    --sidebar-border: 192 40% 20%;
-    --sidebar-ring: 193 90% 55%;
+    --sidebar-background: 240 4% 8%;
+    --sidebar-foreground: 0 0% 89%;
+    --sidebar-primary: 218 90% 82%;
+    --sidebar-primary-foreground: 214 100% 14%;
+    --sidebar-accent: 0 0% 17%;
+    --sidebar-accent-foreground: 218 90% 82%;
+    --sidebar-border: 210 7% 24%;
+    --sidebar-ring: 218 90% 82%;
   }
 }
 
@@ -134,8 +137,7 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: "Raleway", "Open Sans", system-ui, sans-serif;
-    font-weight: 700;
+    font-family: "Roboto", system-ui, sans-serif;
     line-height: 1.2;
   }
 
@@ -340,16 +342,17 @@
   @apply rounded-full px-3 py-0.5 text-xs font-medium;
 }
 
-/* Codementor-style shadow utilities */
+/* MD3 elevation shadow utilities (Google surface model) */
 .shadow-glow {
-  box-shadow: 0 0 8px 0 rgba(0, 181, 226, 0.35);
+  /* Tonal focus ring — primary color halo */
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
 }
 .shadow-glow-lg {
-  box-shadow: 0 0 16px 0 rgba(0, 181, 226, 0.4);
+  box-shadow: 0 0 0 4px hsl(var(--primary) / 0.25);
 }
 .shadow-elevated {
-  /* Codementor card shadow: 0px 0px 8px 0px rgba(0,0,0,0.16) */
-  box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.16);
+  /* MD3 Level 1 elevation */
+  box-shadow: 0px 1px 2px rgba(0,0,0,0.1), 0px 1px 3px 1px rgba(0,0,0,0.07);
 }
 
 /* Input focus enhancement */

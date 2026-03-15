@@ -2,7 +2,19 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
-import { Menu, Home, LogIn, UserPlus, LayoutDashboard, User, Settings, FileText, GraduationCap, Bot, Search } from "lucide-react";
+import {
+  Menu,
+  Home,
+  LogIn,
+  UserPlus,
+  LayoutDashboard,
+  User,
+  Settings,
+  FileText,
+  GraduationCap,
+  Bot,
+  Search,
+} from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 
 interface MobileNavProps {
@@ -34,40 +46,50 @@ const MobileNav = ({ isAuthenticated = false, onSignOut }: MobileNavProps) => {
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
+      {/* MD3 Icon button — Menu */}
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="lg:hidden h-10 w-10" aria-label="Menu">
-          <Menu className="h-5 w-5" />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="lg:hidden h-10 w-10 rounded-full hover:bg-muted"
+          aria-label="Open menu"
+        >
+          <Menu className="h-5 w-5 text-muted-foreground" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-[280px] p-0" aria-describedby="mobile-nav-desc">
+
+      {/* MD3 Navigation Drawer */}
+      <SheetContent side="right" className="w-[300px] p-0 bg-card border-border" aria-describedby="mobile-nav-desc">
         <SheetTitle className="sr-only">Navigation</SheetTitle>
         <div id="mobile-nav-desc" className="sr-only">Mobile navigation menu</div>
 
         <div className="flex flex-col h-full">
-          <div className="flex items-center justify-between p-5 border-b border-border">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-xs">H</span>
+          {/* Drawer header */}
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-md-1">
+                <span className="text-primary-foreground font-bold text-sm leading-none">H</span>
               </div>
-              <span className="font-bold">Hunter</span>
+              <span className="font-medium text-foreground">Hunter</span>
             </div>
             <ThemeToggle />
           </div>
 
-          <nav className="flex-1 p-3" aria-label="Mobile navigation">
-            <ul className="space-y-1">
+          {/* MD3 Nav list */}
+          <nav className="flex-1 px-3 py-2 overflow-y-auto" aria-label="Mobile navigation">
+            <ul className="space-y-0.5">
               {navItems.map((item) => (
                 <li key={item.href}>
                   <Link
                     to={item.href}
                     onClick={() => setIsOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors ${
+                    className={`flex items-center gap-3 px-4 py-3 rounded-full text-sm transition-colors ${
                       isActive(item.href)
-                        ? "bg-muted text-foreground font-medium"
+                        ? "bg-secondary text-primary font-medium"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     }`}
                   >
-                    <item.icon className="w-4 h-4" />
+                    <item.icon className={`w-4 h-4 flex-shrink-0 ${isActive(item.href) ? "text-primary" : ""}`} />
                     {item.label}
                   </Link>
                 </li>
@@ -75,18 +97,27 @@ const MobileNav = ({ isAuthenticated = false, onSignOut }: MobileNavProps) => {
             </ul>
           </nav>
 
-          <div className="p-3 border-t border-border">
+          {/* Drawer footer CTAs */}
+          <div className="px-4 py-4 border-t border-border space-y-2">
             {isAuthenticated ? (
-              <Button variant="outline" className="w-full" onClick={() => { onSignOut?.(); setIsOpen(false); }}>
+              <Button
+                variant="outline"
+                className="w-full rounded-full border-border"
+                onClick={() => { onSignOut?.(); setIsOpen(false); }}
+              >
                 Sign Out
               </Button>
             ) : (
               <>
                 <Link to="/login" onClick={() => setIsOpen(false)}>
-                  <Button variant="outline" className="w-full mb-2">Log In</Button>
+                  <Button variant="outline" className="w-full rounded-full border-border">
+                    Log In
+                  </Button>
                 </Link>
                 <Link to="/signup" onClick={() => setIsOpen(false)}>
-                  <Button className="w-full">Get Started Free</Button>
+                  <Button className="w-full rounded-full shadow-md-1">
+                    Get Started Free
+                  </Button>
                 </Link>
               </>
             )}
