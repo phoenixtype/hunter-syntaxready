@@ -20,7 +20,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
+        sans: ["Open Sans", "system-ui", "-apple-system", "sans-serif"],
+        display: ["Raleway", "Open Sans", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -87,12 +88,10 @@ export default {
         "2xl": "calc(var(--radius) + 8px)",
       },
       boxShadow: {
-        // MD3 Elevation levels
-        "md-1": "0 1px 2px 0 rgba(0,0,0,0.07), 0 1px 3px 1px rgba(0,0,0,0.05)",
-        "md-2": "0 1px 2px 0 rgba(0,0,0,0.08), 0 2px 6px 2px rgba(0,0,0,0.06)",
-        "md-3": "0 4px 8px 3px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.09)",
-        "md-4": "0 6px 10px 4px rgba(0,0,0,0.07), 0 2px 3px rgba(0,0,0,0.09)",
-        "md-5": "0 8px 12px 6px rgba(0,0,0,0.07), 0 4px 4px rgba(0,0,0,0.09)",
+        // Codementor card & hover shadows
+        "cm-card": "0px 0px 8px 0px rgba(0,0,0,0.16)",
+        "cm-hover": "0 6px 12px 0 rgba(51,51,51,0.10)",
+        "cm-deep": "0 5px 6px 0 rgba(51,51,51,0.25)",
       },
       keyframes: {
         "accordion-down": {

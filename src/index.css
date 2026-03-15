@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Raleway:wght@600;700;800;900&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -6,118 +6,113 @@
 
 @layer base {
   :root {
-    /* Material Design 3 — Professional Blue (Recruitment / Career) */
+    /* Codementor design system — light mode */
 
-    /* MD3 Surface */
-    --background: 210 25% 98%;
-    --foreground: 218 28% 12%;
+    /* Surface: #f7f7f7 background, white cards */
+    --background: 0 0% 97%;
+    --foreground: 0 0% 20%;           /* #333 */
 
     --card: 0 0% 100%;
-    --card-foreground: 218 28% 12%;
+    --card-foreground: 0 0% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 218 28% 12%;
+    --popover-foreground: 0 0% 20%;
 
-    /* MD3 Primary — deep trust-blue (#1565C0) */
-    --primary: 215 79% 43%;
+    /* Primary: #00b5e2 teal/cyan */
+    --primary: 193 100% 44%;
     --primary-foreground: 0 0% 100%;
 
-    /* MD3 Secondary — primary container (light blue tint) */
-    --secondary: 214 85% 94%;
-    --secondary-foreground: 215 79% 28%;
+    /* Secondary: #e8f5f9 light cyan tint */
+    --secondary: 194 55% 93%;
+    --secondary-foreground: 188 100% 27%; /* #007A8C */
 
-    /* MD3 Surface Variant */
-    --muted: 210 35% 95%;
-    --muted-foreground: 215 18% 46%;
+    /* Muted: neutral light gray */
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 40%;     /* #666 */
 
-    /* MD3 Tertiary — amber/gold for CTAs and highlights */
-    --accent: 36 100% 50%;
+    /* Accent: #44cccc hover teal */
+    --accent: 180 53% 53%;
     --accent-foreground: 0 0% 100%;
 
-    /* MD3 Error */
-    --destructive: 4 90% 42%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Semantic tokens */
-    --success: 142 76% 36%;
+    --success: 142 71% 38%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 36 100% 47%;
+    --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --info: 207 90% 40%;
+    --info: 193 100% 44%;
     --info-foreground: 0 0% 100%;
 
-    /* MD3 Outline */
-    --border: 214 24% 88%;
-    --input: 214 24% 88%;
-    --ring: 215 79% 43%;
+    /* Border: very light gray */
+    --border: 0 0% 89%;
+    --input: 0 0% 89%;
+    --ring: 193 100% 44%;
 
-    /* MD3 Shape — medium rounding */
-    --radius: 0.75rem;
+    /* Border radius: 4px buttons/inputs, 8px cards (--radius = 8px base) */
+    --radius: 0.5rem;
 
-    --sidebar-background: 210 30% 97%;
-    --sidebar-foreground: 218 28% 12%;
-    --sidebar-primary: 215 79% 43%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 20%;
+    --sidebar-primary: 193 100% 44%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 214 85% 94%;
-    --sidebar-accent-foreground: 215 79% 28%;
-    --sidebar-border: 214 24% 88%;
-    --sidebar-ring: 215 79% 43%;
+    --sidebar-accent: 194 55% 93%;
+    --sidebar-accent-foreground: 188 100% 27%;
+    --sidebar-border: 0 0% 89%;
+    --sidebar-ring: 193 100% 44%;
   }
 
   .dark {
-    /* MD3 Dark — deep navy surface */
-    --background: 221 25% 8%;
-    --foreground: 210 50% 96%;
+    /* Codementor dark — dark navy (#003648 family) */
+    --background: 194 100% 9%;        /* deep #003648 tint */
+    --foreground: 0 0% 94%;
 
-    --card: 221 22% 12%;
-    --card-foreground: 210 50% 96%;
+    --card: 192 80% 13%;
+    --card-foreground: 0 0% 94%;
 
-    --popover: 221 22% 12%;
-    --popover-foreground: 210 50% 96%;
+    --popover: 192 80% 13%;
+    --popover-foreground: 0 0% 94%;
 
-    /* MD3 Primary dark — light blue (#90CAF9) */
-    --primary: 208 89% 76%;
-    --primary-foreground: 221 25% 8%;
+    /* Primary stays recognisably teal, brightened for dark bg */
+    --primary: 193 90% 55%;
+    --primary-foreground: 194 100% 9%;
 
-    /* MD3 Secondary dark */
-    --secondary: 221 18% 18%;
-    --secondary-foreground: 210 50% 96%;
+    --secondary: 192 60% 18%;
+    --secondary-foreground: 0 0% 94%;
 
-    --muted: 221 18% 16%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 192 50% 15%;
+    --muted-foreground: 194 20% 55%;
 
-    /* MD3 Tertiary dark — lighter amber */
-    --accent: 36 100% 60%;
-    --accent-foreground: 221 25% 8%;
+    /* Accent: #44cccc — slightly brighter on dark */
+    --accent: 180 53% 58%;
+    --accent-foreground: 194 100% 9%;
 
-    /* MD3 Error dark */
-    --destructive: 4 80% 60%;
-    --destructive-foreground: 221 25% 8%;
+    --destructive: 0 62% 48%;
+    --destructive-foreground: 0 0% 94%;
 
     --success: 142 71% 45%;
-    --success-foreground: 221 25% 8%;
+    --success-foreground: 194 100% 9%;
 
-    --warning: 36 100% 55%;
-    --warning-foreground: 221 25% 8%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 194 100% 9%;
 
-    --info: 207 89% 60%;
-    --info-foreground: 221 25% 8%;
+    --info: 193 90% 55%;
+    --info-foreground: 194 100% 9%;
 
-    /* MD3 Outline dark */
-    --border: 221 14% 22%;
-    --input: 221 14% 22%;
-    --ring: 208 89% 76%;
+    --border: 192 40% 20%;
+    --input: 192 40% 20%;
+    --ring: 193 90% 55%;
 
-    --sidebar-background: 221 25% 8%;
-    --sidebar-foreground: 210 50% 96%;
-    --sidebar-primary: 208 89% 76%;
-    --sidebar-primary-foreground: 221 25% 8%;
-    --sidebar-accent: 221 18% 18%;
-    --sidebar-accent-foreground: 210 50% 96%;
-    --sidebar-border: 221 14% 22%;
-    --sidebar-ring: 208 89% 76%;
+    --sidebar-background: 194 100% 9%;
+    --sidebar-foreground: 0 0% 94%;
+    --sidebar-primary: 193 90% 55%;
+    --sidebar-primary-foreground: 194 100% 9%;
+    --sidebar-accent: 192 60% 18%;
+    --sidebar-accent-foreground: 0 0% 94%;
+    --sidebar-border: 192 40% 20%;
+    --sidebar-ring: 193 90% 55%;
   }
 }
 
@@ -134,6 +129,14 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     overscroll-behavior: none;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Raleway", "Open Sans", system-ui, sans-serif;
+    font-weight: 700;
+    line-height: 1.2;
   }
 
   #root {
@@ -337,15 +340,16 @@
   @apply rounded-full px-3 py-0.5 text-xs font-medium;
 }
 
-/* MD3 Shadow / Elevation utilities */
+/* Codementor-style shadow utilities */
 .shadow-glow {
-  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.18), 0 1px 3px rgba(0,0,0,0.08);
+  box-shadow: 0 0 8px 0 rgba(0, 181, 226, 0.35);
 }
 .shadow-glow-lg {
-  box-shadow: 0 0 0 4px hsl(var(--primary) / 0.22), 0 2px 6px rgba(0,0,0,0.10);
+  box-shadow: 0 0 16px 0 rgba(0, 181, 226, 0.4);
 }
 .shadow-elevated {
-  box-shadow: 0 4px 8px 3px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.09);
+  /* Codementor card shadow: 0px 0px 8px 0px rgba(0,0,0,0.16) */
+  box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.16);
 }
 
 /* Input focus enhancement */
