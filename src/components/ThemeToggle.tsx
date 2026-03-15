@@ -16,13 +16,16 @@ const ThemeToggle = () => {
   });
 
   useEffect(() => {
-    // Keep local state in sync if the OS preference changes while the app is open.
+    // Only follow OS preference changes when the user has an explicit "dark"
+    // preference stored — default is always light.
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const listener = (e: MediaQueryListEvent) => {
-      if (!localStorage.getItem("theme")) {
-        setIsDark(e.matches);
-        document.documentElement.classList.toggle("dark", e.matches);
+      const stored = localStorage.getItem("theme");
+      if (stored === "dark" && !e.matches) {
+        // OS switched back to light while user had dark stored — respect stored
+        setIsDark(true);
       }
+      // No action otherwise; light is the app default.
     };
     mq.addEventListener("change", listener);
     return () => mq.removeEventListener("change", listener);

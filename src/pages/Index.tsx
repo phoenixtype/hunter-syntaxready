@@ -184,23 +184,6 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Product screenshot — MD3 Elevated card */}
-          <div className="container max-w-5xl mx-auto px-4 sm:px-6 mt-16">
-            <div className="rounded-2xl border border-border bg-card shadow-md-3 overflow-hidden">
-              <div className="flex items-center gap-1.5 px-4 py-3 bg-muted border-b border-border">
-                <div className="w-3 h-3 rounded-full bg-[#ea4335]/70" />
-                <div className="w-3 h-3 rounded-full bg-[#fbbc05]/70" />
-                <div className="w-3 h-3 rounded-full bg-[#34a853]/70" />
-                <span className="ml-3 text-[10px] text-muted-foreground font-mono tracking-wide">hunter.app/dashboard</span>
-              </div>
-              <img
-                src="/images/image.png"
-                alt="Hunter AI dashboard showing job listings with match scores, filters, and application tracking"
-                className="w-full block"
-                loading="lazy"
-              />
-            </div>
-          </div>
         </section>
 
         {/* ── Features ── MD3 Elevated Cards */}
