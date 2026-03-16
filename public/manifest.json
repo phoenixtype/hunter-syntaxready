@@ -4,8 +4,8 @@
   "description": "Your Career, Autopilot. Autonomous job discovery and applications.",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#7c3aed",
+  "background_color": "#f8f9fa",
+  "theme_color": "#1a73e8",
   "icons": [
     {
       "src": "/favicon.svg",
