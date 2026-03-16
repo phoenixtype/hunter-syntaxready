@@ -2,10 +2,9 @@ import { useState, useEffect } from "react";
 import SEOHead from "@/components/SEOHead";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Briefcase, FileText, Search, Linkedin, MessageSquare, User, Settings, LogOut, Zap, Bot, GraduationCap, Bell, FolderOpen, TrendingUp, MoreHorizontal, PanelLeftClose, PanelLeft } from "lucide-react";
+import { Briefcase, FileText, Search, User, Settings, Zap, Bot, GraduationCap, Bell, FolderOpen, TrendingUp, MoreHorizontal, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
@@ -17,8 +16,6 @@ import MobileNav from "@/components/MobileNav";
 import SkipLink from "@/components/SkipLink";
 import { useResume } from "@/hooks/useResume";
 import { SubscriptionTier, upgradeToPro } from "@/lib/subscription";
-import PostInterviewModal from "@/components/PostInterviewModal";
-import LinkedInOptimizer from "@/components/LinkedInOptimizer";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import WidgetErrorBoundary from "@/components/WidgetErrorBoundary";
@@ -60,37 +57,29 @@ const NAV_ITEMS = [
   { id: "insights" as const, label: "Insights", icon: TrendingUp },
 ];
 
-type SidebarTool = {
-  icon: typeof FileText;
-  title: string;
-  route?: string;
-  modal?: "postInterview" | "linkedin";
-};
-
-const SIDEBAR_SECTIONS: { label: string; tools: SidebarTool[] }[] = [
+// Tool shortcuts used only in the mobile "More" sheet
+const MOBILE_SECTIONS = [
   {
     label: "Apply",
     tools: [
-      { icon: FileText, title: "Resume Builder", route: "/resume-builder" },
-      { icon: Search, title: "Application Wizard", route: "/application-wizard" },
-      { icon: FolderOpen, title: "Tailored Resumes", route: "/tailored-resumes" },
+      { icon: FileText,      title: "Resume Builder",     route: "/resume-builder" },
+      { icon: Search,        title: "Application Wizard", route: "/application-wizard" },
+      { icon: FolderOpen,    title: "Tailored Resumes",   route: "/tailored-resumes" },
     ],
   },
   {
     label: "Prepare",
     tools: [
-      { icon: GraduationCap, title: "Interview Coach", route: "/interview-coach" },
-      { icon: MessageSquare, title: "Post-Interview", modal: "postInterview" },
+      { icon: GraduationCap, title: "Interview Coach",    route: "/interview-coach" },
     ],
   },
   {
     label: "Optimize",
     tools: [
-      { icon: Linkedin, title: "LinkedIn Optimizer", modal: "linkedin" },
-      { icon: Bot, title: "Hunt Planner", route: "/auto-applier-settings" },
+      { icon: Bot,           title: "Hunt Planner",       route: "/auto-applier-settings" },
     ],
   },
-];
+] as const;
 
 const Dashboard = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -100,20 +89,33 @@ const Dashboard = () => {
   const { subscription, isLoading: subLoading, refetch: refetchSubscription } = useSubscription();
   const { preferences, appCount, jobCount, visibility, skillRecommendations, metrics, isLoading: dataLoading } = useDashboardData();
 
+  // activeView driven by URL ?tab= param so AppSidebar navigation works
   const [activeView, setActiveView] = useState<DashboardView>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get("tab") as DashboardView;
+    if (VALID_DASHBOARD_VIEWS.includes(tab)) return tab;
     const saved = localStorage.getItem("hunter_dashboard_view");
     return VALID_DASHBOARD_VIEWS.includes(saved as DashboardView) ? (saved as DashboardView) : "jobs";
   });
 
-  // Settings sub-tab
-  const [settingsTab, setSettingsTab] = useState<"profile" | "preferences" | "alerts">("profile");
-  const visitedTabs = useVisitedTabs(activeView);
+  // Sync when AppSidebar navigates via URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get("tab") as DashboardView;
+    if (tab && VALID_DASHBOARD_VIEWS.includes(tab)) {
+      setActiveView(tab);
+    } else if (!params.has("tab") && location.pathname === "/dashboard") {
+      setActiveView("jobs");
+    }
+  }, [location.search, location.pathname]);
 
   useEffect(() => {
     localStorage.setItem("hunter_dashboard_view", activeView);
   }, [activeView]);
-  const [showPostInterview, setShowPostInterview] = useState(false);
-  const [showLinkedIn, setShowLinkedIn] = useState(false);
+
+  // Settings sub-tab
+  const [settingsTab, setSettingsTab] = useState<"profile" | "preferences" | "alerts">("profile");
+  const visitedTabs = useVisitedTabs(activeView);
   const [showCoach, setShowCoach] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
 
@@ -141,18 +143,6 @@ const Dashboard = () => {
       return () => clearInterval(interval);
     }
   }, [location.search, navigate, refetchSubscription]); // location.pathname excluded — it would re-trigger the poll on every nav
-  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
-    try { return localStorage.getItem("hunter_sidebar_collapsed") === "true"; } catch { return false; }
-  });
-
-  const toggleSidebar = () => {
-    setSidebarCollapsed(prev => {
-      const next = !prev;
-      try { localStorage.setItem("hunter_sidebar_collapsed", String(next)); } catch { /* */ }
-      return next;
-    });
-  };
-
   useRealtimeNotifications(user?.id);
 
   // Listen for navigation events from realtime alerts
@@ -175,155 +165,10 @@ const Dashboard = () => {
     return <DashboardSkeleton />;
   }
 
-  const initials = profile?.identity?.name
-    ? profile.identity.name.split(/\s+/).filter(Boolean).map(n => n[0]?.toUpperCase() ?? '').join('').slice(0, 2) || '?'
-    : (user?.email?.charAt(0) ?? '').toUpperCase() || '?';
-
   return (
-    <div className="min-h-screen bg-background text-foreground flex" data-hide-footer>
+    <div className="flex flex-col min-h-screen min-w-0">
       <SEOHead title="Dashboard" description="Manage your job search, applications, and AI tools." path="/dashboard" noIndex />
       <SkipLink />
-
-      {/* Sidebar — always visible, collapsible */}
-      <aside className={`hidden sm:flex flex-col border-r border-border bg-card h-screen sticky top-0 transition-all duration-300 ${sidebarCollapsed ? "w-[60px]" : "w-[240px]"}`}>
-        <div className={`h-14 flex items-center border-b border-border ${sidebarCollapsed ? "justify-center px-2" : "justify-between px-4"}`}>
-          {sidebarCollapsed ? (
-            <Link to="/" aria-label="Home">
-              <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center shadow-sm">
-                <span className="text-primary-foreground font-bold text-sm">H</span>
-              </div>
-            </Link>
-          ) : (
-            <Link to="/" className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center shadow-sm">
-                <span className="text-primary-foreground font-bold text-sm">H</span>
-              </div>
-              <span className="text-base font-bold tracking-tight">Hunter</span>
-            </Link>
-          )}
-          <button onClick={toggleSidebar} className={`p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors ${sidebarCollapsed ? "hidden" : ""}`} title="Collapse sidebar">
-            <PanelLeftClose className="w-4 h-4" />
-          </button>
-        </div>
-
-        {!sidebarCollapsed && (
-          <div className="px-3 py-3 border-b border-border">
-            <div className="flex items-center gap-2.5">
-              <Avatar className="h-8 w-8 ring-2 ring-border">
-                <AvatarImage src={user?.user_metadata?.avatar_url} />
-                <AvatarFallback className="bg-primary/15 text-primary font-semibold text-xs">{initials}</AvatarFallback>
-              </Avatar>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold truncate leading-tight">
-                  {profile?.identity?.name || user?.email?.split('@')[0] || "Guest"}
-                </p>
-                <p className="text-[11px] text-muted-foreground truncate">{user?.email}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {sidebarCollapsed && (
-          <div className="flex justify-center py-3 border-b border-border">
-            <Avatar className="h-8 w-8 ring-2 ring-border">
-              <AvatarImage src={user?.user_metadata?.avatar_url} />
-              <AvatarFallback className="bg-primary/15 text-primary font-semibold text-xs">{initials}</AvatarFallback>
-            </Avatar>
-          </div>
-        )}
-
-        <nav className="flex-1 px-1.5 py-2 space-y-3 overflow-y-auto" aria-label="Dashboard navigation">
-          <div className="space-y-0.5">
-            {NAV_ITEMS.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setActiveView(item.id)}
-                title={sidebarCollapsed ? item.label : undefined}
-                aria-current={activeView === item.id ? "page" : undefined}
-                className={`w-full flex items-center gap-2 rounded-md text-sm transition-colors ${
-                  sidebarCollapsed ? "justify-center p-2" : "px-2.5 py-1.5"
-                } ${
-                  activeView === item.id
-                    ? "bg-muted text-foreground font-medium"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60 font-normal"
-                }`}
-              >
-                <item.icon className="w-4 h-4 shrink-0" />
-                {!sidebarCollapsed && item.label}
-                {!sidebarCollapsed && item.id === "applications" && appCount > 0 && (
-                  <span className="ml-auto text-[11px] text-muted-foreground tabular-nums">{appCount}</span>
-                )}
-              </button>
-            ))}
-          </div>
-
-          {SIDEBAR_SECTIONS.map((section) => (
-            <div key={section.label}>
-              {!sidebarCollapsed && (
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 px-3 mb-1">{section.label}</p>
-              )}
-              {sidebarCollapsed && (
-                <div className="w-6 mx-auto border-t border-border my-1" />
-              )}
-              <div className="space-y-0.5">
-                {section.tools.map((tool) => (
-                  <button
-                    key={tool.title}
-                    title={sidebarCollapsed ? tool.title : undefined}
-                    onClick={() => {
-                      if (tool.route) navigate(tool.route);
-                      else if (tool.modal === 'postInterview') setShowPostInterview(true);
-                      else if (tool.modal === 'linkedin') setShowLinkedIn(true);
-                    }}
-                    className={`w-full flex items-center gap-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors font-normal ${
-                      sidebarCollapsed ? "justify-center p-2" : "px-2.5 py-1.5"
-                    }`}
-                  >
-                    <tool.icon className="w-4 h-4 shrink-0" />
-                    {!sidebarCollapsed && <span className="truncate">{tool.title}</span>}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </nav>
-
-        <div className="px-1.5 py-3 border-t border-border space-y-0.5">
-          {sidebarCollapsed && (
-            <button onClick={toggleSidebar} title="Expand sidebar" className="w-full flex justify-center p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors mb-1">
-              <PanelLeft className="w-4 h-4" />
-            </button>
-          )}
-          <button
-            onClick={() => setActiveView("settings")}
-            title={sidebarCollapsed ? "Settings" : undefined}
-            aria-current={activeView === "settings" ? "page" : undefined}
-            className={`w-full flex items-center gap-2 rounded-md text-sm transition-colors ${
-              sidebarCollapsed ? "justify-center p-2" : "px-2.5 py-1.5"
-            } ${
-              activeView === "settings"
-                ? "bg-muted text-foreground font-medium"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/60 font-normal"
-            }`}
-          >
-            <Settings className="w-4 h-4 shrink-0" />
-            {!sidebarCollapsed && "Settings"}
-          </button>
-          <button
-            onClick={handleSignOut}
-            title={sidebarCollapsed ? "Sign out" : undefined}
-            className={`w-full flex items-center gap-2 rounded-md text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors font-normal ${
-              sidebarCollapsed ? "justify-center p-2" : "px-2.5 py-1.5"
-            }`}
-          >
-            <LogOut className="w-4 h-4" />
-            {!sidebarCollapsed && "Sign out"}
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-screen min-w-0">
         <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-sm border-b border-border h-14 flex items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-4">
             <Link to="/" className="sm:hidden flex items-center gap-2.5">
@@ -406,17 +251,13 @@ const Dashboard = () => {
               </SheetHeader>
               <div className="py-4 space-y-4">
                 {/* Tool sections */}
-                {SIDEBAR_SECTIONS.map((section) => (
+                {MOBILE_SECTIONS.map((section) => (
                   <div key={section.label}>
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 px-3 mb-1">{section.label}</p>
                     {section.tools.map((tool) => (
                       <button
                         key={tool.title}
-                        onClick={() => {
-                          if (tool.route) { navigate(tool.route); setMoreOpen(false); }
-                          else if (tool.modal === 'postInterview') { setShowPostInterview(true); setMoreOpen(false); }
-                          else if (tool.modal === 'linkedin') { setShowLinkedIn(true); setMoreOpen(false); }
-                        }}
+                        onClick={() => { navigate(tool.route); setMoreOpen(false); }}
                         className="w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm text-foreground hover:bg-muted/70 active:bg-muted transition-colors"
                       >
                         <tool.icon className="w-4 h-4 text-muted-foreground" /> {tool.title}
@@ -544,11 +385,7 @@ const Dashboard = () => {
             </WidgetErrorBoundary>
           )}
         </main>
-      </div>
 
-      {/* Modals */}
-      <PostInterviewModal isOpen={showPostInterview} onClose={() => setShowPostInterview(false)} companyName="" profile={profile} />
-      <LinkedInOptimizer isOpen={showLinkedIn} onClose={() => setShowLinkedIn(false)} profile={profile} />
       <VisibilityCoachModal
         isOpen={showCoach}
         onClose={() => setShowCoach(false)}
@@ -557,7 +394,7 @@ const Dashboard = () => {
         skillRecommendations={skillRecommendations || []}
         preferences={preferences}
       />
-      
+
       {/* Subscription Gate — block dashboard for free users; only dismiss when payment confirmed */}
       {!subLoading && subscription?.tier === SubscriptionTier.FREE && profile && (
         <SubscriptionGate onClose={refetchSubscription} />

@@ -21,6 +21,7 @@ import EmailVerification from "./pages/EmailVerification";
 import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { PublicRoute } from "./components/auth/PublicRoute";
+import AppLayout from "./layouts/AppLayout";
 import FloatingThemeToggle from "./components/FloatingThemeToggle";
 import CookieConsent from "./components/CookieConsent";
 import CommandPalette from "./components/CommandPalette";
@@ -54,7 +55,7 @@ const AppInitializer = () => {
       try {
         const healthStatus = await checkDatabaseHealth();
         logHealthStatus(healthStatus);
-      } catch (err) {
+      } catch {
         // Silent fail in production
       }
     };
@@ -62,6 +63,13 @@ const AppInitializer = () => {
   }, []);
   return null;
 };
+
+/** Wraps a page in ProtectedRoute + the persistent AppLayout shell */
+const AppPage = ({ children }: { children: React.ReactNode }) => (
+  <ProtectedRoute>
+    <AppLayout>{children}</AppLayout>
+  </ProtectedRoute>
+);
 
 const App = () => (
   <ErrorBoundary>
@@ -80,24 +88,30 @@ const App = () => (
                 <div className="flex-1">
                   <Suspense fallback={<PageLoader />}>
                     <Routes>
+                      {/* ── Public ─────────────────────────────── */}
                       <Route path="/" element={<Index />} />
                       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
                       <Route path="/signup" element={<PublicRoute><SignUp /></PublicRoute>} />
-                      <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-                      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                      <Route path="/application-wizard" element={<ProtectedRoute><ApplicationWizard /></ProtectedRoute>} />
-                      <Route path="/auto-applier-settings" element={<ProtectedRoute><AutoApplierSettings /></ProtectedRoute>} />
-                      <Route path="/interview-coach" element={<ProtectedRoute><InterviewCoach /></ProtectedRoute>} />
-                      <Route path="/resume-builder" element={<ProtectedRoute><ResumeBuilder /></ProtectedRoute>} />
-                      <Route path="/tailored-resumes" element={<ProtectedRoute><TailoredResumes /></ProtectedRoute>} />
-                      <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-                      <Route path="/admin/analytics" element={<ProtectedRoute><AdminAnalytics /></ProtectedRoute>} />
                       <Route path="/privacy" element={<Privacy />} />
                       <Route path="/terms" element={<Terms />} />
                       <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
                       <Route path="/verify-email" element={<EmailVerification />} />
                       <Route path="/reset-password" element={<ResetPassword />} />
+
+                      {/* ── Onboarding (full-screen, no sidebar) ─ */}
+                      <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+
+                      {/* ── Authenticated app shell (sidebar always visible) ─ */}
+                      <Route path="/dashboard"             element={<AppPage><Dashboard /></AppPage>} />
+                      <Route path="/profile"               element={<AppPage><Profile /></AppPage>} />
+                      <Route path="/resume-builder"        element={<AppPage><ResumeBuilder /></AppPage>} />
+                      <Route path="/application-wizard"    element={<AppPage><ApplicationWizard /></AppPage>} />
+                      <Route path="/interview-coach"       element={<AppPage><InterviewCoach /></AppPage>} />
+                      <Route path="/auto-applier-settings" element={<AppPage><AutoApplierSettings /></AppPage>} />
+                      <Route path="/tailored-resumes"      element={<AppPage><TailoredResumes /></AppPage>} />
+                      <Route path="/settings"              element={<AppPage><Settings /></AppPage>} />
+                      <Route path="/admin/analytics"       element={<AppPage><AdminAnalytics /></AppPage>} />
+
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </Suspense>
