@@ -22,16 +22,23 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Download, Trash2, Shield, Bell, Moon, Loader2, CreditCard, ExternalLink } from "lucide-react";
+import { Download, Trash2, Shield, Bell, Moon, Loader2, CreditCard, ExternalLink, User, Settings as SettingsIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import NotificationSettings from "@/components/NotificationSettings";
+import ProfilePanel from "@/components/ProfilePanel";
+import PreferencesPanel from "@/components/PreferencesPanel";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useResume } from "@/hooks/useResume";
 import { format } from "date-fns";
+
+type SettingsTab = "profile" | "preferences" | "account" | "notifications";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { subscription, isPro } = useSubscription();
+  const { profile, preferences } = useResume();
+  const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
@@ -141,8 +148,15 @@ const Settings = () => {
     }
   };
 
+  const TABS: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
+    { id: "profile",       label: "Profile",       icon: User },
+    { id: "preferences",   label: "Preferences",   icon: SettingsIcon },
+    { id: "notifications", label: "Notifications", icon: Bell },
+    { id: "account",       label: "Account",       icon: Shield },
+  ];
+
   return (
-    <div className="min-h-screen bg-background text-foreground bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background pb-24 lg:pb-12">
+    <div className="min-h-screen bg-background text-foreground pb-24 lg:pb-12">
       <SEOHead title="Settings" description="Manage your account settings and privacy preferences." path="/settings" noIndex />
       <PageHeader
         breadcrumbs={[
@@ -151,7 +165,47 @@ const Settings = () => {
         ]}
       />
 
-      <main className="container max-w-3xl mx-auto px-4 pt-20 sm:pt-24 space-y-8 animate-fade-in pb-8">
+      <main className="container max-w-3xl mx-auto px-4 pt-20 sm:pt-24 animate-fade-in pb-8">
+        {/* Tab bar */}
+        <div className="flex gap-1 bg-muted/50 p-1 rounded-md border border-border w-full overflow-x-auto mb-8">
+          {TABS.map(({ id, label, icon: Icon }) => (
+            <Button
+              key={id}
+              variant={activeTab === id ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setActiveTab(id)}
+              className={`h-8 px-4 text-xs flex-1 ${activeTab === id ? "shadow-sm font-medium" : "text-muted-foreground"}`}
+            >
+              <Icon className="w-3.5 h-3.5 mr-1.5" />
+              {label}
+            </Button>
+          ))}
+        </div>
+
+        {/* Profile */}
+        {activeTab === "profile" && <ProfilePanel profile={profile} />}
+
+        {/* Preferences */}
+        {activeTab === "preferences" && <PreferencesPanel preferences={preferences ?? null} />}
+
+        {/* Notifications */}
+        {activeTab === "notifications" && (
+          <Card className="border-border">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="w-5 h-5 text-primary" />
+                Notifications
+              </CardTitle>
+              <CardDescription>Configure how and when you receive notifications</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <NotificationSettings />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Account */}
+        {activeTab === "account" && <div className="space-y-8">
 
         {/* Subscription */}
         <Card className="border-border">
@@ -332,22 +386,6 @@ const Settings = () => {
           </CardContent>
         </Card>
 
-        {/* Notifications — uses the real persistent component, not ghost switches */}
-        <Card className="border-border">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bell className="w-5 h-5 text-primary" />
-              Notifications
-            </CardTitle>
-            <CardDescription>
-              Configure how and when you receive notifications
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <NotificationSettings />
-          </CardContent>
-        </Card>
-
         {/* Appearance */}
         <Card className="border-border">
           <CardHeader>
@@ -388,6 +426,8 @@ const Settings = () => {
             </div>
           </CardContent>
         </Card>
+
+        </div>}
 
       </main>
     </div>
