@@ -39,7 +39,7 @@ const STATS = [
   { value: "ATS-ready", label: "Every resume generated" },
 ];
 
-const TRUST_BADGES = ["No credit card required", "Cancel anytime", "Free tier available"];
+const TRUST_BADGES = ["Cancel anytime", "Secure payments via Stripe", "Built for serious job seekers"];
 
 const COMPARISON = [
   { feature: "Job discovery", hunter: "AI-matched from live boards", manual: "Scroll through boards manually", other: "Basic keyword alerts" },
