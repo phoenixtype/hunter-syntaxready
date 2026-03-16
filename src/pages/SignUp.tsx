@@ -39,7 +39,7 @@ const SignUp = () => {
 
         if (error.message.includes("Password")) {
           toast.error("Password must be at least 6 characters");
-      } else if (error.message.includes("User already registered")) {
+        } else if (error.message.includes("User already registered")) {
           toast.error("This email is already registered. Try logging in instead.");
           return;
         } else if (error.message.includes("Email")) {

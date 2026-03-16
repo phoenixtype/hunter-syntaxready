@@ -153,7 +153,7 @@ export const ApplicationsView = () => {
 
   useEffect(() => {
     fetchHistory();
-  }, [session?.user?.id, fetchHistory]);
+  }, [session?.user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleStatusChange = async (appId: string, newStatus: string) => {
     try {

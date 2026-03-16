@@ -29,6 +29,7 @@ import ProfilePanel from "@/components/ProfilePanel";
 import PreferencesPanel from "@/components/PreferencesPanel";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useResume } from "@/hooks/useResume";
+import { useDashboardData } from "@/hooks/useDashboardData";
 import { format } from "date-fns";
 
 type SettingsTab = "profile" | "preferences" | "account" | "notifications";
@@ -37,7 +38,8 @@ const Settings = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { subscription, isPro } = useSubscription();
-  const { profile, preferences } = useResume();
+  const { profile } = useResume();
+  const { preferences } = useDashboardData();
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
