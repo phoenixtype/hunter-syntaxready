@@ -119,101 +119,177 @@ serve(async (req) => {
     let userPrompt = '';
 
     if (requestType === 'cover_letter') {
-      systemPrompt = `You are an expert career coach and cover letter writer. Write compelling, personalized cover letters that:
-- Open with a hook that shows genuine interest in the company
-- Highlight 2-3 specific achievements that match the job requirements
-- Use concrete numbers and metrics where available
-- Sound authentic, not generic or AI-generated
-- Are concise (under 300 words)
-- End with a clear call to action`;
+      systemPrompt = `You are Dexter, Hunter's elite career coach AI. You write cover letters that get candidates hired at top companies.
 
-      userPrompt = `Write a personalized cover letter for this candidate applying to this job:
+Your cover letters:
+- Open with a compelling, specific hook tied to the company's mission or a recent achievement (NOT "I am writing to apply…")
+- Weave 2–3 of the candidate's strongest, quantified achievements directly into the narrative
+- Mirror the exact language and keywords from the job description — ATS systems score this
+- Sound like a real, excited human wrote it — warm, confident, never robotic
+- Stay under 280 words — hiring managers don't read long letters
+- Close with a specific, confident call to action ("I'd love to discuss how I can help X achieve Y")
 
-CANDIDATE PROFILE:
-Name: ${profile.identity?.name}
-Current/Recent Role: ${profile.experience_atoms?.[0]?.role} at ${profile.experience_atoms?.[0]?.company}
-Key Skills: ${profile.skills?.slice(0, 5).map((s: { name: string }) => s.name).join(', ')}
-Recent Achievement: ${profile.experience_atoms?.[0]?.content}
+Never use: "I am excited to apply", "I believe I would be a great fit", "To whom it may concern"`;
 
-JOB DETAILS:
-Title: ${job.title}
-Company: ${job.company}
-Location: ${job.location}
-Description: ${job.description}
-
-Write a compelling cover letter that connects the candidate's experience to this specific role.`;
-    } else if (requestType === 'resume_optimization') {
-      systemPrompt = `You are an expert resume optimizer. Analyze the candidate's profile against the job and provide:
-1. Specific bullet point rewrites that better match the job keywords
-2. Skills to emphasize or add
-3. Quantifiable achievements to highlight
-4. ATS optimization suggestions`;
-
-      userPrompt = `Optimize this resume for the target job:
-
-CANDIDATE SKILLS: ${JSON.stringify(profile.skills?.slice(0, 8))}
-EXPERIENCE: ${JSON.stringify(profile.experience_atoms?.slice(0, 3))}
-
-TARGET JOB:
-${job.title} at ${job.company}
-${job.description}
-
-Provide specific optimization suggestions as a list where each item starts with "- ".`;
-    } else if (requestType === 'linkedin_optimization') {
-      systemPrompt = `You are a LinkedIn profile expert. Provide specific, actionable profile optimization suggestions to help candidates stand out for their target role.`;
-      userPrompt = `Optimize the LinkedIn profile for this candidate applying to ${job.title} at ${job.company}.
+      userPrompt = `Write a highly personalised cover letter for this candidate.
 
 CANDIDATE:
 Name: ${profile.identity?.name}
-Current Role: ${profile.experience_atoms?.[0]?.role} at ${profile.experience_atoms?.[0]?.company}
-Skills: ${profile.skills?.slice(0, 8).map((s: { name: string }) => s.name).join(', ')}
+Most Recent Role: ${profile.experience_atoms?.[0]?.role} at ${profile.experience_atoms?.[0]?.company}
+Top Skills: ${profile.skills?.slice(0, 6).map((s: { name: string }) => s.name).join(', ')}
+Key Experience: ${(profile.experience_atoms?.[0]?.content || '').substring(0, 400)}
+Professional Summary: ${profile.summary || 'Not provided'}
 
-JOB TECH STACK: ${job.tech_stack?.join(', ') || 'Not specified'}
-JOB DESCRIPTION: ${job.description?.substring(0, 500)}
+TARGET ROLE:
+Title: ${job.title}
+Company: ${job.company}
+Location: ${job.location || 'Not specified'}
+Salary Range: ${job.salary_range || 'Not listed'}
+Job Description: ${(job.description || '').substring(0, 800)}
 
-Provide suggestions for: Headline, About section, Experience bullets, Skills to add, and Engagement tips.`;
+Write the complete cover letter text only — no subject line, no "Dear Hiring Manager" placeholder needed unless it sounds natural. Make it specific, human, and compelling.`;
+
+    } else if (requestType === 'resume_optimization') {
+      systemPrompt = `You are Dexter, Hunter's resume optimization AI. You help candidates beat ATS systems and impress human reviewers.
+
+Your analysis identifies:
+1. Missing keywords from the job description that must be added to pass ATS
+2. Weak bullet points to strengthen with action verbs and metrics
+3. Skills gaps to address
+4. Structural improvements for better ATS parsing
+5. Specific rewrite examples, not just generic advice`;
+
+      userPrompt = `Analyse and optimise this resume for the target role. Be specific — give actual rewrite examples.
+
+CANDIDATE SKILLS: ${profile.skills?.slice(0, 10).map((s: { name: string; proficiency: number }) => s.name).join(', ')}
+EXPERIENCE SUMMARY:
+${profile.experience_atoms?.slice(0, 3).map((e: { role: string; company: string; content: string }) =>
+  `${e.role} at ${e.company}: ${(e.content || '').substring(0, 200)}`
+).join('\n')}
+
+TARGET ROLE: ${job.title} at ${job.company}
+JOB DESCRIPTION: ${(job.description || '').substring(0, 700)}
+
+Respond with a structured markdown list. Each item starts with "- " and gives specific, actionable advice. Include 2–3 example bullet rewrites.`;
+
+    } else if (requestType === 'linkedin_optimization') {
+      systemPrompt = `You are Dexter, Hunter's LinkedIn growth AI. You help candidates appear in recruiter searches and attract inbound opportunities.
+
+You provide specific rewrites, not generic tips. You understand LinkedIn's algorithm and recruiter search behaviour.`;
+
+      userPrompt = `Create a LinkedIn optimisation plan for this candidate targeting ${job.title} roles.
+
+CANDIDATE:
+Name: ${profile.identity?.name}
+Current/Recent Role: ${profile.experience_atoms?.[0]?.role} at ${profile.experience_atoms?.[0]?.company}
+Skills: ${profile.skills?.slice(0, 10).map((s: { name: string }) => s.name).join(', ')}
+Summary: ${profile.summary || 'Not provided'}
+
+TARGET: ${job.title} at ${job.company}
+TECH STACK: ${job.tech_stack?.join(', ') || 'Not specified'}
+JOB DESCRIPTION: ${(job.description || '').substring(0, 500)}
+
+Provide specific rewrites for:
+1. **Headline** (120 chars, keyword-rich, value-driven — NOT just job title)
+2. **About section** (first 3 lines must hook, include 3–5 target keywords)
+3. **Top 3 Featured Skills** to pin
+4. **Experience bullet** rewrite example for most recent role
+5. **Engagement strategy** — 2 specific actions to attract recruiter attention this week`;
+
     } else if (requestType === 'interview_prep') {
-      systemPrompt = `You are an expert interview coach. Provide comprehensive, role-specific interview preparation.`;
-      userPrompt = `Prepare interview tips for ${job.title} at ${job.company}.
-Candidate skills: ${profile.skills?.slice(0, 5).map((s: { name: string }) => s.name).join(', ')}
-Job description: ${job.description?.substring(0, 500)}
-Include: likely questions, STAR story prompts, and key talking points.`;
-    } else if (requestType === 'thank_you_note') {
-      systemPrompt = `You are a career coach. Write a concise, genuine thank-you note after an interview.`;
-      userPrompt = `Write a thank-you email for ${profile.identity?.name} after interviewing at ${job.company} for the ${job.title} role. Keep it under 150 words, professional, and personalized.`;
-    } else if (requestType === 'offer_evaluation') {
-      systemPrompt = `You are a compensation and negotiation expert. Analyze job offers and provide strategic advice.`;
-      userPrompt = `Evaluate the offer for ${job.title} at ${job.company}.
-Salary range listed: ${job.salary_range || 'Not specified'}
-Candidate skills: ${profile.skills?.slice(0, 5).map((s: { name: string }) => s.name).join(', ')}
-Provide: market rate analysis, negotiation leverage points, and recommended counter-offer strategy.`;
-    } else if (requestType === 'resume_rewrite') {
-      systemPrompt = `You are an expert resume writer. Rewrite the candidate's experience bullet points to be more impactful and targeted for the specific job. Rules:
-- Use strong action verbs (Led, Built, Reduced, Improved, Delivered, Designed, Scaled, Automated)
-- Quantify achievements with specific metrics where the original has numbers or you can reasonably infer them
-- Mirror keywords from the job description naturally
-- Keep each bullet concise (one line max)
-- Preserve the factual accuracy of the original — do not invent companies, roles, or results
-- Return ONLY a valid JSON array, no markdown, no explanation`;
+      systemPrompt = `You are Dexter, Hunter's interview preparation AI. You give candidates a real edge — not generic advice.
 
-      userPrompt = `Rewrite the experience bullets for this candidate to better match the target job.
+You provide role-specific questions the company is KNOWN to ask, STAR story frameworks tailored to the candidate's actual experience, and red flags to avoid.`;
 
-TARGET JOB: ${job.title} at ${job.company}
+      userPrompt = `Prepare a targeted interview guide for this candidate.
+
+CANDIDATE:
+Skills: ${profile.skills?.slice(0, 6).map((s: { name: string }) => s.name).join(', ')}
+Most Recent Role: ${profile.experience_atoms?.[0]?.role} at ${profile.experience_atoms?.[0]?.company}
+Key Experience: ${(profile.experience_atoms?.[0]?.content || '').substring(0, 300)}
+
+TARGET ROLE: ${job.title} at ${job.company}
 JOB DESCRIPTION: ${(job.description || '').substring(0, 600)}
-REQUIRED SKILLS: ${(job.tech_stack || []).join(', ')}
 
-CANDIDATE EXPERIENCE:
+Provide:
+## Likely Interview Questions
+5 specific questions this company is likely to ask for this role
+
+## STAR Story Starters
+3 STAR story frameworks using the candidate's actual experience
+
+## Key Talking Points
+3 things to emphasise that align candidate strengths to this role
+
+## Watch Out For
+2 potential weaknesses to address proactively`;
+
+    } else if (requestType === 'thank_you_note') {
+      systemPrompt = `You are Dexter, Hunter's career AI. Write a thank-you email that reinforces the candidate's fit and keeps them top of mind — not a generic "thanks for your time" note.`;
+
+      userPrompt = `Write a post-interview thank-you email for ${profile.identity?.name || 'the candidate'} after interviewing at ${job.company} for the ${job.title} role.
+
+Top skills: ${profile.skills?.slice(0, 4).map((s: { name: string }) => s.name).join(', ')}
+
+The email should:
+- Be 120–160 words
+- Reference something specific about the role or conversation (use a placeholder like [mention from interview])
+- Reinforce one key strength relevant to the role
+- Express genuine enthusiasm without sounding desperate
+- End with a clear, confident closing line`;
+
+    } else if (requestType === 'offer_evaluation') {
+      systemPrompt = `You are Dexter, Hunter's compensation and negotiation strategist. You help candidates maximise their total compensation using market data, leverage points, and proven negotiation scripts.
+
+You are direct, specific, and data-driven. You don't give vague advice — you give candidates the exact words to say.`;
+
+      userPrompt = `Evaluate this offer and build a negotiation strategy.
+
+ROLE: ${job.title} at ${job.company}
+LISTED SALARY RANGE: ${job.salary_range || 'Not disclosed'}
+CANDIDATE SKILLS: ${profile.skills?.slice(0, 6).map((s: { name: string }) => s.name).join(', ')}
+EXPERIENCE: ${profile.experience_atoms?.length || 0} roles, most recent: ${profile.experience_atoms?.[0]?.role || 'N/A'}
+
+Provide:
+## Market Rate Assessment
+Where this offer sits vs. market (use your knowledge of current compensation trends)
+
+## Negotiation Leverage Points
+3 specific reasons this candidate can push higher
+
+## Counter-Offer Script
+Exact words to say when negotiating (phone/email version)
+
+## Total Comp Checklist
+5 additional items to negotiate beyond base salary (equity, signing bonus, PTO, remote flexibility, title)`;
+
+    } else if (requestType === 'resume_rewrite') {
+      systemPrompt = `You are Dexter, Hunter's resume rewriting AI. You transform weak, generic bullet points into powerful, ATS-optimised achievements.
+
+Rules:
+- Lead every bullet with a strong action verb (Led, Built, Reduced, Launched, Scaled, Architected, Delivered, Automated, Negotiated, Grew)
+- Add specific metrics wherever the original suggests scale — infer reasonable numbers if needed (e.g. "multiple clients" → "12+ enterprise clients")
+- Mirror keywords from the job description naturally — don't keyword stuff
+- Keep each bullet under 20 words
+- Preserve factual accuracy — do not invent companies, roles, or job titles
+- Return ONLY a valid JSON array, no markdown, no explanation, no preamble`;
+
+      userPrompt = `Rewrite these experience bullets to maximise impact for the target role.
+
+TARGET: ${job.title} at ${job.company}
+JOB KEYWORDS: ${(job.tech_stack || []).slice(0, 8).join(', ')}
+JOB DESCRIPTION SNIPPET: ${(job.description || '').substring(0, 500)}
+
+CANDIDATE EXPERIENCE TO REWRITE:
 ${JSON.stringify(profile.experience_atoms?.slice(0, 3).map((e: { id: string; role: string; company: string; content: string }) => ({
   id: e.id,
   role: e.role,
   company: e.company,
-  content: e.content
+  original_bullets: e.content
 })))}
 
-Return a JSON array — one object per experience entry in the same order:
-[{"id": "...", "rewritten_content": "• Rewritten bullet 1\\n• Rewritten bullet 2\\n• Rewritten bullet 3"}]
-
-Only include entries that have content to rewrite. Return the array and nothing else.`;
+Return exactly this JSON format — nothing else:
+[{"id": "...", "rewritten_content": "• Strong bullet 1\\n• Strong bullet 2\\n• Strong bullet 3"}]`;
     }
 
     // Route natural text tasks to Claude (better prose), everything else to Gemini Flash

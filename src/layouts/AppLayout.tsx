@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import AppSidebar from "@/components/AppSidebar";
 import PostInterviewModal from "@/components/PostInterviewModal";
 import LinkedInOptimizer from "@/components/LinkedInOptimizer";
+import DexterAssistant from "@/components/DexterAssistant";
 import { useResume } from "@/hooks/useResume";
 
 interface AppLayoutProps {
@@ -51,6 +52,9 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         onClose={() => setShowLinkedIn(false)}
         profile={profile}
       />
+
+      {/* Dexter — floating AI assistant, available on all authenticated pages */}
+      <DexterAssistant />
     </div>
   );
 };

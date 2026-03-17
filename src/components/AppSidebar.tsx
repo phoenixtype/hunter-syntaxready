@@ -183,7 +183,7 @@ const AppSidebar = () => {
                 onClick={() => handleNavClick(item.tab)}
                 title={collapsed ? item.label : undefined}
                 aria-current={active ? "page" : undefined}
-                className={`w-full flex items-center gap-2 rounded-md text-sm transition-colors ${
+                className={`w-full flex items-center gap-1.5 rounded-md text-sm transition-colors ${
                   collapsed ? "justify-center p-2" : "px-2.5 py-1.5"
                 } ${
                   active
@@ -202,7 +202,7 @@ const AppSidebar = () => {
         {SIDEBAR_SECTIONS.map((section) => (
           <div key={section.label}>
             {!collapsed ? (
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 px-3 mb-1">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 px-2.5 mb-1">
                 {section.label}
               </p>
             ) : (
@@ -218,7 +218,7 @@ const AppSidebar = () => {
                     key={tool.title}
                     title={collapsed ? tool.title : undefined}
                     onClick={() => handleToolClick(route, modal)}
-                    className={`w-full flex items-center gap-2 rounded-md text-sm transition-colors font-normal ${
+                    className={`w-full flex items-center gap-1.5 rounded-md text-sm transition-colors font-normal ${
                       collapsed ? "justify-center p-2" : "px-2.5 py-1.5"
                     } ${
                       active
@@ -228,10 +228,10 @@ const AppSidebar = () => {
                   >
                     <tool.icon className="w-4 h-4 shrink-0" />
                     {!collapsed && (
-                      <span className="truncate flex-1">{tool.title}</span>
+                      <span className="truncate">{tool.title}</span>
                     )}
                     {!collapsed && !isPro && (
-                      <ProLockBadge />
+                      <ProLockBadge className="ml-auto shrink-0" />
                     )}
                   </button>
                 );
