@@ -231,7 +231,7 @@ const _mirrorToJobListings = async (job: RecruiterJob): Promise<string | null> =
     salary_range: salaryRange,
     description: fullDescription,
     source: "Direct",
-    url: `https://hunter.syntaxready.com/jobs/${job.id}`,
+    url: `https://usehunter.app/jobs/${job.id}`,
     posted_at: "Just now",
     tech_stack: job.tech_stack ?? [],
     job_hash: `direct_${job.id}`,
@@ -298,7 +298,7 @@ export const applyToRecruiterJob = async (opts: {
       user_id: opts.candidateId,
       job_title: job?.title ?? "Position",
       company: job?.company ?? "Company",
-      job_url: `https://hunter.syntaxready.com/jobs/${opts.recruiterJobId}`,
+      job_url: `https://usehunter.app/jobs/${opts.recruiterJobId}`,
       status: "applied",
       metadata: { source: "Direct", recruiter_job_id: opts.recruiterJobId },
     })

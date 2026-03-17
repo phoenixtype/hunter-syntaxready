@@ -7,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const SITE_URL = Deno.env.get('SITE_URL') || 'https://hunter-syntaxready.lovable.app';
+const SITE_URL = Deno.env.get('SITE_URL') || 'https://usehunter.app';
 
 // Design system colors
 const BRAND = {
@@ -333,7 +333,7 @@ serve(async (req) => {
     }
 
     const emailResponse = await resend.emails.send({
-      from: 'Hunter <notifications@hunter.syntaxready.com>',
+      from: 'Hunter <notifications@usehunter.app>',
       to: [recipientEmail],
       subject: emailSubject,
       html: emailHtml,

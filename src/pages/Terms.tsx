@@ -309,8 +309,8 @@ const Terms = () => {
             <div className="text-muted-foreground leading-relaxed">
               <p>For questions about these Terms:</p>
               <ul className="mt-4 space-y-2">
-                <li><strong>Email:</strong> <a href="mailto:legal@hunter-ai.app" className="text-primary hover:underline">legal@hunter-ai.app</a></li>
-                <li><strong>Support:</strong> <a href="mailto:support@hunter-ai.app" className="text-primary hover:underline">support@hunter-ai.app</a></li>
+                <li><strong>Email:</strong> <a href="mailto:legal@usehunter.app" className="text-primary hover:underline">legal@usehunter.app</a></li>
+                <li><strong>Support:</strong> <a href="mailto:support@usehunter.app" className="text-primary hover:underline">support@usehunter.app</a></li>
               </ul>
             </div>
           </section>

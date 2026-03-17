@@ -152,16 +152,7 @@ serve(async (req) => {
 
     const { messages, profile, job, mode } = await req.json();
 
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-
-    // SECURITY: Don't reveal which service is missing
-    if (!geminiApiKey) {
-      console.error('[CONFIG] Missing required API key');
-      return new Response(
-        JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const { callAI, MODEL_FAST, MODEL_REASONING } = await import('../_shared/ai-client.ts');
 
     // Handle "Briefing Generation" mode (Structured Output)
     if (mode === 'generate_briefing') {
@@ -227,16 +218,11 @@ serve(async (req) => {
         const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout protection
 
         try {
-            const llmResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${geminiApiKey}`,
-                    'Content-Type': 'application/json',
-                },
-                signal: controller.signal,
-                body: JSON.stringify({
-                    model: 'gemini-2.5-flash',
-                  messages: [{ role: 'user', content: briefingPrompt }],
+            const briefingResult = await callAI(
+                MODEL_REASONING,
+                [{ role: 'user', content: briefingPrompt }],
+                {
+                    signal: controller.signal,
                     tools: [{
                         type: 'function',
                         function: {
@@ -286,21 +272,12 @@ serve(async (req) => {
                             }
                         }
                     }],
-                    tool_choice: { type: 'function', function: { name: 'generate_dossier' } }
-                }),
-            });
+                    tool_choice: { type: 'function', function: { name: 'generate_dossier' } },
+                },
+            );
             clearTimeout(timeoutId);
 
-            if (!llmResponse.ok) {
-                console.error('[INTERVIEW] Briefing generation failed');
-                return new Response(
-                    JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-                    { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-                );
-            }
-
-            const llmData = await llmResponse.json();
-            const toolCall = llmData.choices?.[0]?.message?.tool_calls?.[0];
+            const toolCall = briefingResult.tool_calls?.[0];
             const dossier = toolCall?.function?.arguments ? JSON.parse(toolCall.function.arguments) : null;
 
             // Augment default values if AI missed some fields
@@ -388,38 +365,14 @@ Description: ${job.description}`;
     const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout protection
 
     try {
-        const llmResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${geminiApiKey}`,
-                'Content-Type': 'application/json',
-            },
-            signal: controller.signal,
-            body: JSON.stringify({
-                model: 'gemini-2.5-flash',
-                messages: chatMessages
-            }),
-        });
+        const chatResult = await callAI(
+            MODEL_FAST,
+            chatMessages,
+            { signal: controller.signal },
+        );
         clearTimeout(timeoutId);
 
-        if (!llmResponse.ok) {
-            console.error('[INTERVIEW] AI response failed');
-            
-            if (llmResponse.status === 429) {
-                return new Response(
-                    JSON.stringify({ success: false, error: GENERIC_RATE_LIMIT_ERROR }),
-                    { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-                );
-            }
-            
-            return new Response(
-                JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-                { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
-        }
-
-        const llmData = await llmResponse.json();
-        const content = llmData.choices?.[0]?.message?.content;
+        const content = chatResult.content;
 
         if (!content) {
             return new Response(

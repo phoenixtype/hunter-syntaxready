@@ -23,6 +23,8 @@ import { exportResumeToDocx } from "@/lib/pdf_export";
 import { analyzeResumeForJob, ATSResult } from "@/lib/ats_engine";
 import PageHeader from "@/components/PageHeader";
 import DashboardSkeleton from "@/components/DashboardSkeleton";
+import { useSubscription } from "@/hooks/useSubscription";
+import ProGate from "@/components/ProGate";
 
 const STEPS = [
   { id: "personal", label: "Personal Info", icon: User },
@@ -85,6 +87,7 @@ const ResumeBuilder = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { profile: existingProfile, loading: profileLoading, setProfile: setGlobalProfile } = useResume();
+  const { isPro, isLoading: subLoading } = useSubscription();
 
   const [currentStep, setCurrentStep] = useState<StepId>("personal");
   const [selectedTemplate, setSelectedTemplate] = useState("minimalist");
@@ -264,6 +267,7 @@ const ResumeBuilder = () => {
   };
 
   return (
+    <ProGate.Page featureLabel="Resume Builder" isPro={isPro} isLoading={subLoading}>
     <div className="min-h-screen bg-background text-foreground">
       <SEOHead title="Resume Builder" description="Build and optimize your professional resume with AI assistance." path="/resume-builder" noIndex />
       <PageHeader
@@ -784,6 +788,7 @@ const ResumeBuilder = () => {
         </div>
       )}
     </div>
+    </ProGate.Page>
   );
 };
 

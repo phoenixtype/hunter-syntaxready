@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSubscription } from "@/hooks/useSubscription";
+import ProGate from "@/components/ProGate";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { CandidateProfile } from "@/lib/resume_engine";
@@ -52,6 +54,7 @@ interface TailoredResume {
 const TailoredResumes = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { isPro, isLoading: subLoading } = useSubscription();
   const [resumes, setResumes] = useState<TailoredResume[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -136,6 +139,7 @@ const TailoredResumes = () => {
   const paginatedResumes = resumes.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   return (
+    <ProGate.Page featureLabel="Tailored Resumes" isPro={isPro} isLoading={subLoading}>
     <div className="min-h-screen bg-background">
       <SEOHead title="Tailored Resumes" description="View and download your AI-optimized resumes and cover letters." path="/tailored-resumes" noIndex />
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
@@ -338,6 +342,7 @@ const TailoredResumes = () => {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </ProGate.Page>
   );
 };
 

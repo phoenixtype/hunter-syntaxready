@@ -24,13 +24,6 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-
-    if (!geminiApiKey) {
-      return new Response(JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
 
     // Verify user token
     const authClient = createClient(supabaseUrl, supabaseAnonKey, {
@@ -73,18 +66,15 @@ Additional context:
 - User ID: ${userId || 'unknown'}
 - Resume URL: ${resumeUrl || 'none'}`;
 
-    const llmResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${geminiApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
+    const { callAI, MODEL_FAST } = await import('../_shared/ai-client.ts');
+
+    const aiResult = await callAI(
+      MODEL_FAST,
+      [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      {
         tools: [{
           type: 'function',
           function: {
@@ -151,20 +141,11 @@ Additional context:
             }
           }
         }],
-        tool_choice: { type: 'function', function: { name: 'extract_profile' } }
-      }),
-    });
+        tool_choice: { type: 'function', function: { name: 'extract_profile' } },
+      },
+    );
 
-    if (!llmResponse.ok) {
-      const errText = await llmResponse.text();
-      console.error('[PARSE] AI error:', errText);
-      return new Response(JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
-    const llmData = await llmResponse.json();
-    const toolCall = llmData.choices?.[0]?.message?.tool_calls?.[0];
+    const toolCall = aiResult.tool_calls?.[0];
     const extractedData = toolCall?.function?.arguments ? JSON.parse(toolCall.function.arguments) : null;
 
     if (!extractedData?.profile) {

@@ -275,19 +275,16 @@ function mapJSearchJob(item: JSearchJob): Record<string, unknown> {
 // ─── Gemini normalization ─────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function normalizeWithGemini(geminiKey: string, rawJob: { title: string; url: string; content: string; source: string }): Promise<any | null> {
+async function normalizeWithGemini(_geminiKey: string, rawJob: { title: string; url: string; content: string; source: string }): Promise<any | null> {
+  const { callAI, MODEL_FAST } = await import('../_shared/ai-client.ts');
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30000);
   try {
-    const llmResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: controller.signal,
-      body: JSON.stringify({
-        contents: [{
-          role: 'user',
-          parts: [{
-            text: `You are a job listing parser. Extract structured job information from the provided content.
+    const aiResult = await callAI(
+      MODEL_FAST,
+      [{
+        role: 'user',
+        content: `You are a job listing parser. Extract structured job information from the provided content.
 Return a JSON object:
 - title: clean job title only (remove site suffixes, numbers, location suffixes)
 - company: company name (if only an aggregator name like Glassdoor/Indeed, return "Unknown Company")
@@ -302,18 +299,13 @@ Return only valid JSON, no markdown.
 
 Title: ${rawJob.title}
 URL: ${rawJob.url}
-Content: ${rawJob.content.substring(0, 15000)}`
-          }]
-        }],
-        generationConfig: { responseMimeType: 'application/json' }
-      }),
-    });
+Content: ${rawJob.content.substring(0, 15000)}`,
+      }],
+      { json: true, signal: controller.signal },
+    );
     clearTimeout(timeoutId);
 
-    if (!llmResponse.ok) { console.error(`[GEMINI] Failed: ${llmResponse.status}`); return null; }
-
-    const llmData = await llmResponse.json();
-    const text = llmData.candidates?.[0]?.content?.parts?.[0]?.text;
+    const text = aiResult.content;
     if (!text) return null;
 
     const parsed = JSON.parse(text);
@@ -346,7 +338,7 @@ Content: ${rawJob.content.substring(0, 15000)}`
 
 // ─── Company Research (Firecrawl /search + /scrape + Gemini) ─────────────────
 
-async function handleCompanyResearch(firecrawlKey: string, geminiKey: string, company: string, jobTitle: string): Promise<Record<string, unknown>> {
+async function handleCompanyResearch(firecrawlKey: string, _geminiKey: string, company: string, jobTitle: string): Promise<Record<string, unknown>> {
   console.log(`[COMPANY_RESEARCH] Researching: ${company}`);
 
   // 1. Search for company's own website + about page
@@ -388,19 +380,16 @@ async function handleCompanyResearch(firecrawlKey: string, geminiKey: string, co
     aboutContent.substring(0, 2000),
   ].filter(Boolean).join('\n\n---\n\n');
 
-  // 4. Parse with Gemini into structured intel
+  // 4. Parse with AI into structured intel
+  const { callAI, MODEL_FAST } = await import('../_shared/ai-client.ts');
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 25000);
   try {
-    const llmResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: controller.signal,
-      body: JSON.stringify({
-        contents: [{
-          role: 'user',
-          parts: [{
-            text: `Extract structured company intelligence from the content below.
+    const aiResult = await callAI(
+      MODEL_FAST,
+      [{
+        role: 'user',
+        content: `Extract structured company intelligence from the content below.
 Company: ${company}
 Target Role: ${jobTitle}
 
@@ -422,18 +411,14 @@ Return JSON with these fields:
 - interview_tip: one specific tip for interviewing at this company based on their culture/focus
 - source_url: the main company URL you found
 
-Return only valid JSON, no markdown code blocks.`
-          }]
-        }],
-        generationConfig: { responseMimeType: 'application/json' }
-      }),
-    });
+Return only valid JSON, no markdown code blocks.`,
+      }],
+      { json: true, signal: controller.signal },
+    );
     clearTimeout(timeoutId);
 
-    if (!llmResponse.ok) throw new Error(`Gemini ${llmResponse.status}`);
-    const llmData = await llmResponse.json();
-    const text = llmData.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) throw new Error('No Gemini response');
+    const text = aiResult.content;
+    if (!text) throw new Error('No AI response');
 
     const parsed = JSON.parse(text);
     return {
@@ -463,7 +448,7 @@ Return only valid JSON, no markdown code blocks.`
 
 // ─── Stakeholder Search (Firecrawl /search for real people) ──────────────────
 
-async function handleStakeholderSearch(firecrawlKey: string, geminiKey: string, company: string, jobTitle: string): Promise<Array<Record<string, unknown>>> {
+async function handleStakeholderSearch(firecrawlKey: string, _geminiKey: string, company: string, jobTitle: string): Promise<Array<Record<string, unknown>>> {
   console.log(`[STAKEHOLDERS] Searching for people at: ${company}`);
 
   // Search for people at the company — targeting team/about pages and public profiles
@@ -486,19 +471,16 @@ async function handleStakeholderSearch(firecrawlKey: string, geminiKey: string, 
     if (aboutResult) {
       const content = aboutResult.markdown || await firecrawlScrapeUrl(firecrawlKey, aboutResult.url, 10000);
 
-      // Extract people with Gemini
+      // Extract people with AI
+      const { callAI, MODEL_FAST } = await import('../_shared/ai-client.ts');
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 20000);
       try {
-        const llmResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          signal: controller.signal,
-          body: JSON.stringify({
-            contents: [{
-              role: 'user',
-              parts: [{
-                text: `Extract a list of people (employees, leaders, team members) from this company page.
+        const aiResult = await callAI(
+          MODEL_FAST,
+          [{
+            role: 'user',
+            content: `Extract a list of people (employees, leaders, team members) from this company page.
 Company: ${company}
 
 Content:
@@ -508,17 +490,13 @@ Return JSON array of up to 6 people:
 [{ "name": "...", "role": "...", "linkedin_url": "" }]
 
 Only include people with names and roles. Return empty array [] if none found.
-Return only valid JSON array, no markdown.`
-              }]
-            }],
-            generationConfig: { responseMimeType: 'application/json' }
-          }),
-        });
+Return only valid JSON array, no markdown.`,
+          }],
+          { json: true, signal: controller.signal },
+        );
         clearTimeout(timeoutId);
-        if (llmResponse.ok) {
-          const llmData = await llmResponse.json();
-          const text = llmData.candidates?.[0]?.content?.parts?.[0]?.text;
-          const people = JSON.parse(text || '[]');
+        if (aiResult.content) {
+          const people = JSON.parse(aiResult.content || '[]');
           if (Array.isArray(people) && people.length > 0) {
             return people.map((p: Record<string, unknown>) => ({
               name: p.name,
@@ -551,7 +529,7 @@ Return only valid JSON array, no markdown.`
 
 // ─── Careers Page Crawl (Firecrawl /scrape + Gemini multi-job extraction) ────
 
-async function handleCareersCrawl(firecrawlKey: string, geminiKey: string, careersUrl: string): Promise<Array<Record<string, unknown>>> {
+async function handleCareersCrawl(firecrawlKey: string, _geminiKey: string, careersUrl: string): Promise<Array<Record<string, unknown>>> {
   console.log(`[CAREERS_CRAWL] Scraping: ${careersUrl}`);
 
   const markdown = await firecrawlScrapeUrl(firecrawlKey, careersUrl, 20000);
@@ -560,19 +538,16 @@ async function handleCareersCrawl(firecrawlKey: string, geminiKey: string, caree
     return [];
   }
 
-  // Parse multiple job listings from the page with Gemini
+  // Parse multiple job listings from the page with AI
+  const { callAI, MODEL_FAST } = await import('../_shared/ai-client.ts');
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30000);
   try {
-    const llmResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: controller.signal,
-      body: JSON.stringify({
-        contents: [{
-          role: 'user',
-          parts: [{
-            text: `Extract all job listings from this careers page content. This is a company careers page.
+    const aiResult = await callAI(
+      MODEL_FAST,
+      [{
+        role: 'user',
+        content: `Extract all job listings from this careers page content. This is a company careers page.
 
 URL: ${careersUrl}
 Content:
@@ -587,18 +562,13 @@ Return a JSON array of job listings. Each job should have:
 - url: apply link or job URL if visible, else use the careers page URL
 - employment_type: "Full-time", "Part-time", "Contract", etc.
 
-Return only valid JSON array. If no jobs found, return [].`
-          }]
-        }],
-        generationConfig: { responseMimeType: 'application/json' }
-      }),
-    });
+Return only valid JSON array. If no jobs found, return [].`,
+      }],
+      { json: true, signal: controller.signal },
+    );
     clearTimeout(timeoutId);
 
-    if (!llmResponse.ok) throw new Error(`Gemini ${llmResponse.status}`);
-    const llmData = await llmResponse.json();
-    const text = llmData.candidates?.[0]?.content?.parts?.[0]?.text;
-    const jobs = JSON.parse(text || '[]');
+    const jobs = JSON.parse(aiResult.content || '[]');
 
     if (!Array.isArray(jobs)) return [];
 

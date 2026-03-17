@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { Loader2, Search, Briefcase, FileText, UserPlus, FileCheck } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import SEOHead from "@/components/SEOHead";
+import { useSubscription } from "@/hooks/useSubscription";
+import ProGate from "@/components/ProGate";
 import { triggerJobCrawl, JobOpportunity } from "@/lib/crawler_engine";
 import { generateTailoredContent, TailoredContent } from "@/lib/writer_engine";
 import { findStakeholders, Stakeholder } from "@/lib/recruiter_engine";
@@ -17,6 +19,7 @@ import { useResume } from "@/hooks/useResume";
 const ApplicationWizard = () => {
     const navigate = useNavigate();
     const { profile } = useResume();
+    const { isPro, isLoading: subLoading } = useSubscription();
 
     const [url, setUrl] = useState("");
     const [loading, setLoading] = useState(false);
@@ -92,6 +95,7 @@ const ApplicationWizard = () => {
     };
 
     return (
+    <ProGate.Page featureLabel="Application Wizard" isPro={isPro} isLoading={subLoading}>
     <div className="min-h-screen bg-background text-foreground">
       <SEOHead title="Application Wizard" description="Find and apply to jobs with AI-powered automation." path="/application-wizard" noIndex />
             <PageHeader
@@ -272,6 +276,7 @@ const ApplicationWizard = () => {
                 )}
             </main>
         </div>
+    </ProGate.Page>
     );
 };
 

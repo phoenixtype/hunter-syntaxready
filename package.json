@@ -3,9 +3,9 @@
   "private": true,
   "version": "1.0.0",
   "description": "The agentic AI career platform that autonomously manages job discovery, applications, and interview prep.",
-  "author": "Hunter AI <engineering@hunter.syntaxready.com>",
+  "author": "Hunter AI <engineering@usehunter.app>",
   "license": "UNLICENSED",
-  "homepage": "https://hunter.syntaxready.com",
+  "homepage": "https://usehunter.app",
   "repository": {
     "type": "git",
     "url": "https://github.com/phoenixtype/hunter-syntaxready.git"

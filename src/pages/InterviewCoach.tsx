@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { useSubscription } from "@/hooks/useSubscription";
-import { upgradeToPro } from "@/lib/subscription";
+import ProGate from "@/components/ProGate";
 
 type Message = { role: "user" | "assistant"; content: string };
 type Mode = "behavioral" | "technical" | "negotiation";
@@ -82,7 +82,7 @@ const InterviewCoach = () => {
     setInput("");
   }, [sessionKey]);
   
-  const { canAccess } = useSubscription();
+  const { canAccess, isPro, isLoading: subLoading } = useSubscription();
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -91,14 +91,6 @@ const InterviewCoach = () => {
   }, [messages]);
 
   const startInterview = async (selectedMode: Mode) => {
-    // Only Negotiation requires Pro — Behavioral and Technical are free for all users.
-    if (selectedMode === 'negotiation' && !canAccess('negotiation_coach')) {
-      toast.warning("Hunter Pro required", {
-        description: "Negotiation Coach is a Pro feature. Upgrade to access it.",
-        action: { label: "Upgrade", onClick: () => upgradeToPro().catch(() => {}) },
-      });
-      return;
-    }
 
     setMode(selectedMode);
     setMessages([]);
@@ -166,6 +158,7 @@ const InterviewCoach = () => {
   };
 
   return (
+    <ProGate.Page featureLabel="Interview Coach" isPro={isPro} isLoading={subLoading}>
     <div className="min-h-screen bg-background text-foreground flex flex-col" data-hide-footer>
       <SEOHead title="Interview Coach" description="Practice interviews with AI-powered coaching and real-time feedback." path="/interview-coach" noIndex />
       <PageHeader
@@ -314,6 +307,7 @@ const InterviewCoach = () => {
         </>
       )}
     </div>
+    </ProGate.Page>
   );
 };
 

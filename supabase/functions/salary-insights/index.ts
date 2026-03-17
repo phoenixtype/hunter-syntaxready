@@ -52,14 +52,7 @@ serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-    
-    if (!LOVABLE_API_KEY && !GEMINI_API_KEY) {
-      return new Response(JSON.stringify({ error: 'AI service not configured' }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
+    const { callAI, MODEL_FAST } = await import('../_shared/ai-client.ts');
 
     const { jobTitle, company, location, salaryRange, description } = await req.json();
 
@@ -119,25 +112,13 @@ ${marketData ? `Real Market Compensation Data (scraped from salary sites and job
 
 Use the real market data above to ground your analysis. You MUST call the function "salary_analysis" with your findings.`;
 
-    // Use Gemini directly if available, otherwise use Lovable AI gateway
-    const useGemini = !!GEMINI_API_KEY;
-    const apiUrl = useGemini
-      ? `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`
-      : "https://ai.gateway.lovable.dev/v1/chat/completions";
-    const apiKey = useGemini ? GEMINI_API_KEY! : LOVABLE_API_KEY!;
-
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: useGemini ? "gemini-2.5-flash" : "gemini-2.5-flash",
-      messages: [
-          { role: "system", content: "You are a compensation expert. Always use the salary_analysis tool." },
-          { role: "user", content: prompt }
-        ],
+    const aiResult = await callAI(
+      MODEL_FAST,
+      [
+        { role: "system", content: "You are a compensation expert. Always use the salary_analysis tool." },
+        { role: "user", content: prompt },
+      ],
+      {
         tools: [{
           type: "function",
           function: {
@@ -160,30 +141,11 @@ Use the real market data above to ground your analysis. You MUST call the functi
             }
           }
         }],
-        tool_choice: { type: "function", function: { name: "salary_analysis" } }
-      }),
-    });
+        tool_choice: { type: "function", function: { name: "salary_analysis" } },
+      },
+    );
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: 'Rate limit exceeded, try again later' }), {
-          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: 'AI credits exhausted' }), {
-          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-      const t = await response.text();
-      console.error('[SALARY] AI error:', response.status, t);
-      return new Response(JSON.stringify({ error: 'AI analysis failed' }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
-    const aiData = await response.json();
-    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
+    const toolCall = aiResult.tool_calls?.[0];
     
     if (toolCall?.function?.arguments) {
       const parsed = JSON.parse(toolCall.function.arguments);

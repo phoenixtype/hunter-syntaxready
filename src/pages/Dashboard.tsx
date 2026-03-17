@@ -25,7 +25,6 @@ import ProfilePanel from "@/components/ProfilePanel";
 import PreferencesPanel from "@/components/PreferencesPanel";
 import InsightsView from "@/components/InsightsView";
 import VisibilityCoachModal from "@/components/VisibilityCoachModal";
-import SubscriptionGate from "@/components/auth/SubscriptionGate";
 import {
   Sheet,
   SheetContent,
@@ -395,10 +394,6 @@ const Dashboard = () => {
         preferences={preferences}
       />
 
-      {/* Subscription Gate — block dashboard for free users; only dismiss when payment confirmed */}
-      {!subLoading && subscription?.tier === SubscriptionTier.FREE && profile && (
-        <SubscriptionGate onClose={refetchSubscription} />
-      )}
     </div>
   );
 };

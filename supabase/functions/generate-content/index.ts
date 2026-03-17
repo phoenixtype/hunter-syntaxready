@@ -112,17 +112,6 @@ serve(async (req) => {
       );
     }
 
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-
-    // SECURITY: Don't reveal which service is missing
-    if (!geminiApiKey) {
-      console.error('[CONFIG] Missing required API key');
-      return new Response(
-        JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     const requestType = type || 'cover_letter';
     console.log(`[GENERATE] Generating ${requestType}`);
 
@@ -227,48 +216,35 @@ Return a JSON array — one object per experience entry in the same order:
 Only include entries that have content to rewrite. Return the array and nothing else.`;
     }
 
+    // Route natural text tasks to Claude (better prose), everything else to Gemini Flash
+    const { callAI, MODEL_CONTENT, MODEL_FAST } = await import('../_shared/ai-client.ts');
+    const naturalTextTypes = new Set(['cover_letter', 'thank_you_note']);
+    const model = naturalTextTypes.has(requestType) ? MODEL_CONTENT : MODEL_FAST;
+
     const llmController = new AbortController();
     const llmTimeout = setTimeout(() => llmController.abort(), 45000);
 
-    let llmResponse: Response;
+    let aiResult: { content: string | null };
     try {
-      llmResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${geminiApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gemini-2.5-flash',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-          ]
-        }),
-        signal: llmController.signal,
-      });
-    } finally {
+      aiResult = await callAI(
+        model,
+        [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        { signal: llmController.signal },
+      );
+    } catch (aiErr) {
       clearTimeout(llmTimeout);
-    }
-
-    if (!llmResponse.ok) {
-      console.error('[GENERATE] AI generation failed');
-      
-      if (llmResponse.status === 429) {
-        return new Response(
-          JSON.stringify({ success: false, error: GENERIC_RATE_LIMIT_ERROR }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
+      console.error('[GENERATE] AI call failed:', aiErr instanceof Error ? aiErr.message : 'unknown');
       return new Response(
         JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    clearTimeout(llmTimeout);
 
-    const llmData = await llmResponse.json();
-    const content = llmData.choices?.[0]?.message?.content;
+    const content = aiResult.content;
 
     if (!content) {
       return new Response(

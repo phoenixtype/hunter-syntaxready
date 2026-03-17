@@ -31,6 +31,8 @@ import {
 import { useSavedJobs } from "@/hooks/useSavedJobs";
 import MatchScoreTooltip from "./MatchScoreTooltip";
 import JobCardActions from "./JobCardActions";
+import { useSubscription } from "@/hooks/useSubscription";
+import ProGate from "@/components/ProGate";
 
 interface JobFeedProps {
   profile: CandidateProfile | null;
@@ -64,6 +66,16 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   const [researchingJobId, setResearchingJobId] = useState<string | null>(null);
 
   const { toggleSave, isSaved, savedCount } = useSavedJobs();
+  const { isPro } = useSubscription();
+  const [gateOpen, setGateOpen] = useState(false);
+  const [gateFeature, setGateFeature] = useState<string | undefined>();
+
+  const requirePro = (featureLabel: string) => {
+    if (isPro) return true;
+    setGateFeature(featureLabel);
+    setGateOpen(true);
+    return false;
+  };
 
   const filteredJobs = useMemo(() => {
     let result = jobs.filter(job => !dismissedJobIds.has(job.id));
@@ -150,10 +162,11 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   }, [user]);
 
   const handleApply = async (job: EnrichedJob) => {
-    if (appliedJobIds.has(job.id)) { 
+    if (appliedJobIds.has(job.id)) {
       // Do nothing, let the <a> tag handle navigation to the job URL
-      return; 
+      return;
     }
+    if (!requirePro("Apply to Jobs")) return;
     toast.info(`Applying to ${job.company}...`);
     await recordFeedback({ jobId: job.id, action: 'APPLY', timestamp: Date.now(), jobMetadata: { skills: job.tech_stack || [], company: job.company, source: job.source } });
     try {
@@ -176,6 +189,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   };
 
   const handleDismiss = async (job: EnrichedJob) => {
+    if (!requirePro("Job Actions")) return;
     setDismissedJobIds(prev => {
       const next = new Set(prev).add(job.id);
       try { localStorage.setItem("hunter_dismissed_jobs", JSON.stringify([...next])); } catch { /* ignore quota */ }
@@ -199,6 +213,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   };
 
   const handleTailor = async (job: EnrichedJob) => {
+    if (!requirePro("Resume Tailoring")) return;
     if (!profile) { toast.error("Build your profile first."); return; }
     setTailoringJobId(job.id);
     const toastId = toast.loading("Tailoring resume…", { description: `Optimizing for ${job.title} at ${job.company}` });
@@ -415,7 +430,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                 {/* Actions */}
                 <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                   <button
-                    onClick={() => { toggleSave(job.id); toast(jobSaved ? "Removed from saved" : "Saved"); }}
+                    onClick={() => { if (!requirePro("Save Jobs")) return; toggleSave(job.id); toast(jobSaved ? "Removed from saved" : "Saved"); }}
                     className={`p-1.5 rounded-sm transition-colors ${jobSaved ? "text-foreground" : "text-muted-foreground/40 hover:text-muted-foreground"}`}
                     title={jobSaved ? "Remove bookmark" : "Save job"}
                   >
@@ -510,9 +525,10 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                     isApplying={isApplying}
                     isTailoring={tailoringJobId === job.id}
                     jobUrl={job.url || "#"}
+                    isPro={isPro}
                     onApply={() => handleApply(job)}
                     onTailor={() => handleTailor(job)}
-                    onPrep={() => navigate(`/interview-coach?title=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}&desc=${encodeURIComponent(job.description?.substring(0, 500) || '')}`)}
+                    onPrep={() => { if (!requirePro("Interview Coach")) return; navigate(`/interview-coach?title=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}&desc=${encodeURIComponent(job.description?.substring(0, 500) || '')}`); }}
                     onIntel={() => handleExpandJob(job.id)}
                     isExpanded={isExpanded}
                   />
@@ -663,6 +679,12 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
         onClose={() => setTailorResult(null)}
         content={tailorResult?.content ?? null}
         job={tailorResult?.job ?? null}
+      />
+
+      <ProGate.Dialog
+        open={gateOpen}
+        onOpenChange={setGateOpen}
+        featureLabel={gateFeature}
       />
     </div>
   );

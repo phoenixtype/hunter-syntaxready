@@ -8,7 +8,7 @@ interface SEOHeadProps {
 }
 
 const SITE_NAME = "Hunter AI";
-const BASE_URL = "https://hunter-syntaxready.lovable.app";
+const BASE_URL = "https://usehunter.app";
 
 const SEOHead = ({
   title,

@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
     )
 
     const { error } = await resend.emails.send({
-      from: 'Hunter <onboarding@hunter.syntaxready.com>',
+      from: 'Hunter <onboarding@usehunter.app>',
       to: [user.email],
       subject,
       html,

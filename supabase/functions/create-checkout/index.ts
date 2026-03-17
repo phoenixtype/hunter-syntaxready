@@ -110,7 +110,7 @@ serve(async (req) => {
     };
 
     // Helper: Create Session
-    const siteUrl = Deno.env.get('SITE_URL') || req.headers.get('origin') || 'https://hunter.syntaxready.com';
+    const siteUrl = Deno.env.get('SITE_URL') || req.headers.get('origin') || 'https://usehunter.app';
     const createSession = async (cid: string) => {
       console.log(`[CHECKOUT] Creating session for: ${cid}`);
       return await fetch('https://api.stripe.com/v1/checkout/sessions', {

@@ -17,6 +17,8 @@ import {
   Building2,
 } from "lucide-react";
 import { useRole } from "@/hooks/useRole";
+import { useSubscription } from "@/hooks/useSubscription";
+import { ProLockBadge } from "@/components/ProGate";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useResume } from "@/hooks/useResume";
@@ -59,6 +61,7 @@ const AppSidebar = () => {
   const { user, signOut } = useAuth();
   const { profile } = useResume();
   const { isRecruiter } = useRole();
+  const { isPro } = useSubscription();
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try { return localStorage.getItem("hunter_sidebar_collapsed") === "true"; } catch { return false; }
@@ -224,7 +227,12 @@ const AppSidebar = () => {
                     }`}
                   >
                     <tool.icon className="w-4 h-4 shrink-0" />
-                    {!collapsed && <span className="truncate">{tool.title}</span>}
+                    {!collapsed && (
+                      <span className="truncate flex-1">{tool.title}</span>
+                    )}
+                    {!collapsed && !isPro && (
+                      <ProLockBadge />
+                    )}
                   </button>
                 );
               })}

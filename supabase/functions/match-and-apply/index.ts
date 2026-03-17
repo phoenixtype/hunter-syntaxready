@@ -238,7 +238,7 @@ serve(async (req: Request) => {
             user_id: pref.user_id,
             job_title: job.title,
             company: job.company,
-            job_url: `https://hunter.syntaxready.com/jobs/${recruiter_job_id}`,
+            job_url: `https://usehunter.app/jobs/${recruiter_job_id}`,
             status: "applied",
             metadata: {
               source: "Auto-Applied",

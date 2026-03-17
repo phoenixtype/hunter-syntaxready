@@ -5,13 +5,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Send, Loader2, MoreHorizontal, PenTool, GraduationCap, ChevronDown, ChevronUp } from "lucide-react";
+import { Send, Loader2, MoreHorizontal, PenTool, GraduationCap, ChevronDown, ChevronUp, Lock } from "lucide-react";
 
 interface Props {
   isApplied: boolean;
   isApplying: boolean;
   isTailoring: boolean;
   jobUrl: string;
+  isPro?: boolean;
   onApply: () => void;
   onTailor: () => void;
   onPrep: () => void;
@@ -24,6 +25,7 @@ export default function JobCardActions({
   isApplying,
   isTailoring,
   jobUrl,
+  isPro = true,
   onApply,
   onTailor,
   onPrep,
@@ -33,8 +35,8 @@ export default function JobCardActions({
   return (
     <div className="flex items-center gap-2 mt-4 flex-wrap">
       <a
-        href={isApplying ? undefined : (jobUrl || "#")}
-        target={jobUrl ? "_blank" : undefined}
+        href={isApplying ? undefined : (isPro && isApplied ? (jobUrl || "#") : undefined)}
+        target={isPro && isApplied && jobUrl ? "_blank" : undefined}
         rel="noopener noreferrer"
         className="w-full sm:w-auto"
         onClick={(e) => {
@@ -42,20 +44,21 @@ export default function JobCardActions({
             e.preventDefault();
             return;
           }
-          if (isApplied) {
+          if (isPro && isApplied) {
             // Allow navigation to the link
             return;
           }
+          e.preventDefault();
           onApply();
         }}
       >
         <Button
           size="sm"
-          variant={isApplied ? "secondary" : "default"}
+          variant={isPro && isApplied ? "secondary" : "default"}
           disabled={isApplying}
           className="w-full sm:w-auto h-9 text-xs px-5 gap-1.5 font-semibold"
         >
-          {isApplied ? (
+          {isPro && isApplied ? (
             <>
               <Send className="w-3 h-3" />
               Applied
@@ -64,6 +67,11 @@ export default function JobCardActions({
             <>
               <Loader2 className="w-3 h-3 animate-spin" />
               Applying…
+            </>
+          ) : !isPro ? (
+            <>
+              <Lock className="w-3 h-3" />
+              Apply Now
             </>
           ) : (
             <>

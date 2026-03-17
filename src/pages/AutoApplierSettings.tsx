@@ -16,6 +16,8 @@ import LocationPicker from "@/components/LocationPicker";
 import SingleLocationPicker from "@/components/SingleLocationPicker";
 import { useResume } from "@/hooks/useResume";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
+import ProGate from "@/components/ProGate";
 import { getPreferences, savePreferences, UserPreferences } from "@/lib/user_preferences";
 import { saveCandidateProfile } from "@/lib/resume_engine";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,6 +36,7 @@ const JobHuntPlanner = () => {
   const navigate = useNavigate();
   const { profile } = useResume();
   const { user } = useAuth();
+  const { isPro, isLoading: subLoading } = useSubscription();
   const [activeStep, setActiveStep] = useState(1);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -216,6 +219,7 @@ const JobHuntPlanner = () => {
   }
 
   return (
+    <ProGate.Page featureLabel="Hunt Planner" isPro={isPro} isLoading={subLoading}>
     <div className="min-h-screen bg-background text-foreground">
       <SEOHead title="Auto-Applier Settings" description="Configure your automated job application preferences." path="/auto-applier-settings" noIndex />
       <PageHeader
@@ -497,6 +501,7 @@ const JobHuntPlanner = () => {
         </div>
       </main>
     </div>
+    </ProGate.Page>
   );
 };
 
