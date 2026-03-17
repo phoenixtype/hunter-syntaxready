@@ -22,6 +22,7 @@ import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { PublicRoute } from "./components/auth/PublicRoute";
 import AppLayout from "./layouts/AppLayout";
+import RecruiterLayout from "./layouts/RecruiterLayout";
 import FloatingThemeToggle from "./components/FloatingThemeToggle";
 import CookieConsent from "./components/CookieConsent";
 import CommandPalette from "./components/CommandPalette";
@@ -38,6 +39,14 @@ const ResumeBuilder = lazy(() => import("./pages/ResumeBuilder"));
 const TailoredResumes = lazy(() => import("./pages/TailoredResumes"));
 const Settings = lazy(() => import("./pages/Settings"));
 const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
+
+// Recruiter pages (lazy)
+const RecruiterDashboard = lazy(() => import("./pages/recruiter/RecruiterDashboard"));
+const PostJob = lazy(() => import("./pages/recruiter/PostJob"));
+const MyJobs = lazy(() => import("./pages/recruiter/MyJobs"));
+const JobApplicants = lazy(() => import("./pages/recruiter/JobApplicants"));
+const EditJob = lazy(() => import("./pages/recruiter/EditJob"));
+const CompanyProfile = lazy(() => import("./pages/recruiter/CompanyProfile"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -68,6 +77,13 @@ const AppInitializer = () => {
 const AppPage = ({ children }: { children: React.ReactNode }) => (
   <ProtectedRoute>
     <AppLayout>{children}</AppLayout>
+  </ProtectedRoute>
+);
+
+/** Wraps a page in ProtectedRoute + RecruiterLayout (recruiter sidebar) */
+const RecruiterPage = ({ children }: { children: React.ReactNode }) => (
+  <ProtectedRoute>
+    <RecruiterLayout>{children}</RecruiterLayout>
   </ProtectedRoute>
 );
 
@@ -111,6 +127,14 @@ const App = () => (
                       <Route path="/tailored-resumes"      element={<AppPage><TailoredResumes /></AppPage>} />
                       <Route path="/settings"              element={<AppPage><Settings /></AppPage>} />
                       <Route path="/admin/analytics"       element={<AppPage><AdminAnalytics /></AppPage>} />
+
+                      {/* ── Recruiter app shell ──────────────────────── */}
+                      <Route path="/recruiter"             element={<RecruiterPage><RecruiterDashboard /></RecruiterPage>} />
+                      <Route path="/recruiter/jobs"        element={<RecruiterPage><MyJobs /></RecruiterPage>} />
+                      <Route path="/recruiter/post-job"    element={<RecruiterPage><PostJob /></RecruiterPage>} />
+                      <Route path="/recruiter/jobs/:jobId"      element={<RecruiterPage><JobApplicants /></RecruiterPage>} />
+                      <Route path="/recruiter/jobs/:jobId/edit" element={<RecruiterPage><EditJob /></RecruiterPage>} />
+                      <Route path="/recruiter/company"     element={<RecruiterPage><CompanyProfile /></RecruiterPage>} />
 
                       <Route path="*" element={<NotFound />} />
                     </Routes>

@@ -63,6 +63,8 @@ const JobHuntPlanner = () => {
   // Search intensity
   const [intensity, setIntensity] = useState([5]);
   const [safeMode, setSafeMode] = useState(true);
+  const [autoApplyEnabled, setAutoApplyEnabled] = useState(false);
+  const [autoApplyMinScore, setAutoApplyMinScore] = useState(80);
 
   useEffect(() => {
     if (!user) return;
@@ -92,6 +94,13 @@ const JobHuntPlanner = () => {
         setExpectedSalary(prefs.min_salary_usd?.toString() || "");
         setNoticePeriod(prefs.notice_period_days?.toString() || "14");
         if (prefs.experience_level) setExperienceLevel(prefs.experience_level);
+        // Auto-apply settings (new fields)
+        if (typeof (prefs as Record<string, unknown>)['auto_apply_enabled'] === 'boolean') {
+          setAutoApplyEnabled((prefs as Record<string, unknown>)['auto_apply_enabled'] as boolean);
+        }
+        if (typeof (prefs as Record<string, unknown>)['auto_apply_min_match_score'] === 'number') {
+          setAutoApplyMinScore((prefs as Record<string, unknown>)['auto_apply_min_match_score'] as number);
+        }
       }
       
       const { data: weightsData } = await supabase
@@ -127,6 +136,12 @@ const JobHuntPlanner = () => {
         sms_alerts_enabled: false,
         tracker_view: 'list',
       });
+
+      // Save auto-apply settings (extra columns not in UserPreferences type yet)
+      await supabase.from('user_preferences').update({
+        auto_apply_enabled: autoApplyEnabled,
+        auto_apply_min_match_score: autoApplyMinScore,
+      }).eq('user_id', user.id);
 
       // Save candidate profile details
       let currentProfile = profile || {
@@ -412,6 +427,48 @@ const JobHuntPlanner = () => {
                           <p className="text-xs text-muted-foreground mt-0.5">Only surface roles that closely match your target titles and required skills.</p>
                         </div>
                         <Switch checked={safeMode} onCheckedChange={setSafeMode} />
+                      </div>
+
+                      {/* Auto-Apply */}
+                      <div className="rounded-md border border-primary/30 bg-primary/5 p-4 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <Label className="text-sm font-medium flex items-center gap-1.5">
+                              <span className="inline-block w-2 h-2 rounded-full bg-green-500" />
+                              Auto-Apply (Autopilot)
+                            </Label>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              When a recruiter posts a job that matches your profile above the score threshold, Hunter automatically submits your application.
+                            </p>
+                          </div>
+                          <Switch checked={autoApplyEnabled} onCheckedChange={setAutoApplyEnabled} />
+                        </div>
+
+                        {autoApplyEnabled && (
+                          <div className="space-y-2 pt-2 border-t border-primary/20">
+                            <div className="flex justify-between items-baseline">
+                              <Label className="text-sm font-medium">Minimum Match Score</Label>
+                              <span className="text-xs font-semibold text-primary tabular-nums">{autoApplyMinScore}%</span>
+                            </div>
+                            <input
+                              type="range"
+                              min={50}
+                              max={95}
+                              step={5}
+                              value={autoApplyMinScore}
+                              onChange={(e) => setAutoApplyMinScore(Number(e.target.value))}
+                              className="w-full accent-primary"
+                            />
+                            <div className="flex justify-between text-[10px] text-muted-foreground">
+                              <span>50% — broad</span>
+                              <span>80% — recommended</span>
+                              <span>95% — strict</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground/80">
+                              Only auto-apply to jobs where your profile scores {autoApplyMinScore}% or higher. Higher = fewer but better-matched auto-applications.
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

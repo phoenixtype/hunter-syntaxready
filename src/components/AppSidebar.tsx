@@ -14,7 +14,9 @@ import {
   TrendingUp,
   PanelLeftClose,
   PanelLeft,
+  Building2,
 } from "lucide-react";
+import { useRole } from "@/hooks/useRole";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useResume } from "@/hooks/useResume";
@@ -56,6 +58,7 @@ const AppSidebar = () => {
   const { pathname, search } = useLocation();
   const { user, signOut } = useAuth();
   const { profile } = useResume();
+  const { isRecruiter } = useRole();
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try { return localStorage.getItem("hunter_sidebar_collapsed") === "true"; } catch { return false; }
@@ -229,6 +232,22 @@ const AppSidebar = () => {
           </div>
         ))}
       </nav>
+
+      {/* ── Recruiter switcher ──────────────────────── */}
+      {isRecruiter && (
+        <div className={`px-1.5 pb-1 shrink-0 ${collapsed ? "flex justify-center" : ""}`}>
+          <button
+            onClick={() => navigate("/recruiter")}
+            title={collapsed ? "Recruiter Portal" : undefined}
+            className={`flex items-center gap-2 rounded-md text-xs font-medium text-primary hover:bg-primary/10 transition-colors ${
+              collapsed ? "justify-center p-2 w-full" : "px-2.5 py-1.5 w-full"
+            }`}
+          >
+            <Building2 className="w-4 h-4 shrink-0" />
+            {!collapsed && "Switch to Recruiter"}
+          </button>
+        </div>
+      )}
 
       {/* ── Footer actions ──────────────────────────── */}
       <div className="px-1.5 py-3 border-t border-border space-y-0.5 shrink-0">

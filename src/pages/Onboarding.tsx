@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { savePreferences, getPreferences, UserPreferences } from "@/lib/user_preferences";
 import { CandidateProfile, saveCandidateProfile, getCandidateProfile, ExperienceAtom, Education, Skill } from "@/lib/resume_engine";
 import { triggerJobCrawl } from "@/lib/crawler_engine";
+import { setUserRole } from "@/lib/recruiter_engine";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -499,13 +500,32 @@ const Onboarding = () => {
                   })}
                 </div>
 
-                <Button
-                  size="lg"
-                  onClick={() => setCurrentStep("intent")}
-                  className="w-full h-12 gap-2"
-                >
-                  Get started <ArrowRight className="w-4 h-4" />
-                </Button>
+                {/* Role selector */}
+                <div className="space-y-3 mb-6 border border-border rounded-xl p-4 bg-muted/30">
+                  <p className="text-sm font-semibold text-center">I am joining Hunter as a…</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => setCurrentStep("intent")}
+                      className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-primary bg-primary/5 transition-all hover:shadow-md-1"
+                    >
+                      <Briefcase className="w-6 h-6 text-primary" />
+                      <span className="text-sm font-semibold">Job Seeker</span>
+                      <span className="text-[11px] text-muted-foreground text-center leading-tight">Find jobs, get matched & auto-apply</span>
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (!user) return;
+                        await setUserRole(user.id, "recruiter");
+                        navigate("/recruiter");
+                      }}
+                      className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-border hover:border-primary/40 hover:bg-muted/50 transition-all hover:shadow-md-1"
+                    >
+                      <User className="w-6 h-6 text-muted-foreground" />
+                      <span className="text-sm font-semibold">Recruiter / HM</span>
+                      <span className="text-[11px] text-muted-foreground text-center leading-tight">Post jobs & manage your pipeline</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 
