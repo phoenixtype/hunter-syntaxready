@@ -23,6 +23,10 @@ import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { PublicRoute } from "./components/auth/PublicRoute";
 import AppLayout from "./layouts/AppLayout";
 import RecruiterLayout from "./layouts/RecruiterLayout";
+import AdminLayout from "./layouts/AdminLayout";
+import RequireAdmin from "./components/admin/RequireAdmin";
+import RecruiterPortal from "./pages/RecruiterPortal";
+import RecruiterSetup from "./pages/RecruiterSetup";
 import FloatingThemeToggle from "./components/FloatingThemeToggle";
 import CookieConsent from "./components/CookieConsent";
 import CommandPalette from "./components/CommandPalette";
@@ -30,6 +34,12 @@ import Footer from "./components/Footer";
 import { runStartupValidation } from "./lib/env_validator";
 import { checkDatabaseHealth, logHealthStatus } from "./lib/database_health";
 import PageLoader from "./components/PageLoader";
+
+// Admin pages (lazy)
+const AdminOverview = lazy(() => import("./pages/admin/AdminOverview"));
+const RecruiterApplicationsPage = lazy(() => import("./pages/admin/RecruiterApplications"));
+const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
+const AdminLogs = lazy(() => import("./pages/admin/AdminLogs"));
 
 // Lazy-load heavy tool pages — reduces initial bundle by ~40%
 const ApplicationWizard = lazy(() => import("./pages/ApplicationWizard"));
@@ -87,6 +97,15 @@ const RecruiterPage = ({ children }: { children: React.ReactNode }) => (
   </ProtectedRoute>
 );
 
+/** Wraps a page in ProtectedRoute + AdminLayout + RequireAdmin guard */
+const AdminPage = ({ children }: { children: React.ReactNode }) => (
+  <ProtectedRoute>
+    <RequireAdmin>
+      <AdminLayout>{children}</AdminLayout>
+    </RequireAdmin>
+  </ProtectedRoute>
+);
+
 const App = () => (
   <ErrorBoundary>
     <HelmetProvider>
@@ -113,6 +132,8 @@ const App = () => (
                       <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
                       <Route path="/verify-email" element={<EmailVerification />} />
                       <Route path="/reset-password" element={<ResetPassword />} />
+                      <Route path="/recruiter-portal" element={<RecruiterPortal />} />
+                      <Route path="/recruiter-setup" element={<RecruiterSetup />} />
 
                       {/* ── Onboarding (full-screen, no sidebar) ─ */}
                       <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
@@ -127,6 +148,12 @@ const App = () => (
                       <Route path="/tailored-resumes"      element={<AppPage><TailoredResumes /></AppPage>} />
                       <Route path="/settings"              element={<AppPage><Settings /></AppPage>} />
                       <Route path="/admin/analytics"       element={<AppPage><AdminAnalytics /></AppPage>} />
+
+                      {/* ── Platform admin shell ──────────────────────── */}
+                      <Route path="/admin"                            element={<AdminPage><AdminOverview /></AdminPage>} />
+                      <Route path="/admin/recruiter-applications"     element={<AdminPage><RecruiterApplicationsPage /></AdminPage>} />
+                      <Route path="/admin/users"                      element={<AdminPage><AdminUsers /></AdminPage>} />
+                      <Route path="/admin/logs"                       element={<AdminPage><AdminLogs /></AdminPage>} />
 
                       {/* ── Recruiter app shell ──────────────────────── */}
                       <Route path="/recruiter"             element={<RecruiterPage><RecruiterDashboard /></RecruiterPage>} />

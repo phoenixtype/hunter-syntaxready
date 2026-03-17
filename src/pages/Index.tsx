@@ -10,6 +10,7 @@ import {
   Star,
   ChevronRight,
   CheckCircle2,
+  Building2,
 } from "lucide-react";
 import MobileNav from "@/components/MobileNav";
 import SkipLink from "@/components/SkipLink";
@@ -74,6 +75,12 @@ const Index = () => {
 
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-1">
+            <Link
+              to="/recruiter-portal"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors px-4 py-2 rounded-full"
+            >
+              For Recruiters
+            </Link>
             <ThemeToggle />
             {isAuthenticated ? (
               <Link to="/dashboard" className="ml-2">
@@ -354,8 +361,53 @@ const Index = () => {
           </div>
         </section>
 
-        {/* ── CTA ── MD3 Tonal Surface container */}
+        {/* ── For Recruiters ── */}
         <section className="py-24 bg-card border-t border-border">
+          <div className="container max-w-6xl mx-auto px-4 sm:px-6">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              {/* Left */}
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-5">
+                  <Building2 className="w-3.5 h-3.5" /> For Recruiters &amp; Hiring Managers
+                </div>
+                <h2 className="text-3xl sm:text-4xl font-normal tracking-tight mb-4">
+                  Find pre-vetted, <span className="text-primary font-medium">motivated talent</span>
+                </h2>
+                <p className="text-base text-muted-foreground leading-relaxed mb-8">
+                  Every candidate on Hunter is actively job hunting and AI-matched against real roles.
+                  Post jobs, receive qualified applicants, and skip the resume pile entirely.
+                </p>
+                <Link to="/recruiter-portal">
+                  <Button size="lg" className="px-8 h-11 font-medium rounded-full gap-2 shadow-md-1">
+                    Apply to join as a recruiter <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+                <p className="text-xs text-muted-foreground mt-3">Free to apply · Response within 2 business days</p>
+              </div>
+
+              {/* Right — feature tiles */}
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { icon: Users, title: "Active seekers only", desc: "Candidates are opted-in and actively job hunting — 3× higher response rates than passive sourcing." },
+                  { icon: Zap, title: "24/7 auto-apply pipeline", desc: "Qualified candidates auto-apply to your open roles around the clock." },
+                  { icon: Shield, title: "AI-vetted profiles", desc: "Every profile is AI-parsed — skills, experience, and match score surfaced immediately." },
+                  { icon: Star, title: "No resume sifting", desc: "Hunter scores candidates against your JD so you only see strong matches." },
+                ].map(({ icon: Icon, title, desc }) => (
+                  <div key={title} className="p-5 rounded-2xl border border-border bg-background">
+                    <div className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center mb-3">
+                      <Icon className="w-[18px] h-[18px] text-primary" />
+                    </div>
+                    <p className="text-sm font-medium mb-1">{title}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── CTA ── MD3 Tonal Surface container */}
+        <section className="py-24 bg-background border-t border-border">
           <div className="container max-w-3xl mx-auto px-4 sm:px-6 text-center">
             <div className="bg-secondary rounded-3xl px-8 py-14 sm:px-14 sm:py-16 border border-primary/15">
               <h2 className="text-3xl sm:text-4xl font-normal tracking-tight mb-4 text-foreground">
