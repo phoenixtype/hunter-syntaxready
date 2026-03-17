@@ -57,6 +57,8 @@ const MyJobs = lazy(() => import("./pages/recruiter/MyJobs"));
 const JobApplicants = lazy(() => import("./pages/recruiter/JobApplicants"));
 const EditJob = lazy(() => import("./pages/recruiter/EditJob"));
 const CompanyProfile = lazy(() => import("./pages/recruiter/CompanyProfile"));
+const CandidateTalentSearch = lazy(() => import("./pages/recruiter/CandidateTalentSearch"));
+const RecruiterAnalytics = lazy(() => import("./pages/recruiter/RecruiterAnalytics"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -162,6 +164,8 @@ const App = () => (
                       <Route path="/recruiter/jobs/:jobId"      element={<RecruiterPage><JobApplicants /></RecruiterPage>} />
                       <Route path="/recruiter/jobs/:jobId/edit" element={<RecruiterPage><EditJob /></RecruiterPage>} />
                       <Route path="/recruiter/company"     element={<RecruiterPage><CompanyProfile /></RecruiterPage>} />
+                      <Route path="/recruiter/candidates"  element={<RecruiterPage><CandidateTalentSearch /></RecruiterPage>} />
+                      <Route path="/recruiter/analytics"   element={<RecruiterPage><RecruiterAnalytics /></RecruiterPage>} />
 
                       <Route path="*" element={<NotFound />} />
                     </Routes>

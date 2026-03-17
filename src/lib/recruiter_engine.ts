@@ -399,6 +399,113 @@ export const formatSalary = (job: RecruiterJob): string => {
   return `Up to ${fmt(job.salary_max!)} ${job.salary_currency}`;
 };
 
+// ── Talent Search ─────────────────────────────────────────────────────────────
+
+export interface ExperienceAtom {
+  company: string;
+  title: string;
+  start: string;
+  end: string;
+  bullets?: string[];
+}
+
+export interface EducationItem {
+  school?: string;
+  institution?: string;
+  degree?: string;
+  field?: string;
+  year?: string;
+  end?: string;
+}
+
+export interface CandidateLink {
+  type: string; // 'linkedin' | 'github' | 'portfolio' | 'phone' | 'twitter' | etc.
+  url?: string;
+  value?: string;
+}
+
+export interface TalentCandidate {
+  user_id: string;
+  full_name: string;
+  avatar_url: string | null;
+  headline: string | null;
+  experience_years: number;
+  skills: string[];
+  experience_atoms: ExperienceAtom[];
+  education: EducationItem[];
+  links: CandidateLink[];
+  target_roles: string[];
+  min_salary_usd: number;
+  locations: string[];
+  remote_policy: string;
+  match_score?: number;
+}
+
+export interface TalentSearchFilters {
+  skills?: string[];
+  remotePolicy?: string;
+  jobId?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export const searchCandidates = async (
+  filters: TalentSearchFilters = {}
+): Promise<{ candidates: TalentCandidate[]; total: number }> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  const { data, error } = await supabase.functions.invoke('search-candidates', {
+    body: filters,
+    headers: { Authorization: `Bearer ${session.access_token}` },
+  });
+
+  if (error) throw new Error(error.message);
+  if (data?.error) throw new Error(data.error);
+
+  return { candidates: data.candidates ?? [], total: data.total ?? 0 };
+};
+
+export const sendRecruiterOutreach = async (opts: {
+  candidateId: string;
+  subject: string;
+  message: string;
+  jobId?: string;
+  outreachType?: 'email' | 'invite';
+}): Promise<void> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  const { data, error } = await supabase.functions.invoke('recruiter-outreach', {
+    body: opts,
+    headers: { Authorization: `Bearer ${session.access_token}` },
+  });
+
+  if (error) throw new Error(error.message);
+  if (data?.error) throw new Error(data.error);
+};
+
+export const getOutreachHistory = async (recruiterId: string) => {
+  const { data, error } = await supabase
+    .from('recruiter_outreach' as never)
+    .select('*')
+    .eq('recruiter_id', recruiterId)
+    .order('created_at', { ascending: false })
+    .limit(100);
+
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Array<{
+    id: string;
+    candidate_id: string;
+    recruiter_job_id: string | null;
+    outreach_type: string;
+    subject: string;
+    message: string;
+    status: string;
+    created_at: string;
+  }>;
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Legacy stakeholder lookup (kept for backward compatibility)
 // ─────────────────────────────────────────────────────────────────────────────

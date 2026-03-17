@@ -270,6 +270,48 @@ export function recruiterRejectedEmail(opts: {
   });
 }
 
+/** Recruiter outreach — sent to a candidate on behalf of a recruiter */
+export function recruiterOutreachEmail(opts: {
+  candidateName: string;
+  recruiterName: string;
+  companyName: string;
+  jobTitle?: string;
+  subject: string;
+  message: string;
+}): string {
+  const escapedMessage = opts.message
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\n/g, '<br/>');
+
+  return baseTemplate({
+    previewText: `${opts.recruiterName} from ${opts.companyName} wants to connect with you on Hunter`,
+    title: `Message from ${opts.companyName} — Hunter`,
+    body: `
+      <h1 style="color:${TEXT};font-size:24px;font-weight:700;margin:0 0 8px;letter-spacing:-0.5px;">A recruiter wants to connect</h1>
+      ${opts.jobTitle ? `<p style="color:${MUTED};font-size:15px;margin:0 0 24px;">Regarding: <strong style="color:${TEXT};">${opts.jobTitle}</strong> at ${opts.companyName}</p>` : `<p style="color:${MUTED};font-size:15px;margin:0 0 24px;">From ${opts.companyName}</p>`}
+
+      <p style="color:${TEXT};font-size:15px;line-height:1.7;margin:0 0 16px;">Hi ${opts.candidateName},</p>
+
+      <div style="background:${BG};border-left:3px solid ${PRIMARY};padding:16px 20px;border-radius:0 8px 8px 0;margin:0 0 24px;">
+        <p style="color:${TEXT};font-size:15px;line-height:1.7;margin:0;">${escapedMessage}</p>
+      </div>
+
+      <p style="color:${MUTED};font-size:13px;line-height:1.7;margin:0 0 8px;">
+        This message was sent by <strong style="color:${TEXT};">${opts.recruiterName}</strong> at <strong style="color:${TEXT};">${opts.companyName}</strong> via Hunter.
+        Reply directly to this email to respond.
+      </p>
+      <p style="color:${MUTED};font-size:13px;margin:0;">
+        You're receiving this because you have enabled recruiter outreach in your Hunter preferences.
+        You can turn this off in your <a href="${SITE_URL}/settings" style="color:${PRIMARY};text-decoration:underline;">account settings</a>.
+      </p>
+    `,
+    cta: { label: 'View your Hunter profile →', href: `${SITE_URL}/dashboard` },
+    footer: 'Hunter connects active job seekers with top companies.',
+  });
+}
+
 /** New user welcome — sent after account creation */
 export function welcomeEmail(opts: { fullName: string }): string {
   return baseTemplate({

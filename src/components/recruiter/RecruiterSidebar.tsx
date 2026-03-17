@@ -18,9 +18,10 @@ import { useRecruiterProfile } from "@/hooks/useRecruiter";
 import { toast } from "sonner";
 
 const NAV_ITEMS = [
-  { id: "dashboard", label: "Dashboard",   icon: LayoutDashboard, route: "/recruiter" },
-  { id: "my-jobs",   label: "My Jobs",     icon: Briefcase,       route: "/recruiter/jobs" },
-  { id: "analytics", label: "Analytics",   icon: BarChart3,       route: "/recruiter/analytics" },
+  { id: "dashboard",   label: "Dashboard",        icon: LayoutDashboard, route: "/recruiter" },
+  { id: "my-jobs",     label: "My Jobs",          icon: Briefcase,       route: "/recruiter/jobs" },
+  { id: "candidates",  label: "Talent Search",    icon: Users,           route: "/recruiter/candidates" },
+  { id: "analytics",   label: "Analytics",        icon: BarChart3,       route: "/recruiter/analytics" },
 ] as const;
 
 const RecruiterSidebar = () => {
@@ -154,17 +155,6 @@ const RecruiterSidebar = () => {
         >
           <Building2 className="w-4 h-4 shrink-0" />
           {!collapsed && "Company Profile"}
-        </button>
-        <button
-          onClick={() => navigate("/recruiter/candidates")}
-          title={collapsed ? "Candidates" : undefined}
-          aria-current={pathname.startsWith("/recruiter/candidates") ? "page" : undefined}
-          className={`w-full flex items-center gap-2 rounded-md text-sm transition-colors ${collapsed ? "justify-center p-2" : "px-2.5 py-1.5"} ${
-            pathname.startsWith("/recruiter/candidates") ? "bg-muted text-foreground font-medium" : "text-muted-foreground hover:text-foreground hover:bg-muted/60 font-normal"
-          }`}
-        >
-          <Users className="w-4 h-4 shrink-0" />
-          {!collapsed && "Candidates"}
         </button>
       </nav>
 
