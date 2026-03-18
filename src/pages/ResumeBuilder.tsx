@@ -255,7 +255,7 @@ const ResumeBuilder = () => {
       case "personal":
         return formData.identity.name.trim().length > 0 && formData.identity.email.trim().length > 0;
       case "experience":
-        return true; // Optional
+        return formData.experience_atoms.every(exp => exp.role.trim() && exp.company.trim() && exp.content.trim());
       case "education":
         return true; // Optional
       case "skills":

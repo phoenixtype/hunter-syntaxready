@@ -251,8 +251,8 @@ function mapJSearchJob(item: JSearchJob): Record<string, unknown> {
     ? item.job_required_skills
     : extractTechStack(description);
 
-  if (salary_range === 'Not specified' && (item as Record<string, unknown>).job_salary_string) {
-    salary_range = (item as Record<string, unknown>).job_salary_string as string;
+  if (salary_range === 'Not specified' && (item as unknown as Record<string, unknown>).job_salary_string) {
+    salary_range = (item as unknown as Record<string, unknown>).job_salary_string as string;
   }
 
   return {

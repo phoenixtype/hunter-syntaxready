@@ -77,13 +77,14 @@ Deno.serve(async (req) => {
     }
 
     console.log(`Auth email sent to ${user.email} (type: ${email_action_type})`)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Send auth email error:', error)
+    const err = error as Record<string, unknown>;
     return new Response(
       JSON.stringify({
         error: {
-          http_code: error.code,
-          message: error.message,
+          http_code: err.code,
+          message: err.message ?? 'Unknown error',
         },
       }),
       {
