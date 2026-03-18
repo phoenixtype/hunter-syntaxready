@@ -114,10 +114,17 @@ serve(async (req) => {
       });
 
       // Update application status
-      await supabase
+      const { error: approveError } = await supabase
         .from('recruiter_applications')
         .update({ status: 'approved', reviewed_by: user.id, reviewed_at: new Date().toISOString() })
         .eq('id', applicationId);
+
+      if (approveError) {
+        console.error('[APPROVE-RECRUITER] Failed to update application status:', approveError.message);
+        return new Response(JSON.stringify({ error: 'Failed to update application status' }), {
+          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
 
       // If the user already has a Hunter account, flip their role now
       const { data: existingUser } = await supabase
@@ -127,10 +134,13 @@ serve(async (req) => {
         .maybeSingle();
 
       if (existingUser) {
-        await supabase
+        const { error: roleError } = await supabase
           .from('profiles')
           .update({ role: 'recruiter' })
           .eq('id', app.user_id);
+        if (roleError) {
+          console.error('[APPROVE-RECRUITER] Failed to update profile role:', roleError.message);
+        }
       }
 
       // Audit log

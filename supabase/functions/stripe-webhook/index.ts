@@ -167,7 +167,14 @@ serve(async (req) => {
       return new Response('Invalid signature', { status: 401 });
     }
 
-    const event = JSON.parse(body);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let event: any;
+    try {
+      event = JSON.parse(body);
+    } catch {
+      console.error('[WEBHOOK] Failed to parse event body');
+      return new Response('Invalid JSON body', { status: 400 });
+    }
 
     switch (event.type) {
       case 'checkout.session.completed': {

@@ -568,11 +568,21 @@ Return only valid JSON array. If no jobs found, return [].`,
     );
     clearTimeout(timeoutId);
 
-    const jobs = JSON.parse(aiResult.content || '[]');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let jobs: any[];
+    try {
+      const parsed = JSON.parse(aiResult.content || '[]');
+      jobs = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
 
-    if (!Array.isArray(jobs)) return [];
+    if (jobs.length === 0) return [];
 
-    const domain = new URL(careersUrl).hostname.replace('www.', '').split('.')[0];
+    let domain = 'company';
+    try {
+      domain = new URL(careersUrl).hostname.replace('www.', '').split('.')[0];
+    } catch { /* use fallback */ }
     const company = jobs[0]?.company || domain.charAt(0).toUpperCase() + domain.slice(1);
 
     return jobs.map((j: Record<string, unknown>) => {
