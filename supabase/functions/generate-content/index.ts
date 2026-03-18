@@ -227,16 +227,23 @@ Provide:
     } else if (requestType === 'thank_you_note') {
       systemPrompt = `You are Dexter, Hunter's career AI. Write a thank-you email that reinforces the candidate's fit and keeps them top of mind — not a generic "thanks for your time" note.`;
 
-      userPrompt = `Write a post-interview thank-you email for ${profile.identity?.name || 'the candidate'} after interviewing at ${job.company} for the ${job.title} role.
+      const interviewerName = job.interviewer_name || job.description?.match(/Interviewer:\s*([^.]+)/)?.[1]?.trim();
+      const topicsDiscussed = job.notes || '';
 
-Top skills: ${profile.skills?.slice(0, 4).map((s: { name: string }) => s.name).join(', ')}
+      userPrompt = `Write a post-interview thank-you email for ${profile.identity?.name || 'the candidate'} after interviewing with ${interviewerName || 'the hiring manager'} at ${job.company}.
+
+Interviewer name: ${interviewerName || 'not provided — address generically'}
+Topics discussed: ${topicsDiscussed || 'not specified'}
+Candidate top skills: ${profile.skills?.slice(0, 4).map((s: { name: string }) => s.name).join(', ')}
 
 The email should:
+- Open with "Hi ${interviewerName ? interviewerName.split(' ')[0] : 'there'},"
 - Be 120–160 words
-- Reference something specific about the role or conversation (use a placeholder like [mention from interview])
+- Reference one of the topics discussed above naturally
 - Reinforce one key strength relevant to the role
 - Express genuine enthusiasm without sounding desperate
-- End with a clear, confident closing line`;
+- End with a clear, confident closing line
+- Use no placeholder brackets — write it ready to send`;
 
     } else if (requestType === 'offer_evaluation') {
       systemPrompt = `You are Dexter, Hunter's compensation and negotiation strategist. You help candidates maximise their total compensation using market data, leverage points, and proven negotiation scripts.
