@@ -16,7 +16,7 @@ import { useEffect, useState, useMemo } from "react";
 import JobFiltersBar, { JobFilters, DEFAULT_FILTERS, hasActiveFilters } from "./JobFiltersBar";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { Stakeholder } from "@/lib/recruiter_engine";
+import type { Stakeholder } from "@/lib/recruiter_engine";
 import { useJobs } from "@/hooks/useJobs";
 import { UserPreferences } from "@/lib/user_preferences";
 import {
