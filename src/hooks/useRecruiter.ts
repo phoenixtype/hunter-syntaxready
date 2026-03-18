@@ -24,7 +24,15 @@ export const useRecruiterProfile = () => {
     setLoading(false);
   }, [user]);
 
-  useEffect(() => { refresh(); }, [refresh]);
+  useEffect(() => {
+    let cancelled = false;
+    if (!user) { setLoading(false); return; }
+    setLoading(true);
+    getRecruiterProfile(user.id).then((p) => {
+      if (!cancelled) { setProfile(p); setLoading(false); }
+    });
+    return () => { cancelled = true; };
+  }, [user]);
 
   return { profile, loading, refresh, setProfile };
 };
@@ -42,7 +50,15 @@ export const useMyJobs = () => {
     setLoading(false);
   }, [user]);
 
-  useEffect(() => { refresh(); }, [refresh]);
+  useEffect(() => {
+    let cancelled = false;
+    if (!user) { setLoading(false); return; }
+    setLoading(true);
+    getMyJobs(user.id).then((data) => {
+      if (!cancelled) { setJobs(data); setLoading(false); }
+    });
+    return () => { cancelled = true; };
+  }, [user]);
 
   return { jobs, loading, refresh, setJobs };
 };
@@ -59,7 +75,15 @@ export const useJobApplicants = (recruiterJobId: string | null) => {
     setLoading(false);
   }, [recruiterJobId]);
 
-  useEffect(() => { refresh(); }, [refresh]);
+  useEffect(() => {
+    if (!recruiterJobId) return;
+    let cancelled = false;
+    setLoading(true);
+    getJobApplicants(recruiterJobId).then((data) => {
+      if (!cancelled) { setApplicants(data); setLoading(false); }
+    });
+    return () => { cancelled = true; };
+  }, [recruiterJobId]);
 
   return { applicants, loading, refresh, setApplicants };
 };

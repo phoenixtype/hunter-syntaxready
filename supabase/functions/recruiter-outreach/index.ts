@@ -121,7 +121,7 @@ serve(async (req) => {
     }
 
     // Record the outreach
-    await admin.from('recruiter_outreach').insert({
+    const { error: insertError } = await admin.from('recruiter_outreach').insert({
       recruiter_id: recruiter.id,
       candidate_id: candidateId,
       recruiter_job_id: jobId ?? null,
@@ -130,6 +130,10 @@ serve(async (req) => {
       message,
       status: 'sent',
     });
+    if (insertError) {
+      console.error('[RECRUITER-OUTREACH] Failed to record outreach:', insertError.message);
+      // Non-fatal: email was sent, but log the DB failure
+    }
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

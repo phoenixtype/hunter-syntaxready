@@ -79,9 +79,10 @@ serve(async (req) => {
       console.warn('[RECRUITER-APPLY] Confirmation email failed (non-fatal):', emailResult.error);
     }
 
-    // Also notify admin
+    // Also notify admin (configurable via ADMIN_NOTIFICATION_EMAIL secret)
+    const adminEmail = Deno.env.get('ADMIN_NOTIFICATION_EMAIL') || 'samuelakuma130@gmail.com';
     await sendEmail({
-      to: 'samuelakuma130@gmail.com',
+      to: adminEmail,
       subject: `New recruiter application — ${companyName} (${fullName})`,
       html: `<p>New recruiter application received.</p>
              <ul>

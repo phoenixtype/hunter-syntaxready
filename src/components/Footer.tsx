@@ -11,11 +11,16 @@ const HIDDEN_FOOTER_PATHS = [
   "/onboarding",
   "/tailored-resumes",
 ];
+/** Prefixes: all sub-routes also suppress the footer */
+const HIDDEN_FOOTER_PREFIXES = ["/recruiter", "/admin"];
 
 const Footer = forwardRef<HTMLElement>((_, ref) => {
   const { pathname } = useLocation();
 
-  if (HIDDEN_FOOTER_PATHS.includes(pathname)) return null;
+  if (
+    HIDDEN_FOOTER_PATHS.includes(pathname) ||
+    HIDDEN_FOOTER_PREFIXES.some((p) => pathname.startsWith(p))
+  ) return null;
 
   return (
     /* MD3 Footer — thin divider, surface background, muted text */

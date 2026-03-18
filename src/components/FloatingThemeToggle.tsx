@@ -4,10 +4,14 @@ import ThemeToggle from "./ThemeToggle";
 const FloatingThemeToggle = () => {
     const location = useLocation();
 
-    // Pages that already have a theme toggle in their header
+    // Pages that already have a theme toggle in their header, or use a full-screen layout
     const hiddenPaths = ["/", "/dashboard", "/auto-applier-settings", "/settings"];
+    const hiddenPrefixes = ["/recruiter", "/admin"];
 
-    if (hiddenPaths.includes(location.pathname)) {
+    if (
+      hiddenPaths.includes(location.pathname) ||
+      hiddenPrefixes.some((p) => location.pathname.startsWith(p))
+    ) {
         return null;
     }
 

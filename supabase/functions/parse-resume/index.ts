@@ -146,7 +146,10 @@ Additional context:
     );
 
     const toolCall = aiResult.tool_calls?.[0];
-    const extractedData = toolCall?.function?.arguments ? JSON.parse(toolCall.function.arguments) : null;
+    let extractedData: Record<string, unknown> | null = null;
+    try {
+      extractedData = toolCall?.function?.arguments ? JSON.parse(toolCall.function.arguments) : null;
+    } catch { /* malformed AI response — treat as extraction failure */ }
 
     if (!extractedData?.profile) {
       return new Response(JSON.stringify({ success: false, error: 'Failed to extract profile' }), {

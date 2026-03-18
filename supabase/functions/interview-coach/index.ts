@@ -260,7 +260,10 @@ Focus on questions SPECIFIC to this company/role. Skip completely generic questi
       });
 
       const toolCall = extractResult.tool_calls?.[0];
-      const extracted = toolCall?.function?.arguments ? JSON.parse(toolCall.function.arguments) : null;
+      let extracted: { questions?: string[]; patterns?: string[]; insights?: string } | null = null;
+      try {
+        extracted = toolCall?.function?.arguments ? JSON.parse(toolCall.function.arguments) : null;
+      } catch { /* malformed AI response — return empty */ }
       const sources = settled.flatMap(r => r.urls).filter(Boolean).slice(0, 6);
 
       return new Response(JSON.stringify({
@@ -396,7 +399,10 @@ Generate a dossier that gives the candidate a genuine unfair advantage. Include:
             clearTimeout(timeoutId);
 
             const toolCall = briefingResult.tool_calls?.[0];
-            const dossier = toolCall?.function?.arguments ? JSON.parse(toolCall.function.arguments) : null;
+            let dossier: Record<string, unknown> | null = null;
+            try {
+              dossier = toolCall?.function?.arguments ? JSON.parse(toolCall.function.arguments) : null;
+            } catch { /* malformed AI tool call — fall back to empty dossier */ }
 
             // Augment default values if AI missed some fields
             const safeDossier = {
