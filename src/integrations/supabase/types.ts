@@ -325,6 +325,63 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_admins: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          role?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      platform_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          metadata: Json | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          metadata?: Json | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          metadata?: Json | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -332,6 +389,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          role: string
           updated_at: string
         }
         Insert: {
@@ -340,6 +398,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          role?: string
           updated_at?: string
         }
         Update: {
@@ -348,6 +407,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          role?: string
           updated_at?: string
         }
         Relationships: []
@@ -397,6 +457,304 @@ export type Database = {
           request_count?: number | null
           user_id?: string
           window_start?: string | null
+        }
+        Relationships: []
+      }
+      recruiter_applications: {
+        Row: {
+          company_name: string
+          company_size: string | null
+          company_website: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          job_title: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          use_case: string | null
+          user_id: string | null
+        }
+        Insert: {
+          company_name: string
+          company_size?: string | null
+          company_website?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          job_title: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          use_case?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          company_name?: string
+          company_size?: string | null
+          company_website?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          job_title?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          use_case?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      recruiter_job_applications: {
+        Row: {
+          application_history_id: string | null
+          applied_at: string
+          candidate_id: string
+          cover_letter: string | null
+          id: string
+          is_auto_applied: boolean
+          match_score: number | null
+          recruiter_job_id: string
+          recruiter_notes: string | null
+          resume_snapshot: Json | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          application_history_id?: string | null
+          applied_at?: string
+          candidate_id: string
+          cover_letter?: string | null
+          id?: string
+          is_auto_applied?: boolean
+          match_score?: number | null
+          recruiter_job_id: string
+          recruiter_notes?: string | null
+          resume_snapshot?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          application_history_id?: string | null
+          applied_at?: string
+          candidate_id?: string
+          cover_letter?: string | null
+          id?: string
+          is_auto_applied?: boolean
+          match_score?: number | null
+          recruiter_job_id?: string
+          recruiter_notes?: string | null
+          resume_snapshot?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recruiter_job_applications_application_history_id_fkey"
+            columns: ["application_history_id"]
+            isOneToOne: false
+            referencedRelation: "application_history"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recruiter_job_applications_recruiter_job_id_fkey"
+            columns: ["recruiter_job_id"]
+            isOneToOne: false
+            referencedRelation: "recruiter_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recruiter_jobs: {
+        Row: {
+          application_count: number
+          application_deadline: string | null
+          benefits: string | null
+          company: string
+          created_at: string
+          description: string
+          employment_type: string
+          experience_level: string | null
+          id: string
+          job_listing_id: string | null
+          location: string | null
+          location_type: string
+          max_applicants: number | null
+          recruiter_id: string
+          requirements: string | null
+          responsibilities: string | null
+          salary_currency: string
+          salary_max: number | null
+          salary_min: number | null
+          status: string
+          tech_stack: string[] | null
+          title: string
+          updated_at: string
+          view_count: number
+          visa_sponsorship: boolean
+        }
+        Insert: {
+          application_count?: number
+          application_deadline?: string | null
+          benefits?: string | null
+          company: string
+          created_at?: string
+          description: string
+          employment_type?: string
+          experience_level?: string | null
+          id?: string
+          job_listing_id?: string | null
+          location?: string | null
+          location_type?: string
+          max_applicants?: number | null
+          recruiter_id: string
+          requirements?: string | null
+          responsibilities?: string | null
+          salary_currency?: string
+          salary_max?: number | null
+          salary_min?: number | null
+          status?: string
+          tech_stack?: string[] | null
+          title: string
+          updated_at?: string
+          view_count?: number
+          visa_sponsorship?: boolean
+        }
+        Update: {
+          application_count?: number
+          application_deadline?: string | null
+          benefits?: string | null
+          company?: string
+          created_at?: string
+          description?: string
+          employment_type?: string
+          experience_level?: string | null
+          id?: string
+          job_listing_id?: string | null
+          location?: string | null
+          location_type?: string
+          max_applicants?: number | null
+          recruiter_id?: string
+          requirements?: string | null
+          responsibilities?: string | null
+          salary_currency?: string
+          salary_max?: number | null
+          salary_min?: number | null
+          status?: string
+          tech_stack?: string[] | null
+          title?: string
+          updated_at?: string
+          view_count?: number
+          visa_sponsorship?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recruiter_jobs_job_listing_id_fkey"
+            columns: ["job_listing_id"]
+            isOneToOne: false
+            referencedRelation: "job_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recruiter_outreach: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          id: string
+          message: string | null
+          outreach_type: string
+          recruiter_id: string
+          recruiter_job_id: string | null
+          status: string
+          subject: string | null
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          outreach_type?: string
+          recruiter_id: string
+          recruiter_job_id?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          outreach_type?: string
+          recruiter_id?: string
+          recruiter_job_id?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recruiter_outreach_recruiter_job_id_fkey"
+            columns: ["recruiter_job_id"]
+            isOneToOne: false
+            referencedRelation: "recruiter_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recruiter_profiles: {
+        Row: {
+          about: string | null
+          company_logo_url: string | null
+          company_name: string
+          company_size: string | null
+          company_website: string | null
+          created_at: string
+          headquarters: string | null
+          id: string
+          industry: string | null
+          is_verified: boolean
+          linkedin_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          about?: string | null
+          company_logo_url?: string | null
+          company_name: string
+          company_size?: string | null
+          company_website?: string | null
+          created_at?: string
+          headquarters?: string | null
+          id?: string
+          industry?: string | null
+          is_verified?: boolean
+          linkedin_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          about?: string | null
+          company_logo_url?: string | null
+          company_name?: string
+          company_size?: string | null
+          company_website?: string | null
+          created_at?: string
+          headquarters?: string | null
+          id?: string
+          industry?: string | null
+          is_verified?: boolean
+          linkedin_url?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -553,181 +911,6 @@ export type Database = {
         }
         Relationships: []
       }
-      // ── Recruiter tables ───────────────────────────────────────────
-      recruiter_profiles: {
-        Row: {
-          id: string
-          user_id: string
-          company_name: string
-          company_website: string | null
-          company_logo_url: string | null
-          company_size: string | null
-          industry: string | null
-          headquarters: string | null
-          about: string | null
-          linkedin_url: string | null
-          is_verified: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          company_name: string
-          company_website?: string | null
-          company_logo_url?: string | null
-          company_size?: string | null
-          industry?: string | null
-          headquarters?: string | null
-          about?: string | null
-          linkedin_url?: string | null
-          is_verified?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          company_name?: string
-          company_website?: string | null
-          company_logo_url?: string | null
-          company_size?: string | null
-          industry?: string | null
-          headquarters?: string | null
-          about?: string | null
-          linkedin_url?: string | null
-          is_verified?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      recruiter_jobs: {
-        Row: {
-          id: string
-          recruiter_id: string
-          job_listing_id: string | null
-          title: string
-          company: string
-          location: string | null
-          location_type: string
-          employment_type: string
-          salary_min: number | null
-          salary_max: number | null
-          salary_currency: string
-          description: string
-          requirements: string | null
-          responsibilities: string | null
-          benefits: string | null
-          tech_stack: string[] | null
-          experience_level: string | null
-          visa_sponsorship: boolean
-          status: string
-          application_deadline: string | null
-          application_count: number
-          view_count: number
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          recruiter_id: string
-          job_listing_id?: string | null
-          title: string
-          company: string
-          location?: string | null
-          location_type?: string
-          employment_type?: string
-          salary_min?: number | null
-          salary_max?: number | null
-          salary_currency?: string
-          description: string
-          requirements?: string | null
-          responsibilities?: string | null
-          benefits?: string | null
-          tech_stack?: string[] | null
-          experience_level?: string | null
-          visa_sponsorship?: boolean
-          status?: string
-          application_deadline?: string | null
-          application_count?: number
-          view_count?: number
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          recruiter_id?: string
-          job_listing_id?: string | null
-          title?: string
-          company?: string
-          location?: string | null
-          location_type?: string
-          employment_type?: string
-          salary_min?: number | null
-          salary_max?: number | null
-          salary_currency?: string
-          description?: string
-          requirements?: string | null
-          responsibilities?: string | null
-          benefits?: string | null
-          tech_stack?: string[] | null
-          experience_level?: string | null
-          visa_sponsorship?: boolean
-          status?: string
-          application_deadline?: string | null
-          application_count?: number
-          view_count?: number
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      recruiter_job_applications: {
-        Row: {
-          id: string
-          recruiter_job_id: string
-          candidate_id: string
-          application_history_id: string | null
-          match_score: number | null
-          cover_letter: string | null
-          resume_snapshot: Json | null
-          status: string
-          recruiter_notes: string | null
-          is_auto_applied: boolean
-          applied_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          recruiter_job_id: string
-          candidate_id: string
-          application_history_id?: string | null
-          match_score?: number | null
-          cover_letter?: string | null
-          resume_snapshot?: Json | null
-          status?: string
-          recruiter_notes?: string | null
-          is_auto_applied?: boolean
-          applied_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          recruiter_job_id?: string
-          candidate_id?: string
-          application_history_id?: string | null
-          match_score?: number | null
-          cover_letter?: string | null
-          resume_snapshot?: Json | null
-          status?: string
-          recruiter_notes?: string | null
-          is_auto_applied?: boolean
-          applied_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       users: {
         Row: {
           created_at: string | null
@@ -762,6 +945,8 @@ export type Database = {
       }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       get_platform_analytics: { Args: never; Returns: Json }
+      is_platform_admin: { Args: never; Returns: boolean }
+      is_root_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
