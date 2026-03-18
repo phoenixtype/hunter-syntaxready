@@ -153,7 +153,7 @@ export const upsertRecruiterProfile = async (
 ): Promise<RecruiterProfile> => {
   const { data, error } = await supabase
     .from("recruiter_profiles")
-    .upsert({ user_id: userId, ...profile }, { onConflict: "user_id" })
+    .upsert({ user_id: userId, ...profile } as never, { onConflict: "user_id" })
     .select()
     .single();
 
