@@ -159,10 +159,10 @@ const Profile = () => {
             if (!prev) return null;
             const newAtom: ExperienceAtom = {
                 id: crypto.randomUUID(),
-                role: "New Role",
-                company: "Company Name",
-                duration: "YYYY - Present",
-                content: "Description...",
+                role: "",
+                company: "",
+                duration: "",
+                content: "",
                 keywords: []
             };
             return { ...prev, experience_atoms: [newAtom, ...prev.experience_atoms] };
