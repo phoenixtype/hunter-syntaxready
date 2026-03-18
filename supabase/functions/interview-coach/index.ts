@@ -154,6 +154,123 @@ serve(async (req) => {
 
     const { callAI, MODEL_FAST, MODEL_REASONING } = await import('../_shared/ai-client.ts');
 
+    // ── Research Questions Mode ─────────────────────────────────────────────
+    // Crawls Reddit, Glassdoor, Blind and community sources for real questions
+    // asked at this company for this specific role.
+    if (mode === 'research_questions') {
+      const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
+      if (!firecrawlApiKey) {
+        return new Response(JSON.stringify({ questions: [], patterns: [], insights: 'Research feature unavailable.' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const company = (job?.company || '').trim();
+      const role = (job?.title || '').trim();
+      if (!company && !role) {
+        return new Response(JSON.stringify({ questions: [], patterns: [], insights: 'Provide a company and role to research.' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const searches = [
+        { query: `${company} ${role} interview questions asked reddit`, label: 'Reddit' },
+        { query: `${company} ${role} interview experience what questions`, label: 'Community' },
+        { query: `glassdoor ${company} ${role} interview questions`, label: 'Glassdoor' },
+        { query: `blind ${company} ${role} interview process questions`, label: 'Blind' },
+      ];
+
+      const searchResults = await Promise.allSettled(
+        searches.map(async ({ query, label }) => {
+          const res = await fetch('https://api.firecrawl.dev/v1/search', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${firecrawlApiKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query, limit: 3, scrapeOptions: { formats: ['markdown'] } }),
+            signal: AbortSignal.timeout(12000),
+          });
+          if (!res.ok) return { label, content: '', urls: [] as string[] };
+          const data = await res.json();
+          const results = (data.data || []) as Array<{ title: string; url: string; markdown: string }>;
+          const content = results
+            .map(r => `[${r.title}](${r.url})\n${(r.markdown || '').substring(0, 1200)}`)
+            .join('\n\n');
+          return { label, content, urls: results.map(r => r.url) };
+        })
+      );
+
+      const settled = searchResults
+        .filter((r): r is PromiseFulfilledResult<{ label: string; content: string; urls: string[] }> => r.status === 'fulfilled')
+        .map(r => r.value)
+        .filter(r => r.content.length > 0);
+
+      const combinedContent = settled
+        .map(r => `=== ${r.label} ===\n${r.content}`)
+        .join('\n\n---\n\n');
+
+      if (!combinedContent) {
+        return new Response(JSON.stringify({
+          questions: [],
+          patterns: [],
+          insights: `No community interview data found for ${role} at ${company}. The company may be too niche or the role too general. Try practicing with the AI coach — it will adapt to your specific role.`,
+          sources: [],
+        }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      const extractPrompt = `You are analysing real interview experience posts from Reddit, Glassdoor, Blind, and community forums to extract actual questions asked at ${company || 'this company'} for the ${role || 'this role'} role.
+
+From the scraped content below, extract:
+1. Specific questions that were actually asked in interviews (verbatim or near-verbatim where possible)
+2. Key patterns in their interview process (e.g. "they always ask a system design question in round 2")
+3. A short insight summary on what candidates consistently report about the experience
+
+CONTENT:
+${combinedContent.substring(0, 5000)}
+
+Focus on questions SPECIFIC to this company/role. Skip completely generic questions like "tell me about yourself" unless the source says the company always asks it in a specific way. Include technical questions, behavioural questions, and any role-specific deep-dives mentioned.`;
+
+      const extractResult = await callAI(MODEL_FAST, [{ role: 'user', content: extractPrompt }], {
+        tools: [{
+          type: 'function',
+          function: {
+            name: 'extract_interview_intel',
+            description: 'Extract interview questions and patterns from community posts',
+            parameters: {
+              type: 'object',
+              properties: {
+                questions: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Actual questions reported by candidates who interviewed here',
+                },
+                patterns: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Key patterns in the interview process (format, stages, recurring themes)',
+                },
+                insights: {
+                  type: 'string',
+                  description: '2-3 sentence summary of what candidates report about the overall interview experience at this company for this role',
+                },
+              },
+              required: ['questions', 'insights'],
+            },
+          },
+        }],
+        tool_choice: { type: 'function', function: { name: 'extract_interview_intel' } },
+      });
+
+      const toolCall = extractResult.tool_calls?.[0];
+      const extracted = toolCall?.function?.arguments ? JSON.parse(toolCall.function.arguments) : null;
+      const sources = settled.flatMap(r => r.urls).filter(Boolean).slice(0, 6);
+
+      return new Response(JSON.stringify({
+        questions: extracted?.questions ?? [],
+        patterns: extracted?.patterns ?? [],
+        insights: extracted?.insights ?? '',
+        sources,
+      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     // Handle "Briefing Generation" mode (Structured Output)
     if (mode === 'generate_briefing') {
         // Fetch real company intelligence via Firecrawl before generating briefing
@@ -350,6 +467,16 @@ Your approach:
       systemPrompt += `\n\nTarget Role: ${job.title} at ${job.company}
 Salary Range: ${job.salary_range || 'Not disclosed'}
 Role Context: ${(job.description || '').substring(0, 400)}`;
+    }
+
+    // Community-sourced questions: weave them into the practice session
+    const communityQuestions: string[] = job?.communityQuestions ?? [];
+    if (communityQuestions.length > 0) {
+      systemPrompt += `\n\nReal Questions from Community Research (Reddit/Glassdoor/Blind):
+These are questions real candidates report being asked at ${job?.company || 'this company'} for this role. You MUST incorporate these into the session — ask at least 3 of them verbatim or with minor adaptation. Candidates want to be prepared for these specifically:
+${communityQuestions.slice(0, 12).map((q: string, i: number) => `${i + 1}. ${q}`).join('\n')}
+
+When you ask a community question, briefly note it came from candidate reports (e.g. "(Commonly reported question)")`;
     }
 
     systemPrompt += `\n\nAfter EVERY candidate response, end with a brief coaching note in [square brackets] on one of: clarity, specificity, structure, confidence, or what to improve. Keep the note to 1–2 sentences. Example: [Good STAR structure — add the business impact metric to make this answer truly memorable.]`;

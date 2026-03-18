@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Send, Loader2, BrainCircuit, MessageSquare, Swords, HandCoins, RotateCcw } from "lucide-react";
+import { Send, Loader2, BrainCircuit, MessageSquare, Swords, HandCoins, RotateCcw, Search, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import SEOHead from "@/components/SEOHead";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,6 +14,13 @@ import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { useSubscription } from "@/hooks/useSubscription";
 import ProGate from "@/components/ProGate";
+
+interface ResearchResult {
+  questions: string[];
+  patterns: string[];
+  insights: string;
+  sources: string[];
+}
 
 type Message = { role: "user" | "assistant"; content: string };
 type Mode = "behavioral" | "technical" | "negotiation";
@@ -46,6 +53,11 @@ const InterviewCoach = () => {
   const [loading, setLoading] = useState(false);
   const [started, setStarted] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Community question research
+  const [researching, setResearching] = useState(false);
+  const [research, setResearch] = useState<ResearchResult | null>(null);
+  const [researchExpanded, setResearchExpanded] = useState(true);
 
   // Restore persisted session on mount
   useEffect(() => {
@@ -81,6 +93,33 @@ const InterviewCoach = () => {
     setStarted(false);
     setInput("");
   }, [sessionKey]);
+
+  const researchQuestions = useCallback(async () => {
+    if (!jobTitle.trim() && !jobCompany.trim()) {
+      toast.error("Enter a role and/or company to research");
+      return;
+    }
+    setResearching(true);
+    setResearch(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke("interview-coach", {
+        body: {
+          messages: [],
+          job: { title: jobTitle, company: jobCompany },
+          mode: "research_questions",
+        },
+        headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
+      });
+      if (error) throw error;
+      setResearch(data as ResearchResult);
+      setResearchExpanded(true);
+    } catch {
+      toast.error("Research failed — check your connection and try again");
+    } finally {
+      setResearching(false);
+    }
+  }, [jobTitle, jobCompany]);
   
   const { canAccess, isPro, isLoading: subLoading } = useSubscription();
 
@@ -103,7 +142,12 @@ const InterviewCoach = () => {
         body: {
           messages: [],
           profile: profile,
-          job: { title: jobTitle, company: jobCompany, description: jobDescription },
+          job: {
+            title: jobTitle,
+            company: jobCompany,
+            description: jobDescription,
+            communityQuestions: research?.questions ?? [],
+          },
           mode: selectedMode,
         },
         headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
@@ -139,7 +183,12 @@ const InterviewCoach = () => {
         body: {
           messages: newMessages,
           profile: profile,
-          job: { title: jobTitle, company: jobCompany, description: jobDescription },
+          job: {
+            title: jobTitle,
+            company: jobCompany,
+            description: jobDescription,
+            communityQuestions: research?.questions ?? [],
+          },
           mode,
         },
         headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
@@ -219,6 +268,93 @@ const InterviewCoach = () => {
                 className="h-10"
               />
             </div>
+          </div>
+
+          {/* Research Likely Questions */}
+          <div className="w-full">
+            <Button
+              variant="outline"
+              className="w-full gap-2 h-10 rounded-md border-dashed"
+              onClick={researchQuestions}
+              disabled={researching || (!jobTitle.trim() && !jobCompany.trim())}
+            >
+              {researching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+              {researching ? "Searching Reddit, Glassdoor…" : "Research Likely Questions"}
+            </Button>
+            {(!jobTitle.trim() && !jobCompany.trim()) && (
+              <p className="text-xs text-muted-foreground text-center mt-1.5">Enter a role or company to enable research.</p>
+            )}
+
+            {/* Research Results Panel */}
+            {research && (
+              <div className="mt-3 rounded-md border border-border bg-card text-left overflow-hidden">
+                <button
+                  className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium hover:bg-muted/40 transition-colors"
+                  onClick={() => setResearchExpanded(v => !v)}
+                >
+                  <span className="flex items-center gap-2">
+                    <Search className="w-3.5 h-3.5 text-primary" />
+                    Community Questions
+                    <Badge variant="secondary" className="text-[10px] h-4 px-1.5">{research.questions.length} found</Badge>
+                  </span>
+                  {researchExpanded ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />}
+                </button>
+
+                {researchExpanded && (
+                  <div className="border-t border-border p-4 space-y-4">
+                    {research.insights && (
+                      <p className="text-xs text-muted-foreground leading-relaxed italic">{research.insights}</p>
+                    )}
+
+                    {research.questions.length > 0 ? (
+                      <div className="space-y-2">
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Reported questions</p>
+                        {research.questions.map((q, i) => (
+                          <div key={i} className="flex gap-2.5 text-sm">
+                            <span className="text-primary font-semibold tabular-nums shrink-0 mt-0.5">{i + 1}.</span>
+                            <span className="text-foreground leading-snug">{q}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">No specific questions found — the AI coach will adapt based on the role.</p>
+                    )}
+
+                    {research.patterns.length > 0 && (
+                      <div className="space-y-1.5">
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Process patterns</p>
+                        {research.patterns.map((p, i) => (
+                          <p key={i} className="text-xs text-muted-foreground flex gap-1.5"><span className="text-primary">•</span>{p}</p>
+                        ))}
+                      </div>
+                    )}
+
+                    {research.sources.length > 0 && (
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Sources</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {research.sources.map((src, i) => {
+                            let label = "Source";
+                            try { label = new URL(src).hostname.replace("www.", ""); } catch { /* ignore */ }
+                            return (
+                              <a key={i} href={src} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline">
+                                {label} <ExternalLink className="w-2.5 h-2.5" />
+                              </a>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {research.questions.length > 0 && (
+                      <p className="text-[11px] text-muted-foreground bg-primary/5 border border-primary/15 rounded px-3 py-2">
+                        These questions will be woven into your practice session automatically when you start.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="grid gap-3 w-full">
