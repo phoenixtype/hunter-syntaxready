@@ -20,23 +20,23 @@ export function useAdmin(): AdminState {
     }
 
     let cancelled = false;
-    supabase
-      .from('platform_admins' as never)
-      .select('role')
-      .eq('user_id', user.id)
-      .maybeSingle()
-      .then(({ data, error }: { data: { role: string } | null; error: unknown }) => {
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('platform_admins' as never)
+          .select('role')
+          .eq('user_id', user.id)
+          .maybeSingle() as { data: { role: string } | null; error: unknown };
         if (cancelled) return;
         if (!error && data) {
           setState({ isAdmin: true, adminRole: data.role as 'root' | 'admin', loading: false });
         } else {
-          // Error or no row — treat as non-admin, never leave loading=true
           setState({ isAdmin: false, adminRole: null, loading: false });
         }
-      })
-      .catch(() => {
+      } catch {
         if (!cancelled) setState({ isAdmin: false, adminRole: null, loading: false });
-      });
+      }
+    })();
 
     return () => { cancelled = true; };
   }, [user, authLoading]);

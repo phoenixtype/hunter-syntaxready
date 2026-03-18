@@ -21,12 +21,12 @@ const AdminUsers = () => {
       try {
         const { data, error: qErr } = await supabase
           .from('profiles')
-          .select('id, full_name, email, role, created_at')
+          .select('id, full_name, email, role, created_at' as '*')
           .order('created_at', { ascending: false })
           .limit(100);
 
         if (qErr) throw new Error(qErr.message);
-        setUsers((data as Profile[]) ?? []);
+        setUsers((data as unknown as Profile[]) ?? []);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load users');
       } finally {

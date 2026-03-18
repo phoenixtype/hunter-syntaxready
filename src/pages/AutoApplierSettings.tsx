@@ -98,11 +98,11 @@ const JobHuntPlanner = () => {
         setNoticePeriod(prefs.notice_period_days?.toString() || "14");
         if (prefs.experience_level) setExperienceLevel(prefs.experience_level);
         // Auto-apply settings (new fields)
-        if (typeof (prefs as Record<string, unknown>)['auto_apply_enabled'] === 'boolean') {
-          setAutoApplyEnabled((prefs as Record<string, unknown>)['auto_apply_enabled'] as boolean);
+        if (typeof (prefs as unknown as Record<string, unknown>)['auto_apply_enabled'] === 'boolean') {
+          setAutoApplyEnabled((prefs as unknown as Record<string, unknown>)['auto_apply_enabled'] as boolean);
         }
-        if (typeof (prefs as Record<string, unknown>)['auto_apply_min_match_score'] === 'number') {
-          setAutoApplyMinScore((prefs as Record<string, unknown>)['auto_apply_min_match_score'] as number);
+        if (typeof (prefs as unknown as Record<string, unknown>)['auto_apply_min_match_score'] === 'number') {
+          setAutoApplyMinScore((prefs as unknown as Record<string, unknown>)['auto_apply_min_match_score'] as number);
         }
       }
       

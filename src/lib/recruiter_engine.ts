@@ -153,7 +153,7 @@ export const upsertRecruiterProfile = async (
 ): Promise<RecruiterProfile> => {
   const { data, error } = await supabase
     .from("recruiter_profiles")
-    .upsert({ user_id: userId, ...profile }, { onConflict: "user_id" })
+    .upsert({ user_id: userId, ...profile } as never, { onConflict: "user_id" })
     .select()
     .single();
 
@@ -177,7 +177,7 @@ export const getUserRole = async (userId: string): Promise<UserRole> => {
 };
 
 export const setUserRole = async (userId: string, role: UserRole): Promise<void> => {
-  const { error } = await supabase.from("profiles").update({ role }).eq("id", userId);
+  const { error } = await supabase.from("profiles").update({ role } as never).eq("id", userId);
   if (error) throw new Error(error.message);
 };
 
@@ -362,7 +362,7 @@ export const applyToRecruiterJob = async (opts: {
     cover_letter: opts.coverLetter ?? null,
     resume_snapshot: opts.resumeSnapshot ?? null,
     is_auto_applied: false,
-  });
+  } as never);
 };
 
 // ── Stats ─────────────────────────────────────────────────────────────────────
