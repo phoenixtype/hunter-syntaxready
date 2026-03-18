@@ -73,8 +73,19 @@ const checkDatabaseHealth = async (): Promise<boolean> => {
 
 // Initialize learning engine for a user with retry and fallback
 export const initializeLearningEngine = async (userId: string): Promise<void> => {
+    // Reset to defaults before loading new user — prevents previous user's weights leaking
+    if (currentUserId !== userId) {
+        currentWeights = {
+            skillWeight: 0.6,
+            cultureWeight: 0.2,
+            freshnessWeight: 0.2,
+            bannedCompanies: [],
+            preferredSkills: [],
+        };
+        engineStatus = 'uninitialized';
+    }
     currentUserId = userId;
-    
+
     // Check database health first
     databaseAvailable = await checkDatabaseHealth();
     

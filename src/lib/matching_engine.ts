@@ -244,7 +244,9 @@ export const calculateMatch = async (
 
   // 5.5 Internship Boost for Students
   const isStudent = isStudentProfile(profile);
-  const isInternship = (job.title + " " + job.description).toLowerCase().match(/intern|co-op|coop|student|graduate/i);
+  // Note: "graduate" alone is excluded — it matches senior/graduate roles, not just internships.
+  // Only match when "graduate" is specifically used in internship context (e.g. "graduate intern").
+  const isInternship = (job.title + " " + job.description).toLowerCase().match(/\bintern(?!ational)\b|co-op|coop|\bgraduate\s+intern/i);
 
   if (isStudent && isInternship) {
     overall += 15; // Significant boost

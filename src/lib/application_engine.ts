@@ -75,7 +75,7 @@ export const simulateApplication = async (
     update({ status: 'filling_form', progress: 40, logs: [...state.logs, "Preparing your application..."] });
 
     // 2. Record compliance action + application in DB in parallel
-    await Promise.allSettled([
+    const [complianceResult, insertResult] = await Promise.allSettled([
         userId ? recordCompliantAction('APPLY', userId) : Promise.resolve(),
         userId ? supabase.from('application_history').insert({
             user_id: userId,
@@ -84,13 +84,19 @@ export const simulateApplication = async (
             company: job.company,
             job_url: job.url,
             status: 'applied',
-            metadata: { 
-                source: job.source, 
+            metadata: {
+                source: job.source,
                 salary_range: job.salary_range,
-                tech_stack: job.tech_stack 
+                tech_stack: job.tech_stack
             }
         }) : Promise.resolve(),
     ]);
+    if (complianceResult.status === 'rejected') {
+        console.error('[APPLICATION] Compliance record failed:', complianceResult.reason);
+    }
+    if (insertResult.status === 'rejected') {
+        console.error('[APPLICATION] DB insert failed:', insertResult.reason);
+    }
 
     update({ status: 'submitting', progress: 80, logs: [...state.logs, "Application recorded!"] });
 
