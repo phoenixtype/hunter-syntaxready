@@ -16,7 +16,7 @@ export const useRealtimeNotifications = (userId: string | undefined) => {
     if (!userId) return;
 
     const channel = supabase
-      .channel("realtime-notifications")
+      .channel(`realtime-notifications-${userId}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "job_listings" },

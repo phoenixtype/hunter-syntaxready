@@ -9,11 +9,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState } from "react";
-import { generateThankYouNote, generateNegotiationStrategy, OfferDetails, NegotiationStrategy } from "@/lib/post_interview_engine";
+import {
+    generateThankYouNote,
+    generateNegotiationStrategy,
+    generateNegotiationScript,
+    OfferDetails,
+    NegotiationStrategy,
+} from "@/lib/post_interview_engine";
 import { toast } from "sonner";
-import { MessageSquare, DollarSign, Send, CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Loader2, Copy, ChevronLeft } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { CandidateProfile } from "@/lib/resume_engine";
 
@@ -24,156 +30,253 @@ interface PostInterviewModalProps {
     profile: CandidateProfile | null;
 }
 
+const stripMarkdown = (text: string) =>
+    text
+        .replace(/\*\*(.+?)\*\*/gs, "$1")
+        .replace(/\*(.+?)\*/gs, "$1")
+        .replace(/#{1,6}\s+/gm, "")
+        .replace(/`(.+?)`/gs, "$1")
+        .replace(/\[(.+?)\]\(.+?\)/g, "$1")
+        .trim();
+
 const PostInterviewModal = ({ isOpen, onClose, companyName = "", profile }: PostInterviewModalProps) => {
     const [activeTab, setActiveTab] = useState("thankyou");
     const [loading, setLoading] = useState(false);
 
-    // Thank You Note State
+    // Thank You Note
     const [company, setCompany] = useState(companyName);
     const [interviewer, setInterviewer] = useState("");
     const [topics, setTopics] = useState("");
     const [generatedNote, setGeneratedNote] = useState("");
 
-    // Negotiation State
+    // Negotiation Coach
+    const [negCompany, setNegCompany] = useState(companyName);
     const [baseSalary, setBaseSalary] = useState("");
     const [strategy, setStrategy] = useState<NegotiationStrategy | null>(null);
+    const [negPhase, setNegPhase] = useState<"input" | "choose" | "result">("input");
+    const [scriptContent, setScriptContent] = useState("");
+    const [scriptLoading, setScriptLoading] = useState(false);
 
     const handleGenerateNote = async () => {
-        if (!profile) {
-            toast.error("Build your profile first using the Resume Builder.");
-            return;
-        }
+        if (!profile) { toast.error("Build your profile first."); return; }
         setLoading(true);
         try {
-            const note = await generateThankYouNote(interviewer, company, "Candidate", topics.split(','), profile);
-            setGeneratedNote(note);
+            const note = await generateThankYouNote(interviewer, company, "Candidate", topics.split(","), profile);
+            setGeneratedNote(stripMarkdown(note));
             toast.success("Draft generated.");
-        } catch (e) {
+        } catch {
             toast.error("Failed to generate note.");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleGenerateStrategy = async () => {
-        if (!profile) {
-            toast.error("Build your profile first using the Resume Builder.");
-            return;
-        }
+    const handleAnalyzeOffer = async () => {
+        if (!profile) { toast.error("Build your profile first."); return; }
         setLoading(true);
         try {
             const offer: OfferDetails = {
-                company,
+                company: negCompany,
                 baseSalary: parseInt(baseSalary) || 0,
                 equity: "0.5%",
                 bonus: "10%",
-                benefits: []
+                benefits: [],
             };
             const strat = await generateNegotiationStrategy(offer, profile);
             setStrategy(strat);
-            toast.success("Strategy generated.");
-        } catch (e) {
-            toast.error("Failed to generate strategy.");
+            setNegPhase("choose");
+            toast.success("Offer analyzed.");
+        } catch {
+            toast.error("Failed to analyze offer.");
         } finally {
             setLoading(false);
         }
     };
 
+    const handleSelectScript = async (type: "phone" | "email" | "leverage") => {
+        setNegPhase("result");
+        setScriptContent("");
+
+        if (type === "leverage" && strategy) {
+            setScriptContent(strategy.leveragePoints.map((p) => `- ${p}`).join("\n"));
+            return;
+        }
+
+        if (!strategy) return;
+        setScriptLoading(true);
+        try {
+            const offer: OfferDetails = {
+                company: negCompany,
+                baseSalary: parseInt(baseSalary) || 0,
+                equity: "0.5%",
+                bonus: "10%",
+                benefits: [],
+            };
+            const script = await generateNegotiationScript(
+                offer,
+                profile!,
+                type as "phone" | "email",
+                strategy.recommendedCounter.replace("Recommended counter: ", "")
+            );
+            setScriptContent(script);
+        } catch {
+            toast.error("Failed to generate script.");
+        } finally {
+            setScriptLoading(false);
+        }
+    };
+
+    const resetNegotiation = () => {
+        setNegPhase("input");
+        setStrategy(null);
+        setScriptContent("");
+    };
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-xl max-h-[85vh] flex flex-col">
                 <DialogHeader>
-                    <DialogTitle className="text-2xl font-light">
-                        Post-Interview Command Center
-                        {company && <span className="block text-sm text-muted-foreground mt-1">Target: {company}</span>}
-                    </DialogTitle>
+                    <DialogTitle className="text-lg font-semibold">Post-Interview Tools</DialogTitle>
                 </DialogHeader>
 
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-                    <TabsList className="grid w-full grid-cols-2">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 min-h-0">
+                    <TabsList className="grid w-full grid-cols-2 shrink-0">
                         <TabsTrigger value="thankyou">Thank You Note</TabsTrigger>
                         <TabsTrigger value="negotiation">Negotiation Coach</TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="thankyou" className="space-y-4 py-4">
-                        <div className="grid gap-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">Company Name</label>
-                                <Input placeholder="e.g. Stripe, Shopify" value={company} onChange={e => setCompany(e.target.value)} />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">Interviewer Name</label>
-                                    <Input placeholder="e.g. Sarah Connor" value={interviewer} onChange={e => setInterviewer(e.target.value)} />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">Key Topics Discussed</label>
-                                    <Input placeholder="e.g. Scalability, Team Culture" value={topics} onChange={e => setTopics(e.target.value)} />
-                                </div>
-                            </div>
-
-                            {generatedNote ? (
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">Generated Draft</label>
-                                    <Textarea className="h-48 font-mono text-sm" value={generatedNote} onChange={e => setGeneratedNote(e.target.value)} />
-                                    <div className="flex justify-end gap-2">
-                                        <Button variant="outline" onClick={() => setGeneratedNote("")}>Discard</Button>
-                                        <Button onClick={() => {
-                                            navigator.clipboard.writeText(generatedNote);
-                                            toast.success("Copied to clipboard");
-                                        }}>
-                                            <CheckCircle2 className="w-4 h-4 mr-2" /> Copy
-                                        </Button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <Button onClick={handleGenerateNote} disabled={loading || !interviewer || !company}>
-                                    {loading ? "Drafting..." : "Generate Thank You Note"}
-                                </Button>
-                            )}
+                    {/* ── Thank You Note ── */}
+                    <TabsContent value="thankyou" className="space-y-3 pt-4 overflow-y-auto">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Company</label>
+                            <Input placeholder="e.g. Stripe" value={company} onChange={(e) => setCompany(e.target.value)} />
                         </div>
-                    </TabsContent>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Interviewer</label>
+                                <Input placeholder="e.g. Sarah Connor" value={interviewer} onChange={(e) => setInterviewer(e.target.value)} />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Topics Discussed</label>
+                                <Input placeholder="Scalability, Culture" value={topics} onChange={(e) => setTopics(e.target.value)} />
+                            </div>
+                        </div>
 
-                    <TabsContent value="negotiation" className="space-y-4 py-4">
-                        {!strategy ? (
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">Offer Base Salary ($)</label>
-                                    <Input type="number" placeholder="150000" value={baseSalary} onChange={e => setBaseSalary(e.target.value)} />
+                        {generatedNote ? (
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Generated Draft</label>
+                                <Textarea
+                                    className="h-44 font-mono text-sm resize-none"
+                                    value={generatedNote}
+                                    onChange={(e) => setGeneratedNote(e.target.value)}
+                                />
+                                <div className="flex justify-end gap-2">
+                                    <Button variant="outline" size="sm" onClick={() => setGeneratedNote("")}>Discard</Button>
+                                    <Button size="sm" onClick={() => { navigator.clipboard.writeText(generatedNote); toast.success("Copied!"); }}>
+                                        <Copy className="w-3.5 h-3.5 mr-1.5" /> Copy
+                                    </Button>
                                 </div>
-                                <Button onClick={handleGenerateStrategy} disabled={loading || !baseSalary} className="w-full">
-                                    {loading ? "Analyzing Market..." : "Analyze Offer & Strategize"}
-                                </Button>
                             </div>
                         ) : (
-                            <div className="space-y-6">
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle className="text-lg flex items-center gap-2">
-                                            <DollarSign className="w-5 h-5 text-foreground" /> Recommended Counter
-                                        </CardTitle>
-                                        <CardDescription>{strategy.recommendedCounter}</CardDescription>
-                                    </CardHeader>
-                                    <CardContent className="space-y-4">
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-medium text-muted-foreground">Leverage Points</label>
-                                            <ul className="list-disc pl-5 text-sm space-y-1">
-                                                {strategy.leveragePoints.map((p: string, i: number) => (
-                                                    <li key={i}>
-                                                        <ReactMarkdown>{p}</ReactMarkdown>
-                                                    </li>
-                                                ))}
-                                            </ul>
+                            <Button
+                                onClick={handleGenerateNote}
+                                disabled={loading || !interviewer || !company}
+                                className="w-full"
+                            >
+                                {loading
+                                    ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Drafting...</>
+                                    : <><CheckCircle2 className="w-4 h-4 mr-2" /> Generate Thank You Note</>}
+                            </Button>
+                        )}
+                    </TabsContent>
+
+                    {/* ── Negotiation Coach ── */}
+                    <TabsContent value="negotiation" className="pt-4 flex-1 min-h-0">
+
+                        {/* Phase 1: Input */}
+                        {negPhase === "input" && (
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Company</label>
+                                    <Input placeholder="e.g. Stripe" value={negCompany} onChange={(e) => setNegCompany(e.target.value)} />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Offered Base Salary</label>
+                                    <Input
+                                        type="number"
+                                        placeholder="e.g. 120000"
+                                        value={baseSalary}
+                                        onChange={(e) => setBaseSalary(e.target.value)}
+                                    />
+                                </div>
+                                <Button
+                                    onClick={handleAnalyzeOffer}
+                                    disabled={loading || !baseSalary || !negCompany}
+                                    className="w-full"
+                                >
+                                    {loading
+                                        ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Analyzing offer...</>
+                                        : "Analyze Offer"}
+                                </Button>
+                            </div>
+                        )}
+
+                        {/* Phase 2: Choose */}
+                        {negPhase === "choose" && strategy && (
+                            <div className="space-y-4">
+                                <div className="rounded-lg bg-muted/50 border border-border p-4">
+                                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Recommended Counter</p>
+                                    <p className="font-semibold text-base">
+                                        {strategy.recommendedCounter.replace("Recommended counter: ", "")}
+                                    </p>
+                                </div>
+                                <p className="text-sm text-muted-foreground">What would you like help with?</p>
+                                <div className="space-y-2">
+                                    <Button variant="outline" className="w-full justify-start" onClick={() => handleSelectScript("phone")}>
+                                        Phone Script
+                                    </Button>
+                                    <Button variant="outline" className="w-full justify-start" onClick={() => handleSelectScript("email")}>
+                                        Email Script
+                                    </Button>
+                                    <Button variant="outline" className="w-full justify-start" onClick={() => handleSelectScript("leverage")}>
+                                        My Leverage Points
+                                    </Button>
+                                </div>
+                                <Button variant="ghost" size="sm" onClick={resetNegotiation} className="text-muted-foreground px-0">
+                                    <ChevronLeft className="w-4 h-4 mr-1" /> Start over
+                                </Button>
+                            </div>
+                        )}
+
+                        {/* Phase 3: Result */}
+                        {negPhase === "result" && (
+                            <div className="flex flex-col gap-3 h-full">
+                                {scriptLoading ? (
+                                    <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        <span className="text-sm">Generating script...</span>
+                                    </div>
+                                ) : (
+                                    <ScrollArea className="h-[38vh]">
+                                        <div className="prose prose-sm dark:prose-invert max-w-none pr-4">
+                                            <ReactMarkdown>{scriptContent}</ReactMarkdown>
                                         </div>
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-medium text-muted-foreground">Negotiation Script</label>
-                                            <div className="p-3 bg-muted rounded-md text-sm border border-border prose prose-sm dark:prose-invert max-w-none">
-                                                <ReactMarkdown>{strategy.script}</ReactMarkdown>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                                <Button variant="outline" onClick={() => setStrategy(null)} className="w-full">Reset Analysis</Button>
+                                    </ScrollArea>
+                                )}
+                                <div className="flex gap-2 shrink-0">
+                                    <Button variant="outline" size="sm" onClick={() => setNegPhase("choose")}>
+                                        <ChevronLeft className="w-4 h-4 mr-1" /> Back
+                                    </Button>
+                                    {scriptContent && !scriptLoading && (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => { navigator.clipboard.writeText(scriptContent); toast.success("Copied!"); }}
+                                        >
+                                            <Copy className="w-3.5 h-3.5 mr-1.5" /> Copy
+                                        </Button>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </TabsContent>

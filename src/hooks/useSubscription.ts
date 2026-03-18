@@ -9,7 +9,7 @@ export const useSubscription = () => {
         queryKey: ["subscription", user?.id],
         queryFn: getSubscription,
         enabled: !!user,
-        staleTime: 1000 * 60 * 5,
+        staleTime: 1000 * 30, // 30s — fast pickup after checkout or portal changes
         refetchOnWindowFocus: true, // pick up plan changes from Stripe portal
     });
 

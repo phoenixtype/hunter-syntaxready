@@ -25,6 +25,7 @@ import AppLayout from "./layouts/AppLayout";
 import RecruiterLayout from "./layouts/RecruiterLayout";
 import AdminLayout from "./layouts/AdminLayout";
 import RequireAdmin from "./components/admin/RequireAdmin";
+import RequireRecruiter from "./components/auth/RequireRecruiter";
 import RecruiterPortal from "./pages/RecruiterPortal";
 import RecruiterSetup from "./pages/RecruiterSetup";
 import FloatingThemeToggle from "./components/FloatingThemeToggle";
@@ -92,10 +93,12 @@ const AppPage = ({ children }: { children: React.ReactNode }) => (
   </ProtectedRoute>
 );
 
-/** Wraps a page in ProtectedRoute + RecruiterLayout (recruiter sidebar) */
+/** Wraps a page in ProtectedRoute + RequireRecruiter + RecruiterLayout */
 const RecruiterPage = ({ children }: { children: React.ReactNode }) => (
   <ProtectedRoute>
-    <RecruiterLayout>{children}</RecruiterLayout>
+    <RequireRecruiter>
+      <RecruiterLayout>{children}</RecruiterLayout>
+    </RequireRecruiter>
   </ProtectedRoute>
 );
 

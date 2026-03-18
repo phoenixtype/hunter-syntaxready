@@ -52,6 +52,33 @@ export const generateThankYouNote = async (
     return data?.content || "";
 };
 
+export const generateNegotiationScript = async (
+    offer: OfferDetails,
+    profile: CandidateProfile,
+    format: "phone" | "email",
+    counterAmount: string
+): Promise<string> => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const { data, error } = await supabase.functions.invoke('generate-content', {
+        body: {
+            profile,
+            type: 'negotiation_script',
+            job: {
+                company: offer.company,
+                title: format === 'phone' ? 'Phone Script' : 'Email Script',
+                format,
+                offer_salary: offer.baseSalary,
+                counter_amount: counterAmount,
+                description: ''
+            }
+        },
+        headers: session ? { Authorization: `Bearer ${session.access_token}` } : {}
+    });
+
+    if (error) throw error;
+    return data?.content || "";
+};
+
 export const evaluateOffer = async (
     offer: OfferDetails,
     profile: CandidateProfile

@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Linkedin, Copy, Check } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { CandidateProfile } from "@/lib/resume_engine";
 import { JobOpportunity } from "@/lib/crawler_engine";
 import { generateLinkedInOptimization } from "@/lib/writer_engine";
@@ -104,8 +105,8 @@ const LinkedInOptimizer = ({ isOpen, onClose, profile, job }: LinkedInOptimizerP
                             </Button>
                         </div>
                         <ScrollArea className="h-[50vh] pr-4">
-                            <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-sm leading-relaxed">
-                                {suggestions}
+                            <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed">
+                                <ReactMarkdown>{suggestions}</ReactMarkdown>
                             </div>
                         </ScrollArea>
                         <Button variant="outline" onClick={() => setSuggestions("")} className="w-full">

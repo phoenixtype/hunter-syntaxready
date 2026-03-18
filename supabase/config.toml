@@ -1,5 +1,23 @@
 project_id = "ffjsgjsiemtxqbhimvhb"
 
+[auth]
+site_url = "https://usehunter.app"
+additional_redirect_urls = [
+  "https://usehunter.app/**",
+  "https://hunter-syntaxready-syntax-ready.vercel.app/**",
+  "https://ea66d069-7430-48da-b737-cb07a335a37b.lovableproject.com/**",
+  "https://id-preview--ea66d069-7430-48da-b737-cb07a335a37b.lovable.app/**"
+]
+jwt_expiry = 3600
+
+[auth.email]
+max_frequency = "1m0s"
+otp_length = 8
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
 [functions.crawl-jobs]
 verify_jwt = false
 

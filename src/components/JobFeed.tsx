@@ -639,8 +639,8 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
               </div>
             ) : jobCount > 0 && filteredJobCount === 0 ? (
               <div className="max-w-[280px] space-y-2">
-                <h3 className="font-semibold text-base">No jobs match your preferences</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">There are {jobCount} jobs in the database but none match. Click Find Jobs to fetch fresh ones.</p>
+                <h3 className="font-semibold text-base">We're finding jobs for you</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">Hunter is searching for roles that match your profile. Complete your profile and preferences to get better matches.</p>
               </div>
             ) : (
               <div className="max-w-[260px] space-y-2">

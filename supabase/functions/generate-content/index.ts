@@ -263,6 +263,22 @@ Exact words to say when negotiating (phone/email version)
 ## Total Comp Checklist
 5 additional items to negotiate beyond base salary (equity, signing bonus, PTO, remote flexibility, title)`;
 
+    } else if (requestType === 'negotiation_script') {
+      const format = job.format || 'phone';
+      const isPhone = format === 'phone';
+
+      systemPrompt = `You are Dexter, Hunter's negotiation coach. You write concise, ready-to-use negotiation scripts that sound natural and confident. Never use placeholder brackets like [Name] or [Company] — write the script so the candidate can use it as-is.`;
+
+      userPrompt = `Write a ${isPhone ? 'phone call script' : 'professional email'} for ${profile.identity?.name || 'the candidate'} to negotiate their salary at ${job.company}.
+
+Offer received: $${job.offer_salary ? Number(job.offer_salary).toLocaleString() : 'the amount offered'}
+Counter target: ${job.counter_amount || 'a higher salary reflecting their market value'}
+Candidate background: ${profile.experience_atoms?.[0]?.role || 'professional'} with expertise in ${profile.skills?.slice(0, 3).map((s: { name: string }) => s.name).join(', ')}
+
+${isPhone
+  ? 'Write a phone script the candidate reads aloud. Natural, conversational, under 100 words. No headers or bullet points — just flowing spoken dialogue.'
+  : 'Write a complete, ready-to-send email. Include a subject line on the first line, then the body. Professional tone, under 150 words total.'}`;
+
     } else if (requestType === 'resume_rewrite') {
       systemPrompt = `You are Dexter, Hunter's resume rewriting AI. You transform weak, generic bullet points into powerful, ATS-optimised achievements.
 
@@ -294,7 +310,7 @@ Return exactly this JSON format — nothing else:
 
     // Route natural text tasks to Claude (better prose), everything else to Gemini Flash
     const { callAI, MODEL_CONTENT, MODEL_FAST } = await import('../_shared/ai-client.ts');
-    const naturalTextTypes = new Set(['cover_letter', 'thank_you_note']);
+    const naturalTextTypes = new Set(['cover_letter', 'thank_you_note', 'negotiation_script']);
     const model = naturalTextTypes.has(requestType) ? MODEL_CONTENT : MODEL_FAST;
 
     const llmController = new AbortController();

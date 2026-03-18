@@ -211,11 +211,12 @@ serve(async (req) => {
           }
         }
 
-        // Enrich with subscription details (non-blocking — best effort)
+        // Enrich with subscription period dates (blocking — ensures data is complete)
         if (subscriptionId) {
-          fetch(`https://api.stripe.com/v1/subscriptions/${subscriptionId}`, {
-            headers: { 'Authorization': `Bearer ${stripeSecretKey}` },
-          }).then(async (subRes) => {
+          try {
+            const subRes = await fetch(`https://api.stripe.com/v1/subscriptions/${subscriptionId}`, {
+              headers: { 'Authorization': `Bearer ${stripeSecretKey}` },
+            });
             if (subRes.ok) {
               const stripeSub = await subRes.json();
               await supabase
@@ -229,7 +230,9 @@ serve(async (req) => {
                 })
                 .eq('user_id', userId);
             }
-          }).catch((err) => console.warn('[WEBHOOK] Non-critical enrichment failed:', err));
+          } catch (err) {
+            console.warn('[WEBHOOK] Subscription enrichment failed:', err);
+          }
         }
         break;
       }
