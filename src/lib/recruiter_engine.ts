@@ -177,7 +177,7 @@ export const getUserRole = async (userId: string): Promise<UserRole> => {
 };
 
 export const setUserRole = async (userId: string, role: UserRole): Promise<void> => {
-  const { error } = await supabase.from("profiles").update({ role }).eq("id", userId);
+  const { error } = await supabase.from("profiles").update({ role } as never).eq("id", userId);
   if (error) throw new Error(error.message);
 };
 
