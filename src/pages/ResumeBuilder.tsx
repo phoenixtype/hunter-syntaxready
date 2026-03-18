@@ -188,6 +188,18 @@ const ResumeBuilder = () => {
 
   const handleGenerate = async () => {
     if (!user) return;
+
+    // Validate all experience atoms have required content
+    const incompleteExp = formData.experience_atoms.find(
+      exp => !exp.role.trim() || !exp.company.trim() || !exp.content.trim()
+    );
+    if (incompleteExp) {
+      toast.error("Incomplete experience entry", {
+        description: `"${incompleteExp.role || incompleteExp.company || 'An experience'}" is missing required details. Go back and fill in the job title, company, and description for all entries.`,
+      });
+      return;
+    }
+
     setGenerating(true);
     try {
       // Save the profile data first
