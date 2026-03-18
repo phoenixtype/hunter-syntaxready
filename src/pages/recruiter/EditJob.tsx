@@ -74,6 +74,7 @@ const EditJob = () => {
         experience_level: j.experience_level,
         visa_sponsorship: j.visa_sponsorship,
         application_deadline: j.application_deadline,
+        max_applicants: j.max_applicants ?? undefined,
       });
       setLoadingJob(false);
     });
@@ -285,6 +286,28 @@ const EditJob = () => {
                 ))}
               </div>
             )}
+          </section>
+
+          <section className="bg-card border border-border rounded-2xl p-6 space-y-4">
+            <h2 className="text-sm font-semibold">Application Settings</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Application Deadline (optional)</Label>
+                <Input type="date" value={form.application_deadline?.split("T")[0] ?? ""} onChange={(e) => set("application_deadline", e.target.value || undefined)} className="rounded-xl" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Applicant Cap (optional)</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  placeholder="e.g. 50"
+                  value={form.max_applicants ?? ""}
+                  onChange={(e) => set("max_applicants", e.target.value ? Number(e.target.value) : undefined)}
+                  className="rounded-xl"
+                />
+                <p className="text-xs text-muted-foreground">Only the top-scoring candidates (up to this number) will be shortlisted. Leave blank for no cap.</p>
+              </div>
+            </div>
           </section>
 
           <div className="flex justify-end gap-3 pb-4">

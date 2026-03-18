@@ -46,6 +46,7 @@ const DEFAULT_FORM: RecruiterJobInsert = {
   visa_sponsorship: false,
   status: "draft",
   application_deadline: undefined,
+  max_applicants: undefined,
 };
 
 const PostJob = () => {
@@ -294,9 +295,24 @@ const PostJob = () => {
           {/* Application Settings */}
           <section className="bg-card border border-border rounded-2xl p-6 space-y-4">
             <h2 className="text-sm font-semibold">Application Settings</h2>
-            <div className="space-y-1.5">
-              <Label htmlFor="deadline">Application Deadline (optional)</Label>
-              <Input id="deadline" type="date" value={form.application_deadline?.split("T")[0] ?? ""} onChange={(e) => set("application_deadline", e.target.value || undefined)} className="rounded-xl w-full sm:w-64" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="deadline">Application Deadline (optional)</Label>
+                <Input id="deadline" type="date" value={form.application_deadline?.split("T")[0] ?? ""} onChange={(e) => set("application_deadline", e.target.value || undefined)} className="rounded-xl" />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="max-applicants">Applicant Cap (optional)</Label>
+                <Input
+                  id="max-applicants"
+                  type="number"
+                  min={1}
+                  placeholder="e.g. 50"
+                  value={form.max_applicants ?? ""}
+                  onChange={(e) => set("max_applicants", e.target.value ? Number(e.target.value) : undefined)}
+                  className="rounded-xl"
+                />
+                <p className="text-xs text-muted-foreground">Only the top-scoring candidates (up to this number) will be shortlisted. Leave blank for no cap.</p>
+              </div>
             </div>
           </section>
 

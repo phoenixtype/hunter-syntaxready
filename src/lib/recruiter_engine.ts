@@ -47,6 +47,8 @@ export interface RecruiterJob {
   visa_sponsorship: boolean;
   status: JobStatus;
   application_deadline?: string;
+  /** Maximum number of applicants to shortlist. null = no cap. */
+  max_applicants?: number;
   application_count: number;
   view_count: number;
   created_at: string;
@@ -56,6 +58,53 @@ export interface RecruiterJob {
 export type RecruiterJobInsert = Omit<RecruiterJob,
   "id" | "recruiter_id" | "job_listing_id" | "application_count" | "view_count" | "created_at" | "updated_at"
 >;
+
+// ── Applicant scoring ─────────────────────────────────────────────────────────
+
+/**
+ * Returns a 0–100 score for an applicant against a job.
+ * Uses the stored match_score when available (set by the auto-apply engine).
+ * Falls back to a skill-overlap computation from the resume_snapshot.
+ */
+export function computeApplicantScore(
+  app: RecruiterApplication,
+  job: RecruiterJob,
+): number {
+  if (app.match_score !== undefined && app.match_score !== null) {
+    return Math.round(app.match_score);
+  }
+
+  const snapshot = app.resume_snapshot;
+  const techStack = job.tech_stack ?? [];
+  if (!snapshot || !techStack.length) return 0;
+
+  // skills may be stored as string[] or {name:string}[]
+  const rawSkills = (snapshot.skills ?? []) as unknown[];
+  const skills: string[] = rawSkills.map(s =>
+    typeof s === "string" ? s : (s as Record<string, unknown>)?.name as string ?? ""
+  ).filter(Boolean);
+
+  if (!skills.length) return 0;
+
+  const normalise = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const candidateSet = new Set(skills.map(normalise));
+  const matches = techStack.filter(t => candidateSet.has(normalise(t))).length;
+  return Math.round((matches / techStack.length) * 100);
+}
+
+/**
+ * Sort applicants by score DESC, then assign 1-based ranks.
+ * Returns a new array — does not mutate the input.
+ */
+export function rankApplicants(
+  applicants: RecruiterApplication[],
+  job: RecruiterJob,
+): (RecruiterApplication & { _score: number; _rank: number })[] {
+  return applicants
+    .map(a => ({ ...a, _score: computeApplicantScore(a, job) }))
+    .sort((a, b) => b._score - a._score)
+    .map((a, i) => ({ ...a, _rank: i + 1 }));
+}
 
 export interface RecruiterApplication {
   id: string;

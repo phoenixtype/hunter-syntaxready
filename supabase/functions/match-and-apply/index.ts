@@ -31,6 +31,7 @@ interface JobRow {
   salary_min: number | null;
   salary_max: number | null;
   salary_currency: string;
+  max_applicants: number | null;
 }
 
 interface CandidateRow {
@@ -213,9 +214,8 @@ serve(async (req: Request) => {
 
   const alreadyApplied = new Set((existingApps ?? []).map((a: Record<string, string>) => a.candidate_id));
 
-  // 5. Match and auto-apply
-  let autoApplied = 0;
-  let matched = 0;
+  // 5. Score all eligible candidates (above threshold), collect into array
+  const eligible: Array<{ pref: PreferencesRow; candidate: CandidateRow; score: number }> = [];
 
   for (const pref of prefs) {
     if (alreadyApplied.has(pref.user_id)) continue;
@@ -228,48 +228,67 @@ serve(async (req: Request) => {
     const threshold = pref.auto_apply_min_match_score ?? 80;
 
     if (score >= threshold) {
-      matched++;
+      eligible.push({ pref, candidate, score });
+    }
+  }
 
-      try {
-        // Create application_history entry for candidate's tracker
-        const { data: histRow } = await adminClient
-          .from("application_history")
-          .insert({
-            user_id: pref.user_id,
-            job_title: job.title,
-            company: job.company,
-            job_url: `https://usehunter.app/jobs/${recruiter_job_id}`,
-            status: "applied",
-            metadata: {
-              source: "Auto-Applied",
-              recruiter_job_id,
-              match_score: score,
-            },
-          })
-          .select("id")
-          .maybeSingle();
+  const matched = eligible.length;
 
-        // Create recruiter pipeline entry
-        await adminClient.from("recruiter_job_applications").insert({
-          recruiter_job_id,
-          candidate_id: pref.user_id,
-          application_history_id: (histRow as unknown as { id: string } | null)?.id ?? null,
-          match_score: score,
-          resume_snapshot: candidate as unknown as Record<string, unknown>,
-          is_auto_applied: true,
+  // Sort by score DESC so the best candidates are inserted first
+  eligible.sort((a, b) => b.score - a.score);
+
+  // Apply the recruiter's applicant cap
+  let slotsRemaining: number | null = null;
+  if (job.max_applicants !== null && job.max_applicants !== undefined) {
+    const existingCount = alreadyApplied.size;
+    slotsRemaining = Math.max(0, job.max_applicants - existingCount);
+  }
+
+  const toInsert = slotsRemaining !== null ? eligible.slice(0, slotsRemaining) : eligible;
+
+  // 6. Insert applications for top-scored candidates
+  let autoApplied = 0;
+
+  for (const { pref, candidate, score } of toInsert) {
+    try {
+      // Create application_history entry for candidate's tracker
+      const { data: histRow } = await adminClient
+        .from("application_history")
+        .insert({
+          user_id: pref.user_id,
+          job_title: job.title,
+          company: job.company,
+          job_url: `https://usehunter.app/jobs/${recruiter_job_id}`,
           status: "applied",
-        });
+          metadata: {
+            source: "Auto-Applied",
+            recruiter_job_id,
+            match_score: score,
+          },
+        })
+        .select("id")
+        .maybeSingle();
 
-        autoApplied++;
-      } catch (insertErr) {
-        // Silently skip duplicates or RLS errors
-        console.warn("Auto-apply insert failed for user", pref.user_id, insertErr);
-      }
+      // Create recruiter pipeline entry
+      await adminClient.from("recruiter_job_applications").insert({
+        recruiter_job_id,
+        candidate_id: pref.user_id,
+        application_history_id: (histRow as unknown as { id: string } | null)?.id ?? null,
+        match_score: score,
+        resume_snapshot: candidate as unknown as Record<string, unknown>,
+        is_auto_applied: true,
+        status: "applied",
+      });
+
+      autoApplied++;
+    } catch (insertErr) {
+      // Silently skip duplicates or RLS errors
+      console.warn("Auto-apply insert failed for user", pref.user_id, insertErr);
     }
   }
 
   return new Response(
-    JSON.stringify({ matched, auto_applied: autoApplied }),
+    JSON.stringify({ matched, auto_applied: autoApplied, capped: slotsRemaining !== null }),
     { headers: { ...corsHeaders, "Content-Type": "application/json" } },
   );
 });

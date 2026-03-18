@@ -1,17 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Users, Mail, MapPin, Code2, Star, ChevronDown, Loader2, StickyNote, Save,
+  Trophy, Filter,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useJobApplicants } from "@/hooks/useRecruiter";
 import {
   getRecruiterJobById,
   updateRecruiterApplicationStatus,
+  rankApplicants,
   APPLICATION_STATUS_LABELS,
   APPLICATION_STATUS_COLORS,
   type RecruiterJob,
@@ -20,11 +24,41 @@ import {
 } from "@/lib/recruiter_engine";
 import { formatDistanceToNow } from "date-fns";
 
+type RankedApplication = RecruiterApplication & { _score: number; _rank: number };
+
 const PIPELINE_STAGES: RecruiterApplicationStatus[] = [
   "applied", "screening", "interview", "offer", "accepted",
 ];
 
 const REJECTION_STAGES: RecruiterApplicationStatus[] = ["rejected", "withdrawn"];
+
+const RankBadge = ({ rank }: { rank: number }) => {
+  const colors =
+    rank === 1 ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200 dark:border-yellow-700" :
+    rank === 2 ? "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-600" :
+    rank === 3 ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-700" :
+    "bg-muted text-muted-foreground border-border";
+  return (
+    <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full border ${colors}`}>
+      {rank <= 3 && <Trophy className="w-2.5 h-2.5" />}#{rank}
+    </span>
+  );
+};
+
+const ScoreBar = ({ score }: { score: number }) => {
+  const color =
+    score >= 80 ? "bg-green-500" :
+    score >= 60 ? "bg-amber-400" :
+    "bg-gray-300 dark:bg-gray-600";
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+        <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${score}%` }} />
+      </div>
+      <span className="text-[11px] text-muted-foreground tabular-nums w-8 text-right">{score}%</span>
+    </div>
+  );
+};
 
 const MatchBadge = ({ score }: { score?: number }) => {
   if (score === undefined) return null;
@@ -41,9 +75,13 @@ const MatchBadge = ({ score }: { score?: number }) => {
 
 const ApplicantCard = ({
   app,
+  rank,
+  isShortlisted,
   onStatusChange,
 }: {
-  app: RecruiterApplication;
+  app: RankedApplication;
+  rank: number;
+  isShortlisted: boolean | null; // null = no cap set
   onStatusChange: (id: string, status: RecruiterApplicationStatus, notes?: string) => Promise<void>;
 }) => {
   const [expanded, setExpanded] = useState(false);
@@ -64,13 +102,26 @@ const ApplicantCard = ({
     toast.success("Notes saved");
   };
 
+  const borderClass = isShortlisted === false
+    ? "border-border opacity-60"
+    : isShortlisted
+    ? "border-primary/30 ring-1 ring-primary/10"
+    : "border-border";
+
   return (
-    <div className="bg-card border border-border rounded-2xl overflow-hidden">
-      {/* Header row */}
+    <div className={`bg-card border rounded-2xl overflow-hidden transition-all ${borderClass}`}>
+      {/* Shortlist indicator strip */}
+      {isShortlisted !== null && (
+        <div className={`h-0.5 w-full ${isShortlisted ? "bg-primary/50" : "bg-muted"}`} />
+      )}
+
       <div className="p-4 flex items-start gap-4">
-        {/* Avatar */}
-        <div className="w-10 h-10 rounded-full bg-primary/15 text-primary font-semibold text-sm flex items-center justify-center shrink-0">
-          {(app.candidate_name ?? app.candidate_id).charAt(0).toUpperCase()}
+        {/* Rank + avatar */}
+        <div className="flex flex-col items-center gap-1 shrink-0">
+          <div className="w-10 h-10 rounded-full bg-primary/15 text-primary font-semibold text-sm flex items-center justify-center">
+            {(app.candidate_name ?? app.candidate_id).charAt(0).toUpperCase()}
+          </div>
+          <RankBadge rank={rank} />
         </div>
 
         {/* Info */}
@@ -81,7 +132,17 @@ const ApplicantCard = ({
             {app.is_auto_applied && (
               <Badge variant="outline" className="text-xs rounded-full text-primary border-primary/30">Auto-applied</Badge>
             )}
+            {isShortlisted === true && (
+              <Badge className="text-xs rounded-full bg-primary/10 text-primary border border-primary/20 font-medium">Shortlisted</Badge>
+            )}
           </div>
+
+          {/* Score bar */}
+          {app._score > 0 && (
+            <div className="mt-1.5 max-w-[200px]">
+              <ScoreBar score={app._score} />
+            </div>
+          )}
 
           <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
             {app.candidate_email && (
@@ -96,7 +157,6 @@ const ApplicantCard = ({
             <span>{formatDistanceToNow(new Date(app.applied_at), { addSuffix: true })}</span>
           </div>
 
-          {/* Skills preview */}
           {(app.candidate_skills ?? []).length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
               {(app.candidate_skills ?? []).slice(0, 5).map((s) => (
@@ -147,7 +207,6 @@ const ApplicantCard = ({
         </div>
       </div>
 
-      {/* Expanded: cover letter + notes */}
       {expanded && (
         <div className="border-t border-border p-4 space-y-4 bg-muted/30">
           {app.cover_letter && (
@@ -200,7 +259,7 @@ const PipelineKanban = ({
   applicants,
   onStatusChange,
 }: {
-  applicants: RecruiterApplication[];
+  applicants: RankedApplication[];
   onStatusChange: (id: string, status: RecruiterApplicationStatus, notes?: string) => Promise<void>;
 }) => (
   <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
@@ -221,9 +280,17 @@ const PipelineKanban = ({
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium truncate">{app.candidate_name ?? "Candidate"}</p>
-                    <MatchBadge score={app.match_score} />
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <RankBadge rank={app._rank} />
+                      <MatchBadge score={app.match_score} />
+                    </div>
                   </div>
                 </div>
+                {app._score > 0 && (
+                  <div className="mt-2">
+                    <ScoreBar score={app._score} />
+                  </div>
+                )}
                 <Select value={app.status} onValueChange={(v) => onStatusChange(app.id, v as RecruiterApplicationStatus)}>
                   <SelectTrigger className="mt-2 h-7 text-xs rounded-lg">
                     <SelectValue />
@@ -255,6 +322,7 @@ const JobApplicants = () => {
   const { applicants, loading, refresh } = useJobApplicants(jobId ?? null);
   const [job, setJob] = useState<RecruiterJob | null>(null);
   const [view, setView] = useState<"list" | "kanban">("list");
+  const [shortlistOnly, setShortlistOnly] = useState(false);
 
   useEffect(() => {
     if (!jobId) return;
@@ -270,6 +338,17 @@ const JobApplicants = () => {
     }
   };
 
+  const ranked = useMemo(() => {
+    if (!job) return applicants.map((a, i) => ({ ...a, _score: a.match_score ?? 0, _rank: i + 1 })) as RankedApplication[];
+    return rankApplicants(applicants, job) as RankedApplication[];
+  }, [applicants, job]);
+
+  const cap = job?.max_applicants ?? null;
+
+  const displayed = shortlistOnly && cap !== null
+    ? ranked.filter((_, i) => i < cap)
+    : ranked;
+
   const stageCounts = PIPELINE_STAGES.reduce<Record<string, number>>((acc, stage) => {
     acc[stage] = applicants.filter((a) => a.status === stage).length;
     return acc;
@@ -284,10 +363,20 @@ const JobApplicants = () => {
           </Button>
           <div>
             <h1 className="text-base font-semibold">{job?.title ?? "Applicants"}</h1>
-            <p className="text-xs text-muted-foreground">{job?.company} · {applicants.length} applicants</p>
+            <p className="text-xs text-muted-foreground">
+              {job?.company} · {applicants.length} applicant{applicants.length !== 1 ? "s" : ""}
+              {cap !== null && ` · Cap: ${cap}`}
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          {cap !== null && (
+            <div className="flex items-center gap-2">
+              <Filter className="w-3.5 h-3.5 text-muted-foreground" />
+              <Label htmlFor="shortlist-toggle" className="text-xs text-muted-foreground cursor-pointer">Top {cap} only</Label>
+              <Switch id="shortlist-toggle" checked={shortlistOnly} onCheckedChange={setShortlistOnly} />
+            </div>
+          )}
           <div className="flex rounded-full border border-border overflow-hidden">
             {(["list", "kanban"] as const).map((v) => (
               <button
@@ -304,14 +393,31 @@ const JobApplicants = () => {
 
       <main className="flex-1 overflow-y-auto p-6 space-y-4">
         {/* Pipeline summary bar */}
-        <div className="flex gap-3 flex-wrap">
+        <div className="flex gap-3 flex-wrap items-center">
           {PIPELINE_STAGES.map((stage) => (
             <div key={stage} className="flex items-center gap-1.5 text-sm">
               <span className="font-semibold">{stageCounts[stage] ?? 0}</span>
               <span className="text-muted-foreground">{APPLICATION_STATUS_LABELS[stage]}</span>
             </div>
           ))}
+          {cap !== null && (
+            <Badge className="ml-auto rounded-full bg-primary/10 text-primary border border-primary/20 text-xs font-medium">
+              Shortlist cap: {cap}
+            </Badge>
+          )}
         </div>
+
+        {/* Shortlist banner when cap is set */}
+        {cap !== null && applicants.length > 0 && (
+          <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-2.5 flex items-center gap-2.5 text-sm">
+            <Trophy className="w-4 h-4 text-primary shrink-0" />
+            <span className="text-foreground">
+              Showing <strong>{Math.min(cap, applicants.length)}</strong> shortlisted candidates (top by match score)
+              {applicants.length > cap && ` out of ${applicants.length} total`}.
+              Toggle "Top {cap} only" to filter the list.
+            </span>
+          </div>
+        )}
 
         {loading ? (
           <div className="space-y-3">
@@ -328,12 +434,35 @@ const JobApplicants = () => {
             </p>
           </div>
         ) : view === "kanban" ? (
-          <PipelineKanban applicants={applicants} onStatusChange={handleStatusChange} />
+          <PipelineKanban applicants={displayed} onStatusChange={handleStatusChange} />
         ) : (
           <div className="space-y-3">
-            {applicants.map((app) => (
-              <ApplicantCard key={app.id} app={app} onStatusChange={handleStatusChange} />
-            ))}
+            {displayed.map((app, idx) => {
+              const isShortlisted = cap !== null ? idx < cap : null;
+              return (
+                <ApplicantCard
+                  key={app.id}
+                  app={app}
+                  rank={app._rank}
+                  isShortlisted={isShortlisted}
+                  onStatusChange={handleStatusChange}
+                />
+              );
+            })}
+
+            {/* "Below cap" divider when not filtering */}
+            {cap !== null && !shortlistOnly && ranked.length > cap && (
+              <div className="relative py-2">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-dashed border-border" />
+                </div>
+                <div className="relative flex justify-center">
+                  <span className="bg-background px-3 text-xs text-muted-foreground">
+                    {ranked.length - cap} below cap — not in shortlist
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </main>
