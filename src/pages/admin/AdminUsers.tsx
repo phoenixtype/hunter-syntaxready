@@ -21,7 +21,7 @@ const AdminUsers = () => {
       try {
         const { data, error: qErr } = await supabase
           .from('profiles')
-          .select('id, full_name, email, role, created_at')
+          .select('id, full_name, email, created_at')
           .order('created_at', { ascending: false })
           .limit(100);
 

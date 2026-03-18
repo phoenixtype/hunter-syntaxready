@@ -362,7 +362,7 @@ export const applyToRecruiterJob = async (opts: {
     cover_letter: opts.coverLetter ?? null,
     resume_snapshot: opts.resumeSnapshot ?? null,
     is_auto_applied: false,
-  });
+  } as never);
 };
 
 // ── Stats ─────────────────────────────────────────────────────────────────────
