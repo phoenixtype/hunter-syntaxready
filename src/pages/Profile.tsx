@@ -114,6 +114,17 @@ const Profile = () => {
     const handleSave = async () => {
         if (!user || !formData) return;
 
+        // Validate experience atoms have required fields
+        const incompleteExp = formData.experience_atoms.find(
+            exp => !exp.role.trim() || !exp.company.trim() || !exp.content.trim()
+        );
+        if (incompleteExp) {
+            toast.error("Incomplete experience entry", {
+                description: "Every experience must have a job title, company, and description before saving.",
+            });
+            return;
+        }
+
         setIsSaving(true);
         try {
             await saveCandidateProfile(user.id, formData);
@@ -159,10 +170,10 @@ const Profile = () => {
             if (!prev) return null;
             const newAtom: ExperienceAtom = {
                 id: crypto.randomUUID(),
-                role: "New Role",
-                company: "Company Name",
-                duration: "YYYY - Present",
-                content: "Description...",
+                role: "",
+                company: "",
+                duration: "",
+                content: "",
                 keywords: []
             };
             return { ...prev, experience_atoms: [newAtom, ...prev.experience_atoms] };

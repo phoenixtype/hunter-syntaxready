@@ -158,8 +158,9 @@ Additional context:
     }
 
     // Add UUIDs to experience atoms if missing
-    if (extractedData.profile.experience_atoms) {
-      extractedData.profile.experience_atoms = extractedData.profile.experience_atoms.map((atom: any) => ({
+    const profileData = extractedData.profile as Record<string, unknown>;
+    if (Array.isArray(profileData.experience_atoms)) {
+      profileData.experience_atoms = (profileData.experience_atoms as Array<Record<string, unknown>>).map((atom) => ({
         ...atom,
         id: atom.id || crypto.randomUUID()
       }));

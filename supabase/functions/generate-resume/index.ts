@@ -133,7 +133,7 @@ function buildHtml(profile: Profile, opts: BuildOpts): string {
     ? `<section>
         <h2 class="section-head">Education</h2>
         ${education.map(edu => {
-          const degreeDisplay = [edu.degree, edu.field].filter(Boolean).map(esc).join(', ');
+          const degreeDisplay = [edu.degree, edu.field].filter(Boolean).map((s: string) => esc(s)).join(', ');
           return `<div class="edu-block">
             <div class="edu-header">
               <span class="edu-degree">${degreeDisplay}</span>
