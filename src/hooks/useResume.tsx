@@ -28,12 +28,22 @@ export const useResume = () => {
     }, [user]);
 
     useEffect(() => {
-        if (user) {
-            fetchProfile();
-        } else {
-            setLoading(false);
-        }
-    }, [user, fetchProfile]);
+        let cancelled = false;
+        if (!user) { setLoading(false); return; }
+        setLoading(true);
+        import('@/lib/auth_helpers')
+            .then(m => m.ensureUserProfile(user))
+            .then(() => getCandidateProfile(user.id))
+            .then(data => { if (!cancelled) { setProfile(data); setLoading(false); } })
+            .catch(err => {
+                if (!cancelled) {
+                    console.error('Error fetching resume:', err);
+                    toast.error('Failed to load resume profile');
+                    setLoading(false);
+                }
+            });
+        return () => { cancelled = true; };
+    }, [user]);
 
     return {
         profile,

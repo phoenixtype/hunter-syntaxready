@@ -30,7 +30,7 @@ const OutreachModal = ({ candidate, jobs, onClose }: OutreachModalProps) => {
   const [message, setMessage] = useState(
     selectedJob
       ? `Hi ${candidate.full_name.split(" ")[0]},\n\nI came across your profile on Hunter and I think you'd be a great fit for our ${selectedJob.title} role at ${selectedJob.company}.\n\n${selectedJob.location_type === "remote" ? "This is a fully remote position." : `Based in ${selectedJob.location ?? selectedJob.company}.`} ${selectedJob.salary_min ? `Compensation is up to $${Math.round(selectedJob.salary_max! / 1000)}k.` : ""}\n\nWould you be open to a quick conversation?\n\nBest regards`
-      : `Hi ${candidate.full_name.split(" ")[0]},\n\nI came across your profile on Hunter and was impressed by your background in ${candidate.skills.slice(0, 2).join(" and ")}.\n\nI'd love to connect and share some opportunities that might align with what you're looking for.\n\nWould you be open to a quick call?\n\nBest regards`
+      : `Hi ${candidate.full_name.split(" ")[0]},\n\nI came across your profile on Hunter and was impressed by your background${(candidate.skills ?? []).length > 0 ? ` in ${(candidate.skills ?? []).slice(0, 2).join(" and ")}` : ""}.\n\nI'd love to connect and share some opportunities that might align with what you're looking for.\n\nWould you be open to a quick call?\n\nBest regards`
   );
 
   // Update template when job selection changes
@@ -45,7 +45,7 @@ const OutreachModal = ({ candidate, jobs, onClose }: OutreachModalProps) => {
     } else {
       setSubject("Exciting opportunity — let's connect");
       setMessage(
-        `Hi ${candidate.full_name.split(" ")[0]},\n\nI came across your profile on Hunter and was impressed by your background in ${candidate.skills.slice(0, 2).join(" and ")}.\n\nI'd love to connect and share some opportunities that might align with what you're looking for.\n\nBest regards`
+        `Hi ${candidate.full_name.split(" ")[0]},\n\nI came across your profile on Hunter and was impressed by your background${(candidate.skills ?? []).length > 0 ? ` in ${(candidate.skills ?? []).slice(0, 2).join(" and ")}` : ""}.\n\nI'd love to connect and share some opportunities that might align with what you're looking for.\n\nBest regards`
       );
     }
   };
