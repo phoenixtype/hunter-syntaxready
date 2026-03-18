@@ -1,7 +1,7 @@
 # Hunter — Platform Admin Guide
 
 > **Audience:** Platform administrators with a `root` or `admin` role in the `platform_admins` table.
-> **Last updated:** 2026-03-17
+> **Last updated:** 2026-03-18
 > **Update policy:** Update this document whenever an admin-facing feature is added, removed, or changed. Keep the changelog at the bottom current.
 
 ---
@@ -77,9 +77,9 @@ The admin panel uses a dedicated layout (`AdminLayout`) with a persistent left s
 
 **Sign out** is in the sidebar footer. Clicking it calls `supabase.auth.signOut()` and redirects to `/`.
 
-### Analytics (separate route)
+### Analytics
 
-Platform analytics live at `/admin/analytics` but use the main `AppLayout` (candidate sidebar), not the admin sidebar. Navigate there directly from the browser or add a bookmark. This will be unified in a future update.
+Platform analytics are at `/admin/analytics` and are fully protected by `RequireAdmin` — the same guard as all other admin routes. The page renders inside the admin sidebar layout.
 
 ---
 
@@ -258,7 +258,7 @@ Logs are **insert-only** — admins cannot modify or delete them via the UI or n
 
 **Route:** `/admin/analytics`
 
-> Note: This page is under `AppPage` (candidate sidebar layout), not `AdminPage`. Navigate directly via URL or bookmark.
+Accessible from the admin sidebar. Protected by `RequireAdmin`; non-admin users who navigate here are redirected to `/dashboard`.
 
 ### KPI Cards
 
@@ -633,6 +633,7 @@ Track significant changes to admin functionality here.
 | 2026-03-17 | 1.1 | Added Platform Analytics page at `/admin/analytics` with KPI cards and charts | System |
 | 2026-03-17 | 1.2 | Recruiter portal: applicant cap (`max_applicants`), ranked shortlist UI in JobApplicants | System |
 | 2026-03-17 | 1.3 | Interview coach: web research mode (Reddit/Glassdoor crawl for likely questions) | System |
+| 2026-03-18 | 1.4 | Fixed `/admin/analytics` route to use `AdminPage` wrapper (was `AppPage` — non-admins could access). Page now renders inside admin sidebar layout. | System |
 
 ---
 

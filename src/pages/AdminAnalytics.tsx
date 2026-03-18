@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import SEOHead from "@/components/SEOHead";
-import PageHeader from "@/components/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,7 +42,6 @@ interface AnalyticsData {
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
 
 const AdminAnalytics = () => {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<AnalyticsData | null>(null);
@@ -110,23 +107,20 @@ const AdminAnalytics = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center p-12">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background pb-24 lg:pb-12">
+    <div className="p-6 max-w-7xl mx-auto w-full space-y-8 animate-fade-in">
       <SEOHead title="Analytics Dashboard" description="Platform analytics and usage metrics." path="/admin/analytics" noIndex />
-      <PageHeader
-        breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: "Analytics" },
-        ]}
-      />
-
-      <main className="container max-w-7xl mx-auto px-4 pt-20 sm:pt-24 space-y-8 animate-fade-in pb-8">
+      <div className="mb-2">
+        <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
+        <p className="text-muted-foreground text-sm mt-1">Platform usage and growth metrics.</p>
+      </div>
+      <main className="space-y-8">
         
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -330,6 +324,7 @@ const AdminAnalytics = () => {
     </div>
   );
 };
+
 
 // Helper Components
 const MetricCard = ({

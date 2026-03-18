@@ -149,7 +149,7 @@ const App = () => (
                       <Route path="/auto-applier-settings" element={<AppPage><AutoApplierSettings /></AppPage>} />
                       <Route path="/tailored-resumes"      element={<AppPage><TailoredResumes /></AppPage>} />
                       <Route path="/settings"              element={<AppPage><Settings /></AppPage>} />
-                      <Route path="/admin/analytics"       element={<AppPage><AdminAnalytics /></AppPage>} />
+                      <Route path="/admin/analytics"       element={<AdminPage><AdminAnalytics /></AdminPage>} />
 
                       {/* ── Platform admin shell ──────────────────────── */}
                       <Route path="/admin"                            element={<AdminPage><AdminOverview /></AdminPage>} />
