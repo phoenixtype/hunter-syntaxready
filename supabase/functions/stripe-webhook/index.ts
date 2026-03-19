@@ -135,6 +135,16 @@ async function verifyStripeSignature(
   return computedSig === signature;
 }
 
+/** Map a Stripe price ID to our internal tier name. Falls back to 'pro'. */
+function tierFromPriceId(priceId: string | undefined): string {
+  if (!priceId) return 'pro';
+  const starterPrice = Deno.env.get('STRIPE_RECRUITER_STARTER_PRICE_ID');
+  const growthPrice  = Deno.env.get('STRIPE_RECRUITER_GROWTH_PRICE_ID');
+  if (starterPrice && priceId === starterPrice) return 'recruiter_starter';
+  if (growthPrice  && priceId === growthPrice)  return 'recruiter_growth';
+  return 'pro'; // default: candidate pro plan
+}
+
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') {
@@ -188,13 +198,15 @@ serve(async (req) => {
           break;
         }
 
-        // Grant Pro access immediately — no secondary Stripe API call needed.
-        // customer.subscription.created fires separately and fills in period dates.
+        // Determine tier from plan_type metadata set at checkout creation time
+        const tier = tierFromPriceId(session.metadata?.price_id);
+
+        // Grant access immediately — customer.subscription.created fires separately and fills in period dates.
         const { error: upsertError } = await supabase
           .from('subscriptions')
           .upsert({
             user_id: userId,
-            tier: 'pro',
+            tier,
             status: 'active',
             stripe_customer_id: customerId,
             stripe_subscription_id: subscriptionId,
@@ -250,8 +262,9 @@ serve(async (req) => {
           .maybeSingle();
 
         if (existingSub) {
-          const tier = subscription.status === 'active' || subscription.status === 'trialing'
-            ? 'pro' : 'free';
+          const priceId = subscription.items?.data?.[0]?.price?.id;
+          const isActive = subscription.status === 'active' || subscription.status === 'trialing';
+          const tier = isActive ? tierFromPriceId(priceId) : 'free';
 
           await supabase
             .from('subscriptions')
@@ -262,7 +275,7 @@ serve(async (req) => {
               current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
               current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
               cancel_at_period_end: subscription.cancel_at_period_end,
-              stripe_price_id: subscription.items?.data?.[0]?.price?.id,
+              stripe_price_id: priceId,
             })
             .eq('user_id', existingSub.user_id);
         } else {
@@ -285,8 +298,9 @@ serve(async (req) => {
           .maybeSingle();
 
         if (existingSub) {
-          const tier = subscription.status === 'active' || subscription.status === 'trialing'
-            ? 'pro' : 'free';
+          const priceId = subscription.items?.data?.[0]?.price?.id;
+          const isActive = subscription.status === 'active' || subscription.status === 'trialing';
+          const tier = isActive ? tierFromPriceId(priceId) : 'free';
 
           await supabase
             .from('subscriptions')
@@ -337,9 +351,16 @@ serve(async (req) => {
           .maybeSingle();
 
         if (existingSub) {
+          // Fetch current price from existing sub row to preserve tier on renewal
+          const { data: subRow } = await supabase
+            .from('subscriptions')
+            .select('stripe_price_id, tier')
+            .eq('user_id', existingSub.user_id)
+            .maybeSingle();
+          const tier = tierFromPriceId(subRow?.stripe_price_id) || subRow?.tier || 'pro';
           await supabase
             .from('subscriptions')
-            .update({ tier: 'pro', status: 'active' })
+            .update({ tier, status: 'active' })
             .eq('user_id', existingSub.user_id);
         }
         break;

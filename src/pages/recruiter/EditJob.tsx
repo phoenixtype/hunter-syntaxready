@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, X, Loader2, Eye, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, X, Loader2, Eye, Save, Trash2, Sparkles } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,6 +52,7 @@ const EditJob = () => {
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     if (!jobId) return;
@@ -107,6 +109,55 @@ const EditJob = () => {
       toast.error(e instanceof Error ? e.message : "Failed to save");
     } finally {
       setter(false);
+    }
+  };
+
+  const handleGenerateWithAI = async () => {
+    if (!form.title?.trim()) {
+      toast.error("Add a job title first so the AI knows what to write");
+      return;
+    }
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-content", {
+        body: {
+          type: "job_description",
+          profile: {},
+          job: {
+            title: form.title,
+            company: form.company || job?.company || "",
+            location_type: form.location_type,
+            employment_type: form.employment_type,
+            experience_level: form.experience_level,
+            location: form.location,
+            tech_stack: form.tech_stack ?? [],
+            salary_min: form.salary_min,
+            salary_max: form.salary_max,
+            salary_currency: form.salary_currency,
+            description: form.description || "",
+          },
+        },
+      });
+      if (error || !data?.content) throw new Error(error?.message ?? "No content returned");
+      let parsed: { description?: string; responsibilities?: string; requirements?: string; benefits?: string };
+      try {
+        const raw = data.content.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/g, "").trim();
+        parsed = JSON.parse(raw);
+      } catch {
+        throw new Error("AI returned malformed content — please try again");
+      }
+      setForm((prev) => ({
+        ...prev,
+        description: parsed.description ?? prev.description,
+        responsibilities: parsed.responsibilities ?? prev.responsibilities,
+        requirements: parsed.requirements ?? prev.requirements,
+        benefits: parsed.benefits ?? prev.benefits,
+      }));
+      toast.success("Job description regenerated! Review before saving.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Generation failed — please try again");
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -249,7 +300,23 @@ const EditJob = () => {
           </section>
 
           <section className="bg-card border border-border rounded-2xl p-6 space-y-5">
-            <h2 className="text-sm font-semibold">Job Details</h2>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-semibold">Job Details</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">Or let AI regenerate the full description.</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full gap-1.5 border-primary/30 text-primary hover:bg-primary/5"
+                onClick={handleGenerateWithAI}
+                disabled={generating}
+              >
+                {generating
+                  ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating…</>
+                  : <><Sparkles className="w-3.5 h-3.5" /> Regenerate with AI</>}
+              </Button>
+            </div>
             <div className="space-y-1.5">
               <Label>Description</Label>
               <Textarea value={form.description ?? ""} onChange={(e) => set("description", e.target.value)} className="rounded-xl min-h-[140px]" />

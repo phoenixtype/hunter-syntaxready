@@ -59,3 +59,18 @@ verify_jwt = false
 
 [functions.recruiter-apply]
 verify_jwt = false
+
+[functions.approve-recruiter]
+verify_jwt = false
+
+[functions.delete-account]
+verify_jwt = false
+
+[functions.search-candidates]
+verify_jwt = false
+
+[functions.match-and-apply]
+verify_jwt = false
+
+[functions.recruiter-outreach]
+verify_jwt = false

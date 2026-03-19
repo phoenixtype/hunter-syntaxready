@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Users, Mail, MapPin, Code2, Star, ChevronDown, Loader2, StickyNote, Save,
-  Trophy, Filter,
+  Trophy, Filter, Send, CheckCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { useJobApplicants } from "@/hooks/useRecruiter";
 import {
   getRecruiterJobById,
@@ -25,6 +26,42 @@ import {
 import { formatDistanceToNow } from "date-fns";
 
 type RankedApplication = RecruiterApplication & { _score: number; _rank: number };
+
+/** Confirmation modal for rejection — lets recruiter optionally send a personalised rejection email */
+const RejectionModal = ({
+  app,
+  jobTitle,
+  onConfirm,
+  onCancel,
+}: {
+  app: RankedApplication;
+  jobTitle: string;
+  onConfirm: (sendEmail: boolean) => void;
+  onCancel: () => void;
+}) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div className="bg-card border border-border rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-4">
+      <div className="text-center space-y-1">
+        <p className="font-semibold text-base">Reject {app.candidate_name ?? "this candidate"}?</p>
+        <p className="text-sm text-muted-foreground">
+          Would you like to send them a respectful rejection email?
+          It only takes a second and leaves a great impression.
+        </p>
+      </div>
+      <div className="flex flex-col gap-2">
+        <Button className="w-full gap-2" onClick={() => onConfirm(true)}>
+          <Send className="w-4 h-4" /> Reject & send email
+        </Button>
+        <Button variant="outline" className="w-full gap-2" onClick={() => onConfirm(false)}>
+          <CheckCircle className="w-4 h-4" /> Reject silently
+        </Button>
+        <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={onCancel}>
+          Cancel
+        </Button>
+      </div>
+    </div>
+  </div>
+);
 
 const PIPELINE_STAGES: RecruiterApplicationStatus[] = [
   "applied", "screening", "interview", "offer", "accepted",
@@ -323,15 +360,56 @@ const JobApplicants = () => {
   const [job, setJob] = useState<RecruiterJob | null>(null);
   const [view, setView] = useState<"list" | "kanban">("list");
   const [shortlistOnly, setShortlistOnly] = useState(false);
+  const [rejectionPending, setRejectionPending] = useState<{ app: RankedApplication; nextStatus: RecruiterApplicationStatus } | null>(null);
 
   useEffect(() => {
     if (!jobId) return;
     getRecruiterJobById(jobId).then(setJob);
   }, [jobId]);
 
+  const sendRejectionEmail = async (app: RankedApplication) => {
+    try {
+      await supabase.functions.invoke("recruiter-outreach", {
+        body: {
+          candidateId: app.candidate_id,
+          subject: `Your application to ${job?.title ?? "our role"} at ${job?.company ?? "us"}`,
+          message: `Hi ${app.candidate_name?.split(" ")[0] ?? "there"},\n\nThank you for taking the time to apply for the ${job?.title ?? "role"} position at ${job?.company ?? "our company"}. We genuinely appreciate your interest and the effort you put into your application.\n\nAfter careful consideration, we've decided to move forward with other candidates whose experience more closely matches our current needs. This was a difficult decision and does not reflect the quality of your background.\n\nWe encourage you to keep an eye on future openings — we'd love to connect again.\n\nWishing you all the best in your search.\n\nWarm regards,\n${job?.company ?? "The Hiring Team"}`,
+          jobId: jobId,
+          outreachType: "email",
+        },
+      });
+    } catch {
+      // Non-fatal — rejection is saved even if email fails
+      console.warn("[JobApplicants] Rejection email failed");
+    }
+  };
+
   const handleStatusChange = async (id: string, status: RecruiterApplicationStatus, notes?: string) => {
+    // If rejecting, intercept to show confirmation first
+    if (status === "rejected" && notes === undefined) {
+      const app = applicants.find(a => a.id === id) as RankedApplication | undefined;
+      if (app) {
+        const ranked = { ...app, _score: app.match_score ?? 0, _rank: 0 } as RankedApplication;
+        setRejectionPending({ app: ranked, nextStatus: status });
+        return;
+      }
+    }
     try {
       await updateRecruiterApplicationStatus(id, status, notes);
+      refresh();
+    } catch {
+      toast.error("Failed to update status");
+    }
+  };
+
+  const handleRejectionConfirm = async (sendEmail: boolean) => {
+    if (!rejectionPending) return;
+    const { app } = rejectionPending;
+    setRejectionPending(null);
+    try {
+      await updateRecruiterApplicationStatus(app.id, "rejected");
+      if (sendEmail) await sendRejectionEmail(app);
+      toast.success(sendEmail ? "Candidate rejected and notified." : "Candidate rejected.");
       refresh();
     } catch {
       toast.error("Failed to update status");
@@ -356,6 +434,14 @@ const JobApplicants = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      {rejectionPending && (
+        <RejectionModal
+          app={rejectionPending.app}
+          jobTitle={job?.title ?? ""}
+          onConfirm={handleRejectionConfirm}
+          onCancel={() => setRejectionPending(null)}
+        />
+      )}
       <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-card shrink-0">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" className="rounded-full" onClick={() => navigate("/recruiter/jobs")}>

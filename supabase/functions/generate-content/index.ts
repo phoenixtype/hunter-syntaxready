@@ -313,6 +313,30 @@ ${JSON.stringify(profile.experience_atoms?.slice(0, 3).map((e: { id: string; rol
 
 Return exactly this JSON format — nothing else:
 [{"id": "...", "rewritten_content": "• Strong bullet 1\\n• Strong bullet 2\\n• Strong bullet 3"}]`;
+
+    } else if (requestType === 'job_description') {
+      // Recruiter-side: generate a full job posting from sparse inputs
+      systemPrompt = `You are a world-class talent acquisition specialist and copywriter. You write job descriptions that attract top candidates — specific, engaging, and ATS-friendly. You do NOT use filler phrases like "fast-paced", "self-starter", "wear many hats", or "rockstar". Every sentence earns its place.`;
+
+      userPrompt = `Generate a complete job description for this role. Return ONLY valid JSON — no markdown, no preamble, no explanation.
+
+Role: ${job.title}
+Company: ${job.company || 'the company'}
+Location type: ${job.location_type || 'hybrid'}
+Employment: ${job.employment_type || 'full_time'}
+Experience level: ${job.experience_level || 'mid'}
+Location: ${job.location || 'not specified'}
+Tech/skills: ${(job.tech_stack || []).join(', ') || 'not specified'}
+Salary range: ${job.salary_min && job.salary_max ? `$${job.salary_min.toLocaleString()}–$${job.salary_max.toLocaleString()} ${job.salary_currency || 'USD'}` : 'not specified'}
+Additional context: ${job.description || 'none'}
+
+Return exactly this JSON structure:
+{
+  "description": "3–4 engaging sentences about the role and impact. Start with the opportunity, not the company. ~100 words.",
+  "responsibilities": "• Responsibility 1\\n• Responsibility 2\\n• Responsibility 3\\n• Responsibility 4\\n• Responsibility 5",
+  "requirements": "• Requirement 1\\n• Requirement 2\\n• Requirement 3\\n• Requirement 4\\n• Requirement 5",
+  "benefits": "• Benefit 1\\n• Benefit 2\\n• Benefit 3\\n• Benefit 4"
+}`;
     }
 
     // Route natural text tasks to Claude (better prose), everything else to Gemini Flash

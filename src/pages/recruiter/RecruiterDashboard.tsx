@@ -1,11 +1,14 @@
-import { useNavigate } from "react-router-dom";
-import { Briefcase, Users, TrendingUp, Award, Plus, ChevronRight, Clock, Eye } from "lucide-react";
+import { useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Briefcase, Users, TrendingUp, Award, Plus, ChevronRight, Clock, Eye, Sparkles, Building2, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useRecruiterStats, useMyJobs } from "@/hooks/useRecruiter";
+import { useRecruiterStats, useMyJobs, useRecruiterProfile } from "@/hooks/useRecruiter";
+import { useSubscription } from "@/hooks/useSubscription";
 import { JOB_STATUS_LABELS, LOCATION_TYPE_LABELS, EMPLOYMENT_TYPE_LABELS } from "@/lib/recruiter_engine";
 import type { RecruiterJob } from "@/lib/recruiter_engine";
 import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
 
 const StatusDot = ({ status }: { status: RecruiterJob["status"] }) => {
   const colors: Record<RecruiterJob["status"], string> = {
@@ -32,11 +35,24 @@ const StatCard = ({ label, value, icon: Icon, color }: { label: string; value: n
 
 const RecruiterDashboard = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { stats, loading: statsLoading } = useRecruiterStats();
   const { jobs, loading: jobsLoading } = useMyJobs();
+  const { profile, loading: profileLoading } = useRecruiterProfile();
+  const { subscription } = useSubscription();
+
+  // Checkout success feedback
+  useEffect(() => {
+    if (searchParams.get("checkout") === "success") {
+      toast.success("Subscription activated! Welcome to Hunter Recruiter.");
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams]);
 
   const recentJobs = jobs.slice(0, 5);
   const activeJobCount = jobs.filter((j) => j.status === "active").length;
+  const needsOnboarding = !profileLoading && !profile?.company_name;
+  const hasPlan = subscription?.tier && subscription.tier !== "free" && subscription.status === "active";
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -55,6 +71,43 @@ const RecruiterDashboard = () => {
       </header>
 
       <main className="flex-1 overflow-y-auto p-6 space-y-6">
+
+        {/* Onboarding prompt — shown until company profile is filled */}
+        {needsOnboarding && (
+          <div className="bg-primary/5 border border-primary/20 rounded-2xl p-5 flex items-start gap-4">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Building2 className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm">Complete your company profile</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                A complete profile helps candidates trust your listings and increases application rates by up to 3×.
+              </p>
+            </div>
+            <Button size="sm" className="rounded-full shrink-0" onClick={() => navigate("/recruiter/company")}>
+              Set up profile
+            </Button>
+          </div>
+        )}
+
+        {/* Plan upgrade prompt — shown if on free/no plan */}
+        {!hasPlan && (
+          <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-700/30 rounded-2xl p-5 flex items-start gap-4">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
+              <Zap className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm">Unlock your full recruiting power</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Get AI candidate matching, unlimited job posts, and automated outreach. Starting at $79/mo.
+              </p>
+            </div>
+            <Button size="sm" variant="outline" className="rounded-full shrink-0 border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-700 dark:text-amber-400" onClick={() => navigate("/recruiter/pricing")}>
+              View plans
+            </Button>
+          </div>
+        )}
+
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard label="Active Listings" value={statsLoading ? "—" : stats.active_jobs}     icon={Briefcase}   color="bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400" />
@@ -135,11 +188,12 @@ const RecruiterDashboard = () => {
         {/* Quick actions */}
         <section>
           <h2 className="text-sm font-semibold mb-3">Quick Actions</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {[
-              { label: "Post a new job", desc: "Create a listing and start receiving applications", icon: Plus, action: () => navigate("/recruiter/post-job") },
-              { label: "View all applicants", desc: "Review candidates across all your listings", icon: Users, action: () => navigate("/recruiter/jobs") },
-              { label: "Company profile", desc: "Update your company info to attract top talent", icon: Briefcase, action: () => navigate("/recruiter/company") },
+              { label: "Post a new job", desc: "AI writes the description for you", icon: Sparkles, action: () => navigate("/recruiter/post-job") },
+              { label: "Search talent", desc: "Find and reach out to matching candidates", icon: Users, action: () => navigate("/recruiter/candidates") },
+              { label: "View all jobs", desc: "Manage listings and review applicants", icon: Briefcase, action: () => navigate("/recruiter/jobs") },
+              { label: "Company profile", desc: "Update your info to attract top talent", icon: Building2, action: () => navigate("/recruiter/company") },
             ].map((qa) => (
               <button
                 key={qa.label}

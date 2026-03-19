@@ -33,11 +33,18 @@ const RecruiterSetup = () => {
     if (password !== confirm) { toast.error('Passwords do not match'); return; }
 
     setLoading(true);
-    const { error } = await supabase.auth.updateUser({ password });
+    const { data: { user }, error } = await supabase.auth.updateUser({ password });
     if (error) {
       toast.error(error.message || 'Failed to set password');
       setLoading(false);
       return;
+    }
+
+    // Ensure profile has role=recruiter regardless of trigger state
+    if (user) {
+      await supabase
+        .from('profiles')
+        .upsert({ id: user.id, role: 'recruiter', email: user.email }, { onConflict: 'id' });
     }
 
     toast.success('Account set up! Redirecting to your dashboard…');

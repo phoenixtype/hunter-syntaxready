@@ -67,6 +67,13 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const stripePriceId = priceId || Deno.env.get('STRIPE_PRO_PRICE_ID');
 
+    // Determine success/cancel URLs based on plan type
+    const recruiterPrices = [
+      Deno.env.get('STRIPE_RECRUITER_STARTER_PRICE_ID'),
+      Deno.env.get('STRIPE_RECRUITER_GROWTH_PRICE_ID'),
+    ];
+    const isRecruiterPlan = stripePriceId && recruiterPrices.includes(stripePriceId);
+
     if (!stripePriceId) {
       console.error('[CHECKOUT ERROR]: Pricing ID missing');
       return new Response(
@@ -124,9 +131,14 @@ serve(async (req) => {
           'mode': 'subscription',
           'line_items[0][price]': stripePriceId,
           'line_items[0][quantity]': '1',
-          'success_url': `${siteUrl}/dashboard?checkout=success`,
-          'cancel_url': `${siteUrl}/dashboard?checkout=canceled`,
+          'success_url': isRecruiterPlan
+            ? `${siteUrl}/recruiter?checkout=success`
+            : `${siteUrl}/dashboard?checkout=success`,
+          'cancel_url': isRecruiterPlan
+            ? `${siteUrl}/recruiter/pricing`
+            : `${siteUrl}/dashboard?checkout=canceled`,
           'metadata[supabase_user_id]': user.id,
+          'metadata[price_id]': stripePriceId,
         }),
       });
     };

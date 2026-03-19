@@ -11,11 +11,21 @@ import {
   PanelLeft,
   Plus,
   BarChart3,
+  Zap,
+  CreditCard,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useRecruiterProfile } from "@/hooks/useRecruiter";
+import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
+
+const PLAN_LABELS: Record<string, string> = {
+  recruiter_starter: "Starter",
+  recruiter_growth: "Growth",
+  pro: "Pro",
+  free: "Free",
+};
 
 const NAV_ITEMS = [
   { id: "dashboard",   label: "Dashboard",        icon: LayoutDashboard, route: "/recruiter" },
@@ -29,6 +39,7 @@ const RecruiterSidebar = () => {
   const { pathname } = useLocation();
   const { user, signOut } = useAuth();
   const { profile } = useRecruiterProfile();
+  const { subscription } = useSubscription();
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try { return localStorage.getItem("hunter_recruiter_sidebar_collapsed") === "true"; } catch { return false; }
@@ -105,6 +116,36 @@ const RecruiterSidebar = () => {
           </Avatar>
         </div>
       )}
+
+      {/* Plan badge + upgrade CTA */}
+      {!collapsed && (() => {
+        const tier = subscription?.tier;
+        const isGrowth = tier === "recruiter_growth";
+        const isStarter = tier === "recruiter_starter";
+        const hasPlan = isGrowth || isStarter;
+        const label = tier ? (PLAN_LABELS[tier] ?? tier) : "No plan";
+        return (
+          <div className="px-3 py-2 border-b border-border shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <CreditCard className="w-3 h-3 text-muted-foreground" />
+                <span className={`text-xs font-semibold ${isGrowth ? "text-amber-500" : isStarter ? "text-primary" : "text-muted-foreground"}`}>
+                  {label}
+                </span>
+              </div>
+              {!isGrowth && (
+                <button
+                  onClick={() => navigate("/recruiter/pricing")}
+                  className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+                >
+                  <Zap className="w-3 h-3" />
+                  {hasPlan ? "Upgrade" : "Get plan"}
+                </button>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Post Job CTA */}
       <div className={`${collapsed ? "flex justify-center py-2 px-1.5" : "px-2 py-2"} border-b border-border shrink-0`}>

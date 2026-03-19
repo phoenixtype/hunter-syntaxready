@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, X, Loader2, Eye, Save } from "lucide-react";
+import { ArrowLeft, Plus, X, Loader2, Eye, Save, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useRecruiterProfile } from "@/hooks/useRecruiter";
+import { supabase } from "@/integrations/supabase/client";
 import {
   createJob,
   RecruiterJobInsert,
@@ -36,7 +37,7 @@ const DEFAULT_FORM: RecruiterJobInsert = {
   employment_type: "full_time",
   salary_min: undefined,
   salary_max: undefined,
-  salary_currency: "USD",
+  salary_currency: "CAD",
   description: "",
   requirements: "",
   responsibilities: "",
@@ -61,13 +62,14 @@ const PostJob = () => {
   const [techInput, setTechInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   const set = <K extends keyof RecruiterJobInsert>(key: K, val: RecruiterJobInsert[K]) =>
     setForm((prev) => ({ ...prev, [key]: val }));
 
   const addTech = () => {
     const tag = techInput.trim();
-    if (!tag) return;
+    if (!tag || tag.length > 40) return;
     if (!(form.tech_stack ?? []).includes(tag)) {
       set("tech_stack", [...(form.tech_stack ?? []), tag]);
     }
@@ -85,6 +87,59 @@ const PostJob = () => {
     if (form.salary_min && form.salary_max && form.salary_min > form.salary_max)
       return "Salary min cannot exceed salary max";
     return null;
+  };
+
+  const handleGenerateWithAI = async () => {
+    if (!form.title.trim()) {
+      toast.error("Add a job title first so the AI knows what to write");
+      return;
+    }
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-content", {
+        body: {
+          type: "job_description",
+          profile: {},
+          job: {
+            title: form.title,
+            company: form.company || profile?.company_name || "",
+            location_type: form.location_type,
+            employment_type: form.employment_type,
+            experience_level: form.experience_level,
+            location: form.location,
+            tech_stack: form.tech_stack ?? [],
+            salary_min: form.salary_min,
+            salary_max: form.salary_max,
+            salary_currency: form.salary_currency,
+            description: form.description || "",
+          },
+        },
+      });
+
+      if (error || !data?.content) throw new Error(error?.message ?? "No content returned");
+
+      let parsed: { description?: string; responsibilities?: string; requirements?: string; benefits?: string };
+      try {
+        // Strip code fences if AI wrapped it
+        const raw = data.content.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/g, "").trim();
+        parsed = JSON.parse(raw);
+      } catch {
+        throw new Error("AI returned malformed content — please try again");
+      }
+
+      setForm((prev) => ({
+        ...prev,
+        description: parsed.description ?? prev.description,
+        responsibilities: parsed.responsibilities ?? prev.responsibilities,
+        requirements: parsed.requirements ?? prev.requirements,
+        benefits: parsed.benefits ?? prev.benefits,
+      }));
+      toast.success("Job description generated! Review and edit before publishing.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Generation failed — please try again");
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const handleSave = async (publishNow: boolean) => {
@@ -228,9 +283,25 @@ const PostJob = () => {
             </div>
           </section>
 
-          {/* Job Details */}
+          {/* Job Details — with AI generation */}
           <section className="bg-card border border-border rounded-2xl p-6 space-y-5">
-            <h2 className="text-sm font-semibold">Job Details</h2>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-semibold">Job Details</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">Or let AI write the full description from your title and requirements.</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full gap-1.5 border-primary/30 text-primary hover:bg-primary/5"
+                onClick={handleGenerateWithAI}
+                disabled={generating}
+              >
+                {generating
+                  ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating…</>
+                  : <><Sparkles className="w-3.5 h-3.5" /> Generate with AI</>}
+              </Button>
+            </div>
 
             <div className="space-y-1.5">
               <Label htmlFor="desc">Description <span className="text-destructive">*</span></Label>
@@ -262,8 +333,10 @@ const PostJob = () => {
 
           {/* Tech Stack */}
           <section className="bg-card border border-border rounded-2xl p-6 space-y-4">
-            <h2 className="text-sm font-semibold">Tech Stack / Skills</h2>
-            <p className="text-xs text-muted-foreground">Add technologies to improve candidate matching accuracy.</p>
+            <div>
+              <h2 className="text-sm font-semibold">Tech Stack / Skills</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Adding skills dramatically improves candidate match accuracy.</p>
+            </div>
 
             <div className="flex gap-2">
               <Input
@@ -301,17 +374,17 @@ const PostJob = () => {
                 <Input id="deadline" type="date" value={form.application_deadline?.split("T")[0] ?? ""} onChange={(e) => set("application_deadline", e.target.value || undefined)} className="rounded-xl" />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="max-applicants">Applicant Cap (optional)</Label>
+                <Label htmlFor="max-applicants">Shortlist Cap (optional)</Label>
                 <Input
                   id="max-applicants"
                   type="number"
                   min={1}
-                  placeholder="e.g. 50"
+                  placeholder="e.g. 25"
                   value={form.max_applicants ?? ""}
                   onChange={(e) => set("max_applicants", e.target.value ? Number(e.target.value) : undefined)}
                   className="rounded-xl"
                 />
-                <p className="text-xs text-muted-foreground">Only the top-scoring candidates (up to this number) will be shortlisted. Leave blank for no cap.</p>
+                <p className="text-xs text-muted-foreground">Only top-scoring candidates up to this number are shortlisted. Leave blank for no cap.</p>
               </div>
             </div>
           </section>

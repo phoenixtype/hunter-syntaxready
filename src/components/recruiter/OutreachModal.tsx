@@ -27,11 +27,24 @@ const OutreachModal = ({ candidate, jobs, onClose }: OutreachModalProps) => {
       : "Exciting opportunity — let's connect"
   );
 
-  const [message, setMessage] = useState(
-    selectedJob
-      ? `Hi ${candidate.full_name.split(" ")[0]},\n\nI came across your profile on Hunter and I think you'd be a great fit for our ${selectedJob.title} role at ${selectedJob.company}.\n\n${selectedJob.location_type === "remote" ? "This is a fully remote position." : `Based in ${selectedJob.location ?? selectedJob.company}.`} ${selectedJob.salary_min ? `Compensation is up to $${Math.round(selectedJob.salary_max! / 1000)}k.` : ""}\n\nWould you be open to a quick conversation?\n\nBest regards`
-      : `Hi ${candidate.full_name.split(" ")[0]},\n\nI came across your profile on Hunter and was impressed by your background${(candidate.skills ?? []).length > 0 ? ` in ${(candidate.skills ?? []).slice(0, 2).join(" and ")}` : ""}.\n\nI'd love to connect and share some opportunities that might align with what you're looking for.\n\nWould you be open to a quick call?\n\nBest regards`
-  );
+  const buildMessage = (job: typeof selectedJob, cand: typeof candidate) => {
+    const firstName = cand.full_name.split(" ")[0];
+    if (job) {
+      const locationLine = job.location_type === "remote"
+        ? "This is a fully remote position."
+        : `Based in ${job.location ?? job.company}.`;
+      const compLine = job.salary_min && job.salary_max
+        ? ` Compensation is up to $${Math.round(job.salary_max / 1000)}k.`
+        : "";
+      return `Hi ${firstName},\n\nI came across your profile on Hunter and I think you'd be a great fit for our ${job.title} role at ${job.company}.\n\n${locationLine}${compLine}\n\nWould you be open to a quick conversation?\n\nBest regards`;
+    }
+    const skillsLine = (cand.skills ?? []).length > 0
+      ? ` in ${(cand.skills ?? []).slice(0, 2).join(" and ")}`
+      : "";
+    return `Hi ${firstName},\n\nI came across your profile on Hunter and was impressed by your background${skillsLine}.\n\nI'd love to connect and share some opportunities that might align with what you're looking for.\n\nWould you be open to a quick call?\n\nBest regards`;
+  };
+
+  const [message, setMessage] = useState(() => buildMessage(selectedJob, candidate));
 
   // Update template when job selection changes
   const handleJobChange = (jobId: string) => {
@@ -39,14 +52,10 @@ const OutreachModal = ({ candidate, jobs, onClose }: OutreachModalProps) => {
     const job = activeJobs.find(j => j.id === jobId);
     if (job) {
       setSubject(`${job.company} — Opportunity: ${job.title}`);
-      setMessage(
-        `Hi ${candidate.full_name.split(" ")[0]},\n\nI came across your profile on Hunter and I think you'd be a great fit for our ${job.title} role at ${job.company}.\n\n${job.location_type === "remote" ? "This is a fully remote position." : `Based in ${job.location ?? job.company}.`} ${job.salary_min ? `Compensation is up to $${Math.round(job.salary_max! / 1000)}k.` : ""}\n\nWould you be open to a quick conversation?\n\nBest regards`
-      );
+      setMessage(buildMessage(job, candidate));
     } else {
       setSubject("Exciting opportunity — let's connect");
-      setMessage(
-        `Hi ${candidate.full_name.split(" ")[0]},\n\nI came across your profile on Hunter and was impressed by your background${(candidate.skills ?? []).length > 0 ? ` in ${(candidate.skills ?? []).slice(0, 2).join(" and ")}` : ""}.\n\nI'd love to connect and share some opportunities that might align with what you're looking for.\n\nBest regards`
-      );
+      setMessage(buildMessage(undefined, candidate));
     }
   };
 

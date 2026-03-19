@@ -1,11 +1,10 @@
 import { X, MapPin, Briefcase, GraduationCap, Link2, Mail, Phone, Star, ExternalLink, Github, Linkedin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { type TalentCandidate, type RecruiterJob, LOCATION_TYPE_LABELS } from "@/lib/recruiter_engine";
+import { type TalentCandidate, LOCATION_TYPE_LABELS } from "@/lib/recruiter_engine";
 
 interface CandidateProfileDrawerProps {
   candidate: TalentCandidate;
-  jobs: RecruiterJob[];
   onClose: () => void;
   onOutreach: (candidate: TalentCandidate) => void;
 }
@@ -221,21 +220,16 @@ const CandidateProfileDrawer = ({ candidate, onClose, onOutreach }: CandidatePro
             <Mail className="w-4 h-4" />
             Reach out
           </Button>
-          {candidate.links.find(l => l.type === "linkedin") && (
-            <Button
-              variant="outline"
-              className="h-10 px-3"
-              asChild
-            >
-              <a
-                href={candidate.links.find(l => l.type === "linkedin")!.url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Linkedin className="w-4 h-4" />
-              </a>
-            </Button>
-          )}
+          {(() => {
+            const linkedinUrl = candidate.links.find(l => l.type === "linkedin")?.url;
+            return linkedinUrl ? (
+              <Button variant="outline" className="h-10 px-3" asChild>
+                <a href={linkedinUrl} target="_blank" rel="noopener noreferrer">
+                  <Linkedin className="w-4 h-4" />
+                </a>
+              </Button>
+            ) : null;
+          })()}
         </div>
       </div>
     </>

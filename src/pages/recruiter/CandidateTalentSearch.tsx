@@ -361,7 +361,6 @@ const CandidateTalentSearch = () => {
       {selectedCandidate && (
         <CandidateProfileDrawer
           candidate={selectedCandidate}
-          jobs={jobs}
           onClose={() => setSelectedCandidate(null)}
           onOutreach={(c) => {
             setSelectedCandidate(null);
