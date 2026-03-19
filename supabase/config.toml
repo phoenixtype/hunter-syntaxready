@@ -18,59 +18,12 @@ otp_length = 8
 enroll_enabled = true
 verify_enabled = true
 
-[functions.crawl-jobs]
-verify_jwt = false
-
-[functions.parse-resume]
-verify_jwt = false
-
-[functions.generate-content]
-verify_jwt = false
-
-[functions.interview-coach]
-verify_jwt = false
-
-[functions.send-notification]
-verify_jwt = false
-
-[functions.send-sms]
-verify_jwt = false
-
-[functions.create-checkout-session]
-verify_jwt = false
-
-[functions.create-checkout]
-verify_jwt = false
-
-[functions.create-portal]
-verify_jwt = false
-
+# --- Public / system endpoints (no user JWT available) ---
 [functions.stripe-webhook]
-verify_jwt = false
-
-[functions.generate-resume]
-verify_jwt = false
-
-[functions.send-auth-email]
-verify_jwt = false
-
-[functions.salary-insights]
 verify_jwt = false
 
 [functions.recruiter-apply]
 verify_jwt = false
 
-[functions.approve-recruiter]
-verify_jwt = false
-
-[functions.delete-account]
-verify_jwt = false
-
-[functions.search-candidates]
-verify_jwt = false
-
-[functions.match-and-apply]
-verify_jwt = false
-
-[functions.recruiter-outreach]
+[functions.crawl-jobs]
 verify_jwt = false
