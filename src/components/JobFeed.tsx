@@ -370,20 +370,10 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
         </div>
       )}
 
-      {/* Count */}
-      <p className="text-xs text-muted-foreground">
-        {loading
-          ? 'Loading...'
-          : showSavedOnly
-            ? `${filteredJobs.length} saved job${filteredJobs.length !== 1 ? 's' : ''}`
-            : hasActiveFilters(filters) || searchQuery
-              ? `${filteredJobs.length} of ${filteredJobCount} jobs`
-              : filteredJobCount > 0
-                ? `${filteredJobCount} jobs found`
-                : jobCount > 0
-                  ? `0 jobs matching your preferences (${jobCount} total in database — click Find Jobs)`
-                  : 'No jobs yet — click Find Jobs to search'}
-      </p>
+      {/* Show loading state only */}
+      {loading && (
+        <p className="text-xs text-muted-foreground">Loading...</p>
+      )}
 
       {/* Job List */}
       <div className="border border-border rounded-md overflow-hidden divide-y divide-border">
@@ -423,7 +413,6 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                     {job.freshness_score > 0.9 && (
                       <span className="text-[10px] font-medium text-primary">New</span>
                     )}
-                    <span className="text-[10px] text-muted-foreground/40">{job.source}</span>
                   </div>
                 </div>
 
