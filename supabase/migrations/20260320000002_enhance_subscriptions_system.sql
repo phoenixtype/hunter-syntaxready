@@ -10,6 +10,17 @@ feature_limits JSONB DEFAULT '{
   "skill_assessments": -1
 }';
 
+-- Add unique constraint to handle ON CONFLICT properly (only if it doesn't exist)
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'subscriptions_user_id_unique'
+    ) THEN
+        ALTER TABLE subscriptions ADD CONSTRAINT subscriptions_user_id_unique UNIQUE (user_id);
+    END IF;
+END $$;
+
 -- Create usage tracking table (linking to subscriptions, not user_subscriptions)
 CREATE TABLE IF NOT EXISTS subscription_usage (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -111,25 +122,35 @@ UPDATE subscriptions SET feature_limits = '{
   "skill_assessments": -1
 }' WHERE tier = 'enterprise';
 
+-- Check and drop existing functions if they have different signatures
+-- Note: We only drop the specific signatures we're about to create
+-- to avoid conflicts with other existing functions
+DROP FUNCTION IF EXISTS get_feature_usage(UUID, TEXT);
+
 -- Create usage tracking functions
 CREATE OR REPLACE FUNCTION get_feature_usage(
   p_user_id UUID,
   p_feature_name TEXT
 ) RETURNS INTEGER AS $$
 DECLARE
-  usage_count INTEGER := 0;
+  result_usage INTEGER := 0;
 BEGIN
-  SELECT COALESCE(usage_count, 0) INTO usage_count
-  FROM subscription_usage
-  WHERE user_id = p_user_id
-  AND feature_name = p_feature_name
-  AND period_start = DATE_TRUNC('month', CURRENT_DATE)::DATE;
+  SELECT COALESCE(su.usage_count, 0) INTO result_usage
+  FROM subscription_usage su
+  WHERE su.user_id = p_user_id
+  AND su.feature_name = p_feature_name
+  AND su.period_start = DATE_TRUNC('month', CURRENT_DATE)::DATE;
 
-  RETURN usage_count;
+  -- Ensure we return 0 if no record found
+  IF result_usage IS NULL THEN
+    result_usage := 0;
+  END IF;
+
+  RETURN result_usage;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION record_feature_usage(
+CREATE OR REPLACE FUNCTION record_subscription_usage(
   p_user_id UUID,
   p_feature_name TEXT,
   p_count INTEGER DEFAULT 1
