@@ -66,7 +66,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   const [researchingJobId, setResearchingJobId] = useState<string | null>(null);
 
   const { toggleSave, isSaved, savedCount } = useSavedJobs();
-  const { isPro } = useSubscription();
+  const { isPro, canAccess, recordUsage } = useSubscription();
   const [gateOpen, setGateOpen] = useState(false);
   const [gateFeature, setGateFeature] = useState<string | undefined>();
 
@@ -166,9 +166,15 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
       // Do nothing, let the <a> tag handle navigation to the job URL
       return;
     }
-    if (!requirePro("Apply to Jobs")) return;
+
+    if (!canAccess('job_applications')) {
+      toast.error('You\'ve reached your monthly application limit. Upgrade to Pro for unlimited applications.');
+      return;
+    }
+
     toast.info(`Applying to ${job.company}...`);
     await recordFeedback({ jobId: job.id, action: 'APPLY', timestamp: Date.now(), jobMetadata: { skills: job.tech_stack || [], company: job.company, source: job.source } });
+
     try {
       await simulateApplication(job, (state) => {
         setActiveApplication(state);
@@ -178,6 +184,9 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
           setTimeout(() => setActiveApplication(null), 3000);
         }
       }, user?.id, true);
+
+      // Record usage after successful application
+      await recordUsage({ featureName: 'job_applications' });
     } catch (error) {
       if (error instanceof ComplianceError) {
         toast.warning("Blocked by compliance", { description: error.message, duration: 5000 });

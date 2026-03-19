@@ -87,7 +87,7 @@ const ResumeBuilder = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { profile: existingProfile, loading: profileLoading, setProfile: setGlobalProfile } = useResume();
-  const { isPro, isLoading: subLoading } = useSubscription();
+  const { isPro, isLoading: subLoading, canAccess, recordUsage } = useSubscription();
 
   const [currentStep, setCurrentStep] = useState<StepId>("personal");
   const [selectedTemplate, setSelectedTemplate] = useState("minimalist");
@@ -189,6 +189,12 @@ const ResumeBuilder = () => {
   const handleGenerate = async () => {
     if (!user) return;
 
+    // Check usage limits before generating
+    if (!canAccess('resume_generations')) {
+      toast.error('Monthly resume limit reached. Upgrade to Pro for 50 resumes per month.');
+      return;
+    }
+
     // Validate all experience atoms have required content
     const incompleteExp = formData.experience_atoms.find(
       exp => !exp.role.trim() || !exp.company.trim() || !exp.content.trim()
@@ -224,6 +230,9 @@ const ResumeBuilder = () => {
         setGeneratedHtml(genRes.value.data.content);
         setGenerated(true);
         toast.success("Resume ready — preview and download below!");
+
+        // Record usage for successful generation
+        await recordUsage({ featureName: 'resume_generations' });
       } else {
         throw new Error("Resume generation failed");
       }

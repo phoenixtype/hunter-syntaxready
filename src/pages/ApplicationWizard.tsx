@@ -19,7 +19,7 @@ import { useResume } from "@/hooks/useResume";
 const ApplicationWizard = () => {
     const navigate = useNavigate();
     const { profile } = useResume();
-    const { isPro, isLoading: subLoading } = useSubscription();
+    const { isPro, isLoading: subLoading, canAccess, recordUsage, getRemainingUsage } = useSubscription();
 
     const [url, setUrl] = useState("");
     const [loading, setLoading] = useState(false);
@@ -70,8 +70,23 @@ const ApplicationWizard = () => {
             // 2. Generate Strategy (Recruiters)
             setRecruiters(await findStakeholders(scrapedJob));
 
-            // 3. Generate Assets (Tailored Resume)
+            // 3. Generate Assets (Tailored Resume & Cover Letter)
             setStep('generating');
+
+            // Check usage limits before generating
+            if (!canAccess('cover_letters')) {
+                const remaining = getRemainingUsage('cover_letters');
+                toast.error(`You've reached your monthly cover letter limit. ${remaining} cover letters remaining.`);
+                setStep('input');
+                return;
+            }
+
+            if (!canAccess('resume_generations')) {
+                toast.error('Monthly resume limit reached. Upgrade to Pro for 50 resumes per month.');
+                setStep('input');
+                return;
+            }
+
             const assets = await generateTailoredContent(profile, scrapedJob);
             setTailoredAssets(assets);
 
@@ -81,6 +96,10 @@ const ApplicationWizard = () => {
                 company: scrapedJob.company,
                 url: url
             });
+
+            // Record usage for both features
+            await recordUsage({ featureName: 'cover_letters' });
+            await recordUsage({ featureName: 'resume_generations' });
 
             setStep('results');
             toast.success("Application package ready and saved!");

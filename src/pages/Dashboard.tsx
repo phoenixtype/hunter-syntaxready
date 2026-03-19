@@ -15,8 +15,9 @@ import ThemeToggle from "@/components/ThemeToggle";
 import MobileNav from "@/components/MobileNav";
 import SkipLink from "@/components/SkipLink";
 import { useResume } from "@/hooks/useResume";
-import { SubscriptionTier, upgradeToPro } from "@/lib/subscription";
+import { upgradeToPro } from "@/lib/subscription";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useQueryClient } from "@tanstack/react-query";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import WidgetErrorBoundary from "@/components/WidgetErrorBoundary";
 import { ApplicationsView } from "@/components/ApplicationsView";
@@ -85,7 +86,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { profile, loading: resumeLoading } = useResume();
-  const { subscription, isLoading: subLoading, refetch: refetchSubscription } = useSubscription();
+  const { currentSubscription: subscription, isLoading: subLoading, canAccess, isPro } = useSubscription();
+  const queryClient = useQueryClient();
   const { preferences, appCount, jobCount, visibility, skillRecommendations, metrics, isLoading: dataLoading } = useDashboardData();
 
   // activeView driven by URL ?tab= param so AppSidebar navigation works
@@ -128,10 +130,13 @@ const Dashboard = () => {
       let attempts = 0;
       const interval = setInterval(async () => {
         attempts++;
-        const { data } = await refetchSubscription();
-        if (data?.tier === SubscriptionTier.PRO || attempts > 15) {
+        const { data } = await queryClient.refetchQueries({
+          queryKey: ['enhanced-subscription', user?.id]
+        });
+        const refreshedSubscription = data?.[0];
+        if (refreshedSubscription?.tier === 'pro' || attempts > 15) {
           clearInterval(interval);
-          if (data?.tier === SubscriptionTier.PRO) {
+          if (refreshedSubscription?.tier === 'pro') {
             toast.success("Hunter Pro is now active! 🚀");
             // Remove the query param without reload
             navigate(location.pathname, { replace: true });
@@ -141,7 +146,7 @@ const Dashboard = () => {
 
       return () => clearInterval(interval);
     }
-  }, [location.search, navigate, refetchSubscription]); // location.pathname excluded — it would re-trigger the poll on every nav
+  }, [location.search, navigate, queryClient, user?.id]); // location.pathname excluded — it would re-trigger the poll on every nav
   useRealtimeNotifications(user?.id);
 
   // Listen for navigation events from realtime alerts
@@ -190,7 +195,7 @@ const Dashboard = () => {
               <span>Search…</span>
               <kbd className="ml-1 pointer-events-none inline-flex h-5 select-none items-center gap-0.5 rounded border border-border bg-background px-1.5 font-mono text-[10px] font-medium text-muted-foreground">⌘K</kbd>
             </button>
-            {subscription?.tier !== SubscriptionTier.FREE && subscription?.tier ? (
+            {isPro ? (
               <Badge className="bg-primary/10 text-primary border-primary/20 text-xs font-semibold">Pro</Badge>
             ) : (
               <Button size="sm" variant="outline" onClick={() => upgradeToPro().catch(() => {})} className="text-xs h-8 hidden sm:flex gap-1.5">
