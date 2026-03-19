@@ -6,6 +6,10 @@ import { getOptimizedWeights } from "@/lib/learning_engine";
 import { UserPreferences } from "@/lib/user_preferences";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
+import { searchJobsCached, getTrendingJobsCached, getJobMatchesCached } from "@/lib/cached-job-engine";
+import { checkFeatureLimit, recordUsage } from "@/lib/redis-rate-limiter";
+import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
 
 export interface EnrichedJob extends JobOpportunity {
     match?: MatchResult;
@@ -16,38 +20,91 @@ const PAGE_SIZE = 20;
 export const useJobs = (profile: CandidateProfile | null, preferences?: UserPreferences | null, searchQuery?: string, locationQuery?: string) => {
     const queryClient = useQueryClient();
     const [page, setPage] = useState(1);
+    const { user } = useAuth();
+    const { subscription } = useSubscription();
 
-    // 1. Fetch Job Count
+    // 1. Fetch Job Count with caching
     const { data: jobCount = 0 } = useQuery({
         queryKey: ['jobCount'],
-        queryFn: getJobCount
+        queryFn: getJobCount,
+        staleTime: 1000 * 60 * 10, // Cache for 10 minutes
     });
 
-    // 2. Fetch, match, and sort jobs — return everything from the query so
-    //    React Query's cache can restore it instantly on remount.
+    // 2. Fetch, match, and sort jobs using cached engine with rate limiting
     const { data, isLoading: jobsLoading, refetch: refreshJobs } = useQuery({
         queryKey: ['jobs', profile, preferences, page, searchQuery, locationQuery],
         queryFn: async () => {
-            const { jobs: rawJobs, totalCount } = await searchJobs(
-                searchQuery,
-                locationQuery,
-                page - 1,
-                PAGE_SIZE,
-                preferences?.locations,
-                // Only apply role filtering at DB level when user has an active search query
-                // otherwise let the matching engine handle relevance scoring
-                searchQuery ? undefined : preferences?.target_roles,
-                preferences?.remote_policy,
-            );
-            const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+            // Rate limiting check for job searches
+            if (user?.id) {
+                const userTier = subscription?.tier || 'free';
+                const rateCheck = await checkFeatureLimit(user.id, 'job_matches', userTier);
 
-            if (!profile) {
-                const enriched = rawJobs.map(job => ({ ...job, match: undefined }));
-                return { jobs: enriched, totalPages, filteredJobCount: totalCount };
+                if (!rateCheck.allowed) {
+                    throw new Error(`Rate limit exceeded. You can search again in ${rateCheck.retryAfter || 60} seconds.`);
+                }
             }
 
-            // Use server-side matching for billion-user scale performance
-            // This replaces the O(n*m) client-side matching with database-optimized queries
+            // Use cached search engine for better performance
+            const searchFilters = {
+                location: locationQuery,
+                experienceLevel: preferences?.experience_level,
+            };
+
+            const cachedResult = await searchJobsCached(
+                searchQuery || '',
+                searchFilters,
+                page,
+                PAGE_SIZE
+            );
+
+            // Record usage for rate limiting
+            if (user?.id) {
+                const userTier = subscription?.tier || 'free';
+                await recordUsage(user.id, 'job_matches', userTier);
+            }
+
+            const totalPages = Math.max(1, Math.ceil(cachedResult.totalCount / PAGE_SIZE));
+
+            if (!profile) {
+                const enriched = cachedResult.jobs.map(job => ({ ...job, match: undefined }));
+                return {
+                    jobs: enriched,
+                    totalPages,
+                    filteredJobCount: cachedResult.totalCount,
+                    fromCache: true
+                };
+            }
+
+            // For logged-in users, use cached job matches when available
+            if (user?.id && (!searchQuery?.trim() && !locationQuery?.trim())) {
+                try {
+                    const cachedMatches = await getJobMatchesCached(user.id, PAGE_SIZE);
+
+                    if (cachedMatches.length > 0) {
+                        const enrichedMatches = cachedMatches.map(match => ({
+                            ...match.job_listings,
+                            match: {
+                                overall_score: match.match_score,
+                                skill_match: match.skill_match || 0.8,
+                                culture_fit: match.culture_fit || 0.7,
+                                location_match: match.location_match || 0.9,
+                                reasoning: match.reasoning || "Pre-computed match"
+                            } as MatchResult
+                        } as EnrichedJob));
+
+                        return {
+                            jobs: enrichedMatches,
+                            totalPages: 1,
+                            filteredJobCount: enrichedMatches.length,
+                            fromCache: true
+                        };
+                    }
+                } catch (error) {
+                    console.warn('[JOBS] Cached matches failed, falling back to fresh search:', error);
+                }
+            }
+
+            // Fallback to server-side matching for complex queries
             const weights = getOptimizedWeights();
             const serverSideMatches = await getMatchedJobsServerSide(profile, weights, preferences, PAGE_SIZE);
 
@@ -63,13 +120,23 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
                 } as MatchResult
             } as EnrichedJob));
 
-            // Jobs are already sorted by match score from server-side function
-            const sorted = matches;
-
-            return { jobs: sorted, totalPages, filteredJobCount: totalCount };
+            return {
+                jobs: matches,
+                totalPages,
+                filteredJobCount: cachedResult.totalCount,
+                fromCache: false
+            };
         },
-        staleTime: 1000 * 60 * 5,
+        staleTime: 1000 * 60 * 5, // Cache for 5 minutes
         placeholderData: keepPreviousData,
+        retry: (failureCount, error) => {
+            // Don't retry rate limit errors
+            if (error.message.includes('Rate limit exceeded')) {
+                return false;
+            }
+            return failureCount < 2;
+        },
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     });
 
     const currentPageJobs: EnrichedJob[] = data?.jobs ?? [];
