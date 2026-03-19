@@ -35,6 +35,8 @@ import Footer from "./components/Footer";
 import { runStartupValidation } from "./lib/env_validator";
 import { checkDatabaseHealth, logHealthStatus } from "./lib/database_health";
 import PageLoader from "./components/PageLoader";
+import { HunterAIMobile } from "./mobile-app-init";
+import { BottomNavigation } from "./components/mobile/BottomNavigation";
 
 // Admin pages (lazy)
 const AdminOverview = lazy(() => import("./pages/admin/AdminOverview"));
@@ -88,6 +90,10 @@ const AppInitializer = () => {
   useEffect(() => {
     const runChecks = async () => {
       runStartupValidation();
+
+      // Initialize mobile app features
+      await HunterAIMobile.initialize();
+
       try {
         const healthStatus = await checkDatabaseHealth();
         logHealthStatus(healthStatus);
@@ -191,6 +197,7 @@ const App = () => (
                 </div>
                 <Footer />
               </div>
+              <BottomNavigation />
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>

@@ -49,6 +49,23 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Optimized upsert function for high-performance rate limiting
+CREATE OR REPLACE FUNCTION upsert_rate_limit(
+    p_user_id UUID,
+    p_function_name TEXT,
+    p_request_count INTEGER,
+    p_window_start TIMESTAMP WITH TIME ZONE
+) RETURNS VOID AS $$
+BEGIN
+    INSERT INTO public.rate_limits (user_id, function_name, request_count, window_start)
+    VALUES (p_user_id, p_function_name, p_request_count, p_window_start)
+    ON CONFLICT (user_id, function_name)
+    DO UPDATE SET
+        request_count = EXCLUDED.request_count,
+        window_start = EXCLUDED.window_start;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- 3. CORE TABLES
 
 -- Profiles (Mirrors auth.users)
