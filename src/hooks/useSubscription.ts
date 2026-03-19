@@ -289,6 +289,37 @@ export function useSubscription() {
     }
   };
 
+  // Helper function to check if user is on Pro tier
+  const isPro = currentSubscription?.subscription_plans?.name === 'pro' ||
+                currentSubscription?.subscription_plans?.name === 'enterprise';
+
+  // Helper function to check access to specific features
+  const canAccess = (featureName: string): boolean => {
+    if (!user?.id) return false;
+
+    // Map feature names to our FeatureName type
+    const featureMap: Record<string, FeatureName> = {
+      'negotiation_coach': 'ai_interviews',
+      'cover_letters': 'cover_letters',
+      'job_applications': 'job_applications',
+      'resume_generations': 'resume_generations',
+      'company_research': 'company_research',
+      'skill_assessments': 'skill_assessments'
+    };
+
+    const mappedFeature = featureMap[featureName];
+    if (!mappedFeature) return false;
+
+    // For Pro/Enterprise features, check subscription tier
+    if (featureName === 'negotiation_coach') {
+      return isPro;
+    }
+
+    // For other features, check if they have usage remaining
+    const featureUsage = usageOverview?.features?.find(f => f.feature_name === mappedFeature);
+    return featureUsage?.can_use ?? false;
+  };
+
   return {
     // Data
     plans,
@@ -299,11 +330,16 @@ export function useSubscription() {
     plansLoading,
     subscriptionLoading,
     usageLoading,
+    isLoading: plansLoading || subscriptionLoading || usageLoading,
 
     // Errors
     plansError,
     subscriptionError,
     usageError,
+
+    // Subscription info
+    isPro,
+    canAccess,
 
     // Actions
     checkFeatureUsage,
