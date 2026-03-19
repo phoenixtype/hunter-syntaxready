@@ -1,22 +1,56 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSubscription } from "./useSubscription";
 
 /**
- * Subscribes to Supabase Realtime channels for:
- * 1. New job_listings inserts → toast + invalidate jobs query (special alert for high-match)
- * 2. application_history updates → toast + invalidate apps query
+ * Simple hash function for consistent user → pool mapping
+ */
+const hashCode = (str: string): number => {
+  let hash = 0;
+  if (str.length === 0) return hash;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return hash;
+};
+
+/**
+ * Billion-user scalable real-time notifications with subscription pooling.
+ *
+ * Strategy:
+ * - Premium users get dedicated channels for real-time experience
+ * - Free users share pooled channels to stay within Supabase's 10k limit
+ * - Filters messages client-side for shared channels
  */
 export const useRealtimeNotifications = (userId: string | undefined) => {
   const queryClient = useQueryClient();
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const { isPro } = useSubscription();
+
+  // Determine channel strategy based on subscription
+  const channelName = useMemo(() => {
+    if (!userId) return null;
+
+    // Premium users get dedicated channels for best performance
+    if (isPro) {
+      return `premium:${userId}`;
+    }
+
+    // Free users share pooled channels (100 pools = max 10k users per pool)
+    // This keeps us well within Supabase's 10k concurrent subscription limit
+    const poolId = Math.abs(hashCode(userId)) % 100;
+    return `pool:${poolId}`;
+  }, [userId, isPro]);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || !channelName) return;
 
     const channel = supabase
-      .channel(`realtime-notifications-${userId}`)
+      .channel(channelName)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "job_listings" },
@@ -61,10 +95,21 @@ export const useRealtimeNotifications = (userId: string | undefined) => {
           event: "UPDATE",
           schema: "public",
           table: "application_history",
-          filter: `user_id=eq.${userId}`,
+          // For premium users, filter at database level. For pooled users, filter client-side.
+          filter: isPro ? `user_id=eq.${userId}` : undefined,
         },
         (payload) => {
-          const app = payload.new as { job_title?: string; status?: string };
+          const app = payload.new as {
+            job_title?: string;
+            status?: string;
+            user_id?: string;
+          };
+
+          // For pooled channels, only show notifications for this specific user
+          if (!isPro && app.user_id !== userId) {
+            return;
+          }
+
           const status = app.status?.toLowerCase() || "";
 
           // Special treatment for offers

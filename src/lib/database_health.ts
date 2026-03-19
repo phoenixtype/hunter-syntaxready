@@ -35,8 +35,7 @@ export const checkDatabaseHealth = async (): Promise<DatabaseHealthStatus> => {
     for (const table of requiredTables) {
         try {
             const { error } = await supabase
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                .from(table as any) 
+                .from(table as keyof import('@/integrations/supabase/types').Database['public']['Tables']) 
                 .select('*')
                 .limit(1);
 
@@ -58,8 +57,7 @@ export const checkDatabaseHealth = async (): Promise<DatabaseHealthStatus> => {
     for (const func of requiredFunctions) {
         try {
             // Try to call with dummy data to see if function exists
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { error } = await supabase.rpc(func as any, { // Typecast for dynamic RPC
+            const { error } = await supabase.rpc(func as keyof import('@/integrations/supabase/types').Database['public']['Functions'], {
                 p_user_id: '00000000-0000-0000-0000-000000000000',
                 p_function_name: 'test',
                 p_max_requests: 1,

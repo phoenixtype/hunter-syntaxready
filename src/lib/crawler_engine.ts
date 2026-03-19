@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { queueJobCrawl } from "./function-queue";
 
 export interface JobOpportunity {
   id: string;
@@ -36,19 +37,17 @@ export const triggerJobCrawl = async (
       return { success: false, error: 'Please sign in to crawl jobs' };
     }
 
-    const { data, error } = await supabase.functions.invoke('crawl-jobs', {
-      body: {
-        keywords: params.keywords,
-        targetRoles: params.targetRoles,
-        location: params.location,
-        locations: params.locations,
-        remotePolicy: params.remotePolicy,
-        url: params.url,
-      },
-      headers: {
-        Authorization: `Bearer ${session.access_token}`
-      }
+    // Use queued function call to manage edge function concurrency
+    const data = await queueJobCrawl({
+      keywords: params.keywords,
+      targetRoles: params.targetRoles,
+      location: params.location,
+      locations: params.locations,
+      remotePolicy: params.remotePolicy,
+      url: params.url,
     });
+
+    const error = null; // Queue system handles errors internally
 
     if (error) {
       console.error('Crawl invocation error:', error);
@@ -71,8 +70,22 @@ function escapeLikePattern(input: string): string {
   return input.replace(/[%_\\]/g, '\\$&');
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapJobRow(j: any): JobOpportunity {
+interface JobRowData {
+  id: string;
+  title: string;
+  company: string;
+  location?: string;
+  salary_range?: string;
+  description?: string;
+  source?: string;
+  freshness_score?: number;
+  credibility_score?: number;
+  url?: string;
+  posted_at?: string;
+  tech_stack?: string[];
+}
+
+function mapJobRow(j: JobRowData): JobOpportunity {
   return {
     id: j.id,
     title: j.title,

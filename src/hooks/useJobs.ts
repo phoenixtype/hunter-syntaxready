@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { searchJobs, triggerJobCrawl, getJobCount, JobOpportunity, CrawlParams } from "@/lib/crawler_engine";
 import { CandidateProfile } from "@/lib/resume_engine";
-import { calculateMatch, MatchResult } from "@/lib/matching_engine";
+import { calculateMatch, MatchResult, getMatchedJobsServerSide } from "@/lib/matching_engine";
 import { getOptimizedWeights } from "@/lib/learning_engine";
 import { UserPreferences } from "@/lib/user_preferences";
 import { toast } from "sonner";
@@ -46,14 +46,25 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
                 return { jobs: enriched, totalPages, filteredJobCount: totalCount };
             }
 
+            // Use server-side matching for billion-user scale performance
+            // This replaces the O(n*m) client-side matching with database-optimized queries
             const weights = getOptimizedWeights();
-            const matchPromises = rawJobs.map(job => calculateMatch(profile, job, weights, preferences));
-            const matchResults = await Promise.all(matchPromises);
-            const matches = rawJobs.map((job, i) => ({ ...job, match: matchResults[i] } as EnrichedJob));
+            const serverSideMatches = await getMatchedJobsServerSide(profile, weights, preferences, PAGE_SIZE);
 
-            // Sort by match score — only filter out truly irrelevant jobs (banned companies etc = score 0)
-            const sorted = matches
-                .sort((a, b) => (b.match?.overall_score ?? 0) - (a.match?.overall_score ?? 0));
+            // Convert server-side results to enriched job format for backwards compatibility
+            const matches = serverSideMatches.map(job => ({
+                ...job,
+                match: {
+                    overall_score: job.match_score,
+                    skill_match: job.skill_match,
+                    culture_fit: job.culture_fit,
+                    location_match: job.location_match,
+                    reasoning: job.reasoning
+                } as MatchResult
+            } as EnrichedJob));
+
+            // Jobs are already sorted by match score from server-side function
+            const sorted = matches;
 
             return { jobs: sorted, totalPages, filteredJobCount: totalCount };
         },

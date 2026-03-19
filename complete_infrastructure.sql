@@ -260,3 +260,36 @@ CREATE INDEX IF NOT EXISTS idx_agent_activity_logs_created_at ON public.agent_ac
 -- Index for feedback actions
 CREATE INDEX IF NOT EXISTS idx_feedback_actions_user_id ON public.feedback_actions(user_id);
 CREATE INDEX IF NOT EXISTS idx_feedback_actions_created_at ON public.feedback_actions(created_at DESC);
+
+-- ========================================
+-- CRITICAL PERFORMANCE INDEXES FOR SCALING
+-- ========================================
+
+-- Job search optimization (prevents full table scans)
+-- This composite index dramatically improves job listing queries by supporting
+-- ORDER BY freshness_score DESC, created_at DESC patterns used in job discovery
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_job_listings_search_performance
+ON public.job_listings (freshness_score DESC, created_at DESC);
+
+-- Candidate profiles skills optimization
+-- GIN index on skills JSONB for fast skill-based matching queries
+-- Essential for server-side job matching at scale
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_candidate_profiles_skills_gin
+ON public.candidate_profiles USING GIN (skills);
+
+-- Learning weights lookup optimization
+-- Composite index for user-specific learning weight updates and queries
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_learning_weights_user_updated
+ON public.learning_weights (user_id, updated_at DESC);
+
+-- Application history compound queries optimization
+-- Supports queries filtering by user + status combination
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_application_history_user_status
+ON public.application_history (user_id, status, applied_at DESC);
+
+-- Job listings text search optimization
+-- GIN index for full-text search on job titles, companies, and descriptions
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_job_listings_fulltext_search
+ON public.job_listings USING GIN (
+    to_tsvector('english', COALESCE(title, '') || ' ' || COALESCE(company, '') || ' ' || COALESCE(description, ''))
+);

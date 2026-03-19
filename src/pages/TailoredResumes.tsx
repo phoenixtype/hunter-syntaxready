@@ -5,7 +5,7 @@ import ProGate from "@/components/ProGate";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { CandidateProfile } from "@/lib/resume_engine";
-import { exportResumeToPdf, exportResumeToDocx } from "@/lib/pdf_export";
+import { exportResumePDFNonBlocking, exportResumeDocxNonBlocking } from "@/lib/pdf_export";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -84,10 +84,10 @@ const TailoredResumes = () => {
     fetchResumes();
   }, [fetchResumes]);
 
-  const handleDownloadPdf = (resume: TailoredResume) => {
+  const handleDownloadPdf = async (resume: TailoredResume) => {
     try {
       const name = `${resume.job_title}_${resume.company}`.replace(/[^a-z0-9_]/gi, "_");
-      exportResumeToPdf(resume.tailored_profile, `${name}_resume.pdf`);
+      await exportResumePDFNonBlocking(resume.tailored_profile, `${name}_resume.pdf`);
       toast.success("PDF downloaded");
     } catch {
       toast.error("PDF download failed. Please try again.");
@@ -97,7 +97,7 @@ const TailoredResumes = () => {
   const handleDownloadDocx = async (resume: TailoredResume) => {
     try {
       const name = `${resume.job_title}_${resume.company}`.replace(/[^a-z0-9_]/gi, "_");
-      await exportResumeToDocx(resume.tailored_profile, `${name}_resume.docx`);
+      await exportResumeDocxNonBlocking(resume.tailored_profile, `${name}_resume.docx`);
       toast.success("Word document downloaded");
     } catch {
       toast.error("DOCX download failed. Please try again.");

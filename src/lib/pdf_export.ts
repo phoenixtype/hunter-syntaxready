@@ -1,5 +1,144 @@
 import { CandidateProfile } from "./resume_engine";
 
+// ─── WEB WORKER EXPORTS (Non-blocking, billion-user scale) ────────────────────
+
+/**
+ * Generate PDF in Web Worker to prevent main thread blocking
+ * Replaces the blocking 500ms-2s PDF generation with non-blocking operation
+ */
+export const generateResumeInWorker = async (
+  profile: CandidateProfile,
+  filename?: string,
+  options?: { onePage?: boolean; template?: string }
+): Promise<{ blob: Blob; filename: string; size: number }> => {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker('/workers/pdf-worker.js');
+
+    const timeout = setTimeout(() => {
+      worker.terminate();
+      reject(new Error('PDF generation timed out after 30 seconds'));
+    }, 30000);
+
+    worker.onmessage = (e) => {
+      clearTimeout(timeout);
+      worker.terminate();
+
+      if (e.data.success) {
+        resolve(e.data.data);
+      } else {
+        reject(new Error(e.data.error || 'PDF generation failed'));
+      }
+    };
+
+    worker.onerror = (error) => {
+      clearTimeout(timeout);
+      worker.terminate();
+      reject(new Error(`Worker error: ${error.message}`));
+    };
+
+    worker.postMessage({
+      type: 'generatePDF',
+      profile,
+      filename,
+      options
+    });
+  });
+};
+
+/**
+ * Generate DOCX in Web Worker to prevent main thread blocking
+ */
+export const generateDocxInWorker = async (
+  profile: CandidateProfile,
+  filename?: string
+): Promise<{ blob: Blob; filename: string; size: number }> => {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker('/workers/pdf-worker.js');
+
+    const timeout = setTimeout(() => {
+      worker.terminate();
+      reject(new Error('DOCX generation timed out after 30 seconds'));
+    }, 30000);
+
+    worker.onmessage = (e) => {
+      clearTimeout(timeout);
+      worker.terminate();
+
+      if (e.data.success) {
+        resolve(e.data.data);
+      } else {
+        reject(new Error(e.data.error || 'DOCX generation failed'));
+      }
+    };
+
+    worker.onerror = (error) => {
+      clearTimeout(timeout);
+      worker.terminate();
+      reject(new Error(`Worker error: ${error.message}`));
+    };
+
+    worker.postMessage({
+      type: 'generateDOCX',
+      profile,
+      filename
+    });
+  });
+};
+
+/**
+ * Convenience function that automatically triggers download after generation
+ */
+export const exportResumePDFNonBlocking = async (
+  profile: CandidateProfile,
+  filename?: string,
+  options?: { onePage?: boolean }
+): Promise<void> => {
+  try {
+    const result = await generateResumeInWorker(profile, filename, options);
+
+    // Create download link
+    const url = URL.createObjectURL(result.blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = result.filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    console.log(`✅ PDF exported: ${result.filename} (${(result.size / 1024).toFixed(1)}KB)`);
+  } catch (error) {
+    console.error('❌ PDF export failed:', error);
+    throw error;
+  }
+};
+
+/**
+ * Convenience function for DOCX export with download
+ */
+export const exportResumeDocxNonBlocking = async (
+  profile: CandidateProfile,
+  filename?: string
+): Promise<void> => {
+  try {
+    const result = await generateDocxInWorker(profile, filename);
+
+    const url = URL.createObjectURL(result.blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = result.filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    console.log(`✅ DOCX exported: ${result.filename} (${(result.size / 1024).toFixed(1)}KB)`);
+  } catch (error) {
+    console.error('❌ DOCX export failed:', error);
+    throw error;
+  }
+};
+
 // ─── PDF (lazy-loaded jsPDF, text-based, fully ATS-parseable) ──────────────────
 
 export const exportResumeToPdf = async (profile: CandidateProfile, filename?: string, options?: { onePage?: boolean; template?: string }) => {
@@ -145,8 +284,15 @@ export const exportResumeToPdf = async (profile: CandidateProfile, filename?: st
 
     // Trim to 1 page if requested
     if (onePage) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const totalPages = (doc.internal as any).getNumberOfPages?.() ?? (doc as any).getNumberOfPages?.() ?? 1;
+        interface JsPDFInternal {
+            getNumberOfPages?(): number;
+        }
+        interface JsPDFWithPages {
+            internal: JsPDFInternal;
+            getNumberOfPages?(): number;
+        }
+        const docWithPages = doc as JsPDFWithPages;
+        const totalPages = docWithPages.internal.getNumberOfPages?.() ?? docWithPages.getNumberOfPages?.() ?? 1;
         for (let p = totalPages; p > 1; p--) {
             doc.deletePage(p);
         }

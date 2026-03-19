@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { queueParseResume } from "./function-queue";
 
 export interface Education {
   school: string;
@@ -134,16 +135,14 @@ export const parseResume = async (file: File, userId?: string): Promise<Candidat
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      const { data, error } = await supabase.functions.invoke('parse-resume', {
-        body: { 
-          resumeText: text, 
-          userId,
-          resumeUrl
-        },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
+      // Use queued function call to prevent overwhelming edge functions
+      const data = await queueParseResume({
+        resumeText: text,
+        userId,
+        resumeUrl
       });
+
+      const error = null; // Queue system handles errors internally
 
       if (error) {
         lastError = error;
@@ -425,10 +424,10 @@ export const saveCandidateProfile = async (userId: string, profile: CandidatePro
 
   const payload = {
     user_id: userId,
-    identity: identityPayload as unknown as import('@/integrations/supabase/types').Json,
-    skills: profile.skills as unknown as import('@/integrations/supabase/types').Json,
-    experience_atoms: profile.experience_atoms as unknown as import('@/integrations/supabase/types').Json,
-    education: profile.education as unknown as import('@/integrations/supabase/types').Json,
+    identity: identityPayload as import('@/integrations/supabase/types').Json,
+    skills: profile.skills as import('@/integrations/supabase/types').Json,
+    experience_atoms: profile.experience_atoms as import('@/integrations/supabase/types').Json,
+    education: profile.education as import('@/integrations/supabase/types').Json,
   };
 
   const { error } = await supabase

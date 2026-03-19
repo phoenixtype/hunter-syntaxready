@@ -65,8 +65,21 @@ const RecruiterPricing = lazy(() => import("./pages/recruiter/RecruiterPricing")
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
-      staleTime: 60_000,
+      staleTime: 5 * 60 * 1000, // 5 minutes - aggressive caching for performance
+      gcTime: 10 * 60 * 1000,   // 10 minutes - keep data in memory longer
+      refetchOnWindowFocus: false, // Prevent excessive requests on tab focus
+      retry: (failureCount, error: unknown) => {
+        // Don't retry on rate limit errors to prevent cascade failures
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        if (errorMessage.includes('429') ||
+            errorMessage.includes('rate limit') ||
+            errorMessage.includes('Too Many Requests')) {
+          return false;
+        }
+        // Only retry twice for other errors
+        return failureCount < 2;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff with max 30s
     },
   },
 });

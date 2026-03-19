@@ -37,8 +37,7 @@ export const useDashboardData = () => {
         queryKey: ["preferences", userId],
         queryFn: () => (userId ? getPreferences(userId) : Promise.resolve(null)),
         enabled: !!userId,
-        staleTime: 1000 * 60 * 5, // 5 min — not Infinity; user may update in another tab/device
-        refetchOnWindowFocus: true,
+        // Use global defaults - 5 min staleTime, optimized retry logic
     });
 
     // 2. Application Count
@@ -74,7 +73,7 @@ export const useDashboardData = () => {
         queryKey: ["jobCount", userId],
         queryFn: () => getJobCount(),
         enabled: !!userId,
-        staleTime: 1000 * 60 * 2,
+        // Use global defaults for aggressive caching
     });
 
     // 3. Visibility Score — keyed on userId + target roles so it re-runs when the user
@@ -89,7 +88,7 @@ export const useDashboardData = () => {
         queryFn: () =>
             profile ? calculateVisibilityScore(profile, preferences) : Promise.resolve(null),
         enabled: !!profile && !!userId,
-        staleTime: 1000 * 60 * 2,
+        // Use global defaults for aggressive caching
     });
 
     // 3b. Skill Recommendations
@@ -119,7 +118,7 @@ export const useDashboardData = () => {
             return getSkillDevelopmentAdvice(profile, mapped);
         },
         enabled: !!profile && !!userId,
-        staleTime: 1000 * 60 * 5,
+        // Use global defaults for consistent caching
     });
 
     // 4. Background initialization — side effects belong in useEffect, not useQuery.
