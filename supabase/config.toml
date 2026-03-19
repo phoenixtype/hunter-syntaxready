@@ -56,3 +56,6 @@ verify_jwt = false
 
 [functions.salary-insights]
 verify_jwt = false
+
+[functions.recruiter-apply]
+verify_jwt = false
