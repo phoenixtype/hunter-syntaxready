@@ -21,7 +21,7 @@ const RecruiterSetup = () => {
 
   useEffect(() => {
     // Magic link sets the session automatically on load via Supabase auth
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) setSessionReady(true);
     });
     return () => subscription.unsubscribe();
