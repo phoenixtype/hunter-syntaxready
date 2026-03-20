@@ -193,7 +193,7 @@ export const queueComplianceUpdate = async (
   job: ComplianceUpdateJob,
   options: JobOptions = {}
 ): Promise<string> => {
-  const { priority = 8, delay = 0, retries = 1 } = options; // High priority, low retry
+  const { priority = 8, delay = 0 } = options; // High priority
 
   return new Promise((resolve, reject) => {
     const jobId = `compliance_${Date.now()}_${Math.random().toString(36).substring(7)}`;
