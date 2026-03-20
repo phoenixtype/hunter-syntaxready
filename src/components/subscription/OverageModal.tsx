@@ -10,9 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { CreditCard, AlertCircle, CheckCircle2, Calculator, Clock, Info } from 'lucide-react';
+import { CreditCard, CheckCircle2, Calculator, Clock, Info } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { FeatureName, FEATURE_DISPLAY_NAMES, FEATURE_DESCRIPTIONS } from '@/types/subscription';
 import { toast } from 'sonner';
