@@ -11,7 +11,7 @@ export async function ensureUserProfile(user: User) {
 
   try {
     // 1. Check/Create Profile
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile } = await supabase
       .from('profiles')
       .select('id')
       .eq('id', user.id)
