@@ -122,7 +122,7 @@ export const parseResume = async (file: File, userId?: string): Promise<Candidat
   }
 
   // 3. Upload original file to Supabase Storage
-  let resumeUrl: string | null = null;
+  let _resumeUrl: string | null = null;
   try {
     resumeUrl = await uploadResumeFile(file);
   } catch {
