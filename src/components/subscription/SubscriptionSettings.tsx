@@ -9,7 +9,6 @@ import {
   Crown,
   Zap,
   TrendingUp,
-  Calendar,
   DollarSign,
   Users,
   Building2,
@@ -19,7 +18,7 @@ import {
   Settings
 } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
-import { UsageDashboard } from './UsageDashboard';
+import UsageDashboard from './UsageDashboard';
 import { format } from 'date-fns';
 import DashboardSkeleton from "@/components/DashboardSkeleton";
 import { SubscriptionPlan } from '@/types/subscription';
