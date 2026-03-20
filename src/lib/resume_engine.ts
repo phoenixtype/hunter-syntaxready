@@ -216,7 +216,7 @@ async function uploadResumeFile(file: File): Promise<string> {
   const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
   
   // Use 'resumes' bucket
-  const { data, error } = await supabase.storage
+  const { error } = await supabase.storage
     .from('resumes')
     .upload(fileName, file, {
       cacheControl: '3600',
