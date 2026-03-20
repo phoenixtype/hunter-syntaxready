@@ -23,7 +23,7 @@ interface MobileDrawerProps {
 
 export const MobileDrawer = ({ open, onClose }: MobileDrawerProps) => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
   const { isPro } = useSubscription();
 
   const handleNavigate = (path: string) => {
