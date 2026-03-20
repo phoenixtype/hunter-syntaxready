@@ -139,8 +139,7 @@ export const parseResume = async (file: File, userId?: string): Promise<Candidat
       const data = await queueParseResume({
         resumeText: text,
         userId,
-        resumeUrl
-      });
+      } as any);
 
       const error = null; // Queue system handles errors internally
 
