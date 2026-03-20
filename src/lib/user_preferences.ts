@@ -16,6 +16,35 @@ export interface UserPreferences {
   tracker_view: 'board' | 'list';
 }
 
+const ALLOWED_EXPERIENCE_LEVELS = ['entry', 'mid', 'senior', 'lead', 'executive'] as const;
+type AllowedExperienceLevel = typeof ALLOWED_EXPERIENCE_LEVELS[number];
+
+const EXPERIENCE_LEVEL_ALIASES: Record<string, AllowedExperienceLevel> = {
+  intern: 'entry',
+  internship: 'entry',
+  junior: 'entry',
+  jr: 'entry',
+  entry: 'entry',
+  mid: 'mid',
+  'mid-level': 'mid',
+  midlevel: 'mid',
+  senior: 'senior',
+  sr: 'senior',
+  lead: 'lead',
+  executive: 'executive',
+  expert: 'executive',
+  director: 'executive',
+};
+
+const normalizeExperienceLevel = (value: unknown): AllowedExperienceLevel => {
+  if (typeof value !== 'string') return 'mid';
+  const normalized = value.trim().toLowerCase();
+  if ((ALLOWED_EXPERIENCE_LEVELS as readonly string[]).includes(normalized)) {
+    return normalized as AllowedExperienceLevel;
+  }
+  return EXPERIENCE_LEVEL_ALIASES[normalized] || 'mid';
+};
+
 const DEFAULT_PREFERENCES: UserPreferences = {
   target_roles: [],
   min_salary_usd: 100000,
@@ -61,7 +90,7 @@ export const getPreferences = async (userId: string): Promise<UserPreferences | 
       remote_policy: ['remote', 'hybrid', 'onsite', 'any'].includes(data.remote_policy ?? '') 
         ? data.remote_policy as UserPreferences['remote_policy'] 
         : 'any',
-      experience_level: typeof data.experience_level === 'string' ? data.experience_level : 'mid',
+      experience_level: normalizeExperienceLevel(data.experience_level),
       aggressiveness: typeof data.aggressiveness === 'number' ? Math.max(1, Math.min(data.aggressiveness, 10)) : DEFAULT_PREFERENCES.aggressiveness,
       safe_mode: typeof data.safe_mode === 'boolean' ? data.safe_mode : true,
       require_sponsorship: typeof data.require_sponsorship === 'boolean' ? data.require_sponsorship : false,
@@ -98,9 +127,7 @@ export const savePreferences = async (userId: string, prefs: UserPreferences): P
     remote_policy: ['remote', 'hybrid', 'onsite', 'any'].includes(prefs.remote_policy)
       ? prefs.remote_policy
       : 'any',
-    experience_level: typeof prefs.experience_level === 'string'
-      ? prefs.experience_level.slice(0, 50)
-      : 'mid',
+    experience_level: normalizeExperienceLevel(prefs.experience_level),
     aggressiveness: typeof prefs.aggressiveness === 'number' 
       ? Math.max(1, Math.min(prefs.aggressiveness, 10)) 
       : DEFAULT_PREFERENCES.aggressiveness,
