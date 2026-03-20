@@ -16,7 +16,7 @@
  * - In-memory fallback when Redis unavailable
  */
 
-import { cache, CacheKeys, CacheTTL } from './cache-manager';
+import { cache, CacheKeys } from './cache-manager';
 
 interface RateLimitConfig {
   max: number;           // Maximum requests
