@@ -51,7 +51,7 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
   };
 
   const handleUpgrade = (plan: SubscriptionPlan) => {
-    setSelectedPlan(plan);
+    _setSelectedPlan(plan);
     // In a real implementation, this would redirect to Stripe checkout
     console.log('Upgrading to plan:', plan.name);
   };

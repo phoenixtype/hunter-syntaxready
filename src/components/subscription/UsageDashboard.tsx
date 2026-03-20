@@ -54,7 +54,8 @@ export default function UsageDashboard({ showUpgradePrompts = true }: UsageDashb
     return 'text-green-600';
   };
 
-  const _getProgressColor = (percentage: number) => {
+  const getProgressColor = (percentage: number) => {
+    void percentage;
     if (percentage >= 90) return 'bg-red-500';
     if (percentage >= 75) return 'bg-orange-500';
     if (percentage >= 50) return 'bg-yellow-500';
