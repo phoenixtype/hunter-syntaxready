@@ -92,7 +92,7 @@ const NotificationSettings = () => {
       }
 
       if (data?.notification_settings) {
-        setPreferences(data.notification_settings);
+        setPreferences(data.notification_settings as unknown as NotificationPreferences);
       }
     } catch (error) {
       console.error('Failed to load notification preferences:', error);
