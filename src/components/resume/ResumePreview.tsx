@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { CandidateProfile } from '@/lib/resume_engine';
 import { CandidateProfile } from '@/lib/resume_engine';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
