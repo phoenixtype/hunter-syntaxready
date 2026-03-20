@@ -9,7 +9,6 @@ import {
   Crown,
   Zap,
   TrendingUp,
-  Calendar,
   DollarSign,
   Users,
   Building2,
@@ -19,7 +18,7 @@ import {
   Settings
 } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
-import { UsageDashboard } from './UsageDashboard';
+import UsageDashboard from './UsageDashboard';
 import { format } from 'date-fns';
 import DashboardSkeleton from "@/components/DashboardSkeleton";
 import { SubscriptionPlan } from '@/types/subscription';
@@ -36,16 +35,23 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
     subscriptionLoading
   } = useSubscription();
 
-  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
+  const [_selectedPlan, _setSelectedPlan] = useState<any>(null);
 
   if (plansLoading || subscriptionLoading) {
     return <DashboardSkeleton />;
   }
 
-  const currentPlan = currentSubscription?.subscription_plans;
+  const currentPlan = (currentSubscription as any)?.subscription_plans || {
+    name: currentSubscription?.tier || 'free',
+    display_name: currentSubscription?.tier ? currentSubscription.tier.charAt(0).toUpperCase() + currentSubscription.tier.slice(1) : 'Free',
+    description: '',
+    price_monthly: 0,
+    price_yearly: 0,
+    id: '',
+  };
 
   const handleUpgrade = (plan: SubscriptionPlan) => {
-    setSelectedPlan(plan);
+    _setSelectedPlan(plan);
     // In a real implementation, this would redirect to Stripe checkout
     console.log('Upgrading to plan:', plan.name);
   };
@@ -131,7 +137,7 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
               </p>
               {currentSubscription && (
                 <p className="text-sm text-muted-foreground">
-                  Renews {format(new Date(currentSubscription.current_period_end), 'MMM d, yyyy')}
+                  Renews {format(new Date(currentSubscription.current_period_end || new Date()), 'MMM d, yyyy')}
                 </p>
               )}
             </div>
@@ -156,7 +162,7 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
         {/* Plans Tab */}
         <TabsContent value="plans" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {plans?.map((plan) => {
+            {plans?.map((plan: any) => {
               const isCurrent = currentPlan?.id === plan.id;
               const isUpgrade = currentPlan && plan.price_monthly > currentPlan.price_monthly;
 
@@ -271,7 +277,7 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
                       </div>
                       <div className="flex justify-between">
                         <span>Next billing:</span>
-                        <span>{format(new Date(currentSubscription.current_period_end), 'MMM d, yyyy')}</span>
+                        <span>{format(new Date(currentSubscription.current_period_end || new Date()), 'MMM d, yyyy')}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Amount:</span>

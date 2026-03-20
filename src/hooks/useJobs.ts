@@ -1,12 +1,12 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { searchJobs, triggerJobCrawl, getJobCount, JobOpportunity, CrawlParams } from "@/lib/crawler_engine";
+import { triggerJobCrawl, getJobCount, JobOpportunity, CrawlParams } from "@/lib/crawler_engine";
 import { CandidateProfile } from "@/lib/resume_engine";
-import { calculateMatch, MatchResult, getMatchedJobsServerSide } from "@/lib/matching_engine";
+import { MatchResult, getMatchedJobsServerSide } from "@/lib/matching_engine";
 import { getOptimizedWeights } from "@/lib/learning_engine";
 import { UserPreferences } from "@/lib/user_preferences";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
-import { searchJobsCached, getTrendingJobsCached, getJobMatchesCached } from "@/lib/cached-job-engine";
+import { searchJobsCached, getJobMatchesCached } from "@/lib/cached-job-engine";
 import { checkFeatureLimit, recordUsage } from "@/lib/redis-rate-limiter";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -21,7 +21,7 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
     const queryClient = useQueryClient();
     const [page, setPage] = useState(1);
     const { user } = useAuth();
-    const { subscription } = useSubscription();
+    const { currentSubscription: subscription } = useSubscription();
 
     // 1. Fetch Job Count with caching
     const { data: jobCount = 0 } = useQuery({

@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+
 import {
   TrendingUp,
   Zap,
@@ -55,6 +55,7 @@ export default function UsageDashboard({ showUpgradePrompts = true }: UsageDashb
   };
 
   const getProgressColor = (percentage: number) => {
+    void percentage;
     if (percentage >= 90) return 'bg-red-500';
     if (percentage >= 75) return 'bg-orange-500';
     if (percentage >= 50) return 'bg-yellow-500';

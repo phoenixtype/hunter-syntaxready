@@ -7,9 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
 import { Heart, Shield, Users, Accessibility, Award, Building2 } from 'lucide-react';
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from 'sonner';
 import { supabase } from "@/integrations/supabase/client";
 
 interface CompanyDiversityData {
@@ -80,7 +79,7 @@ export default function CompanyDiversitySettings({ companyId }: CompanyDiversity
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const { toast } = useToast();
+  
 
   useEffect(() => {
     loadCompanyDiversityData();
@@ -106,7 +105,7 @@ export default function CompanyDiversitySettings({ companyId }: CompanyDiversity
       if (error) throw error;
 
       // Use the first job listing's DEI data as template, or empty object
-      const jobListingData = companyData?.job_listings?.[0] || {};
+      const jobListingData = (companyData?.job_listings?.[0] || {}) as Record<string, any>;
 
       setData({
         dei_commitment: jobListingData.dei_commitment || '',
@@ -122,11 +121,7 @@ export default function CompanyDiversitySettings({ companyId }: CompanyDiversity
       });
     } catch (error: any) {
       console.error('Error loading company diversity data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load company diversity information",
-        variant: "destructive",
-      });
+      toast.error("Failed to load company diversity information");
     } finally {
       setLoading(false);
     }
@@ -155,17 +150,10 @@ export default function CompanyDiversitySettings({ companyId }: CompanyDiversity
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Company diversity settings saved successfully",
-      });
+      toast.success("Company diversity settings saved successfully");
     } catch (error: any) {
       console.error('Error saving company diversity data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save company diversity settings",
-        variant: "destructive",
-      });
+      toast.error("Failed to save company diversity settings");
     } finally {
       setSaving(false);
     }

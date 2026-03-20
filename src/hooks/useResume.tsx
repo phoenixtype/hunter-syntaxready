@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { CandidateProfile, getCandidateProfile } from '@/lib/resume_engine';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';

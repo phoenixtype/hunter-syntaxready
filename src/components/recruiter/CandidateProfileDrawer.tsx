@@ -1,7 +1,7 @@
 import { X, MapPin, Briefcase, GraduationCap, Link2, Mail, Phone, Star, ExternalLink, Github, Linkedin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { type TalentCandidate, LOCATION_TYPE_LABELS } from "@/lib/recruiter_engine";
+import { type TalentCandidate } from "@/lib/recruiter_engine";
 
 interface CandidateProfileDrawerProps {
   candidate: TalentCandidate;

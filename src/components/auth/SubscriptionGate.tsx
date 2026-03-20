@@ -12,7 +12,7 @@ interface SubscriptionGateProps {
 const SubscriptionGate = ({ onClose }: SubscriptionGateProps) => {
   const [loading, setLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const { refetch } = useSubscription();
+  const { refetch } = useSubscription() as any;
 
   const handleUpgrade = async () => {
     setLoading(true);

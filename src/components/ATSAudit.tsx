@@ -14,7 +14,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { CandidateProfile } from "@/lib/resume_engine";
 import { analyzeResumeForJob, ATSResult } from "@/lib/ats_engine";
 import { UserPreferences } from "@/lib/user_preferences";
-import { AlertCircle, CheckCircle, Search, Wand2, Calculator } from "lucide-react";
+import { AlertCircle, CheckCircle, Search, Wand2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
