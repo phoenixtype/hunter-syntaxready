@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { scoreProfileHealth, ATSHealthCheck } from "@/lib/ats_scorer";
+import { scoreProfileHealth } from "@/lib/ats_scorer";
 import { CandidateProfile } from "@/lib/resume_engine";
 
 const createMockProfile = (overrides: Partial<CandidateProfile> = {}): CandidateProfile => ({

@@ -30,7 +30,6 @@ type RankedApplication = RecruiterApplication & { _score: number; _rank: number 
 /** Confirmation modal for rejection — lets recruiter optionally send a personalised rejection email */
 const RejectionModal = ({
   app,
-  _jobTitle,
   onConfirm,
   onCancel,
 }: {
