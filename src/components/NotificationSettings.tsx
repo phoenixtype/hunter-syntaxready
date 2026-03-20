@@ -110,7 +110,7 @@ const NotificationSettings = () => {
 
       const { error } = await supabase
         .from('user_preferences')
-        .update({ notification_settings: newPreferences })
+        .update({ notification_settings: newPreferences as unknown as import('@/integrations/supabase/types').Json })
         .eq('user_id', user.id);
 
       if (error) throw error;

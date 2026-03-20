@@ -6,7 +6,7 @@
  *  2. <ProGate.Page> — a full-page overlay that blurs tool pages for free users.
  */
 import { useState } from "react";
-import { Lock, Zap, Send, FileText, GraduationCap, Bot, ArrowRight, RefreshCw, Loader2, X } from "lucide-react";
+import { Lock, Zap, Send, FileText, GraduationCap, Bot, ArrowRight, RefreshCw, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { upgradeToPro } from "@/lib/subscription";

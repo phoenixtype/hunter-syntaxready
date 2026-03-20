@@ -32,7 +32,7 @@ export const MobileDrawer = ({ open, onClose }: MobileDrawerProps) => {
   };
 
   const handleLogout = async () => {
-    await logout();
+    await signOut();
     onClose();
   };
 

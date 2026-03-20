@@ -39,7 +39,7 @@ const RecruiterSidebar = () => {
   const { pathname } = useLocation();
   const { user, signOut } = useAuth();
   const { profile } = useRecruiterProfile();
-  const { subscription } = useSubscription();
+  const { currentSubscription: subscription } = useSubscription();
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try { return localStorage.getItem("hunter_recruiter_sidebar_collapsed") === "true"; } catch { return false; }
