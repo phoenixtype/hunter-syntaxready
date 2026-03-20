@@ -96,7 +96,7 @@ function mapJobRow(j: JobRowData): JobOpportunity {
     source: (j.source === 'Firecrawl' || j.source === 'Perplexity') ? 'Web' : (j.source === 'JSearch' ? 'Search' : j.source) as JobOpportunity['source'],
     freshness_score: Number(j.freshness_score) || 0.5,
     credibility_score: Number(j.credibility_score) || 0.8,
-    url: j.url,
+    url: j.url || '',
     posted_at: j.posted_at || 'Recently',
     tech_stack: j.tech_stack || []
   };
