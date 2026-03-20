@@ -65,7 +65,7 @@ export function UsageGuard({
     }
 
     try {
-      const check = await checkFeatureUsage({
+      const check = await (canAccess as any)({
         user_id: user.id,
         feature_name: featureName,
         requested_count: requiredCount
