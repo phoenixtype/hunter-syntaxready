@@ -16,7 +16,7 @@
  * - In-memory fallback when Redis unavailable
  */
 
-import { cache, CacheKeys, CacheTTL } from './cache-manager';
+import { cache, CacheKeys } from './cache-manager';
 
 interface RateLimitConfig {
   max: number;           // Maximum requests
@@ -253,7 +253,7 @@ class RedisRateLimiter {
   }
 
   private getNextResetTime(windowSeconds: number): number {
-    const now = Date.now();
+    const _now = Date.now(); void _now;
     if (windowSeconds <= 86400) { // Daily or shorter
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);

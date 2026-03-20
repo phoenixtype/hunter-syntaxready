@@ -86,7 +86,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { profile, loading: resumeLoading } = useResume();
-  const { currentSubscription: subscription, isLoading: subLoading, canAccess, isPro } = useSubscription();
+  const { currentSubscription: subscription, isLoading: subLoading, canAccess: _canAccess, isPro } = useSubscription();
   const queryClient = useQueryClient();
   const { preferences, appCount, jobCount, visibility, skillRecommendations, metrics, isLoading: dataLoading } = useDashboardData();
 
@@ -130,10 +130,10 @@ const Dashboard = () => {
       let attempts = 0;
       const interval = setInterval(async () => {
         attempts++;
-        const { data } = await queryClient.refetchQueries({
+        await queryClient.refetchQueries({
           queryKey: ['enhanced-subscription', user?.id]
         });
-        const refreshedSubscription = data?.[0];
+        const refreshedSubscription = subscription;
         if (refreshedSubscription?.tier === 'pro' || attempts > 15) {
           clearInterval(interval);
           if (refreshedSubscription?.tier === 'pro') {
@@ -394,7 +394,7 @@ const Dashboard = () => {
         isOpen={showCoach}
         onClose={() => setShowCoach(false)}
         profile={profile}
-        score={visibility}
+        score={visibility ?? null}
         skillRecommendations={skillRecommendations || []}
         preferences={preferences}
       />

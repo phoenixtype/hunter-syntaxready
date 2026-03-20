@@ -38,7 +38,7 @@ const sanitizeLogDetails = (details: string): string => {
   // Mask email addresses (show first 2 chars + domain)
   sanitized = sanitized.replace(
     /([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
-    (match, localPart, domain) => {
+    (_match, localPart, domain) => {
       const masked = localPart.substring(0, 2) + '***';
       return `${masked}@${domain}`;
     }

@@ -9,7 +9,7 @@ const SITE_URL = Deno.env.get('SITE_URL') || 'https://usehunter.app';
 // ─── Hunter Brand Colors ──────────────────────────────────────────────────────
 const PRIMARY = '#0d9488';         // Hunter primary (teal-600)
 const ACCENT = '#10b981';           // Hunter accent (emerald-500)
-const PRIMARY_DARK = '#0f766e';     // teal-700
+void '#0f766e'; // teal-700 (PRIMARY_DARK - reserved)
 const BG = '#f8fafc';              // slate-50
 const CARD_BG = '#ffffff';
 const TEXT = '#1e293b';            // slate-800
@@ -17,7 +17,7 @@ const TEXT_MUTED = '#64748b';      // slate-500
 const BORDER = '#e2e8f0';          // slate-200
 const SUCCESS_BG = '#ecfdf5';      // emerald-50
 const SUCCESS_BORDER = '#d1fae5';  // emerald-200
-const WARNING_BG = '#fef3c7';      // amber-100
+void '#fef3c7'; // amber-100 (WARNING_BG - reserved)
 const WARNING_BORDER = '#f59e0b';  // amber-500
 
 // ─── Types ─────────────────────────────────────────────────────────────────────

@@ -51,7 +51,7 @@ export const triggerJobCrawl = async (
 
     if (error) {
       console.error('Crawl invocation error:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: (error as any).message };
     }
 
     return {
@@ -96,7 +96,7 @@ function mapJobRow(j: JobRowData): JobOpportunity {
     source: (j.source === 'Firecrawl' || j.source === 'Perplexity') ? 'Web' : (j.source === 'JSearch' ? 'Search' : j.source) as JobOpportunity['source'],
     freshness_score: Number(j.freshness_score) || 0.5,
     credibility_score: Number(j.credibility_score) || 0.8,
-    url: j.url,
+    url: j.url || '',
     posted_at: j.posted_at || 'Recently',
     tech_stack: j.tech_stack || []
   };
@@ -213,7 +213,7 @@ export const searchJobs = async (
       return { jobs: [], totalCount: 0 };
     }
 
-    return { jobs: (data || []).map(mapJobRow), totalCount: count || 0 };
+    return { jobs: (data || []).map((j: any) => mapJobRow(j)), totalCount: count || 0 };
   } catch (err) {
     console.error('Search error:', err);
     return { jobs: [], totalCount: 0 };
@@ -234,7 +234,7 @@ export const getJobById = async (id: string): Promise<JobOpportunity | undefined
       return undefined;
     }
 
-    return mapJobRow(data);
+    return mapJobRow(data as any);
   } catch (err) {
     console.error('Get job error:', err);
     return undefined;

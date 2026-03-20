@@ -37,7 +37,7 @@ type SettingsTab = "profile" | "preferences" | "account" | "notifications";
 const Settings = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { subscription, isPro } = useSubscription();
+  const { currentSubscription: subscription, isPro } = useSubscription();
   const { profile } = useResume();
   const { preferences } = useDashboardData();
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
@@ -228,14 +228,14 @@ const Settings = () => {
                   <Badge variant={isPro ? "default" : "secondary"} className="text-xs">
                     {isPro ? "Hunter Pro" : "Free"}
                   </Badge>
-                  {subscription?.cancelAtPeriodEnd && subscription.currentPeriodEnd && (
+                  {subscription?.cancel_at_period_end && subscription.current_period_end && (
                     <span className="text-xs text-warning font-medium">
-                      Cancels {format(new Date(subscription.currentPeriodEnd), "MMM d, yyyy")}
+                      Cancels {format(new Date(subscription.current_period_end), "MMM d, yyyy")}
                     </span>
                   )}
-                  {isPro && !subscription?.cancelAtPeriodEnd && subscription?.currentPeriodEnd && (
+                  {isPro && !subscription?.cancel_at_period_end && subscription?.current_period_end && (
                     <span className="text-xs text-muted-foreground">
-                      Renews {format(new Date(subscription.currentPeriodEnd), "MMM d, yyyy")}
+                      Renews {format(new Date(subscription.current_period_end), "MMM d, yyyy")}
                     </span>
                   )}
                 </div>

@@ -65,7 +65,7 @@ export function UsageGuard({
     }
 
     try {
-      const check = await (canAccess as any)({
+      const check = await (_canAccess as any)({
         user_id: user.id,
         feature_name: featureName,
         requested_count: requiredCount
@@ -103,7 +103,7 @@ export function UsageGuard({
     if (usageStatus === 'available' || usageStatus === 'warning') {
       setIsExecuting(true);
       try {
-        const result = await (recordUsage as any)(featureName, requiredCount) as any;
+        const result = await (_recordUsage as any)(featureName, requiredCount) as any;
         if (result.success) {
           // Action was successful, feature usage recorded
           await checkUsage(); // Refresh usage status

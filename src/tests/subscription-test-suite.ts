@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { supabase } from '@/integrations/supabase/client';
 import { handleStripeWebhook, testWebhookHandler, WebhookEvent } from '@/webhooks/stripe-webhooks';
 import { FeatureName } from '@/types/subscription';

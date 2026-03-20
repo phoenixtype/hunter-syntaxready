@@ -12,8 +12,8 @@
  */
 
 import PQueue from 'p-queue';
-import { generateResumeInWorker, generateDocxInWorker } from './pdf_export';
-import { queueEmailNotification } from './function-queue';
+import { generateResumeInWorker } from './pdf_export';
+import { queueEmailNotification as queueEmailViaEdge } from './function-queue';
 import { recordCompliantAction } from './compliance_engine';
 import type { CandidateProfile } from './resume_engine';
 
@@ -132,19 +132,20 @@ export const queueEmailNotification = async (
   job: EmailNotificationJob,
   options: JobOptions = {}
 ): Promise<string> => {
-  const { priority = 5, delay = 0, retries = 3 } = options;
+  const { priority = 5, delay = 0, retries: _retries = 3 } = options;
 
   return new Promise((resolve, reject) => {
     const jobId = `email_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
     const executeJob = async () => {
       let attempt = 0;
-      while (attempt <= retries) {
+      while (attempt <= _retries) {
         try {
           console.log(`[BackgroundJobs] Sending email to ${job.recipient}`);
 
           // Use the edge function queue for email sending
-          await queueEmailNotification({
+          await queueEmailViaEdge({
+            type: 'email',
             template: job.template,
             recipient: job.recipient,
             data: job.data,
@@ -159,8 +160,8 @@ export const queueEmailNotification = async (
           attempt++;
           console.error(`[BackgroundJobs] Email attempt ${attempt} failed:`, error);
 
-          if (attempt > retries) {
-            reject(new Error(`Email failed after ${retries + 1} attempts: ${error}`));
+          if (attempt > _retries) {
+            reject(new Error(`Email failed after ${_retries + 1} attempts: ${error}`));
             return;
           }
 
@@ -192,7 +193,7 @@ export const queueComplianceUpdate = async (
   job: ComplianceUpdateJob,
   options: JobOptions = {}
 ): Promise<string> => {
-  const { priority = 8, delay = 0, retries = 1 } = options; // High priority, low retry
+  const { priority = 8, delay = 0 } = options; // High priority
 
   return new Promise((resolve, reject) => {
     const jobId = `compliance_${Date.now()}_${Math.random().toString(36).substring(7)}`;
@@ -237,7 +238,7 @@ export const queueAnalyticsEvent = async (
   job: AnalyticsEventJob,
   options: JobOptions = {}
 ): Promise<string> => {
-  const { priority = 1, delay = 0, retries = 0 } = options; // Lowest priority, no retries
+  const { priority = 1, delay = 0 } = options; // Lowest priority, no retries
 
   return new Promise((resolve) => {
     const jobId = `analytics_${Date.now()}_${Math.random().toString(36).substring(7)}`;

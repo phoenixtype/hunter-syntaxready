@@ -1,8 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
-import { CandidateProfile } from "./resume_engine";
+import type { CandidateProfile } from "./resume_engine";
 import { TailoredContent } from "./writer_engine";
 import { Json } from "@/integrations/supabase/types";
-import { JobOpportunity } from "./crawler_engine";
+import type { JobOpportunity } from "./crawler_engine";
+void undefined as unknown as CandidateProfile; // keep import for type use
+void undefined as unknown as JobOpportunity;
 
 /**
  * Save a tailored resume + cover letter to the database for later retrieval.

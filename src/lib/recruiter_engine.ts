@@ -394,6 +394,7 @@ export const getRecruiterStats = async (recruiterId: string): Promise<RecruiterS
 
   (data || []).forEach((job) => {
     const jobData = job as unknown as {
+      id: string;
       status: string;
       application_count: number;
       recruiter_job_applications: { status: string; id?: string }[];
@@ -409,7 +410,7 @@ export const getRecruiterStats = async (recruiterId: string): Promise<RecruiterS
 
     // Count interviews and offers from applications
     (jobData.recruiter_job_applications || []).forEach((app) => {
-      const appKey = `${job.id}-${app.status}`;
+      const appKey = `${jobData.id}-${app.status}`;
       if (!processedApps.has(appKey)) {
         processedApps.add(appKey);
         if (app.status === "interview") totalInterviews++;
@@ -623,8 +624,10 @@ export const findStakeholders = async (job: JobOpportunity): Promise<Stakeholder
       interface StakeholderData {
         name: string;
         role: string;
+        title?: string;
         profile_url?: string;
         url?: string;
+        avatar_url?: string;
       }
       return (data.stakeholders as StakeholderData[]).map((s) => ({
         name: s.name || 'Unknown',

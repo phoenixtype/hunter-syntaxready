@@ -53,13 +53,13 @@ const AdminUsers = () => {
         .from('profiles')
         .select('id, full_name, email, role, created_at')
         .order('created_at', { ascending: false })
-        .limit(100) as { data: { id: string; full_name: string | null; email: string | null; role: string | null; created_at: string }[] | null; error: typeof pErr };
+        .limit(100) as { data: { id: string; full_name: string | null; email: string | null; role: string | null; created_at: string }[] | null; error: any };
 
       if (pErr) throw new Error(pErr.message);
 
       const { data: subs, error: sErr } = await supabase
         .from('subscriptions')
-        .select('user_id, tier, status, id') as { data: { user_id: string; tier: string; status: string; id: string }[] | null; error: typeof sErr };
+        .select('user_id, tier, status, id') as { data: { user_id: string; tier: string; status: string; id: string }[] | null; error: any };
 
       if (sErr) throw new Error(sErr.message);
 

@@ -25,7 +25,7 @@ const AdminOverview = () => {
         const [profilesRes, appsRes, subsRes] = await Promise.all([
           supabase.from('profiles').select('id', { count: 'exact', head: true }),
           supabase.from('recruiter_applications' as never).select('status'),
-          supabase.from('subscriptions').select('tier, status') as Promise<{ data: { tier: string; status: string }[] | null; error: unknown }>,
+          supabase.from('subscriptions').select('tier, status') as unknown as Promise<{ data: { tier: string; status: string }[] | null; error: unknown }>,
         ]);
 
         if (profilesRes.error) throw new Error(profilesRes.error.message);

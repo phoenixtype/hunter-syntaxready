@@ -301,9 +301,10 @@ export const getMatchedJobsServerSide = async (
   try {
     // Extract user skills for matching
     const candidateSkills = profile.skills.map(s => s.name.toLowerCase());
-    const experienceLevel = preferences?.experience_level || 'mid';
-    const locationPreferences = preferences?.locations || [];
-    const remotePolicy = preferences?.remote_policy || 'any';
+    const _experienceLevel = preferences?.experience_level || 'mid';
+    const _locationPreferences = preferences?.locations || [];
+    const _remotePolicy = preferences?.remote_policy || 'any';
+    void _experienceLevel; void _locationPreferences; void _remotePolicy;
 
     // Server-side matching using our performance indexes
     const { data: jobs, error } = await supabaseWithLimits

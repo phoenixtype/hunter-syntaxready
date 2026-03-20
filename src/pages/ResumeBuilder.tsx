@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useResume } from "@/hooks/useResume";
 import SEOHead from "@/components/SEOHead";
-import { saveCandidateProfile, CandidateProfile, ExperienceAtom, Education, Skill } from "@/lib/resume_engine";
+import { saveCandidateProfile, CandidateProfile, ExperienceAtom, Education } from "@/lib/resume_engine";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

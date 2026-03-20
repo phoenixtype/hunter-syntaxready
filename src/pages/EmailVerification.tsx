@@ -33,7 +33,7 @@ const EmailVerification = () => {
       // Handle verification token types
       if (token_hash && (type === 'email' || type === 'signup' || type === 'magiclink')) {
         try {
-          const { data, error } = await supabase.auth.verifyOtp({
+          const { error } = await supabase.auth.verifyOtp({
             token_hash,
             type: type as 'email' | 'signup' | 'magiclink',
           });
