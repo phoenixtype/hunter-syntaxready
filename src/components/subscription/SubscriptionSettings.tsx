@@ -137,7 +137,7 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
               </p>
               {currentSubscription && (
                 <p className="text-sm text-muted-foreground">
-                  Renews {format(new Date(currentSubscription.current_period_end), 'MMM d, yyyy')}
+                  Renews {format(new Date(currentSubscription.current_period_end || new Date()), 'MMM d, yyyy')}
                 </p>
               )}
             </div>
