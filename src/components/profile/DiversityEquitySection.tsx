@@ -128,11 +128,7 @@ export default function DiversityEquitySection({ candidateId }: DiversityEquityS
       }
     } catch (error: any) {
       console.error('Error loading diversity data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load diversity information",
-        variant: "destructive",
-      });
+      toast.error("Failed to load diversity information");
     } finally {
       setLoading(false);
     }
