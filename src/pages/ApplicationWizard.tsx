@@ -10,7 +10,7 @@ import PageHeader from "@/components/PageHeader";
 import SEOHead from "@/components/SEOHead";
 import { useSubscription } from "@/hooks/useSubscription";
 import ProGate from "@/components/ProGate";
-import { triggerJobCrawl, JobOpportunity } from "@/lib/crawler_engine";
+import { JobOpportunity } from "@/lib/crawler_engine";
 import { generateTailoredContent, TailoredContent } from "@/lib/writer_engine";
 import { findStakeholders, Stakeholder } from "@/lib/recruiter_engine";
 import { saveTailoredResume } from "@/lib/tailored_resume_store";
