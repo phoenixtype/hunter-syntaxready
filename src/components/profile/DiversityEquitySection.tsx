@@ -116,15 +116,27 @@ export default function DiversityEquitySection({ candidateId }: DiversityEquityS
       if (error) throw error;
 
       if (profileData) {
+        const ps = profileData.privacy_settings as unknown as DiversityEquityData['privacy_settings'];
         setData({
-          ...profileData,
-          privacy_settings: (profileData.privacy_settings as unknown as DiversityEquityData['privacy_settings']) || {
+          age: profileData.age ?? undefined,
+          gender: profileData.gender ?? undefined,
+          ethnicity: profileData.ethnicity ?? undefined,
+          pronouns: profileData.pronouns ?? undefined,
+          disability_status: profileData.disability_status ?? undefined,
+          accessibility_accommodations: profileData.accessibility_accommodations ?? undefined,
+          veteran_status: profileData.veteran_status ?? undefined,
+          first_generation_college: profileData.first_generation_college ?? undefined,
+          primary_language: profileData.primary_language ?? undefined,
+          visa_sponsorship_required: profileData.visa_sponsorship_required ?? undefined,
+          religious_accommodations: profileData.religious_accommodations ?? undefined,
+          socioeconomic_background: profileData.socioeconomic_background ?? undefined,
+          privacy_settings: ps || {
             share_demographics: false,
             share_disability_status: false,
             share_veteran_status: false
           },
           dei_preferences: profileData.dei_preferences || {}
-        });
+        } as DiversityEquityData);
       }
     } catch (error: any) {
       console.error('Error loading diversity data:', error);
