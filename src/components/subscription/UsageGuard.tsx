@@ -42,7 +42,7 @@ export function UsageGuard({
   showInlineWarnings = true
 }: UsageGuardProps) {
   const { user } = useAuth();
-  const { canAccess: _canAccess, getRemainingUsage: _getRemainingUsage, recordUsage: _recordUsage, usageOverview } = useSubscription() as any;
+  const { canAccess, getRemainingUsage: _getRemainingUsage, recordUsage, usageOverview } = useSubscription() as any;
   const [usageStatus, setUsageStatus] = useState<UsageStatus>('loading');
   const [usageCheck, setUsageCheck] = useState<any>(null);
   const [showBlockedModal, setShowBlockedModal] = useState(false);
@@ -65,7 +65,7 @@ export function UsageGuard({
     }
 
     try {
-      const check = await (_canAccess as any)({
+      const check = await (canAccess as any)({
         user_id: user.id,
         feature_name: featureName,
         requested_count: requiredCount
@@ -103,7 +103,7 @@ export function UsageGuard({
     if (usageStatus === 'available' || usageStatus === 'warning') {
       setIsExecuting(true);
       try {
-        const result = await (_recordUsage as any)(featureName, requiredCount) as any;
+        const result = await (recordUsage as any)(featureName, requiredCount) as any;
         if (result.success) {
           // Action was successful, feature usage recorded
           await checkUsage(); // Refresh usage status

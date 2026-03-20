@@ -54,7 +54,7 @@ export function PaystackCheckout({
   const [amount, setAmount] = useState(0);
 
   const { user } = useAuth();
-  const _nav = useNavigate(); void _nav;
+  const _navigate = useNavigate(); void _navigate;
 
   // Load Paystack script
   useEffect(() => {
