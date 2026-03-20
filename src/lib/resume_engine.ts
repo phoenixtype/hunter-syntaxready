@@ -141,7 +141,7 @@ export const parseResume = async (file: File, userId?: string): Promise<Candidat
         userId,
       } as any);
 
-      const error = null; // Queue system handles errors internally
+      const error: any = null; // Queue system handles errors internally
 
       if (error) {
         lastError = error;
