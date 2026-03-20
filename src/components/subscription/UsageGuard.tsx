@@ -42,7 +42,7 @@ export function UsageGuard({
   showInlineWarnings = true
 }: UsageGuardProps) {
   const { user } = useAuth();
-  const { canAccess, getRemainingUsage, recordUsage, usageOverview } = useSubscription();
+  const { canAccess, getRemainingUsage, recordUsage, usageOverview } = useSubscription() as any;
   const [usageStatus, setUsageStatus] = useState<UsageStatus>('loading');
   const [usageCheck, setUsageCheck] = useState<any>(null);
   const [showBlockedModal, setShowBlockedModal] = useState(false);
