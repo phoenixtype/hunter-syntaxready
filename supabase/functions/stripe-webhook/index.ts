@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildPaymentConfirmationEmail } from "../_shared/email-templates.ts";
+import { NotificationQueueManager } from "../_shared/notification-queue.ts";
 
 const SITE_URL = Deno.env.get('SITE_URL') || 'https://usehunter.app';
 const FROM = 'Hunter <notifications@usehunter.app>';
@@ -30,45 +31,49 @@ function paymentFailedEmail(): { subject: string; html: string } {
   };
 }
 
-async function sendTransactionalEmail(type: string, to: string, data?: any) {
-  const resendKey = Deno.env.get('RESEND_API_KEY');
-  if (!resendKey) return;
-
+async function queueNotificationEmail(
+  queueManager: NotificationQueueManager,
+  userId: string,
+  type: string,
+  data?: any
+) {
   try {
-    let email: { subject: string; html: string } | null = null;
-
     if (type === 'pro_activated' && data) {
-      email = buildPaymentConfirmationEmail({
-        tier: data.tier || 'pro',
-        amount: data.amount || 19.99,
-        currency: data.currency || 'usd',
-        paymentProvider: data.paymentProvider || 'stripe',
-        userName: data.userName
-      });
+      await queueManager.queueNotification(userId, 'payment', {
+        paymentConfirmation: {
+          tier: data.tier || 'pro',
+          amount: data.amount || 19.99,
+          currency: data.currency || 'usd',
+          paymentProvider: data.paymentProvider || 'stripe',
+          userName: data.userName
+        }
+      }, { priority: 'high' });
+
+      console.log(`[WEBHOOK] Payment confirmation notification queued for user: ${userId}`);
     } else if (type === 'payment_failed') {
-      // Keep existing payment failed template for now
-      email = paymentFailedEmail();
+      // For now, continue to send payment failed emails immediately
+      // TODO: Convert to queue system with dedicated template
+      const resendKey = Deno.env.get('RESEND_API_KEY');
+      if (resendKey && data?.email) {
+        const email = paymentFailedEmail();
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${resendKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            from: FROM,
+            to: [data.email],
+            subject: email.subject,
+            html: email.html
+          }),
+        });
+        console.log(`[WEBHOOK] Payment failed email sent immediately to: ${data.email}`);
+      }
     }
-
-    if (!email) return;
-
-    await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${resendKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: FROM,
-        to: [to],
-        subject: email.subject,
-        html: email.html
-      }),
-    });
-
-    console.log(`[WEBHOOK] Email sent: ${type} → ${to}`);
   } catch (err) {
-    console.warn('[WEBHOOK] Non-critical email send failed:', err);
+    console.warn('[WEBHOOK] Notification queueing failed (non-critical):', err);
   }
 }
 
@@ -152,6 +157,7 @@ serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const queueManager = new NotificationQueueManager(supabase);
     const body = await req.text();
     const sig = req.headers.get('stripe-signature');
 
@@ -205,10 +211,10 @@ serve(async (req) => {
           console.error('[WEBHOOK] Failed to upsert subscription:', upsertError.message);
         } else {
           console.log('[WEBHOOK] Pro access granted for user:', userId);
-          // Send Pro activation email (non-blocking)
+          // Queue Pro activation email (non-blocking)
           const { data: authUser } = await supabase.auth.admin.getUserById(userId);
           if (authUser?.user?.email) {
-            sendTransactionalEmail('pro_activated', authUser.user.email, {
+            await queueNotificationEmail(queueManager, userId, 'pro_activated', {
               tier,
               amount: session.amount_total / 100, // Convert from cents
               currency: session.currency === 'ngn' ? 'ngn' : 'usd',
@@ -380,7 +386,9 @@ serve(async (req) => {
           // Send payment failed alert (non-blocking)
           const { data: authUser } = await supabase.auth.admin.getUserById(existingSub.user_id);
           if (authUser?.user?.email) {
-            sendTransactionalEmail('payment_failed', authUser.user.email);
+            await queueNotificationEmail(queueManager, existingSub.user_id, 'payment_failed', {
+              email: authUser.user.email
+            });
           }
         }
         break;

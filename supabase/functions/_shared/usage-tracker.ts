@@ -87,15 +87,28 @@ export async function scheduleUsageWarning(
   warningData: UsageWarningCheck
 ): Promise<void> {
   try {
+    // Get user name for the notification
+    const { data: authUser } = await supabase.auth.admin.getUserById(userId);
+    const userName = authUser?.user?.user_metadata?.full_name || authUser?.user?.email || 'User';
+
+    // Calculate reset date (first day of next month)
+    const now = new Date();
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const resetDate = nextMonth.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
     await supabase.rpc('schedule_notification', {
       p_user_id: userId,
       p_type: 'usage_warning',
       p_priority: 'medium',
       p_data: {
-        feature: warningData.feature,
-        usage: warningData.usage,
-        limit: warningData.limit,
-        percentage: warningData.percentage
+        usageWarning: {
+          userName,
+          featureName: warningData.feature,
+          usagePercent: warningData.percentage,
+          remaining: warningData.limit - warningData.usage,
+          limit: warningData.limit,
+          resetDate
+        }
       }
     });
 
