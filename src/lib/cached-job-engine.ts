@@ -20,7 +20,7 @@ import { cache, CacheKeys, CacheTTL, invalidateJobsCache } from './cache-manager
 import type { Database } from '@/integrations/supabase/types';
 
 type JobListing = Database['public']['Tables']['job_listings']['Row'];
-type JobMatch = Database['public']['Tables']['job_matches']['Row'];
+type JobMatch = any; // job_matches table not in generated types
 
 interface SearchFilters {
   location?: string;
