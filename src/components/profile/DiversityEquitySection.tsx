@@ -118,7 +118,7 @@ export default function DiversityEquitySection({ candidateId }: DiversityEquityS
       if (profileData) {
         setData({
           ...profileData,
-          privacy_settings: profileData.privacy_settings || {
+          privacy_settings: (profileData.privacy_settings as unknown as DiversityEquityData['privacy_settings']) || {
             share_demographics: false,
             share_disability_status: false,
             share_veteran_status: false
