@@ -9,7 +9,7 @@ const SITE_URL = Deno.env.get('SITE_URL') || 'https://usehunter.app';
 // ─── Hunter Brand Colors ──────────────────────────────────────────────────────
 const PRIMARY = '#0d9488';         // Hunter primary (teal-600)
 const ACCENT = '#10b981';           // Hunter accent (emerald-500)
-const PRIMARY_DARK = '#0f766e';     // teal-700
+const _PRIMARY_DARK = '#0f766e';     // teal-700
 const BG = '#f8fafc';              // slate-50
 const CARD_BG = '#ffffff';
 const TEXT = '#1e293b';            // slate-800
