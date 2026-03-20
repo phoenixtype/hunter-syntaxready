@@ -17,7 +17,7 @@ import {
   Zap,
   Lock,
   ArrowRight,
-  CheckCircle2
+  
 } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { OverageModal } from './OverageModal';
