@@ -6,7 +6,7 @@ import { getOptimizedWeights } from "@/lib/learning_engine";
 import { UserPreferences } from "@/lib/user_preferences";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
-import { searchJobsCached, getTrendingJobsCached, getJobMatchesCached } from "@/lib/cached-job-engine";
+import { searchJobsCached, getJobMatchesCached } from "@/lib/cached-job-engine";
 import { checkFeatureLimit, recordUsage } from "@/lib/redis-rate-limiter";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
