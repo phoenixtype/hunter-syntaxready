@@ -164,23 +164,18 @@ export default function DiversityEquitySection({ candidateId }: DiversityEquityS
           visa_sponsorship_required: data.visa_sponsorship_required || false,
           religious_accommodations: data.religious_accommodations || null,
           socioeconomic_background: data.socioeconomic_background || null,
-          dei_preferences: data.dei_preferences as unknown as import('@/integrations/supabase/types').Json,
-          privacy_settings: data.privacy_settings as unknown as import('@/integrations/supabase/types').Json,
+          dei_preferences: data.dei_preferences as any,
+          privacy_settings: data.privacy_settings as any,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', candidateId);
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Diversity information saved successfully",
-      });
+      toast.success("Diversity information saved successfully");
     } catch (error: any) {
       console.error('Error saving diversity data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save diversity information",
-        variant: "destructive",
-      });
+      toast.error("Failed to save diversity information");
     } finally {
       setSaving(false);
     }

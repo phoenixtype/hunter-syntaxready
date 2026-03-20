@@ -19,7 +19,7 @@ interface ResumePreviewProps {
 }
 
 export const ResumePreview = ({ profile }: ResumePreviewProps) => {
-    const _activeTab = 'overview';
+    
 
     const { identity, skills, experience_atoms: experience, education } = profile;
 
