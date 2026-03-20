@@ -236,9 +236,6 @@ export class HunterAIMobile {
           badge: '/icons/badge-72x72.png',
           data,
         } as NotificationOptions);
-            }
-          ]
-        });
       });
     }
   }
