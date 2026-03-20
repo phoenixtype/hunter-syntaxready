@@ -1,10 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import { corsHeaders, handleCorsPrelight, jsonWithCors, errorWithCors } from '../_shared/cors.ts';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -327,21 +323,17 @@ ${basePrintCss(onePage)}`;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPrelight();
   }
 
   if (req.method === 'GET' || req.method === 'HEAD') {
-    return new Response(JSON.stringify({ status: 'healthy' }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    return jsonWithCors({ status: 'healthy' });
   }
 
   try {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Auth required' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return errorWithCors('Auth required', 401);
     }
 
     const supabaseUrl     = Deno.env.get('SUPABASE_URL')!;
@@ -351,9 +343,7 @@ serve(async (req) => {
     });
     const { data: { user }, error: authError } = await authClient.auth.getUser();
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Invalid session' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return errorWithCors('Invalid session', 401);
     }
 
     // Rate limiting
@@ -365,17 +355,13 @@ serve(async (req) => {
       pro:  { max: 25, window: 300 },
     });
     if (!allowed) {
-      return new Response(JSON.stringify({ error: limitError }), {
-        status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return errorWithCors(limitError, 429);
     }
 
     const { profile, template = 'minimalist', accentColor = '#475569', onePage = false } = await req.json();
 
     if (!profile?.identity) {
-      return new Response(JSON.stringify({ error: 'Profile data required' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return errorWithCors('Profile data required', 400);
     }
 
     const content = buildHtml(profile as Profile, {
@@ -386,15 +372,11 @@ serve(async (req) => {
 
     console.log(`[RESUME] Built HTML (template=${template}, onePage=${onePage}), length=${content.length}`);
 
-    return new Response(JSON.stringify({ success: true, content }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    return jsonWithCors({ success: true, content });
 
   } catch (error: unknown) {
     console.error('[RESUME] Error:', error);
     const msg = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(JSON.stringify({ error: msg }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    return errorWithCors(msg, 500);
   }
 });

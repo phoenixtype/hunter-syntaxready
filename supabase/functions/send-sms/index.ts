@@ -1,10 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import { corsHeaders, handleCorsPrelight, jsonWithCors, errorWithCors } from '../_shared/cors.ts';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -12,17 +9,13 @@ serve(async (req) => {
   }
 
   if (req.method === 'GET' || req.method === 'HEAD') {
-    return new Response(JSON.stringify({ status: 'healthy' }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    return jsonWithCors({ status: 'healthy' });
   }
 
   try {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Auth required' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return jsonWithCors({ error: 'Auth required' }, { status: 401 });
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -32,9 +25,7 @@ serve(async (req) => {
     });
     const { data: { user }, error: authError } = await authClient.auth.getUser();
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Invalid session' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return jsonWithCors({ error: 'Invalid session' }, { status: 401 });
     }
 
     // Rate Limiting
@@ -47,9 +38,7 @@ serve(async (req) => {
     });
 
     if (!allowed) {
-      return new Response(JSON.stringify({ error: limitError }), {
-        status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return jsonWithCors({ error: limitError }, { status: 429 });
     }
 
     const accountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
@@ -58,17 +47,13 @@ serve(async (req) => {
 
     if (!accountSid || !authToken || !fromNumber) {
       console.error('Twilio credentials not configured');
-      return new Response(JSON.stringify({ error: 'SMS service not configured' }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return jsonWithCors({ error: 'SMS service not configured' }, { status: 500 });
     }
 
     const { to, message, type, data } = await req.json();
 
     if (!to) {
-      return new Response(JSON.stringify({ error: 'Phone number required' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return jsonWithCors({ error: 'Phone number required' }, { status: 400 });
     }
 
     // Build SMS message based on type
@@ -118,14 +103,10 @@ serve(async (req) => {
 
     console.log('[SMS] Sent successfully:', twilioData.sid);
 
-    return new Response(JSON.stringify({ success: true, sid: twilioData.sid }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    return jsonWithCors({ success: true, sid: twilioData.sid });
   } catch (error: unknown) {
     console.error('[SMS] Error:', error);
     const msg = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(JSON.stringify({ error: msg }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    return jsonWithCors({ error: msg }, { status: 500 });
   }
 });

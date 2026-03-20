@@ -1,10 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import { corsHeaders, handleCorsPrelight, jsonWithCors, errorWithCors } from '../_shared/cors.ts';
 
 // SECURITY: Generic error messages to avoid information disclosure
 const GENERIC_SERVICE_ERROR = 'Service temporarily unavailable';
@@ -33,25 +29,19 @@ function isHealthCheckRequest(req: Request): boolean {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPrelight();
   }
 
   // HEALTH CHECK: Return 200 OK for crawlers/probes
   if (isHealthCheckRequest(req)) {
-    return new Response(
-      JSON.stringify({ status: 'healthy', service: 'generate-content', timestamp: new Date().toISOString() }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return jsonWithCors({ status: 'healthy', service: 'generate-content', timestamp: new Date().toISOString() });
   }
 
   try {
     // Verify authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ success: false, error: GENERIC_AUTH_ERROR }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return errorWithCors(GENERIC_AUTH_ERROR, 401);
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -61,10 +51,7 @@ serve(async (req) => {
     // SECURITY: Validate config server-side only
     if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
       console.error('[SECURITY] Missing required configuration');
-      return new Response(
-        JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return errorWithCors(GENERIC_SERVICE_ERROR, 500);
     }
 
     // Verify user token
@@ -75,10 +62,7 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await authClient.auth.getUser();
     if (authError || !user) {
       console.error('[AUTH] Token verification failed');
-      return new Response(
-        JSON.stringify({ success: false, error: GENERIC_AUTH_ERROR }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return errorWithCors(GENERIC_AUTH_ERROR, 401);
     }
 
     // Use service role for rate limiting
@@ -94,10 +78,9 @@ serve(async (req) => {
 
     if (!allowed) {
       console.log('[RATE_LIMIT] User rate limited:', user.id);
-      return new Response(
-        JSON.stringify({ success: false, error: limitError || GENERIC_RATE_LIMIT_ERROR }),
-        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': '60' } }
-      );
+      const response = errorWithCors(limitError || GENERIC_RATE_LIMIT_ERROR, 429);
+      response.headers.set('Retry-After', '60');
+      return response;
     }
 
     // SECURITY: Log only user ID
@@ -106,10 +89,7 @@ serve(async (req) => {
     const { profile, job, type } = await req.json();
 
     if (!profile || !job) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Profile and job are required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return errorWithCors('Profile and job are required', 400);
     }
 
     const requestType = type || 'cover_letter';
@@ -360,39 +340,27 @@ Return exactly this JSON structure:
     } catch (aiErr) {
       clearTimeout(llmTimeout);
       console.error('[GENERATE] AI call failed:', aiErr instanceof Error ? aiErr.message : 'unknown');
-      return new Response(
-        JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonWithCors({ success: false, error: GENERIC_SERVICE_ERROR });
     }
     clearTimeout(llmTimeout);
 
     const content = aiResult.content;
 
     if (!content) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'No content generated' }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonWithCors({ success: false, error: 'No content generated' });
     }
 
     console.log(`[GENERATE] Successfully generated ${requestType}`);
 
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        content,
-        type: requestType
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return jsonWithCors({
+      success: true,
+      content,
+      type: requestType
+    });
 
   } catch (error) {
     // SECURITY: Never expose internal errors
     console.error('[ERROR] Generate content error occurred');
-    return new Response(
-      JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return jsonWithCors({ success: false, error: GENERIC_SERVICE_ERROR });
   }
 });

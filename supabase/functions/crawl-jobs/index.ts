@@ -1,10 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import { corsHeaders, handleCorsPrelight, jsonWithCors, errorWithCors } from '../_shared/cors.ts';
 
 const GENERIC_SERVICE_ERROR = 'Service temporarily unavailable';
 const GENERIC_AUTH_ERROR = 'Authentication required';
@@ -650,12 +647,12 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
     if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
-      return new Response(JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return jsonWithCors({ success: false, error: GENERIC_SERVICE_ERROR });
     }
 
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(JSON.stringify({ success: false, error: GENERIC_AUTH_ERROR }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return jsonWithCors({ success: false, error: GENERIC_AUTH_ERROR }, { status: 401 });
     }
 
     const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
@@ -665,7 +662,7 @@ serve(async (req) => {
 
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
     if (authError || !user) {
-      return new Response(JSON.stringify({ success: false, error: GENERIC_SESSION_ERROR }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return jsonWithCors({ success: false, error: GENERIC_SESSION_ERROR }, { status: 401 });
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -692,25 +689,25 @@ serve(async (req) => {
     // ── COMPANY RESEARCH MODE ─────────────────────────────────────────────────
     if (mode === 'company_research') {
       if (!firecrawlApiKey || !geminiApiKey) {
-        return new Response(JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        return jsonWithCors({ success: false, error: GENERIC_SERVICE_ERROR });
       }
       const research = await handleCompanyResearch(firecrawlApiKey, geminiApiKey, body.company, body.title || '');
-      return new Response(JSON.stringify({ success: true, research }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return jsonWithCors({ success: true, research });
     }
 
     // ── STAKEHOLDER SEARCH MODE ──────────────────────────────────────────────
     if (mode === 'stakeholder_search') {
       if (!firecrawlApiKey || !geminiApiKey) {
-        return new Response(JSON.stringify({ success: false, stakeholders: [] }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        return jsonWithCors({ success: false, stakeholders: [] });
       }
       const stakeholders = await handleStakeholderSearch(firecrawlApiKey, geminiApiKey, body.company, body.title || '');
-      return new Response(JSON.stringify({ success: true, stakeholders }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return jsonWithCors({ success: true, stakeholders });
     }
 
     // ── CAREERS PAGE CRAWL MODE ──────────────────────────────────────────────
     if (mode === 'careers_crawl') {
       if (!firecrawlApiKey || !geminiApiKey || !body.careers_url) {
-        return new Response(JSON.stringify({ success: false, error: 'Missing careers_url or API keys' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        return jsonWithCors({ success: false, error: 'Missing careers_url or API keys' });
       }
 
       const jobs = await handleCareersCrawl(firecrawlApiKey, geminiApiKey, body.careers_url);
@@ -724,16 +721,16 @@ serve(async (req) => {
         console.log(`[CAREERS_CRAWL] Inserted ${inserted} of ${jobs.length} jobs`);
       }
 
-      return new Response(JSON.stringify({ success: true, jobs, total: jobs.length }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return jsonWithCors({ success: true, jobs, total: jobs.length });
     }
 
     // ── SALARY RESEARCH MODE ─────────────────────────────────────────────────
     if (mode === 'salary_research') {
       if (!firecrawlApiKey) {
-        return new Response(JSON.stringify({ success: false, market_data: '' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        return jsonWithCors({ success: false, market_data: '' });
       }
       const market_data = await handleSalaryResearch(firecrawlApiKey, body.role || '', body.location || '');
-      return new Response(JSON.stringify({ success: true, market_data }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return jsonWithCors({ success: true, market_data });
     }
 
     // ─── Cleanup Stale Jobs (older than 30 days) ──────────────────────────
@@ -757,14 +754,14 @@ serve(async (req) => {
     if (url) {
       // ── URL SCRAPE MODE (Firecrawl + Gemini) ──────────────────────────────
       if (!firecrawlApiKey || !geminiApiKey) {
-        return new Response(JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        return jsonWithCors({ success: false, error: GENERIC_SERVICE_ERROR });
       }
 
       console.log(`[SCRAPE] URL: ${url}`);
       const markdown = await firecrawlScrapeUrl(firecrawlApiKey, url);
 
       if (!markdown) {
-        return new Response(JSON.stringify({ success: false, error: 'Could not extract content from the job page. Ensure the URL is publicly accessible.' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        return jsonWithCors({ success: false, error: 'Could not extract content from the job page. Ensure the URL is publicly accessible.' });
       }
 
       const normalized = await normalizeWithGemini(geminiApiKey, { title: 'Scraped Job', url, content: markdown, source: 'Direct' });
@@ -773,7 +770,7 @@ serve(async (req) => {
     } else {
       // ── SEARCH MODE (JSearch) ─────────────────────────────────────────────
       if (!jsearchApiKey) {
-        return new Response(JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        return jsonWithCors({ success: false, error: GENERIC_SERVICE_ERROR });
       }
 
       const searchRoles  = Array.isArray(targetRoles) ? targetRoles.filter(Boolean).map(String) : [];

@@ -256,9 +256,7 @@ serve(async (req) => {
 
     console.log('[PROCESSOR] Completed batch:', response);
 
-    return new Response(JSON.stringify(response), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    return jsonWithCors(response);
 
   } catch (error) {
     console.error('[PROCESSOR] Critical error:', error);
@@ -269,9 +267,6 @@ serve(async (req) => {
       timestamp: new Date().toISOString()
     };
 
-    return new Response(JSON.stringify(errorResponse), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    return jsonWithCors(errorResponse, { status: 500 });
   }
 });

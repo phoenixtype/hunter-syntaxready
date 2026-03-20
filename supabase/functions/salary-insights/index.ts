@@ -1,10 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import { corsHeaders, handleCorsPrelight, jsonWithCors, errorWithCors } from '../_shared/cors.ts';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -12,17 +9,13 @@ serve(async (req) => {
   }
 
   if (req.method === 'GET' || req.method === 'HEAD') {
-    return new Response(JSON.stringify({ status: 'healthy' }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    return jsonWithCors({ status: 'healthy' });
   }
 
   try {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Auth required' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return jsonWithCors({ error: 'Auth required' }, { status: 401 });
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -32,9 +25,7 @@ serve(async (req) => {
     });
     const { data: { user }, error: authError } = await authClient.auth.getUser();
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Invalid session' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return jsonWithCors({ error: 'Invalid session' }, { status: 401 });
     }
 
     // Rate Limiting
@@ -47,9 +38,7 @@ serve(async (req) => {
     });
 
     if (!allowed) {
-      return new Response(JSON.stringify({ error: limitError }), {
-        status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return jsonWithCors({ error: limitError }, { status: 429 });
     }
 
     const { callAI, MODEL_FAST } = await import('../_shared/ai-client.ts');
@@ -149,24 +138,18 @@ Use the real market data above to ground your analysis. You MUST call the functi
     
     if (toolCall?.function?.arguments) {
       const parsed = JSON.parse(toolCall.function.arguments);
-      return new Response(JSON.stringify(parsed), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return jsonWithCors(parsed);
     }
 
     // Fallback
-    return new Response(JSON.stringify({
+    return jsonWithCors({
       estimatedRange: salaryRange || "Research needed",
       marketPosition: "Competitive",
       negotiationScript: "Research the company's compensation philosophy and prepare data points from similar roles in your area.",
       keyPoints: ["Research comparable roles on Levels.fyi", "Consider total compensation including equity and benefits"]
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error: unknown) {
     console.error('[SALARY] Error:', error);
-    return new Response(JSON.stringify({ error: 'Service unavailable' }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    return jsonWithCors({ error: 'Service unavailable' }, { status: 500 });
   }
 });

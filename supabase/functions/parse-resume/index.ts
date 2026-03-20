@@ -1,25 +1,19 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import { corsHeaders, handleCorsPrelight, jsonWithCors, errorWithCors } from '../_shared/cors.ts';
 
 const GENERIC_SERVICE_ERROR = 'Service temporarily unavailable';
 const GENERIC_AUTH_ERROR = 'Authentication required';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPrelight();
   }
 
   try {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(JSON.stringify({ success: false, error: GENERIC_AUTH_ERROR }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return errorWithCors(GENERIC_AUTH_ERROR, 401);
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -31,9 +25,7 @@ serve(async (req) => {
     });
     const { data: { user }, error: authError } = await authClient.auth.getUser();
     if (authError || !user) {
-      return new Response(JSON.stringify({ success: false, error: GENERIC_AUTH_ERROR }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return errorWithCors(GENERIC_AUTH_ERROR, 401);
     }
 
     // Rate limiting
@@ -45,9 +37,7 @@ serve(async (req) => {
       pro:  { max: 30, window: 60 },
     });
     if (!allowed) {
-      return new Response(JSON.stringify({ success: false, error: limitError || 'Too many requests' }), {
-        status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return errorWithCors(limitError || 'Too many requests', 429);
     }
 
     const { resumeText, userId, resumeUrl } = await req.json();
@@ -152,9 +142,7 @@ Additional context:
     } catch { /* malformed AI response — treat as extraction failure */ }
 
     if (!extractedData?.profile) {
-      return new Response(JSON.stringify({ success: false, error: 'Failed to extract profile' }), {
-        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return jsonWithCors({ success: false, error: 'Failed to extract profile' });
     }
 
     // Add UUIDs to experience atoms if missing
@@ -166,14 +154,10 @@ Additional context:
       }));
     }
 
-    return new Response(JSON.stringify({ success: true, profile: extractedData.profile }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    return jsonWithCors({ success: true, profile: extractedData.profile });
 
   } catch (error) {
     console.error('[ERROR] Parse resume error occurred:', error);
-    return new Response(JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    return errorWithCors(GENERIC_SERVICE_ERROR, 500);
   }
 });
