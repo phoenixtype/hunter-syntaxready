@@ -1,7 +1,7 @@
 # Hunter — Platform Admin Guide
 
 > **Audience:** Platform administrators with a `root` or `admin` role in the `platform_admins` table.
-> **Last updated:** 2026-03-18
+> **Last updated:** 2026-03-19
 > **Update policy:** Update this document whenever an admin-facing feature is added, removed, or changed. Keep the changelog at the bottom current.
 
 ---
@@ -634,6 +634,7 @@ Track significant changes to admin functionality here.
 | 2026-03-17 | 1.2 | Recruiter portal: applicant cap (`max_applicants`), ranked shortlist UI in JobApplicants | System |
 | 2026-03-17 | 1.3 | Interview coach: web research mode (Reddit/Glassdoor crawl for likely questions) | System |
 | 2026-03-18 | 1.4 | Fixed `/admin/analytics` route to use `AdminPage` wrapper (was `AppPage` — non-admins could access). Page now renders inside admin sidebar layout. | System |
+| 2026-03-19 | 1.5 | **CRITICAL:** Fixed database integration issues for subscription feature usage functions. Updated `record_feature_usage` and `check_feature_usage_limit` function signatures to match frontend expectations exactly (parameter names: `p_usage_count` vs `p_count`, added `p_metadata` parameter). | System |
 
 ---
 

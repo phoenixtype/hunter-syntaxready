@@ -12,8 +12,69 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
+      accessibility_requests: {
+        Row: {
+          accommodation_details: string
+          candidate_id: string | null
+          created_at: string | null
+          employer_response: string | null
+          id: string
+          job_application_id: string | null
+          request_type: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          accommodation_details: string
+          candidate_id?: string | null
+          created_at?: string | null
+          employer_response?: string | null
+          id?: string
+          job_application_id?: string | null
+          request_type: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          accommodation_details?: string
+          candidate_id?: string | null
+          created_at?: string | null
+          employer_response?: string | null
+          id?: string
+          job_application_id?: string | null
+          request_type?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       agent_activity_logs: {
         Row: {
           action: string
@@ -96,40 +157,115 @@ export type Database = {
       }
       candidate_profiles: {
         Row: {
+          accessibility_accommodations: string[] | null
+          age: number | null
           created_at: string
+          dei_preferences: Json | null
+          disability_status: string | null
           education: Json
+          ethnicity: string[] | null
           experience_atoms: Json
+          first_generation_college: boolean | null
+          gender: string | null
           id: string
           identity: Json
+          primary_language: string | null
+          privacy_settings: Json | null
+          pronouns: string | null
           raw_resume_text: string | null
+          religious_accommodations: string[] | null
           resume_file_url: string | null
           skills: Json
+          socioeconomic_background: string | null
           updated_at: string
           user_id: string
+          veteran_status: boolean | null
+          visa_sponsorship_required: boolean | null
         }
         Insert: {
+          accessibility_accommodations?: string[] | null
+          age?: number | null
           created_at?: string
+          dei_preferences?: Json | null
+          disability_status?: string | null
           education?: Json
+          ethnicity?: string[] | null
           experience_atoms?: Json
+          first_generation_college?: boolean | null
+          gender?: string | null
           id?: string
           identity?: Json
+          primary_language?: string | null
+          privacy_settings?: Json | null
+          pronouns?: string | null
           raw_resume_text?: string | null
+          religious_accommodations?: string[] | null
           resume_file_url?: string | null
           skills?: Json
+          socioeconomic_background?: string | null
           updated_at?: string
           user_id: string
+          veteran_status?: boolean | null
+          visa_sponsorship_required?: boolean | null
         }
         Update: {
+          accessibility_accommodations?: string[] | null
+          age?: number | null
           created_at?: string
+          dei_preferences?: Json | null
+          disability_status?: string | null
           education?: Json
+          ethnicity?: string[] | null
           experience_atoms?: Json
+          first_generation_college?: boolean | null
+          gender?: string | null
           id?: string
           identity?: Json
+          primary_language?: string | null
+          privacy_settings?: Json | null
+          pronouns?: string | null
           raw_resume_text?: string | null
+          religious_accommodations?: string[] | null
           resume_file_url?: string | null
           skills?: Json
+          socioeconomic_background?: string | null
           updated_at?: string
           user_id?: string
+          veteran_status?: boolean | null
+          visa_sponsorship_required?: boolean | null
+        }
+        Relationships: []
+      }
+      companies: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          industry: string | null
+          name: string
+          size_range: string | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          industry?: string | null
+          name: string
+          size_range?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          industry?: string | null
+          name?: string
+          size_range?: string | null
+          updated_at?: string | null
+          website?: string | null
         }
         Relationships: []
       }
@@ -160,6 +296,74 @@ export type Database = {
         }
         Relationships: []
       }
+      diversity_metrics: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          id: string
+          metric_category: string
+          metric_name: string
+          metric_value: number | null
+          reporting_period: string
+          updated_at: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          metric_category: string
+          metric_name: string
+          metric_value?: number | null
+          reporting_period: string
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          metric_category?: string
+          metric_name?: string
+          metric_value?: number | null
+          reporting_period?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diversity_metrics_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dropdown_options: {
+        Row: {
+          category: string
+          created_at: string | null
+          display_text: string
+          id: string
+          option_value: string
+          sort_order: number | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          display_text: string
+          id?: string
+          option_value: string
+          sort_order?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          display_text?: string
+          id?: string
+          option_value?: string
+          sort_order?: number | null
+        }
+        Relationships: []
+      }
       feedback_actions: {
         Row: {
           action: string
@@ -187,18 +391,60 @@ export type Database = {
         }
         Relationships: []
       }
+      job_applications: {
+        Row: {
+          candidate_id: string | null
+          created_at: string | null
+          id: string
+          job_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          candidate_id?: string | null
+          created_at?: string | null
+          id?: string
+          job_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          candidate_id?: string | null
+          created_at?: string | null
+          id?: string
+          job_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       job_listings: {
         Row: {
+          accessibility_support: string[] | null
+          accommodation_statement: string | null
           company: string
           created_at: string
           credibility_score: number | null
+          dei_commitment: string | null
           description: string | null
+          diversity_rating: number | null
+          eeo_statement: string | null
+          experience_level: string | null
           freshness_score: number | null
           id: string
+          inclusive_benefits: string[] | null
           job_hash: string
+          job_type: string | null
           location: string | null
+          mentorship_programs: boolean | null
+          pay_equity_certified: boolean | null
           posted_at: string | null
+          preferred_pronouns_respected: boolean | null
           raw_data: Json | null
+          remote: boolean | null
+          remote_work_accessibility: boolean | null
+          salary_max: number | null
+          salary_min: number | null
           salary_range: string | null
           source: string
           tech_stack: string[] | null
@@ -207,16 +453,31 @@ export type Database = {
           url: string
         }
         Insert: {
+          accessibility_support?: string[] | null
+          accommodation_statement?: string | null
           company: string
           created_at?: string
           credibility_score?: number | null
+          dei_commitment?: string | null
           description?: string | null
+          diversity_rating?: number | null
+          eeo_statement?: string | null
+          experience_level?: string | null
           freshness_score?: number | null
           id?: string
+          inclusive_benefits?: string[] | null
           job_hash: string
+          job_type?: string | null
           location?: string | null
+          mentorship_programs?: boolean | null
+          pay_equity_certified?: boolean | null
           posted_at?: string | null
+          preferred_pronouns_respected?: boolean | null
           raw_data?: Json | null
+          remote?: boolean | null
+          remote_work_accessibility?: boolean | null
+          salary_max?: number | null
+          salary_min?: number | null
           salary_range?: string | null
           source?: string
           tech_stack?: string[] | null
@@ -225,16 +486,31 @@ export type Database = {
           url: string
         }
         Update: {
+          accessibility_support?: string[] | null
+          accommodation_statement?: string | null
           company?: string
           created_at?: string
           credibility_score?: number | null
+          dei_commitment?: string | null
           description?: string | null
+          diversity_rating?: number | null
+          eeo_statement?: string | null
+          experience_level?: string | null
           freshness_score?: number | null
           id?: string
+          inclusive_benefits?: string[] | null
           job_hash?: string
+          job_type?: string | null
           location?: string | null
+          mentorship_programs?: boolean | null
+          pay_equity_certified?: boolean | null
           posted_at?: string | null
+          preferred_pronouns_respected?: boolean | null
           raw_data?: Json | null
+          remote?: boolean | null
+          remote_work_accessibility?: boolean | null
+          salary_max?: number | null
+          salary_min?: number | null
           salary_range?: string | null
           source?: string
           tech_stack?: string[] | null
@@ -322,6 +598,81 @@ export type Database = {
           updated_at?: string
           user_id?: string
           weekly_digest?: boolean
+        }
+        Relationships: []
+      }
+      overage_purchases: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          feature_name: string
+          id: string
+          quantity: number
+          status: string
+          stripe_payment_intent_id: string | null
+          total_amount: number
+          unit_price: number
+          updated_at: string | null
+          used_count: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          feature_name: string
+          id?: string
+          quantity: number
+          status?: string
+          stripe_payment_intent_id?: string | null
+          total_amount: number
+          unit_price: number
+          updated_at?: string | null
+          used_count?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          feature_name?: string
+          id?: string
+          quantity?: number
+          status?: string
+          stripe_payment_intent_id?: string | null
+          total_amount?: number
+          unit_price?: number
+          updated_at?: string | null
+          used_count?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      paystack_webhooks: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          paystack_event_id: string | null
+          processed: boolean | null
+          processed_at: string | null
+          webhook_data: Json
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          paystack_event_id?: string | null
+          processed?: boolean | null
+          processed_at?: string | null
+          webhook_data: Json
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          paystack_event_id?: string | null
+          processed?: boolean | null
+          processed_at?: string | null
+          webhook_data?: Json
         }
         Relationships: []
       }
@@ -758,13 +1109,114 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plans: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_name: string
+          feature_limits: Json
+          id: string
+          is_active: boolean | null
+          name: string
+          overage_rates: Json
+          paystack_plan_code: string | null
+          paystack_plan_code_yearly: string | null
+          price_monthly: number
+          price_monthly_ngn: number | null
+          price_yearly: number
+          price_yearly_ngn: number | null
+          sort_order: number | null
+          stripe_price_id: string | null
+          stripe_price_id_yearly: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_name: string
+          feature_limits?: Json
+          id?: string
+          is_active?: boolean | null
+          name: string
+          overage_rates?: Json
+          paystack_plan_code?: string | null
+          paystack_plan_code_yearly?: string | null
+          price_monthly?: number
+          price_monthly_ngn?: number | null
+          price_yearly?: number
+          price_yearly_ngn?: number | null
+          sort_order?: number | null
+          stripe_price_id?: string | null
+          stripe_price_id_yearly?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_name?: string
+          feature_limits?: Json
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          overage_rates?: Json
+          paystack_plan_code?: string | null
+          paystack_plan_code_yearly?: string | null
+          price_monthly?: number
+          price_monthly_ngn?: number | null
+          price_yearly?: number
+          price_yearly_ngn?: number | null
+          sort_order?: number | null
+          stripe_price_id?: string | null
+          stripe_price_id_yearly?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      subscription_usage: {
+        Row: {
+          created_at: string | null
+          feature_name: string
+          id: string
+          period_end: string
+          period_start: string
+          updated_at: string | null
+          usage_count: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          feature_name: string
+          id?: string
+          period_end: string
+          period_start: string
+          updated_at?: string | null
+          usage_count?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          feature_name?: string
+          id?: string
+          period_end?: string
+          period_start?: string
+          updated_at?: string | null
+          usage_count?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cancel_at_period_end: boolean | null
           created_at: string
+          currency: string | null
           current_period_end: string | null
           current_period_start: string | null
+          feature_limits: Json | null
           id: string
+          payment_provider: string | null
+          paystack_customer_code: string | null
+          paystack_subscription_code: string | null
           status: string
           stripe_customer_id: string | null
           stripe_price_id: string | null
@@ -776,9 +1228,14 @@ export type Database = {
         Insert: {
           cancel_at_period_end?: boolean | null
           created_at?: string
+          currency?: string | null
           current_period_end?: string | null
           current_period_start?: string | null
+          feature_limits?: Json | null
           id?: string
+          payment_provider?: string | null
+          paystack_customer_code?: string | null
+          paystack_subscription_code?: string | null
           status?: string
           stripe_customer_id?: string | null
           stripe_price_id?: string | null
@@ -790,9 +1247,14 @@ export type Database = {
         Update: {
           cancel_at_period_end?: boolean | null
           created_at?: string
+          currency?: string | null
           current_period_end?: string | null
           current_period_start?: string | null
+          feature_limits?: Json | null
           id?: string
+          payment_provider?: string | null
+          paystack_customer_code?: string | null
+          paystack_subscription_code?: string | null
           status?: string
           stripe_customer_id?: string | null
           stripe_price_id?: string | null
@@ -800,6 +1262,63 @@ export type Database = {
           tier?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      subscriptions_backup: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string | null
+          currency: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string | null
+          payment_provider: string | null
+          paystack_customer_code: string | null
+          paystack_subscription_code: string | null
+          status: string | null
+          stripe_customer_id: string | null
+          stripe_price_id: string | null
+          stripe_subscription_id: string | null
+          tier: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          currency?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string | null
+          payment_provider?: string | null
+          paystack_customer_code?: string | null
+          paystack_subscription_code?: string | null
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+          tier?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          currency?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string | null
+          payment_provider?: string | null
+          paystack_customer_code?: string | null
+          paystack_subscription_code?: string | null
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+          tier?: string | null
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -835,6 +1354,75 @@ export type Database = {
           job_title?: string
           job_url?: string | null
           tailored_profile?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      usage_alerts: {
+        Row: {
+          acknowledged: boolean | null
+          alert_threshold: number
+          alert_type: string
+          created_at: string | null
+          feature_name: string
+          id: string
+          sent_at: string | null
+          user_id: string
+        }
+        Insert: {
+          acknowledged?: boolean | null
+          alert_threshold: number
+          alert_type: string
+          created_at?: string | null
+          feature_name: string
+          id?: string
+          sent_at?: string | null
+          user_id: string
+        }
+        Update: {
+          acknowledged?: boolean | null
+          alert_threshold?: number
+          alert_type?: string
+          created_at?: string | null
+          feature_name?: string
+          id?: string
+          sent_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      usage_tracking: {
+        Row: {
+          created_at: string | null
+          feature_name: string
+          id: string
+          metadata: Json | null
+          period_end: string
+          period_start: string
+          updated_at: string | null
+          usage_count: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          feature_name: string
+          id?: string
+          metadata?: Json | null
+          period_end: string
+          period_start: string
+          updated_at?: string | null
+          usage_count?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          feature_name?: string
+          id?: string
+          metadata?: Json | null
+          period_end?: string
+          period_start?: string
+          updated_at?: string | null
+          usage_count?: number
           user_id?: string
         }
         Relationships: []
@@ -911,6 +1499,98 @@ export type Database = {
         }
         Relationships: []
       }
+      user_subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string | null
+          current_period_end: string
+          current_period_start: string
+          id: string
+          plan_id: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end: string
+          current_period_start?: string
+          id?: string
+          plan_id: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string
+          current_period_start?: string
+          id?: string
+          plan_id?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_subscriptions_backup: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string | null
+          plan_id: string | null
+          status: string | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string | null
+          plan_id?: string | null
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string | null
+          plan_id?: string | null
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           created_at: string | null
@@ -934,6 +1614,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_feature_usage_limit: {
+        Args: {
+          p_feature_name: string
+          p_requested_count?: number
+          p_user_id: string
+        }
+        Returns: {
+          can_use: boolean
+          current_usage: number
+          limit_amount: number
+          remaining_amount: number
+        }[]
+      }
       check_rate_limit: {
         Args: {
           p_function_name: string
@@ -944,9 +1637,56 @@ export type Database = {
         Returns: boolean
       }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
+      get_current_usage: {
+        Args: {
+          p_feature_name: string
+          p_period_start?: string
+          p_user_id: string
+        }
+        Returns: number
+      }
+      get_feature_usage: {
+        Args: { p_feature_name: string; p_user_id: string }
+        Returns: number
+      }
+      get_overage_rate: {
+        Args: { p_feature_name: string; p_user_id: string }
+        Returns: number
+      }
+      get_payment_provider_for_user: {
+        Args: { p_user_country?: string; p_user_id: string }
+        Returns: {
+          currency: string
+          monthly_price: number
+          provider: string
+          yearly_price: number
+        }[]
+      }
       get_platform_analytics: { Args: never; Returns: Json }
       is_platform_admin: { Args: never; Returns: boolean }
       is_root_admin: { Args: never; Returns: boolean }
+      match_dei_preferences: {
+        Args: { candidate_profile_id: string; job_listing_id: string }
+        Returns: number
+      }
+      purchase_overage_credits: {
+        Args: {
+          p_feature_name: string
+          p_payment_intent_id: string
+          p_quantity: number
+          p_user_id: string
+        }
+        Returns: string
+      }
+      record_feature_usage: {
+        Args: {
+          p_feature_name: string
+          p_metadata?: Json
+          p_usage_count?: number
+          p_user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
@@ -1075,6 +1815,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

@@ -85,6 +85,7 @@ export interface FeatureUsageCheck {
   overage_needed: number;
   overage_cost: number;
   subscription_plan: string;
+  currency: string;
 }
 
 export interface FeatureUsageRequest {
