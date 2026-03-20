@@ -209,7 +209,7 @@ class CachedJobEngine {
       async () => {
         console.log(`[JOBS_CACHE] Fetching job matches for user: ${userId}`);
 
-        const { data: matches, error } = await supabase
+        const { data: matches, error } = await (supabase as any)
           .from('job_matches')
           .select('*, job_listings(*)')
           .eq('user_id', userId)
