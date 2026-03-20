@@ -410,7 +410,7 @@ export const getRecruiterStats = async (recruiterId: string): Promise<RecruiterS
 
     // Count interviews and offers from applications
     (jobData.recruiter_job_applications || []).forEach((app) => {
-      const appKey = `${job.id}-${app.status}`;
+      const appKey = `${jobData.id}-${app.status}`;
       if (!processedApps.has(appKey)) {
         processedApps.add(appKey);
         if (app.status === "interview") totalInterviews++;
