@@ -103,7 +103,7 @@ export function UsageGuard({
     if (usageStatus === 'available' || usageStatus === 'warning') {
       setIsExecuting(true);
       try {
-        const result = await useFeature(featureName, requiredCount);
+        const result = await (recordUsage as any)(featureName, requiredCount) as any;
         if (result.success) {
           // Action was successful, feature usage recorded
           await checkUsage(); // Refresh usage status

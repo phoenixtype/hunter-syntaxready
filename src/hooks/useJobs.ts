@@ -21,7 +21,7 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
     const queryClient = useQueryClient();
     const [page, setPage] = useState(1);
     const { user } = useAuth();
-    const { subscription } = useSubscription();
+    const { currentSubscription: subscription } = useSubscription();
 
     // 1. Fetch Job Count with caching
     const { data: jobCount = 0 } = useQuery({

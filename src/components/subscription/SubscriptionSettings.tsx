@@ -277,7 +277,7 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
                       </div>
                       <div className="flex justify-between">
                         <span>Next billing:</span>
-                        <span>{format(new Date(currentSubscription.current_period_end), 'MMM d, yyyy')}</span>
+                        <span>{format(new Date(currentSubscription.current_period_end || new Date()), 'MMM d, yyyy')}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Amount:</span>
