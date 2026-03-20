@@ -121,11 +121,7 @@ export default function CompanyDiversitySettings({ companyId }: CompanyDiversity
       });
     } catch (error: any) {
       console.error('Error loading company diversity data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load company diversity information",
-        variant: "destructive",
-      });
+      toast.error("Failed to load company diversity information");
     } finally {
       setLoading(false);
     }

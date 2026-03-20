@@ -164,10 +164,8 @@ export default function DiversityEquitySection({ candidateId }: DiversityEquityS
           visa_sponsorship_required: data.visa_sponsorship_required || false,
           religious_accommodations: data.religious_accommodations || null,
           socioeconomic_background: data.socioeconomic_background || null,
-          dei_preferences: data.dei_preferences,
-          privacy_settings: data.privacy_settings,
-          updated_at: new Date().toISOString()
-        })
+          dei_preferences: data.dei_preferences as unknown as import('@/integrations/supabase/types').Json,
+          privacy_settings: data.privacy_settings as unknown as import('@/integrations/supabase/types').Json,
         .eq('id', candidateId);
 
       if (error) throw error;
