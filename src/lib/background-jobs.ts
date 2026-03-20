@@ -12,8 +12,8 @@
  */
 
 import PQueue from 'p-queue';
-import { generateResumeInWorker, generateDocxInWorker } from './pdf_export';
-import { queueEmailNotification } from './function-queue';
+import { generateResumeInWorker } from './pdf_export';
+import { queueEmailNotification as queueEmailViaEdge } from './function-queue';
 import { recordCompliantAction } from './compliance_engine';
 import type { CandidateProfile } from './resume_engine';
 
