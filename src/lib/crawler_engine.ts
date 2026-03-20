@@ -51,7 +51,7 @@ export const triggerJobCrawl = async (
 
     if (error) {
       console.error('Crawl invocation error:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: (error as any).message };
     }
 
     return {
