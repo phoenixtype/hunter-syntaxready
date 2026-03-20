@@ -162,7 +162,7 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
         {/* Plans Tab */}
         <TabsContent value="plans" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {plans?.map((plan) => {
+            {plans?.map((plan: any) => {
               const isCurrent = currentPlan?.id === plan.id;
               const isUpgrade = currentPlan && plan.price_monthly > currentPlan.price_monthly;
 
