@@ -105,6 +105,13 @@ interface WeeklyDigestData {
   interviews?: number;
 }
 
+interface UsageWarningData {
+  feature: string;
+  usage: number;
+  limit: number;
+  percentage: number;
+}
+
 function buildJobAlertEmail(jobs: Job[]): { subject: string; html: string } {
   const jobCards = jobs.map((job: Job) => `
     <tr>
@@ -187,6 +194,63 @@ function buildApplicationUpdateEmail(data: ApplicationData): { subject: string; 
   return {
     subject: `📋 Application Update: ${data?.job_title || 'Your Application'}`,
     html: emailLayout('Application Update', `Your application for ${data?.job_title} has been updated`, `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${body}</table>`),
+  };
+}
+
+function buildUsageWarningEmail(data: UsageWarningData): { subject: string; html: string } {
+  const featureName = data.feature.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  const remaining = data.limit - data.usage;
+
+  const body = `
+    <!-- Warning Banner -->
+    <tr>
+      <td style="background: linear-gradient(135deg, #f59e0b, #dc2626); padding: 40px 32px;">
+        <h1 style="margin: 0 0 8px; font-size: 24px; font-weight: 700; color: #ffffff;">⚠️ Usage Alert</h1>
+        <p style="margin: 0; font-size: 15px; color: rgba(255,255,255,0.85);">You're approaching your monthly limit</p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 32px;">
+        <!-- Feature Usage Card -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: #fef3c7; border-radius: 12px; border: 1px solid #fbbf24; margin-bottom: 24px;">
+          <tr>
+            <td style="padding: 24px;">
+              <h2 style="margin: 0 0 16px; font-size: 18px; font-weight: 700; color: #92400e;">${featureName}</h2>
+              <div style="background: #ffffff; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <span style="font-size: 14px; color: ${BRAND.textSecondary};">Usage</span>
+                  <span style="font-size: 16px; font-weight: 700; color: #dc2626;">${data.usage} / ${data.limit}</span>
+                </div>
+                <div style="background: #f3f4f6; height: 8px; border-radius: 4px; overflow: hidden;">
+                  <div style="background: ${data.percentage >= 90 ? '#dc2626' : '#f59e0b'}; width: ${data.percentage}%; height: 100%; border-radius: 4px;"></div>
+                </div>
+                <p style="margin: 8px 0 0; font-size: 12px; color: ${BRAND.textMuted};">${data.percentage}% of monthly allowance used</p>
+              </div>
+              <p style="margin: 0; font-size: 14px; color: #92400e;">
+                <strong>Only ${remaining} ${remaining === 1 ? 'use' : 'uses'} remaining</strong> until your limit resets next month.
+              </p>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Action Buttons -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td width="50%" style="padding-right: 8px;">
+              <a href="${SITE_URL}/dashboard?tab=usage" style="display: block; background: ${BRAND.primary}; color: #ffffff; font-size: 14px; font-weight: 600; padding: 12px 16px; border-radius: 10px; text-decoration: none; text-align: center;">View Usage</a>
+            </td>
+            <td width="50%" style="padding-left: 8px;">
+              <a href="${SITE_URL}/dashboard?tab=billing" style="display: block; background: #16a34a; color: #ffffff; font-size: 14px; font-weight: 600; padding: 12px 16px; border-radius: 10px; text-decoration: none; text-align: center;">Upgrade Plan</a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  `;
+
+  return {
+    subject: `⚠️ Usage Alert: ${featureName} at ${data.percentage}%`,
+    html: emailLayout('Usage Alert', `You've used ${data.percentage}% of your monthly ${featureName.toLowerCase()} allowance`, `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${body}</table>`),
   };
 }
 
@@ -321,6 +385,10 @@ serve(async (req) => {
       emailHtml = result.html;
     } else if (type === 'weekly_digest') {
       const result = buildWeeklyDigestEmail(data);
+      emailSubject = result.subject;
+      emailHtml = result.html;
+    } else if (type === 'usage_warning') {
+      const result = buildUsageWarningEmail(data);
       emailSubject = result.subject;
       emailHtml = result.html;
     }
