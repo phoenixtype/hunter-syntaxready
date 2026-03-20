@@ -57,3 +57,19 @@ export interface ProjectConstraint {
 }
 
 export type PatternType = OptimizationPattern['type'];
+
+export interface PatternCriteria {
+  type?: PatternType;
+  risk_level?: 'low' | 'medium' | 'high';
+  privacy_level?: 'private' | 'team' | 'public';
+  min_effectiveness?: number;
+  created_after?: Date;
+  project_context?: Partial<ProjectContext>;
+}
+
+export interface StorageConfig {
+  base_path: string;
+  max_patterns_per_file: number;
+  compression_enabled: boolean;
+  backup_enabled: boolean;
+}
