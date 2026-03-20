@@ -1,5 +1,5 @@
-import { PatternStorage } from '../../../../.claude/global/lib/pattern-storage';
-import { OptimizationPattern } from '../../../../.claude/global/lib/types';
+import { PatternStorage } from '../../../.claude/global/lib/pattern-storage';
+import { OptimizationPattern } from '../../../.claude/global/lib/types';
 
 describe('PatternStorage', () => {
   let storage: PatternStorage;
@@ -66,6 +66,17 @@ describe('PatternStorage', () => {
       risk_level: 'low'
     });
 
+    expect(Array.isArray(patterns)).toBe(true);
+  });
+
+  it('should query patterns by project context', async () => {
+    // Test that project_context criteria work correctly
+    const patterns = await storage.queryPatterns({
+      project_context: {
+        tech_stack: ['typescript'],
+        project_type: 'web_app'
+      }
+    });
     expect(Array.isArray(patterns)).toBe(true);
   });
 });

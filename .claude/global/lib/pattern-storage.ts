@@ -86,6 +86,19 @@ export class PatternStorage {
     if (criteria.min_effectiveness && pattern.effectiveness_score < criteria.min_effectiveness) return false;
     if (criteria.created_after && pattern.created_at < criteria.created_after) return false;
 
+    // Add project_context matching logic
+    if (criteria.project_context) {
+      if (criteria.project_context.tech_stack) {
+        const hasAllTech = criteria.project_context.tech_stack.every(tech =>
+          pattern.context.tech_stack.includes(tech)
+        );
+        if (!hasAllTech) return false;
+      }
+      if (criteria.project_context.project_type && pattern.context.project_type !== criteria.project_context.project_type) return false;
+      if (criteria.project_context.team_size && pattern.context.team_size !== criteria.project_context.team_size) return false;
+      if (criteria.project_context.current_phase && pattern.context.current_phase !== criteria.project_context.current_phase) return false;
+    }
+
     return true;
   }
 
