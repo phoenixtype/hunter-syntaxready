@@ -35,13 +35,20 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
     subscriptionLoading
   } = useSubscription();
 
-  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
+  const [_selectedPlan, _setSelectedPlan] = useState<any>(null);
 
   if (plansLoading || subscriptionLoading) {
     return <DashboardSkeleton />;
   }
 
-  const currentPlan = currentSubscription?.subscription_plans;
+  const currentPlan = (currentSubscription as any)?.subscription_plans || {
+    name: currentSubscription?.tier || 'free',
+    display_name: currentSubscription?.tier ? currentSubscription.tier.charAt(0).toUpperCase() + currentSubscription.tier.slice(1) : 'Free',
+    description: '',
+    price_monthly: 0,
+    price_yearly: 0,
+    id: '',
+  };
 
   const handleUpgrade = (plan: SubscriptionPlan) => {
     setSelectedPlan(plan);
