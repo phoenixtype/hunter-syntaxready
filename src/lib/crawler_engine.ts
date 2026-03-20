@@ -234,7 +234,7 @@ export const getJobById = async (id: string): Promise<JobOpportunity | undefined
       return undefined;
     }
 
-    return mapJobRow(data);
+    return mapJobRow(data as any);
   } catch (err) {
     console.error('Get job error:', err);
     return undefined;

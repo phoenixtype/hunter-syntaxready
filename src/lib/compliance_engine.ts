@@ -183,9 +183,9 @@ export const recordCompliantAction = async (
             .then(() => {
                 // Non-blocking database logging for analytics
             })
-            .catch((err) => {
+            .catch((err: any) => {
                 console.warn('[Analytics] Failed to log action to database:', err);
-            });
+            }) as any;
     } catch (err) {
         console.error('Error recording compliant action:', err);
     }

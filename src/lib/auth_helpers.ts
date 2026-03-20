@@ -33,7 +33,7 @@ export async function ensureUserProfile(user: User) {
     }
 
     // 2. Check/Create Preferences
-    const { data: prefs, error: prefsError } = await supabase
+    const { data: prefs } = await supabase
       .from('user_preferences')
       .select('user_id')
       .eq('user_id', user.id)

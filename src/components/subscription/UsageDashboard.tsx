@@ -54,13 +54,13 @@ export default function UsageDashboard({ showUpgradePrompts = true }: UsageDashb
     return 'text-green-600';
   };
 
-  const getProgressColor = (percentage: number) => {
-    void percentage;
+  const getProgressColor = (percentage: number): string => {
     if (percentage >= 90) return 'bg-red-500';
     if (percentage >= 75) return 'bg-orange-500';
     if (percentage >= 50) return 'bg-yellow-500';
     return 'bg-green-500';
   };
+  void getProgressColor;
 
   const formatPeriod = (start: string, end: string) => {
     return `${format(new Date(start), 'MMM d')} - ${format(new Date(end), 'MMM d, yyyy')}`;

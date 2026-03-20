@@ -139,7 +139,7 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     });
 
-    const currentPageJobs: EnrichedJob[] = data?.jobs ?? [];
+    const currentPageJobs: EnrichedJob[] = (data?.jobs ?? []) as EnrichedJob[];
     const totalPages: number = data?.totalPages ?? 1;
     const filteredJobCount: number = data?.filteredJobCount ?? 0;
 

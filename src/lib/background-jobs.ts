@@ -238,7 +238,7 @@ export const queueAnalyticsEvent = async (
   job: AnalyticsEventJob,
   options: JobOptions = {}
 ): Promise<string> => {
-  const { priority = 1, delay = 0, retries = 0 } = options; // Lowest priority, no retries
+  const { priority = 1, delay = 0 } = options; // Lowest priority, no retries
 
   return new Promise((resolve) => {
     const jobId = `analytics_${Date.now()}_${Math.random().toString(36).substring(7)}`;

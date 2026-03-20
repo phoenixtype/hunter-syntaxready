@@ -253,7 +253,7 @@ class RedisRateLimiter {
   }
 
   private getNextResetTime(windowSeconds: number): number {
-    const now = Date.now();
+    const _now = Date.now(); void _now;
     if (windowSeconds <= 86400) { // Daily or shorter
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);

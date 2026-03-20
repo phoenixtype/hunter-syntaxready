@@ -369,7 +369,7 @@ class CachedJobEngine {
 
     // Sort keys for consistent cache keys
     const sortedKeys = Object.keys(normalized).sort();
-    const keyParts = sortedKeys.map(key => `${key}:${normalized[key]}`);
+    const keyParts = sortedKeys.map(key => `${key}:${(normalized as Record<string, any>)[key]}`);
 
     return keyParts.join('|');
   }

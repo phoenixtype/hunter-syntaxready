@@ -424,9 +424,9 @@ export const saveCandidateProfile = async (userId: string, profile: CandidatePro
   const payload = {
     user_id: userId,
     identity: identityPayload as import('@/integrations/supabase/types').Json,
-    skills: profile.skills as import('@/integrations/supabase/types').Json,
-    experience_atoms: profile.experience_atoms as import('@/integrations/supabase/types').Json,
-    education: profile.education as import('@/integrations/supabase/types').Json,
+    skills: profile.skills as unknown as import('@/integrations/supabase/types').Json,
+    experience_atoms: profile.experience_atoms as unknown as import('@/integrations/supabase/types').Json,
+    education: profile.education as unknown as import('@/integrations/supabase/types').Json,
   };
 
   const { error } = await supabase

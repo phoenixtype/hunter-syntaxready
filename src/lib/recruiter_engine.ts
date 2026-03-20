@@ -624,8 +624,10 @@ export const findStakeholders = async (job: JobOpportunity): Promise<Stakeholder
       interface StakeholderData {
         name: string;
         role: string;
+        title?: string;
         profile_url?: string;
         url?: string;
+        avatar_url?: string;
       }
       return (data.stakeholders as StakeholderData[]).map((s) => ({
         name: s.name || 'Unknown',
