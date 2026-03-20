@@ -169,7 +169,7 @@ export const recordCompliantAction = async (
 
         // Optional: Log to database asynchronously for analytics (non-blocking)
         const hourBucket = getCurrentHourBucket();
-        supabase
+        void supabase
             .from('compliance_metrics')
             .upsert({
                 user_id: userId,
@@ -182,11 +182,8 @@ export const recordCompliantAction = async (
             })
             .then(() => {
                 // Non-blocking database logging for analytics
-            })
-            .catch((err: any) => {
-                console.warn('[Analytics] Failed to log action to database:', err);
-            }) as any;
-    } catch (err) {
+            });
+    } catch (err: any) {
         console.error('Error recording compliant action:', err);
     }
 };

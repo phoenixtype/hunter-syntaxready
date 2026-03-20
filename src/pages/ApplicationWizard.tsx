@@ -22,7 +22,7 @@ const ApplicationWizard = () => {
     const { isPro, isLoading: subLoading, canAccess, recordUsage, getRemainingUsage } = useSubscription();
 
     const [url, setUrl] = useState("");
-    const [loading, setLoading] = useState(false);
+    const [_loading, setLoading] = useState(false);
     const [step, setStep] = useState<'input' | 'analyzing' | 'generating' | 'results'>('input');
 
     // Results

@@ -453,7 +453,7 @@ export const polishText = async (text: string, type: 'experience' | 'skill'): Pr
         // Fix double spaces
         polished = polished.replace(/\s{2,}/g, ' ');
         // Ensure atomic actions are capitalized
-        polished = polished.replace(/\n•\s+([a-z])/g, (match, char) => `\n• ${char.toUpperCase()}`);
+        polished = polished.replace(/\n•\s+([a-z])/g, (_match, char) => `\n• ${char.toUpperCase()}`);
     }
 
     return polished;

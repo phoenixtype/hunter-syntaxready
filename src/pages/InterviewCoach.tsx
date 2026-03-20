@@ -32,7 +32,7 @@ const MODES: { id: Mode; label: string; icon: React.ElementType; desc: string }[
 ];
 
 const InterviewCoach = () => {
-  const navigate = useNavigate();
+  const _navigate = useNavigate(); void _navigate;
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { profile } = useResume();

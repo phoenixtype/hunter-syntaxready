@@ -160,8 +160,8 @@ export const queueEmailNotification = async (
           attempt++;
           console.error(`[BackgroundJobs] Email attempt ${attempt} failed:`, error);
 
-          if (attempt > retries) {
-            reject(new Error(`Email failed after ${retries + 1} attempts: ${error}`));
+          if (attempt > _retries) {
+            reject(new Error(`Email failed after ${_retries + 1} attempts: ${error}`));
             return;
           }
 

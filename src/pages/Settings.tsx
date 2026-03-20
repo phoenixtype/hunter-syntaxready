@@ -37,7 +37,7 @@ type SettingsTab = "profile" | "preferences" | "account" | "notifications";
 const Settings = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { subscription, isPro } = useSubscription();
+  const { currentSubscription: subscription, isPro } = useSubscription();
   const { profile } = useResume();
   const { preferences } = useDashboardData();
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");

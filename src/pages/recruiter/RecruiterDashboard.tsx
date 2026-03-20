@@ -39,7 +39,7 @@ const RecruiterDashboard = () => {
   const { stats, loading: statsLoading } = useRecruiterStats();
   const { jobs, loading: jobsLoading } = useMyJobs();
   const { profile, loading: profileLoading } = useRecruiterProfile();
-  const { subscription } = useSubscription();
+  const { currentSubscription: subscription } = useSubscription();
 
   // Checkout success feedback
   useEffect(() => {

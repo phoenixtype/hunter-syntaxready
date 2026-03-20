@@ -59,7 +59,7 @@ const AdminUsers = () => {
 
       const { data: subs, error: sErr } = await supabase
         .from('subscriptions')
-        .select('user_id, tier, status, id') as { data: { user_id: string; tier: string; status: string; id: string }[] | null; error: typeof sErr };
+        .select('user_id, tier, status, id') as { data: { user_id: string; tier: string; status: string; id: string }[] | null; error: any };
 
       if (sErr) throw new Error(sErr.message);
 

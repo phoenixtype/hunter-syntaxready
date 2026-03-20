@@ -24,7 +24,7 @@ const RecruiterSetup = () => {
     const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) setSessionReady(true);
     });
-    return () => subscription.unsubscribe();
+    return () => authSub.unsubscribe();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

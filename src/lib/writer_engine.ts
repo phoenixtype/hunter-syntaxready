@@ -13,7 +13,7 @@ export const generateTailoredContent = async (
   job: JobOpportunity
 ): Promise<TailoredContent> => {
   const { data: { session } } = await supabase.auth.getSession();
-  const authHeader = session ? { Authorization: `Bearer ${session.access_token}` } : {};
+  const authHeader: Record<string, string> = session ? { Authorization: `Bearer ${session.access_token}` } : {};
 
   // Run cover letter + resume rewrite in parallel for speed
   const [coverLetterResult, rewriteResult] = await Promise.allSettled([

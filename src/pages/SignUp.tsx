@@ -15,7 +15,7 @@ const SignUp = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { loading, signUp } = useAuth();
+  const { signUp } = useAuth();
   const navigate = useNavigate();
   const passwordStrength = useMemo(() => getPasswordStrength(password), [password]);
 

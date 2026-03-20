@@ -394,7 +394,7 @@ const Dashboard = () => {
         isOpen={showCoach}
         onClose={() => setShowCoach(false)}
         profile={profile}
-        score={visibility}
+        score={visibility ?? null}
         skillRecommendations={skillRecommendations || []}
         preferences={preferences}
       />

@@ -235,14 +235,7 @@ export class HunterAIMobile {
           icon: '/icons/icon-192x192.png',
           badge: '/icons/badge-72x72.png',
           data,
-          actions: [
-            {
-              action: 'view',
-              title: 'View'
-            },
-            {
-              action: 'dismiss',
-              title: 'Dismiss'
+        } as NotificationOptions);
             }
           ]
         });

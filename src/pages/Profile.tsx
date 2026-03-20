@@ -33,7 +33,7 @@ function handleBulletKeyDown(
 }
 
 const Profile = () => {
-    const navigate = useNavigate();
+    const _navigate = useNavigate(); void _navigate;
     const location = useLocation();
     const { user } = useAuth();
     const { profile, loading, setProfile } = useResume();
