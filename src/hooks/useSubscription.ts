@@ -92,6 +92,19 @@ export function useSubscription() {
       });
 
       if (error) throw error;
+
+      // Check for usage warnings (non-blocking)
+      const currentUsage = (featureUsage?.[featureName] || 0) + count;
+      supabase.functions.invoke('check-usage-warnings', {
+        body: {
+          userId: user.id,
+          featureName,
+          newUsage: currentUsage
+        }
+      }).catch(error => {
+        // Don't throw - warnings are non-critical
+        console.warn('Usage warning check failed:', error);
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['feature-usage'] });
