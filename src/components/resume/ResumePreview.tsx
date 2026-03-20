@@ -3,16 +3,12 @@ import { CandidateProfile } from '@/lib/resume_engine';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Briefcase,
     GraduationCap,
-    User as UserIcon,
     Code2,
     ExternalLink,
     Search,
-    Sparkles,
     FileDown
 } from 'lucide-react';
 import { toast } from 'sonner';
