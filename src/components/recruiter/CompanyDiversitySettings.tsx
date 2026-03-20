@@ -105,7 +105,7 @@ export default function CompanyDiversitySettings({ companyId }: CompanyDiversity
       if (error) throw error;
 
       // Use the first job listing's DEI data as template, or empty object
-      const jobListingData = companyData?.job_listings?.[0] || {};
+      const jobListingData = (companyData?.job_listings?.[0] || {}) as Record<string, any>;
 
       setData({
         dei_commitment: jobListingData.dei_commitment || '',
