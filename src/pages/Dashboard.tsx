@@ -130,10 +130,10 @@ const Dashboard = () => {
       let attempts = 0;
       const interval = setInterval(async () => {
         attempts++;
-        const { data } = await queryClient.refetchQueries({
+        await queryClient.refetchQueries({
           queryKey: ['enhanced-subscription', user?.id]
         });
-        const refreshedSubscription = data?.[0];
+        const refreshedSubscription = subscription;
         if (refreshedSubscription?.tier === 'pro' || attempts > 15) {
           clearInterval(interval);
           if (refreshedSubscription?.tier === 'pro') {
