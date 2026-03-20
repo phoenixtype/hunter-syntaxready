@@ -394,6 +394,7 @@ export const getRecruiterStats = async (recruiterId: string): Promise<RecruiterS
 
   (data || []).forEach((job) => {
     const jobData = job as unknown as {
+      id: string;
       status: string;
       application_count: number;
       recruiter_job_applications: { status: string; id?: string }[];
