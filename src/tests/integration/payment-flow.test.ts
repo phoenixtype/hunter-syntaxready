@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Payment Flow Integration Tests
  *

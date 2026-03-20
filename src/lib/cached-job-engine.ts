@@ -20,7 +20,7 @@ import { cache, CacheKeys, CacheTTL, invalidateJobsCache } from './cache-manager
 import type { Database } from '@/integrations/supabase/types';
 
 type JobListing = Database['public']['Tables']['job_listings']['Row'];
-type JobMatch = Database['public']['Tables']['job_matches']['Row'];
+type JobMatch = any; // job_matches table not in generated types
 
 interface SearchFilters {
   location?: string;
@@ -209,7 +209,7 @@ class CachedJobEngine {
       async () => {
         console.log(`[JOBS_CACHE] Fetching job matches for user: ${userId}`);
 
-        const { data: matches, error } = await supabase
+        const { data: matches, error } = await (supabase as any)
           .from('job_matches')
           .select('*, job_listings(*)')
           .eq('user_id', userId)
@@ -369,7 +369,7 @@ class CachedJobEngine {
 
     // Sort keys for consistent cache keys
     const sortedKeys = Object.keys(normalized).sort();
-    const keyParts = sortedKeys.map(key => `${key}:${normalized[key]}`);
+    const keyParts = sortedKeys.map(key => `${key}:${(normalized as Record<string, any>)[key]}`);
 
     return keyParts.join('|');
   }

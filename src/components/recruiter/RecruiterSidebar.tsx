@@ -39,7 +39,7 @@ const RecruiterSidebar = () => {
   const { pathname } = useLocation();
   const { user, signOut } = useAuth();
   const { profile } = useRecruiterProfile();
-  const { subscription } = useSubscription();
+  const { currentSubscription: subscription } = useSubscription();
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try { return localStorage.getItem("hunter_recruiter_sidebar_collapsed") === "true"; } catch { return false; }
@@ -119,7 +119,7 @@ const RecruiterSidebar = () => {
 
       {/* Plan badge + upgrade CTA */}
       {!collapsed && (() => {
-        const tier = subscription?.tier;
+        const tier = subscription?.tier as string | undefined;
         const isGrowth = tier === "recruiter_growth";
         const isStarter = tier === "recruiter_starter";
         const hasPlan = isGrowth || isStarter;

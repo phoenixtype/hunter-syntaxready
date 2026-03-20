@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       accessibility_requests: {
@@ -1698,6 +1673,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_feature_access: {
+        Args: { p_feature_name: string; p_user_id: string }
+        Returns: {
+          can_use: boolean
+          currency: string
+          current_usage: number
+          limit_amount: number
+          overage_cost: number
+          overage_needed: number
+          remaining_amount: number
+          subscription_plan: string
+        }[]
+      }
       check_feature_usage_limit: {
         Args: {
           p_feature_name: string
@@ -1751,6 +1739,23 @@ export type Database = {
         }[]
       }
       get_platform_analytics: { Args: never; Returns: Json }
+      get_usage_overview: {
+        Args: { p_user_id: string }
+        Returns: {
+          billing_period_end: string
+          billing_period_start: string
+          can_use: boolean
+          current_usage: number
+          display_name: string
+          feature_name: string
+          limit_amount: number
+          overage_credits: number
+          plan_display_name: string
+          plan_name: string
+          remaining_amount: number
+          usage_percentage: number
+        }[]
+      }
       is_platform_admin: { Args: never; Returns: boolean }
       is_root_admin: { Args: never; Returns: boolean }
       match_dei_preferences: {
@@ -1913,9 +1918,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },

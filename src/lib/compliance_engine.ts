@@ -74,7 +74,7 @@ const checkRateLimitOptimized = async (userId: string, action: string, safeMode:
 const updateRateLimitAsync = async (userId: string, action: string, newCount: number) => {
     try {
         const hourBucket = getCurrentHourBucket();
-        await supabase.rpc('upsert_rate_limit', {
+        await (supabase.rpc as any)('upsert_rate_limit', {
             p_user_id: userId,
             p_function_name: action,
             p_request_count: newCount,
@@ -169,7 +169,7 @@ export const recordCompliantAction = async (
 
         // Optional: Log to database asynchronously for analytics (non-blocking)
         const hourBucket = getCurrentHourBucket();
-        supabase
+        void supabase
             .from('compliance_metrics')
             .upsert({
                 user_id: userId,
@@ -182,11 +182,8 @@ export const recordCompliantAction = async (
             })
             .then(() => {
                 // Non-blocking database logging for analytics
-            })
-            .catch((err) => {
-                console.warn('[Analytics] Failed to log action to database:', err);
             });
-    } catch (err) {
+    } catch (err: any) {
         console.error('Error recording compliant action:', err);
     }
 };

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, Mail, Clock, Calendar, AlertTriangle, CreditCard, Loader2 } from "lucide-react";
+import { Bell, Mail, Calendar, AlertTriangle, CreditCard, Loader2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
@@ -92,7 +92,7 @@ const NotificationSettings = () => {
       }
 
       if (data?.notification_settings) {
-        setPreferences(data.notification_settings);
+        setPreferences(data.notification_settings as unknown as NotificationPreferences);
       }
     } catch (error) {
       console.error('Failed to load notification preferences:', error);
@@ -110,7 +110,7 @@ const NotificationSettings = () => {
 
       const { error } = await supabase
         .from('user_preferences')
-        .update({ notification_settings: newPreferences })
+        .update({ notification_settings: newPreferences as unknown as import('@/integrations/supabase/types').Json })
         .eq('user_id', user.id);
 
       if (error) throw error;

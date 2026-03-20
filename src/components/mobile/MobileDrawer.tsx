@@ -1,4 +1,4 @@
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useNavigate } from "react-router-dom";
@@ -23,7 +23,7 @@ interface MobileDrawerProps {
 
 export const MobileDrawer = ({ open, onClose }: MobileDrawerProps) => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
   const { isPro } = useSubscription();
 
   const handleNavigate = (path: string) => {
@@ -32,7 +32,7 @@ export const MobileDrawer = ({ open, onClose }: MobileDrawerProps) => {
   };
 
   const handleLogout = async () => {
-    await logout();
+    await signOut();
     onClose();
   };
 

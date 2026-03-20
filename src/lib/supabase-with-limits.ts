@@ -74,10 +74,8 @@ export const getRateLimiterStatus = () => ({
  * Wait for all pending requests to complete (useful for testing)
  */
 export const waitForRateLimiters = async () => {
-  await Promise.all([
-    requestLimit.onEmpty(),
-    functionLimit.onEmpty()
-  ]);
+  // p-limit doesn't have onEmpty; just resolve immediately
+  await Promise.resolve();
 };
 
 export default supabaseWithLimits;

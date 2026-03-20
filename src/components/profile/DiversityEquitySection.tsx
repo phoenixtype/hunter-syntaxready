@@ -5,12 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Heart, Shield, Users, Accessibility, Globe, GraduationCap, Flag } from 'lucide-react';
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 interface DiversityEquityData {
@@ -93,7 +93,7 @@ export default function DiversityEquitySection({ candidateId }: DiversityEquityS
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const { toast } = useToast();
+  
 
   useEffect(() => {
     loadDiversityData();
@@ -116,23 +116,31 @@ export default function DiversityEquitySection({ candidateId }: DiversityEquityS
       if (error) throw error;
 
       if (profileData) {
+        const ps = profileData.privacy_settings as unknown as DiversityEquityData['privacy_settings'];
         setData({
-          ...profileData,
-          privacy_settings: profileData.privacy_settings || {
+          age: profileData.age ?? undefined,
+          gender: profileData.gender ?? undefined,
+          ethnicity: profileData.ethnicity ?? undefined,
+          pronouns: profileData.pronouns ?? undefined,
+          disability_status: profileData.disability_status ?? undefined,
+          accessibility_accommodations: profileData.accessibility_accommodations ?? undefined,
+          veteran_status: profileData.veteran_status ?? undefined,
+          first_generation_college: profileData.first_generation_college ?? undefined,
+          primary_language: profileData.primary_language ?? undefined,
+          visa_sponsorship_required: profileData.visa_sponsorship_required ?? undefined,
+          religious_accommodations: profileData.religious_accommodations ?? undefined,
+          socioeconomic_background: profileData.socioeconomic_background ?? undefined,
+          privacy_settings: ps || {
             share_demographics: false,
             share_disability_status: false,
             share_veteran_status: false
           },
           dei_preferences: profileData.dei_preferences || {}
-        });
+        } as DiversityEquityData);
       }
     } catch (error: any) {
       console.error('Error loading diversity data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load diversity information",
-        variant: "destructive",
-      });
+      toast.error("Failed to load diversity information");
     } finally {
       setLoading(false);
     }
@@ -156,25 +164,18 @@ export default function DiversityEquitySection({ candidateId }: DiversityEquityS
           visa_sponsorship_required: data.visa_sponsorship_required || false,
           religious_accommodations: data.religious_accommodations || null,
           socioeconomic_background: data.socioeconomic_background || null,
-          dei_preferences: data.dei_preferences,
-          privacy_settings: data.privacy_settings,
+          dei_preferences: data.dei_preferences as any,
+          privacy_settings: data.privacy_settings as any,
           updated_at: new Date().toISOString()
         })
         .eq('id', candidateId);
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Diversity information saved successfully",
-      });
+      toast.success("Diversity information saved successfully");
     } catch (error: any) {
       console.error('Error saving diversity data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save diversity information",
-        variant: "destructive",
-      });
+      toast.error("Failed to save diversity information");
     } finally {
       setSaving(false);
     }

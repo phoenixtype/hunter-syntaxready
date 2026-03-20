@@ -122,9 +122,8 @@ export const parseResume = async (file: File, userId?: string): Promise<Candidat
   }
 
   // 3. Upload original file to Supabase Storage
-  let resumeUrl: string | null = null;
   try {
-    resumeUrl = await uploadResumeFile(file);
+    await uploadResumeFile(file);
   } catch {
     // Continue with parsing even if storage upload fails
   }
@@ -139,10 +138,9 @@ export const parseResume = async (file: File, userId?: string): Promise<Candidat
       const data = await queueParseResume({
         resumeText: text,
         userId,
-        resumeUrl
-      });
+      } as any);
 
-      const error = null; // Queue system handles errors internally
+      const error: any = null; // Queue system handles errors internally
 
       if (error) {
         lastError = error;
@@ -217,7 +215,7 @@ async function uploadResumeFile(file: File): Promise<string> {
   const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
   
   // Use 'resumes' bucket
-  const { data, error } = await supabase.storage
+  const { error } = await supabase.storage
     .from('resumes')
     .upload(fileName, file, {
       cacheControl: '3600',
@@ -425,9 +423,9 @@ export const saveCandidateProfile = async (userId: string, profile: CandidatePro
   const payload = {
     user_id: userId,
     identity: identityPayload as import('@/integrations/supabase/types').Json,
-    skills: profile.skills as import('@/integrations/supabase/types').Json,
-    experience_atoms: profile.experience_atoms as import('@/integrations/supabase/types').Json,
-    education: profile.education as import('@/integrations/supabase/types').Json,
+    skills: profile.skills as unknown as import('@/integrations/supabase/types').Json,
+    experience_atoms: profile.experience_atoms as unknown as import('@/integrations/supabase/types').Json,
+    education: profile.education as unknown as import('@/integrations/supabase/types').Json,
   };
 
   const { error } = await supabase
@@ -454,7 +452,7 @@ export const polishText = async (text: string, type: 'experience' | 'skill'): Pr
         // Fix double spaces
         polished = polished.replace(/\s{2,}/g, ' ');
         // Ensure atomic actions are capitalized
-        polished = polished.replace(/\n•\s+([a-z])/g, (match, char) => `\n• ${char.toUpperCase()}`);
+        polished = polished.replace(/\n•\s+([a-z])/g, (_match, char) => `\n• ${char.toUpperCase()}`);
     }
 
     return polished;

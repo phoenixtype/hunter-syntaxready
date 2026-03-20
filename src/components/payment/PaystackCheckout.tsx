@@ -1,14 +1,15 @@
 // Paystack checkout component for Nigerian users
 // Handles NGN payments and subscriptions
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { paystackClient, formatPrice, OVERAGE_RATES } from '@/lib/paystack-client';
-import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, CreditCard, CheckCircle, AlertCircle } from 'lucide-react';
+import { Loader2, CreditCard, CheckCircle } from 'lucide-react';
 
 interface PaystackCheckoutProps {
   planName: 'pro' | 'enterprise';
@@ -52,9 +53,8 @@ export function PaystackCheckout({
   const [planDetails, setPlanDetails] = useState<any>(null);
   const [amount, setAmount] = useState(0);
 
-  const user = useUser();
-  const supabase = useSupabaseClient();
-  const router = useRouter();
+  const { user } = useAuth();
+  const _navigate = useNavigate(); void _navigate;
 
   // Load Paystack script
   useEffect(() => {
@@ -73,7 +73,6 @@ export function PaystackCheckout({
     }
 
     return () => {
-      // Cleanup script if component unmounts
       const script = document.querySelector('script[src="https://js.paystack.co/v1/inline.js"]');
       if (script) {
         document.head.removeChild(script);
@@ -100,7 +99,7 @@ export function PaystackCheckout({
           setAmount(rate * overageQuantity);
         } else {
           const price = interval === 'yearly' ? data.price_yearly_ngn : data.price_monthly_ngn;
-          setAmount(price);
+          setAmount(price ?? 0);
         }
       } catch (error: any) {
         console.error('Failed to load plan details:', error);
@@ -109,7 +108,7 @@ export function PaystackCheckout({
     }
 
     loadPlanDetails();
-  }, [planName, interval, isOverage, overageFeature, overageQuantity, supabase, onError]);
+  }, [planName, interval, isOverage, overageFeature, overageQuantity, onError]);
 
   const handlePayment = async () => {
     if (!user || !scriptLoaded || !planDetails) {
@@ -120,10 +119,8 @@ export function PaystackCheckout({
     setLoading(true);
 
     try {
-      // Generate payment reference
       const reference = paystackClient.generateReference();
 
-      // Create payment metadata
       const metadata = {
         user_id: user.id,
         plan_name: isOverage ? 'overage' : planName,
@@ -139,7 +136,6 @@ export function PaystackCheckout({
         ]
       };
 
-      // For overage purchases, create the purchase record first
       if (isOverage && overageFeature) {
         const { error } = await supabase.rpc('purchase_overage_credits', {
           p_user_id: user.id,
@@ -151,9 +147,8 @@ export function PaystackCheckout({
         if (error) throw error;
       }
 
-      // Configure Paystack payment
       const paymentConfig = {
-        key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!,
+        key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || '',
         email: user.email!,
         amount: paystackClient.convertNairaToKobo(amount),
         currency: 'NGN',
@@ -163,7 +158,6 @@ export function PaystackCheckout({
           console.log('Payment successful:', response);
 
           if (!isOverage) {
-            // For subscriptions, update user's subscription
             const { error: subError } = await supabase
               .from('subscriptions')
               .upsert({
@@ -183,7 +177,6 @@ export function PaystackCheckout({
               return;
             }
           } else {
-            // For overage, mark as succeeded
             const { error: overageError } = await supabase
               .from('overage_purchases')
               .update({ status: 'succeeded' })
@@ -209,7 +202,6 @@ export function PaystackCheckout({
         }
       };
 
-      // Open Paystack popup
       const popup = window.PaystackPop.setup(paymentConfig);
       popup.openIframe();
 

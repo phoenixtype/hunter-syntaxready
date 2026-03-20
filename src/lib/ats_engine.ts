@@ -16,12 +16,13 @@ export interface ATSResult {
 }
 
 // Common ATS-unfriendly patterns
-const FORMATTING_RED_FLAGS = [
+const _FORMATTING_RED_FLAGS = [
   /\btable\b/i,
   /\bcolumn\b/i,
   /\btext box\b/i,
   /\bheader\b.*\bfooter\b/i,
 ];
+void _FORMATTING_RED_FLAGS;
 
 // Strong action verbs — boost score if present
 const ACTION_VERBS = new Set([

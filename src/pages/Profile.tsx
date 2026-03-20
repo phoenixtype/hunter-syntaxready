@@ -4,16 +4,16 @@ import SingleLocationPicker from "@/components/SingleLocationPicker";
 import { useAuth } from "@/hooks/useAuth";
 import { useResume } from "@/hooks/useResume";
 import SEOHead from "@/components/SEOHead";
-import { saveCandidateProfile, CandidateProfile, ExperienceAtom, Education, Skill } from "@/lib/resume_engine";
+import { saveCandidateProfile, CandidateProfile, ExperienceAtom, Education } from "@/lib/resume_engine";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Plus, Trash2, Save, Loader2, X, Edit2, Eye, Ban, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Trash2, Save, Loader2, X, Edit2, Eye, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import DashboardSkeleton from "@/components/DashboardSkeleton";
 
@@ -33,7 +33,7 @@ function handleBulletKeyDown(
 }
 
 const Profile = () => {
-    const navigate = useNavigate();
+    const _navigate = useNavigate(); void _navigate;
     const location = useLocation();
     const { user } = useAuth();
     const { profile, loading, setProfile } = useResume();

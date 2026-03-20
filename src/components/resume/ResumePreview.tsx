@@ -1,18 +1,14 @@
-import { useState } from 'react';
 import { CandidateProfile } from '@/lib/resume_engine';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Briefcase,
     GraduationCap,
-    User as UserIcon,
     Code2,
     ExternalLink,
     Search,
-    Sparkles,
     FileDown
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -23,7 +19,7 @@ interface ResumePreviewProps {
 }
 
 export const ResumePreview = ({ profile }: ResumePreviewProps) => {
-    const [activeTab, setActiveTab] = useState('overview');
+    
 
     const { identity, skills, experience_atoms: experience, education } = profile;
 

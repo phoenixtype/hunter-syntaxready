@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { LogEntry, getLogs, subscribeToLogs, LogType } from "@/lib/activity_logger";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
+// Badge available if needed
 import { Terminal, Shield, Activity, Bot, Search, PenTool, Database } from "lucide-react";
 
 export const AgentActivityLog = () => {

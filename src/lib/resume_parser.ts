@@ -373,7 +373,7 @@ const extractExperience = (text: string): ExperienceAtom[] => {
     });
 
     if (currentAtom) {
-        currentAtom.content = buffer.join('\n');
+        (currentAtom as Partial<ExperienceAtom>).content = buffer.join('\n');
         atoms.push(currentAtom as ExperienceAtom);
     }
 
