@@ -31,7 +31,7 @@ function UpgradeCard({
 }) {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const { refetch } = useSubscription();
+  const { refetch } = useSubscription() as any;
 
   const handleUpgrade = async () => {
     setLoading(true);
