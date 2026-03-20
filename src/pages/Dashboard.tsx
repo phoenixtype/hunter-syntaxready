@@ -86,7 +86,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { profile, loading: resumeLoading } = useResume();
-  const { currentSubscription: subscription, isLoading: subLoading, canAccess, isPro } = useSubscription();
+  const { currentSubscription: subscription, isLoading: subLoading, canAccess: _canAccess, isPro } = useSubscription();
   const queryClient = useQueryClient();
   const { preferences, appCount, jobCount, visibility, skillRecommendations, metrics, isLoading: dataLoading } = useDashboardData();
 
