@@ -74,7 +74,7 @@ const checkRateLimitOptimized = async (userId: string, action: string, safeMode:
 const updateRateLimitAsync = async (userId: string, action: string, newCount: number) => {
     try {
         const hourBucket = getCurrentHourBucket();
-        await supabase.rpc('upsert_rate_limit', {
+        await (supabase.rpc as any)('upsert_rate_limit', {
             p_user_id: userId,
             p_function_name: action,
             p_request_count: newCount,
