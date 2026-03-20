@@ -118,7 +118,7 @@ export class MobileFeatures {
   private static async isLowEndDevice(): Promise<boolean> {
     // Simple heuristic - in a real app you might check device info
     return navigator.hardwareConcurrency < 4 ||
-           (navigator.deviceMemory && navigator.deviceMemory < 4);
+           ((navigator as any).deviceMemory && (navigator as any).deviceMemory < 4);
   }
 
   private static optimizeImages() {
