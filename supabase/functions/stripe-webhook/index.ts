@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildPaymentConfirmationEmail } from "../_shared/email-templates.ts";
 import { NotificationQueueManager } from "../_shared/notification-queue.ts";
+import { corsHeaders, handleCorsPrelight, jsonWithCors, errorWithCors } from '../_shared/cors.ts';
 
 const SITE_URL = Deno.env.get('SITE_URL') || 'https://usehunter.app';
 const FROM = 'Hunter <notifications@usehunter.app>';
@@ -77,15 +78,6 @@ async function queueNotificationEmail(
   }
 }
 
-function getCorsHeaders(req: Request) {
-  const siteUrl = Deno.env.get('SITE_URL') || '';
-  const origin = req.headers.get('origin') || '';
-  const allowedOrigin = siteUrl ? siteUrl : origin;
-  return {
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, stripe-signature',
-  };
-}
 
 // Verify Stripe webhook signature using HMAC-SHA256
 async function verifyStripeSignature(
@@ -140,9 +132,8 @@ function tierFromPriceId(priceId: string | undefined): string {
 }
 
 serve(async (req) => {
-  const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPrelight();
   }
 
   try {
@@ -153,7 +144,7 @@ serve(async (req) => {
 
     if (!stripeSecretKey || !stripeWebhookSecret) {
       console.error('[WEBHOOK] Missing Stripe configuration');
-      return new Response('Server configuration error', { status: 500 });
+      return errorWithCors('Server configuration error', 500);
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -162,14 +153,14 @@ serve(async (req) => {
     const sig = req.headers.get('stripe-signature');
 
     if (!sig) {
-      return new Response('Missing stripe-signature header', { status: 400 });
+      return errorWithCors('Missing stripe-signature header', 400);
     }
 
     // Verify webhook signature
     const isValid = await verifyStripeSignature(body, sig, stripeWebhookSecret);
     if (!isValid) {
       console.error('[WEBHOOK] Invalid signature');
-      return new Response('Invalid signature', { status: 401 });
+      return errorWithCors('Invalid signature', 401);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -178,7 +169,7 @@ serve(async (req) => {
       event = JSON.parse(body);
     } catch {
       console.error('[WEBHOOK] Failed to parse event body');
-      return new Response('Invalid JSON body', { status: 400 });
+      return errorWithCors('Invalid JSON body', 400);
     }
 
     switch (event.type) {
@@ -398,12 +389,10 @@ serve(async (req) => {
         break;
     }
 
-    return new Response(JSON.stringify({ received: true }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return jsonWithCors({ received: true });
 
   } catch (error) {
     console.error('[WEBHOOK] Error:', error);
-    return new Response('Webhook handler failed', { status: 500 });
+    return errorWithCors('Webhook handler failed', 500);
   }
 });
