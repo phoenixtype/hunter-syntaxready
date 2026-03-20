@@ -556,6 +556,42 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_history: {
+        Row: {
+          clicked_at: string | null
+          email_subject: string | null
+          id: string
+          opened_at: string | null
+          sent_at: string | null
+          sent_to: string
+          type: string
+          unsubscribed_at: string | null
+          user_id: string
+        }
+        Insert: {
+          clicked_at?: string | null
+          email_subject?: string | null
+          id?: string
+          opened_at?: string | null
+          sent_at?: string | null
+          sent_to: string
+          type: string
+          unsubscribed_at?: string | null
+          user_id: string
+        }
+        Update: {
+          clicked_at?: string | null
+          email_subject?: string | null
+          id?: string
+          opened_at?: string | null
+          sent_at?: string | null
+          sent_to?: string
+          type?: string
+          unsubscribed_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           alert_frequency: string
@@ -598,6 +634,51 @@ export type Database = {
           updated_at?: string
           user_id?: string
           weekly_digest?: boolean
+        }
+        Relationships: []
+      }
+      notification_queue: {
+        Row: {
+          attempts: number | null
+          created_at: string | null
+          data: Json
+          error_message: string | null
+          id: string
+          max_attempts: number | null
+          priority: string
+          scheduled_for: string | null
+          sent_at: string | null
+          status: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number | null
+          created_at?: string | null
+          data?: Json
+          error_message?: string | null
+          id?: string
+          max_attempts?: number | null
+          priority?: string
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number | null
+          created_at?: string | null
+          data?: Json
+          error_message?: string | null
+          id?: string
+          max_attempts?: number | null
+          priority?: string
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string | null
+          type?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1441,6 +1522,7 @@ export type Database = {
           locations: string[] | null
           min_salary_usd: number | null
           notice_period_days: number | null
+          notification_settings: Json | null
           remote_policy: string | null
           require_sponsorship: boolean | null
           safe_mode: boolean | null
@@ -1464,6 +1546,7 @@ export type Database = {
           locations?: string[] | null
           min_salary_usd?: number | null
           notice_period_days?: number | null
+          notification_settings?: Json | null
           remote_policy?: string | null
           require_sponsorship?: boolean | null
           safe_mode?: boolean | null
@@ -1487,6 +1570,7 @@ export type Database = {
           locations?: string[] | null
           min_salary_usd?: number | null
           notice_period_days?: number | null
+          notification_settings?: Json | null
           remote_policy?: string | null
           require_sponsorship?: boolean | null
           safe_mode?: boolean | null
@@ -1649,6 +1733,10 @@ export type Database = {
         Args: { p_feature_name: string; p_user_id: string }
         Returns: number
       }
+      get_notification_preferences: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       get_overage_rate: {
         Args: { p_feature_name: string; p_user_id: string }
         Returns: number
@@ -1686,6 +1774,16 @@ export type Database = {
           p_user_id: string
         }
         Returns: boolean
+      }
+      schedule_notification: {
+        Args: {
+          p_data?: Json
+          p_priority?: string
+          p_scheduled_for?: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: string
       }
     }
     Enums: {

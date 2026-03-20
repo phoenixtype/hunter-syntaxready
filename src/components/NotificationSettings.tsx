@@ -1,77 +1,169 @@
 import { useState, useEffect } from "react";
-import { Bell, Mail, Smartphone, Zap, CheckCircle2, Loader2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Bell, Mail, Clock, Calendar, AlertTriangle, CreditCard, Loader2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { getPreferences, savePreferences, UserPreferences } from "@/lib/user_preferences";
-import { useSubscription } from "@/hooks/useSubscription";
-import { upgradeToPro } from "@/lib/subscription";
+import { supabase } from "@/integrations/supabase/client";
+
+interface NotificationPreferences {
+  job_matches: {
+    enabled: boolean;
+    frequency: 'daily' | 'weekly' | 'never';
+    time: string;
+    timezone: string;
+  };
+  auto_applications: {
+    enabled: boolean;
+    frequency: 'immediate';
+  };
+  weekly_digest: {
+    enabled: boolean;
+    frequency: 'weekly';
+    day: 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday';
+    time: string;
+  };
+  payment_updates: {
+    enabled: boolean;
+    frequency: 'immediate';
+  };
+  usage_warnings: {
+    enabled: boolean;
+    threshold: number;
+  };
+}
+
+const defaultPreferences: NotificationPreferences = {
+  job_matches: {
+    enabled: true,
+    frequency: 'daily',
+    time: '09:00',
+    timezone: 'UTC'
+  },
+  auto_applications: {
+    enabled: true,
+    frequency: 'immediate'
+  },
+  weekly_digest: {
+    enabled: true,
+    frequency: 'weekly',
+    day: 'sunday',
+    time: '09:00'
+  },
+  payment_updates: {
+    enabled: true,
+    frequency: 'immediate'
+  },
+  usage_warnings: {
+    enabled: true,
+    threshold: 80
+  }
+};
 
 const NotificationSettings = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [emailAlerts, setEmailAlerts] = useState(false);
-  const [smsAlerts, setSmsAlerts] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [prefs, setPrefs] = useState<UserPreferences | null>(null);
-  const { canAccess } = useSubscription();
+  const [preferences, setPreferences] = useState<NotificationPreferences>(defaultPreferences);
 
   useEffect(() => {
     if (!user) return;
-    const loadPrefs = async () => {
-      const p = await getPreferences(user.id);
-      if (p) {
-        setPrefs(p);
-        setEmailAlerts(p.email_alerts_enabled || false);
-        setSmsAlerts(p.sms_alerts_enabled || false);
-      }
-      setLoading(false);
-    };
-    loadPrefs();
+    loadPreferences();
   }, [user]);
 
-  const handleToggle = async (type: 'email' | 'sms', checked: boolean) => {
-    if (!user || !prefs) return;
+  const loadPreferences = async () => {
+    if (!user) return;
 
-    if (type === 'sms' && checked && !canAccess('sms_notifications')) {
-      toast("Hunter Pro required", {
-        description: "SMS notifications are a Pro feature.",
-        action: { label: "Upgrade", onClick: () => upgradeToPro().catch(() => {}) },
-      });
-      return;
-    }
-    
-    // Optimistic UI update
-    if (type === 'email') setEmailAlerts(checked);
-    if (type === 'sms') setSmsAlerts(checked);
-    setSaving(true);
-    
     try {
-      const updatedPrefs: UserPreferences = {
-        ...prefs,
-        [type === 'email' ? 'email_alerts_enabled' : 'sms_alerts_enabled']: checked,
-        // Ensure required arrays exist to satisfy types if they were somehow missing
-        target_roles: prefs.target_roles || [],
-        locations: prefs.locations || []
-      };
-      
-      await savePreferences(user.id, updatedPrefs);
-      setPrefs(updatedPrefs);
-      toast.success(`${type === 'email' ? 'Email' : 'SMS'} alerts ${checked ? 'enabled' : 'disabled'}`);
+      setLoading(true);
+
+      // Get preferences from user_preferences table
+      const { data, error } = await supabase
+        .from('user_preferences')
+        .select('notification_settings')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      if (data?.notification_settings) {
+        setPreferences(data.notification_settings);
+      }
     } catch (error) {
-      // Revert optimistic update
-      if (type === 'email') setEmailAlerts(!checked);
-      if (type === 'sms') setSmsAlerts(!checked);
-      toast.error("Failed to update notification settings");
+      console.error('Failed to load notification preferences:', error);
+      toast.error('Failed to load notification preferences');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const savePreferences = async (newPreferences: NotificationPreferences) => {
+    if (!user) return;
+
+    try {
+      setSaving(true);
+
+      const { error } = await supabase
+        .from('user_preferences')
+        .update({ notification_settings: newPreferences })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setPreferences(newPreferences);
+      toast.success('Notification preferences updated');
+    } catch (error) {
+      console.error('Failed to save notification preferences:', error);
+      toast.error('Failed to save notification preferences');
     } finally {
       setSaving(false);
     }
   };
 
+  const updatePreference = (
+    section: keyof NotificationPreferences,
+    key: string,
+    value: any
+  ) => {
+    const newPreferences = {
+      ...preferences,
+      [section]: {
+        ...preferences[section],
+        [key]: value
+      }
+    };
+    savePreferences(newPreferences);
+  };
+
+  const timezoneOptions = [
+    { value: 'UTC', label: 'UTC' },
+    { value: 'America/New_York', label: 'Eastern Time' },
+    { value: 'America/Chicago', label: 'Central Time' },
+    { value: 'America/Denver', label: 'Mountain Time' },
+    { value: 'America/Los_Angeles', label: 'Pacific Time' },
+    { value: 'Europe/London', label: 'London' },
+    { value: 'Europe/Berlin', label: 'Berlin' },
+    { value: 'Asia/Tokyo', label: 'Tokyo' },
+  ];
+
+  const dayOptions = [
+    { value: 'sunday', label: 'Sunday' },
+    { value: 'monday', label: 'Monday' },
+    { value: 'tuesday', label: 'Tuesday' },
+    { value: 'wednesday', label: 'Wednesday' },
+    { value: 'thursday', label: 'Thursday' },
+    { value: 'friday', label: 'Friday' },
+    { value: 'saturday', label: 'Saturday' },
+  ];
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
+      <div className="flex items-center justify-center p-8" role="status">
         <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
       </div>
     );
@@ -79,70 +171,242 @@ const NotificationSettings = () => {
 
   return (
     <div className="space-y-6 animate-fade-in max-w-3xl">
-      {/* Live status */}
-      <div className="rounded-md border border-border bg-muted/50 p-5 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-md bg-muted flex items-center justify-center">
-            <Zap className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold flex items-center gap-2">
-              Real-time alerts active
-              <Badge className="text-[10px]">Live</Badge>
-            </h3>
-            <p className="text-xs text-muted-foreground">You'll see toast notifications in real-time while using Hunter.</p>
-          </div>
-        </div>
-
-        <div className="space-y-2.5 pt-2">
-          <div className="flex items-center gap-3 text-sm">
-            <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-            <span>New job matches — notified when roles matching your profile are added</span>
-          </div>
-          <div className="flex items-center gap-3 text-sm">
-            <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-            <span>Application status changes — notified when your application status updates</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Email/SMS toggles */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className={`flex items-center justify-between gap-3 p-4 rounded-md border transition-colors ${emailAlerts ? 'border-primary/30 bg-muted' : 'border-border bg-card'}`}>
-          <div className="flex gap-3">
-            <div className={`w-9 h-9 rounded-md flex items-center justify-center ${emailAlerts ? 'bg-muted text-foreground' : 'bg-muted text-muted-foreground'}`}>
-              <Mail className="w-4 h-4" />
-            </div>
+      {/* Job Matches */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Bell className="w-5 h-5 text-primary" />
             <div>
-              <p className="text-sm font-medium">Email digests</p>
-              <p className="text-xs text-muted-foreground">Weekly updates & matches</p>
+              <Label className="text-base font-medium">Job Matches</Label>
+              <p className="text-sm text-muted-foreground">Get notified when new jobs match your profile</p>
             </div>
           </div>
-          <Switch 
-            checked={emailAlerts} 
-            onCheckedChange={(c) => handleToggle('email', c)}
+          <Switch
+            checked={preferences.job_matches.enabled}
+            onCheckedChange={(checked) => updatePreference('job_matches', 'enabled', checked)}
             disabled={saving}
+            aria-label="Job Matches"
           />
         </div>
-        
-        <div className={`flex items-center justify-between gap-3 p-4 rounded-md border transition-colors ${smsAlerts ? 'border-primary/30 bg-muted' : 'border-border bg-card'}`}>
-          <div className="flex gap-3">
-            <div className={`w-9 h-9 rounded-md flex items-center justify-center ${smsAlerts ? 'bg-muted text-foreground' : 'bg-muted text-muted-foreground'}`}>
-              <Smartphone className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="text-sm font-medium">SMS alerts (Pro)</p>
-              <p className="text-xs text-muted-foreground">Instant interview updates</p>
+
+        {preferences.job_matches.enabled && (
+          <div className="ml-8 space-y-3 border-l-2 border-border pl-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label className="text-sm font-medium mb-2 block">Frequency</Label>
+                <Select
+                  value={preferences.job_matches.frequency}
+                  onValueChange={(value) => updatePreference('job_matches', 'frequency', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="never">Never</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {preferences.job_matches.frequency !== 'never' && (
+                <>
+                  <div>
+                    <Label className="text-sm font-medium mb-2 block">Time</Label>
+                    <input
+                      type="time"
+                      className="w-full px-3 py-2 border border-input rounded-md text-sm"
+                      value={preferences.job_matches.time}
+                      onChange={(e) => updatePreference('job_matches', 'time', e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-medium mb-2 block">Timezone</Label>
+                    <Select
+                      value={preferences.job_matches.timezone}
+                      onValueChange={(value) => updatePreference('job_matches', 'timezone', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {timezoneOptions.map((tz) => (
+                          <SelectItem key={tz.value} value={tz.value}>
+                            {tz.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
             </div>
           </div>
-          <Switch 
-            checked={smsAlerts} 
-            onCheckedChange={(c) => handleToggle('sms', c)}
-            disabled={loading || saving}
+        )}
+      </div>
+
+      <Separator />
+
+      {/* Auto Applications */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Mail className="w-5 h-5 text-primary" />
+            <div>
+              <Label className="text-base font-medium">Auto Applications</Label>
+              <p className="text-sm text-muted-foreground">Instant confirmation when applications are submitted</p>
+            </div>
+          </div>
+          <Switch
+            checked={preferences.auto_applications.enabled}
+            onCheckedChange={(checked) => updatePreference('auto_applications', 'enabled', checked)}
+            disabled={saving}
+            aria-label="Auto Applications"
           />
         </div>
+
+        {preferences.auto_applications.enabled && (
+          <div className="ml-8 border-l-2 border-border pl-4">
+            <p className="text-sm text-muted-foreground">Frequency: Immediate</p>
+          </div>
+        )}
       </div>
-      
+
+      <Separator />
+
+      {/* Weekly Digest */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Calendar className="w-5 h-5 text-primary" />
+            <div>
+              <Label className="text-base font-medium">Weekly Digest</Label>
+              <p className="text-sm text-muted-foreground">Weekly summary of activity and matches</p>
+            </div>
+          </div>
+          <Switch
+            checked={preferences.weekly_digest.enabled}
+            onCheckedChange={(checked) => updatePreference('weekly_digest', 'enabled', checked)}
+            disabled={saving}
+            aria-label="Weekly Digest"
+          />
+        </div>
+
+        {preferences.weekly_digest.enabled && (
+          <div className="ml-8 space-y-3 border-l-2 border-border pl-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium mb-2 block">Day</Label>
+                <Select
+                  value={preferences.weekly_digest.day}
+                  onValueChange={(value) => updatePreference('weekly_digest', 'day', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {dayOptions.map((day) => (
+                      <SelectItem key={day.value} value={day.value}>
+                        {day.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-2 block">Time</Label>
+                <input
+                  type="time"
+                  className="w-full px-3 py-2 border border-input rounded-md text-sm"
+                  value={preferences.weekly_digest.time}
+                  onChange={(e) => updatePreference('weekly_digest', 'time', e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <Separator />
+
+      {/* Payment Updates */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <CreditCard className="w-5 h-5 text-primary" />
+            <div>
+              <Label className="text-base font-medium">Payment Updates</Label>
+              <p className="text-sm text-muted-foreground">Billing and subscription notifications (required)</p>
+            </div>
+          </div>
+          <Switch
+            checked={preferences.payment_updates.enabled}
+            onCheckedChange={() => {}} // No-op since this can't be changed
+            disabled={true}
+            aria-label="Payment Updates"
+          />
+        </div>
+
+        <div className="ml-8 border-l-2 border-border pl-4">
+          <p className="text-sm text-muted-foreground">Frequency: Immediate (cannot be disabled)</p>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Usage Warnings */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="w-5 h-5 text-primary" />
+            <div>
+              <Label className="text-base font-medium">Usage Warnings</Label>
+              <p className="text-sm text-muted-foreground">Alerts when approaching feature limits</p>
+            </div>
+          </div>
+          <Switch
+            checked={preferences.usage_warnings.enabled}
+            onCheckedChange={(checked) => updatePreference('usage_warnings', 'enabled', checked)}
+            disabled={saving}
+            aria-label="Usage Warnings"
+          />
+        </div>
+
+        {preferences.usage_warnings.enabled && (
+          <div className="ml-8 space-y-3 border-l-2 border-border pl-4">
+            <div>
+              <Label className="text-sm font-medium mb-2 block">
+                Alert Threshold: {preferences.usage_warnings.threshold}%
+              </Label>
+              <div className="space-y-2">
+                <Slider
+                  value={[preferences.usage_warnings.threshold]}
+                  onValueChange={(value) => updatePreference('usage_warnings', 'threshold', value[0])}
+                  min={50}
+                  max={100}
+                  step={5}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>50%</span>
+                  <span>100%</span>
+                </div>
+              </div>
+              <input
+                type="number"
+                min="50"
+                max="100"
+                step="5"
+                value={preferences.usage_warnings.threshold}
+                onChange={(e) => updatePreference('usage_warnings', 'threshold', parseInt(e.target.value))}
+                className="w-20 px-2 py-1 border border-input rounded text-sm"
+              />
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
