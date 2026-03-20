@@ -79,7 +79,7 @@ export default function CompanyDiversitySettings({ companyId }: CompanyDiversity
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const { toast } = useToast();
+  
 
   useEffect(() => {
     loadCompanyDiversityData();
