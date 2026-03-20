@@ -213,7 +213,7 @@ export const searchJobs = async (
       return { jobs: [], totalCount: 0 };
     }
 
-    return { jobs: (data || []).map(mapJobRow), totalCount: count || 0 };
+    return { jobs: (data || []).map((j: any) => mapJobRow(j)), totalCount: count || 0 };
   } catch (err) {
     console.error('Search error:', err);
     return { jobs: [], totalCount: 0 };
