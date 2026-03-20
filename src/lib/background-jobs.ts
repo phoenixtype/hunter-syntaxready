@@ -144,7 +144,8 @@ export const queueEmailNotification = async (
           console.log(`[BackgroundJobs] Sending email to ${job.recipient}`);
 
           // Use the edge function queue for email sending
-          await queueEmailNotification({
+          await queueEmailViaEdge({
+            type: 'email',
             template: job.template,
             recipient: job.recipient,
             data: job.data,
