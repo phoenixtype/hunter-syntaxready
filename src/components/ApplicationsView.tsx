@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { Badge } from "@/components/ui/badge";
+// Badge available if needed
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Calendar, ExternalLink, Briefcase, LayoutGrid, List as ListIcon, AlertCircle, StickyNote, GripVertical } from "lucide-react";

@@ -9,7 +9,7 @@ import {
   UserPlus,
   LayoutDashboard,
   User,
-  Settings,
+  
   FileText,
   GraduationCap,
   Bot,
