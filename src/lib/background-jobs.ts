@@ -132,7 +132,7 @@ export const queueEmailNotification = async (
   job: EmailNotificationJob,
   options: JobOptions = {}
 ): Promise<string> => {
-  const { priority = 5, delay = 0, retries = 3 } = options;
+  const { priority = 5, delay = 0, retries: _retries = 3 } = options;
 
   return new Promise((resolve, reject) => {
     const jobId = `email_${Date.now()}_${Math.random().toString(36).substring(7)}`;
