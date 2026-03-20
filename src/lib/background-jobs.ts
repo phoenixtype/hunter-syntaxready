@@ -139,7 +139,7 @@ export const queueEmailNotification = async (
 
     const executeJob = async () => {
       let attempt = 0;
-      while (attempt <= retries) {
+      while (attempt <= _retries) {
         try {
           console.log(`[BackgroundJobs] Sending email to ${job.recipient}`);
 
