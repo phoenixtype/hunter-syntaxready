@@ -93,7 +93,7 @@ export default function DiversityEquitySection({ candidateId }: DiversityEquityS
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const toastFn = toast;
+  
 
   useEffect(() => {
     loadDiversityData();
