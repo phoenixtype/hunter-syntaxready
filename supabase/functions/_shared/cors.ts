@@ -8,7 +8,8 @@ export const corsHeaders = {
   'Access-Control-Allow-Headers':
     'authorization, x-client-info, apikey, content-type, ' +
     'x-supabase-client-platform, x-supabase-client-platform-version, ' +
-    'x-supabase-client-runtime, x-supabase-client-runtime-version',
+    'x-supabase-client-runtime, x-supabase-client-runtime-version, ' +
+    'x-connection-pool-size, x-postgrest-profile, x-supabase-project-ref',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS, PUT, DELETE, HEAD',
   'Access-Control-Max-Age': '86400', // 24 hours
 };
