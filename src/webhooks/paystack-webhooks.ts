@@ -297,7 +297,7 @@ export async function createPaystackOveragePurchase(
     await getOverageRateNgn(userInfo.subscription_plan, featureName) :
     userInfo.overage_cost;
 
-  const _totalAmount = quantity * unitPrice;
+  void (quantity * unitPrice);
 
   // Create overage purchase record
   const { data: purchaseId, error } = await supabase.rpc('purchase_overage_credits', {

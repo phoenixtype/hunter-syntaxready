@@ -17,7 +17,7 @@ const TEXT_MUTED = '#64748b';      // slate-500
 const BORDER = '#e2e8f0';          // slate-200
 const SUCCESS_BG = '#ecfdf5';      // emerald-50
 const SUCCESS_BORDER = '#d1fae5';  // emerald-200
-const _WARNING_BG = '#fef3c7';      // amber-100
+void '#fef3c7'; // amber-100 (WARNING_BG - reserved)
 const WARNING_BORDER = '#f59e0b';  // amber-500
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
