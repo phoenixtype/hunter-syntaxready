@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useRecruiterStats, useMyJobs, useRecruiterProfile } from "@/hooks/useRecruiter";
 import { useSubscription } from "@/hooks/useSubscription";
-import { JOB_STATUS_LABELS, LOCATION_TYPE_LABELS, EMPLOYMENT_TYPE_LABELS } from "@/lib/recruiter_engine";
+import { LOCATION_TYPE_LABELS, EMPLOYMENT_TYPE_LABELS } from "@/lib/recruiter_engine";
 import type { RecruiterJob } from "@/lib/recruiter_engine";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
