@@ -119,7 +119,7 @@ const RecruiterSidebar = () => {
 
       {/* Plan badge + upgrade CTA */}
       {!collapsed && (() => {
-        const tier = subscription?.tier;
+        const tier = subscription?.tier as string | undefined;
         const isGrowth = tier === "recruiter_growth";
         const isStarter = tier === "recruiter_starter";
         const hasPlan = isGrowth || isStarter;

@@ -150,17 +150,10 @@ export default function CompanyDiversitySettings({ companyId }: CompanyDiversity
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Company diversity settings saved successfully",
-      });
+      toast.success("Company diversity settings saved successfully");
     } catch (error: any) {
       console.error('Error saving company diversity data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save company diversity settings",
-        variant: "destructive",
-      });
+      toast.error("Failed to save company diversity settings");
     } finally {
       setSaving(false);
     }

@@ -50,7 +50,7 @@ export function UsageGuard({
   const [isExecuting, setIsExecuting] = useState(false);
 
   // Get current feature info from overview
-  const featureInfo = usageOverview?.features.find(f => f.feature_name === featureName);
+  const featureInfo = usageOverview?.features.find((f: any) => f.feature_name === featureName);
 
   useEffect(() => {
     if (user?.id) {

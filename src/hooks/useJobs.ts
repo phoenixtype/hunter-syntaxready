@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { searchJobs, triggerJobCrawl, getJobCount, JobOpportunity, CrawlParams } from "@/lib/crawler_engine";
+import { triggerJobCrawl, getJobCount, JobOpportunity, CrawlParams } from "@/lib/crawler_engine";
 import { CandidateProfile } from "@/lib/resume_engine";
 import { calculateMatch, MatchResult, getMatchedJobsServerSide } from "@/lib/matching_engine";
 import { getOptimizedWeights } from "@/lib/learning_engine";

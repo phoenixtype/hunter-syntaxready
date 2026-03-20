@@ -34,7 +34,7 @@ export function OverageModal({ featureName, open, onClose }: OverageModalProps) 
   const { getOverageQuote, purchaseOverage, usageOverview } = useSubscription();
 
   // Get current feature usage info
-  const featureInfo = usageOverview?.features.find(f => f.feature_name === featureName);
+  const featureInfo = usageOverview?.features.find((f: any) => f.feature_name === featureName);
 
   // Calculate quote when quantity changes
   useEffect(() => {
