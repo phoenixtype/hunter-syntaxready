@@ -1,43 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { buildPaymentConfirmationEmail } from "../_shared/email-templates.ts";
 
 const SITE_URL = Deno.env.get('SITE_URL') || 'https://usehunter.app';
 const FROM = 'Hunter <notifications@usehunter.app>';
 
-function proActivatedEmail(): { subject: string; html: string } {
-  return {
-    subject: "You're now Hunter Pro — welcome! 🚀",
-    html: `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 16px;">
-<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
-<tr><td align="center" style="padding-bottom:32px;">
-  <div style="background:#0d9488;width:40px;height:40px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;">
-    <span style="color:#fff;font-weight:700;font-size:18px;">H</span>
-  </div>
-</td></tr>
-<tr><td style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
-  <div style="background:linear-gradient(135deg,#0d9488,#10b981);padding:40px 32px;text-align:center;">
-    <h1 style="margin:0 0 8px;font-size:26px;font-weight:700;color:#fff;">Welcome to Hunter Pro</h1>
-    <p style="margin:0;font-size:15px;color:rgba(255,255,255,0.9);">Your AI job search agent is now active.</p>
-  </div>
-  <div style="padding:32px;">
-    <p style="margin:0 0 24px;font-size:15px;color:#475569;line-height:1.6;">Your subscription is confirmed. Here's what's now unlocked:</p>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
-      ${['Unlimited AI Job Matches & Applications','Auto-Tailored Resumes & Cover Letters','Deep Intelligence Company Briefings','Negotiation Coach & Salary Insights','Priority Application Queue & Tracking'].map(f =>
-        `<tr><td style="padding:10px 0;border-bottom:1px solid #f1f5f9;font-size:14px;color:#0f172a;">✓ &nbsp;${f}</td></tr>`).join('')}
-    </table>
-    <div style="text-align:center;">
-      <a href="${SITE_URL}/dashboard" style="display:inline-block;background:#0d9488;color:#fff;font-size:14px;font-weight:600;padding:14px 36px;border-radius:8px;text-decoration:none;">Open Hunter Dashboard</a>
-    </div>
-  </div>
-  <div style="padding:24px 32px;border-top:1px solid #f1f5f9;text-align:center;">
-    <p style="margin:0;font-size:12px;color:#94a3b8;">Questions? Reply to this email or contact <a href="mailto:support@syntaxready.com" style="color:#0d9488;">support@syntaxready.com</a></p>
-  </div>
-</td></tr>
-</table></td></tr></table></body></html>`,
-  };
-}
 
 function paymentFailedEmail(): { subject: string; html: string } {
   return {
@@ -63,20 +30,42 @@ function paymentFailedEmail(): { subject: string; html: string } {
   };
 }
 
-async function sendTransactionalEmail(type: string, to: string) {
+async function sendTransactionalEmail(type: string, to: string, data?: any) {
   const resendKey = Deno.env.get('RESEND_API_KEY');
   if (!resendKey) return;
+
   try {
     let email: { subject: string; html: string } | null = null;
-    if (type === 'pro_activated') email = proActivatedEmail();
-    else if (type === 'payment_failed') email = paymentFailedEmail();
+
+    if (type === 'pro_activated' && data) {
+      email = buildPaymentConfirmationEmail({
+        tier: data.tier || 'pro',
+        amount: data.amount || 19.99,
+        currency: data.currency || 'usd',
+        paymentProvider: data.paymentProvider || 'stripe',
+        userName: data.userName
+      });
+    } else if (type === 'payment_failed') {
+      // Keep existing payment failed template for now
+      email = paymentFailedEmail();
+    }
+
     if (!email) return;
 
     await fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: FROM, to: [to], subject: email.subject, html: email.html }),
+      headers: {
+        'Authorization': `Bearer ${resendKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: FROM,
+        to: [to],
+        subject: email.subject,
+        html: email.html
+      }),
     });
+
     console.log(`[WEBHOOK] Email sent: ${type} → ${to}`);
   } catch (err) {
     console.warn('[WEBHOOK] Non-critical email send failed:', err);
@@ -219,7 +208,13 @@ serve(async (req) => {
           // Send Pro activation email (non-blocking)
           const { data: authUser } = await supabase.auth.admin.getUserById(userId);
           if (authUser?.user?.email) {
-            sendTransactionalEmail('pro_activated', authUser.user.email);
+            sendTransactionalEmail('pro_activated', authUser.user.email, {
+              tier,
+              amount: session.amount_total / 100, // Convert from cents
+              currency: session.currency === 'ngn' ? 'ngn' : 'usd',
+              paymentProvider: 'stripe',
+              userName: authUser.user.user_metadata?.full_name || authUser.user.email
+            });
           }
         }
 
