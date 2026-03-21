@@ -202,30 +202,10 @@ class CachedJobEngine {
     userId: string,
     limit: number = 20
   ): Promise<JobMatch[]> {
-    const cacheKey = CacheKeys.MATCHING_RESULTS(userId, 'recent');
-
-    return cache.getOrCompute(
-      cacheKey,
-      async () => {
-        console.log(`[JOBS_CACHE] Fetching job matches for user: ${userId}`);
-
-        const { data: matches, error } = await (supabase as any)
-          .from('job_matches')
-          .select('*, job_listings(*)')
-          .eq('user_id', userId)
-          .order('match_score', { ascending: false })
-          .order('created_at', { ascending: false })
-          .limit(limit);
-
-        if (error) {
-          console.error('[JOBS_CACHE] Job matches query failed:', error);
-          throw error;
-        }
-
-        return matches || [];
-      },
-      CacheTTL.SHORT // User matches should be relatively fresh
-    );
+    // job_matches table does not exist in the current schema.
+    // Return empty so callers fall back to server-side matching.
+    console.log(`[JOBS_CACHE] job_matches table unavailable, returning empty for user: ${userId}`);
+    return [];
   }
 
   /**
