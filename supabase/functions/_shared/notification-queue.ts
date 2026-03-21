@@ -146,7 +146,7 @@ export class NotificationQueueManager {
         .select('*')
         .eq('status', 'pending')
         .lte('scheduled_for', new Date().toISOString())
-        .lt('attempts', this.supabase.raw('max_attempts'))
+        .lt('attempts', 3) // max_attempts default
         .order('priority', { ascending: false }) // high priority first
         .order('scheduled_for', { ascending: true }) // oldest first
         .limit(limit);
