@@ -170,6 +170,7 @@ const App = () => (
                       <Route path="/resume-builder"        element={<AppPage><ResumeBuilder /></AppPage>} />
                       <Route path="/application-wizard"    element={<AppPage><ApplicationWizard /></AppPage>} />
                       <Route path="/interview-coach"       element={<AppPage><InterviewCoach /></AppPage>} />
+                      <Route path="/post-interview"        element={<AppPage><PostInterview /></AppPage>} />
                       <Route path="/auto-applier-settings" element={<AppPage><AutoApplierSettings /></AppPage>} />
                       <Route path="/tailored-resumes"      element={<AppPage><TailoredResumes /></AppPage>} />
                       <Route path="/settings"              element={<AppPage><Settings /></AppPage>} />
