@@ -175,10 +175,17 @@ export class NotificationQueueManager {
    */
   async markAsProcessing(notificationId: string): Promise<boolean> {
     try {
+      // First get current attempts, then increment
+      const { data: current } = await this.supabase
+        .from('notification_queue')
+        .select('attempts')
+        .eq('id', notificationId)
+        .single();
+
       const { error } = await this.supabase
         .from('notification_queue')
         .update({
-          attempts: this.supabase.raw('attempts + 1')
+          attempts: (current?.attempts ?? 0) + 1
         })
         .eq('id', notificationId);
 
