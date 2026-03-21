@@ -3,7 +3,6 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Briefcase,
   FileText,
-  Search,
   MessageSquare,
   Settings,
   LogOut,

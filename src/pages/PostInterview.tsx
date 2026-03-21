@@ -124,7 +124,7 @@ const PostInterview = () => {
     return (
         <div className="flex flex-col min-h-screen min-w-0">
             <SEOHead title="Post-Interview Tools" description="Generate thank-you notes and negotiate offers with AI." path="/post-interview" noIndex />
-            <PageHeader title="Post-Interview Tools" description="Generate thank-you notes and negotiate your offer." />
+            <PageHeader breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Post-Interview" }]} />
 
             <main className="flex-1 p-4 sm:p-6 max-w-3xl w-full mx-auto">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 min-h-0">
