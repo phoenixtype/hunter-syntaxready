@@ -129,7 +129,7 @@ function buildHtml(profile: Profile, opts: BuildOpts): string {
     ? `<section>
         <h2 class="section-head">Education</h2>
         ${education.map(edu => {
-          const degreeDisplay = [edu.degree, edu.field].filter(Boolean).map((s: string) => esc(s)).join(', ');
+          const degreeDisplay = [edu.degree, edu.field].filter((s): s is string => Boolean(s)).map(s => esc(s)).join(', ');
           return `<div class="edu-block">
             <div class="edu-header">
               <span class="edu-degree">${degreeDisplay}</span>
@@ -355,7 +355,7 @@ serve(async (req) => {
       pro:  { max: 25, window: 300 },
     });
     if (!allowed) {
-      return errorWithCors(limitError, 429);
+      return errorWithCors(limitError || 'Rate limit exceeded', 429);
     }
 
     const { profile, template = 'minimalist', accentColor = '#475569', onePage = false } = await req.json();

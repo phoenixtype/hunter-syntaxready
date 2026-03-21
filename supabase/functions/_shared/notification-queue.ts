@@ -146,7 +146,7 @@ export class NotificationQueueManager {
         .select('*')
         .eq('status', 'pending')
         .lte('scheduled_for', new Date().toISOString())
-        .lt('attempts', this.supabase.raw('max_attempts'))
+        .lt('attempts', 3) // max_attempts default
         .order('priority', { ascending: false }) // high priority first
         .order('scheduled_for', { ascending: true }) // oldest first
         .limit(limit);
@@ -175,10 +175,17 @@ export class NotificationQueueManager {
    */
   async markAsProcessing(notificationId: string): Promise<boolean> {
     try {
+      // First get current attempts, then increment
+      const { data: current } = await this.supabase
+        .from('notification_queue')
+        .select('attempts')
+        .eq('id', notificationId)
+        .single();
+
       const { error } = await this.supabase
         .from('notification_queue')
         .update({
-          attempts: this.supabase.raw('attempts + 1')
+          attempts: (current?.attempts ?? 0) + 1
         })
         .eq('id', notificationId);
 
@@ -346,7 +353,7 @@ export class NotificationQueueManager {
         return { cleaned: 0 };
       }
 
-      const cleaned = Array.isArray(data) ? data.length : 0;
+      const cleaned = Array.isArray(data) ? (data as unknown[]).length : 0;
       console.log(`[QUEUE] Cleaned up ${cleaned} old notifications`);
       return { cleaned };
 
