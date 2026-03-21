@@ -200,10 +200,11 @@ class CachedJobEngine {
    */
   async getJobMatches(
     userId: string,
-    limit: number = 20
+    _limit: number = 20
   ): Promise<JobMatch[]> {
     // job_matches table does not exist in the current schema.
     // Return empty so callers fall back to server-side matching.
+    void _limit;
     console.log(`[JOBS_CACHE] job_matches table unavailable, returning empty for user: ${userId}`);
     return [];
   }
