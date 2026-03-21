@@ -353,7 +353,7 @@ export class NotificationQueueManager {
         return { cleaned: 0 };
       }
 
-      const cleaned = Array.isArray(data) ? data.length : 0;
+      const cleaned = Array.isArray(data) ? (data as unknown[]).length : 0;
       console.log(`[QUEUE] Cleaned up ${cleaned} old notifications`);
       return { cleaned };
 

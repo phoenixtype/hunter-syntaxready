@@ -355,7 +355,7 @@ serve(async (req) => {
       pro:  { max: 25, window: 300 },
     });
     if (!allowed) {
-      return errorWithCors(limitError, 429);
+      return errorWithCors(limitError || 'Rate limit exceeded', 429);
     }
 
     const { profile, template = 'minimalist', accentColor = '#475569', onePage = false } = await req.json();
