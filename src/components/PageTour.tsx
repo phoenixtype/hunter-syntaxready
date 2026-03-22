@@ -1,6 +1,7 @@
 import { useEffect, useState, useImperativeHandle, forwardRef } from "react";
 import Joyride, { CallBackProps, STATUS, Step } from "react-joyride";
 import { useTheme } from "next-themes";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface PageTourHandle {
   start: () => void;
@@ -11,30 +12,44 @@ interface PageTourProps {
   steps: Step[];
 }
 
+const getCssVar = (name: string) => {
+  const val = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return `hsl(${val})`;
+};
+
 const PageTour = forwardRef<PageTourHandle, PageTourProps>(({ tourKey, steps }, ref) => {
   const [run, setRun] = useState(false);
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
+  const { user } = useAuth();
 
   useImperativeHandle(ref, () => ({
     start: () => setRun(true),
   }));
 
   useEffect(() => {
-    const storageKey = `hunter_tour_${tourKey}`;
+    if (!user) return;
+    const storageKey = `hunter_tour_${user.id}_${tourKey}`;
     if (!localStorage.getItem(storageKey)) {
       const timer = setTimeout(() => setRun(true), 1000);
       return () => clearTimeout(timer);
     }
-  }, [tourKey]);
+  }, [tourKey, user]);
 
   const handleCallback = (data: CallBackProps) => {
     const { status } = data;
     if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
       setRun(false);
-      localStorage.setItem(`hunter_tour_${tourKey}`, "done");
+      if (user) {
+        localStorage.setItem(`hunter_tour_${user.id}_${tourKey}`, "done");
+      }
     }
   };
+
+  const bg = getCssVar("--card");
+  const fg = getCssVar("--card-foreground");
+  const primary = getCssVar("--primary");
+  const mutedFg = getCssVar("--muted-foreground");
 
   return (
     <Joyride
@@ -48,10 +63,10 @@ const PageTour = forwardRef<PageTourHandle, PageTourProps>(({ tourKey, steps }, 
       disableOverlayClose
       styles={{
         options: {
-          primaryColor: "hsl(var(--primary))",
-          backgroundColor: isDark ? "hsl(222 47% 11%)" : "hsl(0 0% 100%)",
-          textColor: isDark ? "hsl(210 40% 98%)" : "hsl(222 47% 11%)",
-          arrowColor: isDark ? "hsl(222 47% 11%)" : "hsl(0 0% 100%)",
+          primaryColor: primary,
+          backgroundColor: bg,
+          textColor: fg,
+          arrowColor: bg,
           overlayColor: "rgba(0,0,0,0.55)",
           zIndex: 9999,
         },
@@ -70,11 +85,11 @@ const PageTour = forwardRef<PageTourHandle, PageTourProps>(({ tourKey, steps }, 
         buttonBack: {
           borderRadius: 6,
           fontSize: 13,
-          color: isDark ? "hsl(210 40% 70%)" : "hsl(215 20% 45%)",
+          color: mutedFg,
         },
         buttonSkip: {
           fontSize: 12,
-          color: isDark ? "hsl(210 40% 60%)" : "hsl(215 20% 55%)",
+          color: mutedFg,
         },
       }}
       locale={{

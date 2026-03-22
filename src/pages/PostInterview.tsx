@@ -165,7 +165,7 @@ const PostInterview = () => {
                 }
             />
 
-            <main className="flex-1 p-4 sm:p-6 max-w-3xl w-full mx-auto">
+            <main className="flex-1 flex flex-col justify-center p-6 max-w-lg w-full mx-auto">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 min-h-0">
                     <TabsList className="grid w-full grid-cols-2 shrink-0 mb-6" data-tour="pi-tabs">
                         <TabsTrigger value="thankyou">Thank You Note</TabsTrigger>
