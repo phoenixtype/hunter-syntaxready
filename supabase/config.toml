@@ -18,6 +18,10 @@ otp_length = 8
 enroll_enabled = true
 verify_enabled = true
 
+# --- Auth email hook (called by Supabase Auth, no user JWT) ---
+[functions.send-auth-email]
+verify_jwt = false
+
 # --- Public / system endpoints (no user JWT available) ---
 [functions.stripe-webhook]
 verify_jwt = false

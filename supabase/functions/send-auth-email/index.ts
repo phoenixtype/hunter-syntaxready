@@ -7,6 +7,14 @@ import { ConfirmationEmail } from './_templates/confirmation.tsx'
 const resend = new Resend(Deno.env.get('RESEND_API_KEY') as string)
 const hookSecret = Deno.env.get('SEND_EMAIL_HOOK_SECRET') as string
 
+const SUBJECTS: Record<string, string> = {
+  recovery:     'Reset your Hunter password',
+  magiclink:    'Your Hunter login link',
+  email_change: 'Confirm your new Hunter email',
+  signup:       'Confirm your Hunter account',
+  email:        'Confirm your Hunter account',
+}
+
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
     return new Response('not allowed', { status: 400 })
@@ -14,17 +22,14 @@ Deno.serve(async (req) => {
 
   const payload = await req.text()
   const headers = Object.fromEntries(req.headers)
-
   const wh = new Webhook(hookSecret)
 
   try {
     const {
       user,
-      email_data: { token, token_hash, redirect_to, email_action_type },
+      email_data: { token_hash, redirect_to, email_action_type },
     } = wh.verify(payload, headers) as {
-      user: {
-        email: string
-      }
+      user: { email: string }
       email_data: {
         token: string
         token_hash: string
@@ -36,36 +41,19 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Determine subject based on action type
-    let subject: string
-    switch (email_action_type) {
-      case 'recovery':
-        subject = 'Reset your Hunter password'
-        break
-      case 'magiclink':
-        subject = 'Your Hunter login link'
-        break
-      case 'email_change':
-        subject = 'Confirm your new email address'
-        break
-      case 'signup':
-      case 'email':
-      default:
-        subject = 'Confirm your Hunter account'
-        break
-    }
+    const subject = SUBJECTS[email_action_type] ?? SUBJECTS.email
 
     const html = await renderAsync(
       React.createElement(ConfirmationEmail, {
         supabase_url: Deno.env.get('SUPABASE_URL') ?? '',
         token_hash,
-        redirect_to: redirect_to || Deno.env.get('SITE_URL') || '',
+        redirect_to: redirect_to || Deno.env.get('SITE_URL') || 'https://usehunter.app',
         email_action_type,
       })
     )
 
     const { error } = await resend.emails.send({
-      from: 'Hunter <onboarding@usehunter.app>',
+      from: 'Hunter <noreply@usehunter.app>',
       to: [user.email],
       subject,
       html,
@@ -76,10 +64,10 @@ Deno.serve(async (req) => {
       throw error
     }
 
-    console.log(`Auth email sent to ${user.email} (type: ${email_action_type})`)
+    console.log(`Auth email sent — type: ${email_action_type}, to: ${user.email}`)
   } catch (error: unknown) {
-    console.error('Send auth email error:', error)
-    const err = error as Record<string, unknown>;
+    console.error('send-auth-email error:', error)
+    const err = error as Record<string, unknown>
     return new Response(
       JSON.stringify({
         error: {
