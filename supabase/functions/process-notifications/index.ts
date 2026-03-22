@@ -7,7 +7,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "../_shared/rate-limiter.ts";
+import { corsHeaders, jsonWithCors } from "../_shared/cors.ts";
 import { NotificationQueueManager, type QueuedNotification, type NotificationData } from "../_shared/notification-queue.ts";
 import {
   buildPaymentConfirmationEmail,

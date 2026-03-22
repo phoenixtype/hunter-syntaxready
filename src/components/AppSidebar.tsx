@@ -3,8 +3,6 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Briefcase,
   FileText,
-  Search,
-  Linkedin,
   MessageSquare,
   Settings,
   LogOut,
@@ -35,7 +33,6 @@ const SIDEBAR_SECTIONS = [
     label: "Apply",
     tools: [
       { icon: FileText,      title: "Resume Builder",      route: "/resume-builder" },
-      { icon: Search,        title: "Application Wizard",  route: "/application-wizard" },
       { icon: FolderOpen,    title: "Tailored Resumes",    route: "/tailored-resumes" },
     ],
   },
@@ -43,13 +40,12 @@ const SIDEBAR_SECTIONS = [
     label: "Prepare",
     tools: [
       { icon: GraduationCap, title: "Interview Coach",     route: "/interview-coach" },
-      { icon: MessageSquare, title: "Post-Interview",      modal: "postInterview" as const },
+      { icon: MessageSquare, title: "Post-Interview",      route: "/post-interview" },
     ],
   },
   {
     label: "Optimize",
     tools: [
-      { icon: Linkedin,      title: "LinkedIn Optimizer",  modal: "linkedin" as const },
       { icon: Bot,           title: "Hunt Planner",        route: "/auto-applier-settings" },
     ],
   },
@@ -96,12 +92,8 @@ const AppSidebar = () => {
     navigate(tab === "jobs" ? "/dashboard" : `/dashboard?tab=${tab}`);
   };
 
-  const handleToolClick = (route?: string, modal?: string) => {
-    if (route) {
-      navigate(route);
-    } else if (modal) {
-      window.dispatchEvent(new CustomEvent("hunter:modal", { detail: modal }));
-    }
+  const handleToolClick = (route: string) => {
+    navigate(route);
   };
 
   return (
@@ -210,14 +202,12 @@ const AppSidebar = () => {
             )}
             <div className="space-y-0.5">
               {section.tools.map((tool) => {
-                const route = "route" in tool ? tool.route : undefined;
-                const modal = "modal" in tool ? tool.modal : undefined;
-                const active = isRouteActive(route);
+                const active = isRouteActive(tool.route);
                 return (
                   <button
                     key={tool.title}
                     title={collapsed ? tool.title : undefined}
-                    onClick={() => handleToolClick(route, modal)}
+                    onClick={() => handleToolClick(tool.route)}
                     className={`w-full flex items-center gap-1.5 rounded-md text-sm transition-colors font-normal ${
                       collapsed ? "justify-center p-2" : "px-2.5 py-1.5"
                     } ${

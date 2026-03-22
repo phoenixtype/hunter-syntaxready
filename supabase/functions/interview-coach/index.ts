@@ -7,8 +7,8 @@ const GENERIC_SERVICE_ERROR = 'Service temporarily unavailable';
 const GENERIC_AUTH_ERROR = 'Authentication required';
 const GENERIC_RATE_LIMIT_ERROR = 'Too many requests. Please try again later.';
 
-// Rate limit configuration: 20 requests per minute (conversational)
-const RATE_LIMIT_MAX_REQUESTS = 20;
+// Rate limit configuration: 60 requests per minute (conversational)
+const RATE_LIMIT_MAX_REQUESTS = 60;
 const RATE_LIMIT_WINDOW_SECONDS = 60;
 
 interface ChatMessage {
@@ -124,8 +124,8 @@ serve(async (req) => {
     const { RateLimiter } = await import('../_shared/rate-limiter.ts');
     const limiter = new RateLimiter(supabase, user.id);
     const { allowed, error: limitError } = await limiter.isAllowed('interview-coach', {
-      free: { max: 30, window: 60 },
-      pro:  { max: 100, window: 60 },
+      free: { max: 60, window: 60 },
+      pro:  { max: 200, window: 60 },
     });
 
     if (!allowed) {

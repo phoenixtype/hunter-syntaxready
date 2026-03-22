@@ -1,5 +1,6 @@
-import { expect, afterEach } from 'vitest'
-import { cleanup } from '@testing-library/react'
+import { afterEach as _afterEach } from 'vitest'
+import { cleanup as _cleanup } from '@testing-library/react'
+void _afterEach; void _cleanup;
 
 // Mock localStorage for Supabase tests
 Object.defineProperty(global, 'localStorage', {
