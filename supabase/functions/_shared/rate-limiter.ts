@@ -18,13 +18,16 @@ export class RateLimiter {
     }
   ): Promise<{ allowed: boolean; error?: string }> {
     try {
-      // 1. Get user subscription tier
-      const { data: subscription } = await this.supabase
+      // 1. Get user subscription tier — use limit(1) to avoid maybeSingle() failing on duplicate rows
+      const { data: subscriptions } = await this.supabase
         .from('subscriptions')
         .select('tier')
         .eq('user_id', this.userId)
-        .maybeSingle();
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1);
 
+      const subscription = subscriptions?.[0] ?? null;
       const tier = subscription?.tier === 'pro' ? 'pro' : 'free';
       const config = limits[tier];
 
