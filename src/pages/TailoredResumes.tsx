@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
 import ProGate from "@/components/ProGate";
@@ -34,11 +34,32 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { FileDown, Trash2, FileText, Building2, Loader2, Calendar, Copy, Check, ChevronDown } from "lucide-react";
+import { FileDown, Trash2, FileText, Building2, Loader2, Calendar, Copy, Check, ChevronDown, HelpCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import PageHeader from "@/components/PageHeader";
 import SEOHead from "@/components/SEOHead";
+import PageTour, { PageTourHandle } from "@/components/PageTour";
+import { Step } from "react-joyride";
+
+const TAILORED_TOUR_STEPS: Step[] = [
+  {
+    target: "body",
+    content: "Tailored Resumes stores every AI-optimised resume and cover letter you've generated — ready to download whenever you need them.",
+    placement: "center",
+    disableBeacon: true,
+  },
+  {
+    target: "[data-tour=\"tr-list\"]",
+    content: "Each card shows the role and company the resume was tailored for, along with the date it was created.",
+    disableBeacon: true,
+  },
+  {
+    target: "[data-tour=\"tr-actions\"]",
+    content: "Download as PDF or Word, copy the cover letter to your clipboard, or delete resumes you no longer need.",
+    disableBeacon: true,
+  },
+];
 
 interface TailoredResume {
   id: string;
@@ -55,6 +76,7 @@ const TailoredResumes = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { isPro, isLoading: subLoading } = useSubscription();
+  const tourRef = useRef<PageTourHandle>(null);
   const [resumes, setResumes] = useState<TailoredResume[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -148,6 +170,11 @@ const TailoredResumes = () => {
             { label: "Dashboard", href: "/dashboard" },
             { label: "Tailored Resumes" },
           ]}
+          actions={
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground" onClick={() => tourRef.current?.start()} title="Page tour">
+              <HelpCircle className="w-4 h-4" />
+            </Button>
+          }
         />
 
         <h1 className="text-2xl font-bold tracking-tight">My Tailored Resumes</h1>
@@ -173,7 +200,7 @@ const TailoredResumes = () => {
             </Button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4" data-tour="tr-list">
             {paginatedResumes.map((resume) => (
               <Card key={resume.id} className="overflow-hidden hover:border-primary/20 transition-colors">
                 <CardContent className="p-5">
@@ -216,7 +243,7 @@ const TailoredResumes = () => {
                       )}
                     </div>
 
-                    <div className="flex flex-col gap-2 shrink-0">
+                    <div className="flex flex-col gap-2 shrink-0" data-tour="tr-actions">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button size="sm" className="gap-1.5">
@@ -342,6 +369,7 @@ const TailoredResumes = () => {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    <PageTour ref={tourRef} tourKey="tailored_resumes" steps={TAILORED_TOUR_STEPS} />
     </ProGate.Page>
   );
 };

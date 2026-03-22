@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,9 +14,37 @@ import {
     NegotiationStrategy,
 } from "@/lib/post_interview_engine";
 import { toast } from "sonner";
-import { CheckCircle2, Loader2, Copy, ChevronLeft } from "lucide-react";
+import { CheckCircle2, Loader2, Copy, ChevronLeft, ClipboardCheck, HelpCircle } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useResume } from "@/hooks/useResume";
+import { useSubscription } from "@/hooks/useSubscription";
+import ProGate from "@/components/ProGate";
+import PageTour, { PageTourHandle } from "@/components/PageTour";
+import { Step } from "react-joyride";
+
+const POST_INTERVIEW_TOUR_STEPS: Step[] = [
+  {
+    target: "body",
+    content: "Post-Interview Tools help you follow up professionally and negotiate your offer with confidence.",
+    placement: "center",
+    disableBeacon: true,
+  },
+  {
+    target: "[data-tour=\"pi-tabs\"]",
+    content: "Switch between generating a Thank You note after your interview or getting Negotiation coaching for an offer.",
+    disableBeacon: true,
+  },
+  {
+    target: "[data-tour=\"pi-thankyou\"]",
+    content: "Fill in the company name, interviewer, and topics you discussed — the AI will draft a personalised note from your profile.",
+    disableBeacon: true,
+  },
+  {
+    target: "[data-tour=\"pi-generate\"]",
+    content: "Click here to generate your draft. You can edit it before copying.",
+    disableBeacon: true,
+  },
+];
 
 const stripMarkdown = (text: string) =>
     text
@@ -29,6 +57,8 @@ const stripMarkdown = (text: string) =>
 
 const PostInterview = () => {
     const { profile } = useResume();
+    const { isPro, isLoading: subLoading } = useSubscription();
+    const tourRef = useRef<PageTourHandle>(null);
     const [activeTab, setActiveTab] = useState("thankyou");
     const [loading, setLoading] = useState(false);
 
@@ -122,20 +152,29 @@ const PostInterview = () => {
     };
 
     return (
-        <div className="flex flex-col min-h-screen min-w-0">
+        <ProGate.Page featureLabel="Post-Interview Tools" isPro={isPro} isLoading={subLoading}>
+        <div className="min-h-screen bg-background text-foreground flex flex-col" data-hide-footer>
             <SEOHead title="Post-Interview Tools" description="Generate thank-you notes and negotiate offers with AI." path="/post-interview" noIndex />
-            <PageHeader breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Post-Interview" }]} />
+            <PageHeader
+                breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Post-Interview" }]}
+                icon={<ClipboardCheck className="w-4 h-4 text-primary" />}
+                actions={
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground" onClick={() => tourRef.current?.start()} title="Page tour">
+                    <HelpCircle className="w-4 h-4" />
+                  </Button>
+                }
+            />
 
             <main className="flex-1 p-4 sm:p-6 max-w-3xl w-full mx-auto">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 min-h-0">
-                    <TabsList className="grid w-full grid-cols-2 shrink-0 mb-6">
+                    <TabsList className="grid w-full grid-cols-2 shrink-0 mb-6" data-tour="pi-tabs">
                         <TabsTrigger value="thankyou">Thank You Note</TabsTrigger>
                         <TabsTrigger value="negotiation">Negotiation Coach</TabsTrigger>
                     </TabsList>
 
                     {/* ── Thank You Note ── */}
                     <TabsContent value="thankyou" className="space-y-4">
-                        <div className="space-y-2">
+                        <div className="space-y-2" data-tour="pi-thankyou">
                             <label className="text-sm font-medium">Company</label>
                             <Input placeholder="e.g. Stripe" value={company} onChange={(e) => setCompany(e.target.value)} />
                         </div>
@@ -150,6 +189,7 @@ const PostInterview = () => {
                             </div>
                         </div>
 
+                        <div data-tour="pi-generate">
                         {generatedNote ? (
                             <div className="space-y-3">
                                 <label className="text-sm font-medium">Generated Draft</label>
@@ -176,6 +216,7 @@ const PostInterview = () => {
                                     : <><CheckCircle2 className="w-4 h-4 mr-2" /> Generate Thank You Note</>}
                             </Button>
                         )}
+                        </div>
                     </TabsContent>
 
                     {/* ── Negotiation Coach ── */}
@@ -267,6 +308,8 @@ const PostInterview = () => {
                 </Tabs>
             </main>
         </div>
+        <PageTour ref={tourRef} tourKey="post_interview" steps={POST_INTERVIEW_TOUR_STEPS} />
+        </ProGate.Page>
     );
 };
 

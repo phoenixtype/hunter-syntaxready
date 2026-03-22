@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -22,7 +22,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Download, Trash2, Shield, Bell, Moon, Loader2, CreditCard, ExternalLink, User, Settings as SettingsIcon } from "lucide-react";
+import { Download, Trash2, Shield, Bell, Moon, Loader2, CreditCard, ExternalLink, User, Settings as SettingsIcon, HelpCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import NotificationSettings from "@/components/NotificationSettings";
 import ProfilePanel from "@/components/ProfilePanel";
@@ -31,6 +31,32 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { useResume } from "@/hooks/useResume";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { format } from "date-fns";
+import PageTour, { PageTourHandle } from "@/components/PageTour";
+import { Step } from "react-joyride";
+
+const SETTINGS_TOUR_STEPS: Step[] = [
+  {
+    target: "body",
+    content: "Settings is where you manage your profile, preferences, notifications, and subscription.",
+    placement: "center",
+    disableBeacon: true,
+  },
+  {
+    target: "[data-tour=\"settings-tabs\"]",
+    content: "Switch between Profile, Preferences, Notifications, and Account sections using these tabs.",
+    disableBeacon: true,
+  },
+  {
+    target: "[data-tour=\"settings-subscription\"]",
+    content: "View your current plan and manage billing — upgrade to Pro or access the customer portal here.",
+    disableBeacon: true,
+  },
+  {
+    target: "[data-tour=\"settings-privacy\"]",
+    content: "Export a copy of your data or permanently delete your account here. Your privacy controls are always available.",
+    disableBeacon: true,
+  },
+];
 
 type SettingsTab = "profile" | "preferences" | "account" | "notifications";
 
@@ -40,6 +66,7 @@ const Settings = () => {
   const { currentSubscription: subscription, isPro } = useSubscription();
   const { profile } = useResume();
   const { preferences } = useDashboardData();
+  const tourRef = useRef<PageTourHandle>(null);
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -156,11 +183,16 @@ const Settings = () => {
           { label: "Dashboard", href: "/dashboard" },
           { label: "Settings" },
         ]}
+        actions={
+          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground" onClick={() => tourRef.current?.start()} title="Page tour">
+            <HelpCircle className="w-4 h-4" />
+          </Button>
+        }
       />
 
       <main className="container max-w-3xl mx-auto px-4 pt-20 sm:pt-24 animate-fade-in pb-8">
         {/* Tab bar */}
-        <div className="flex gap-1 bg-muted/50 p-1 rounded-md border border-border w-full overflow-x-auto mb-8">
+        <div className="flex gap-1 bg-muted/50 p-1 rounded-md border border-border w-full overflow-x-auto mb-8" data-tour="settings-tabs">
           {TABS.map(({ id, label, icon: Icon }) => (
             <Button
               key={id}
@@ -201,7 +233,7 @@ const Settings = () => {
         {activeTab === "account" && <div className="space-y-8">
 
         {/* Subscription */}
-        <Card className="border-border">
+        <Card className="border-border" data-tour="settings-subscription">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CreditCard className="w-5 h-5 text-primary" />
@@ -300,7 +332,7 @@ const Settings = () => {
         </Card>
 
         {/* Privacy & Data */}
-        <Card className="border-border">
+        <Card className="border-border" data-tour="settings-privacy">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Shield className="w-5 h-5 text-primary" />
@@ -422,6 +454,7 @@ const Settings = () => {
 
         </div>}
 
+      <PageTour ref={tourRef} tourKey="settings" steps={SETTINGS_TOUR_STEPS} />
       </main>
     </div>
   );

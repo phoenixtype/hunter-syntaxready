@@ -21,6 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useResume } from "@/hooks/useResume";
 import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 const NAV_ITEMS = [
   { id: "jobs",         label: "Jobs",    icon: Briefcase,  tab: "jobs" },
@@ -169,11 +170,10 @@ const AppSidebar = () => {
         <div className="space-y-0.5">
           {NAV_ITEMS.map((item) => {
             const active = isNavActive(item.tab);
-            return (
+            const btn = (
               <button
                 key={item.id}
                 onClick={() => handleNavClick(item.tab)}
-                title={collapsed ? item.label : undefined}
                 aria-current={active ? "page" : undefined}
                 className={`w-full flex items-center gap-1.5 rounded-md text-sm transition-colors ${
                   collapsed ? "justify-center p-2" : "px-2.5 py-1.5"
@@ -187,6 +187,12 @@ const AppSidebar = () => {
                 {!collapsed && item.label}
               </button>
             );
+            return collapsed ? (
+              <Tooltip key={item.id} delayDuration={200}>
+                <TooltipTrigger asChild>{btn}</TooltipTrigger>
+                <TooltipContent side="right">{item.label}</TooltipContent>
+              </Tooltip>
+            ) : btn;
           })}
         </div>
 
@@ -203,10 +209,9 @@ const AppSidebar = () => {
             <div className="space-y-0.5">
               {section.tools.map((tool) => {
                 const active = isRouteActive(tool.route);
-                return (
+                const btn = (
                   <button
                     key={tool.title}
-                    title={collapsed ? tool.title : undefined}
                     onClick={() => handleToolClick(tool.route)}
                     className={`w-full flex items-center gap-1.5 rounded-md text-sm transition-colors font-normal ${
                       collapsed ? "justify-center p-2" : "px-2.5 py-1.5"
@@ -225,6 +230,12 @@ const AppSidebar = () => {
                     )}
                   </button>
                 );
+                return collapsed ? (
+                  <Tooltip key={tool.title} delayDuration={200}>
+                    <TooltipTrigger asChild>{btn}</TooltipTrigger>
+                    <TooltipContent side="right">{tool.title}{!isPro ? " (Pro)" : ""}</TooltipContent>
+                  </Tooltip>
+                ) : btn;
               })}
             </div>
           </div>
@@ -250,39 +261,62 @@ const AppSidebar = () => {
       {/* ── Footer actions ──────────────────────────── */}
       <div className="px-1.5 py-3 border-t border-border space-y-0.5 shrink-0">
         {collapsed && (
+          <Tooltip delayDuration={200}>
+            <TooltipTrigger asChild>
+              <button
+                onClick={toggleCollapsed}
+                className="w-full flex justify-center p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors mb-1"
+              >
+                <PanelLeft className="w-4 h-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Expand sidebar</TooltipContent>
+          </Tooltip>
+        )}
+        {collapsed ? (
+          <Tooltip delayDuration={200}>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => navigate("/settings")}
+                aria-current={pathname === "/settings" ? "page" : undefined}
+                className={`w-full flex justify-center p-2 rounded-md text-sm transition-colors ${pathname === "/settings" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}
+              >
+                <Settings className="w-4 h-4 shrink-0" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Settings</TooltipContent>
+          </Tooltip>
+        ) : (
           <button
-            onClick={toggleCollapsed}
-            title="Expand sidebar"
-            className="w-full flex justify-center p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors mb-1"
+            onClick={() => navigate("/settings")}
+            aria-current={pathname === "/settings" ? "page" : undefined}
+            className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm transition-colors ${pathname === "/settings" ? "bg-muted text-foreground font-medium" : "text-muted-foreground hover:text-foreground hover:bg-muted/60 font-normal"}`}
           >
-            <PanelLeft className="w-4 h-4" />
+            <Settings className="w-4 h-4 shrink-0" />
+            Settings
           </button>
         )}
-        <button
-          onClick={() => navigate("/settings")}
-          title={collapsed ? "Settings" : undefined}
-          aria-current={pathname === "/settings" ? "page" : undefined}
-          className={`w-full flex items-center gap-2 rounded-md text-sm transition-colors ${
-            collapsed ? "justify-center p-2" : "px-2.5 py-1.5"
-          } ${
-            pathname === "/settings"
-              ? "bg-muted text-foreground font-medium"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted/60 font-normal"
-          }`}
-        >
-          <Settings className="w-4 h-4 shrink-0" />
-          {!collapsed && "Settings"}
-        </button>
-        <button
-          onClick={handleSignOut}
-          title={collapsed ? "Sign out" : undefined}
-          className={`w-full flex items-center gap-2 rounded-md text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors font-normal ${
-            collapsed ? "justify-center p-2" : "px-2.5 py-1.5"
-          }`}
-        >
-          <LogOut className="w-4 h-4 shrink-0" />
-          {!collapsed && "Sign out"}
-        </button>
+        {collapsed ? (
+          <Tooltip delayDuration={200}>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleSignOut}
+                className="w-full flex justify-center p-2 rounded-md text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"
+              >
+                <LogOut className="w-4 h-4 shrink-0" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Sign out</TooltipContent>
+          </Tooltip>
+        ) : (
+          <button
+            onClick={handleSignOut}
+            className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors font-normal"
+          >
+            <LogOut className="w-4 h-4 shrink-0" />
+            Sign out
+          </button>
+        )}
       </div>
     </aside>
   );

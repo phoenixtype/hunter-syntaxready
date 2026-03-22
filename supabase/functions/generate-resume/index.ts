@@ -351,8 +351,8 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
     const limiter  = new RateLimiter(supabase, user.id);
     const { allowed, error: limitError } = await limiter.isAllowed('generate-resume', {
-      free: { max: 5,  window: 300 },
-      pro:  { max: 25, window: 300 },
+      free: { max: 30,  window: 60 },
+      pro:  { max: 100, window: 60 },
     });
     if (!allowed) {
       return errorWithCors(limitError || 'Rate limit exceeded', 429);

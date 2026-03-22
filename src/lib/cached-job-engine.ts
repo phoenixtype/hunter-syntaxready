@@ -20,7 +20,7 @@ import { cache, CacheKeys, CacheTTL, invalidateJobsCache } from './cache-manager
 import type { Database } from '@/integrations/supabase/types';
 
 type JobListing = Database['public']['Tables']['job_listings']['Row'];
-type JobMatch = any; // job_matches table not in generated types
+type JobMatch = Database['public']['Tables']['job_matches']['Row'] & { job_listings?: JobListing };
 
 interface SearchFilters {
   location?: string;
@@ -200,13 +200,32 @@ class CachedJobEngine {
    */
   async getJobMatches(
     userId: string,
-    _limit: number = 20
+    limit: number = 20
   ): Promise<JobMatch[]> {
-    // job_matches table does not exist in the current schema.
-    // Return empty so callers fall back to server-side matching.
-    void _limit;
-    console.log(`[JOBS_CACHE] job_matches table unavailable, returning empty for user: ${userId}`);
-    return [];
+    const cacheKey = `job_matches:${userId}:${limit}`;
+    const cached = cache.get<JobMatch[]>(cacheKey);
+    if (cached) return cached;
+
+    try {
+      const { data, error } = await supabase
+        .from('job_matches')
+        .select('*, job_listings(*)')
+        .eq('user_id', userId)
+        .order('match_score', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        console.warn('[JOBS_CACHE] job_matches query error:', error.message);
+        return [];
+      }
+
+      const matches = data || [];
+      cache.set(cacheKey, matches, CacheTTL.SHORT);
+      return matches;
+    } catch (err) {
+      console.warn('[JOBS_CACHE] getJobMatches failed:', err);
+      return [];
+    }
   }
 
   /**

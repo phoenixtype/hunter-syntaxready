@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import SEOHead from "@/components/SEOHead";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -27,6 +27,9 @@ import PreferencesPanel from "@/components/PreferencesPanel";
 import InsightsView from "@/components/InsightsView";
 import VisibilityCoachModal from "@/components/VisibilityCoachModal";
 import LinkedInOptimizer from "@/components/LinkedInOptimizer";
+import PageTour, { PageTourHandle } from "@/components/PageTour";
+import { HelpCircle } from "lucide-react";
+import type { Step } from "react-joyride";
 import {
   Sheet,
   SheetContent,
@@ -36,6 +39,15 @@ import {
 } from "@/components/ui/sheet";
 
 type DashboardView = "jobs" | "applications" | "insights" | "settings";
+
+const JOBS_TOUR_STEPS: Step[] = [
+  { target: '[data-tour="job-search"]', title: "Search jobs", content: "Type a role, skill, or company name to find matching positions.", disableBeacon: true },
+  { target: '[data-tour="job-location"]', title: "Filter by location", content: "Enter a city, country, or 'Remote' to narrow results by location." },
+  { target: '[data-tour="find-jobs-btn"]', title: "Find Jobs", content: "Crawls the web in real-time for fresh listings that match your profile." },
+  { target: '[data-tour="job-filters"]', title: "Advanced filters", content: "Filter by work mode, experience level, salary range, job type, and date posted." },
+  { target: '[data-tour="match-score"]', title: "Match score", content: "AI-calculated score showing how well this role fits your skills, experience, and preferences.", placement: "top" as const },
+  { target: '[data-tour="job-card-actions"]', title: "Job details", content: "Click any job card to see the full description, salary insights, and apply directly." },
+];
 const VALID_DASHBOARD_VIEWS: DashboardView[] = ["jobs", "applications", "insights", "settings"];
 
 // Track which tabs have been visited for lazy initialization.
@@ -90,6 +102,7 @@ const Dashboard = () => {
   const { currentSubscription: subscription, isLoading: subLoading, canAccess: _canAccess, isPro } = useSubscription();
   const queryClient = useQueryClient();
   const { preferences, appCount, jobCount, visibility, skillRecommendations, metrics, isLoading: dataLoading } = useDashboardData();
+  const jobsTourRef = useRef<PageTourHandle>(null);
 
   // activeView driven by URL ?tab= param so AppSidebar navigation works
   const [activeView, setActiveView] = useState<DashboardView>(() => {
@@ -310,10 +323,25 @@ const Dashboard = () => {
             <div className={activeView !== "jobs" ? "hidden" : ""}>
               <WidgetErrorBoundary>
                 <DashboardWelcome profile={profile} preferences={preferences ?? null} jobCount={jobCount} appCount={appCount} metrics={metrics} onSetView={(v) => setActiveView(v as DashboardView)} />
-                <div className="mt-6">
+                <div className="mt-6 flex items-center justify-between mb-2">
+                  <span />
+                  <button
+                    onClick={() => jobsTourRef.current?.start()}
+                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    title="Take a tour"
+                  >
+                    <HelpCircle className="w-3.5 h-3.5" /> Tour
+                  </button>
+                </div>
+                <div className="mt-2">
                   <JobFeed profile={profile} preferences={preferences} />
                 </div>
               </WidgetErrorBoundary>
+              <PageTour
+                ref={jobsTourRef}
+                tourKey="dashboard_jobs"
+                steps={JOBS_TOUR_STEPS}
+              />
           </div>
           )}
 

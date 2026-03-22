@@ -1,4 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import PageTour, { PageTourHandle } from "@/components/PageTour";
+import { HelpCircle } from "lucide-react";
+import type { Step } from "react-joyride";
+
+const RESUME_TOUR_STEPS: Step[] = [
+  { target: "body", title: "Resume Builder", content: "Build your profile step-by-step. Hunter uses it to match jobs and tailor your resume automatically.", placement: "center", disableBeacon: true },
+  { target: '[data-tour="resume-upload"]', title: "Upload your resume", content: "Upload an existing resume and Hunter will parse it to pre-fill your profile.", disableBeacon: true },
+  { target: '[data-tour="resume-sections"]', title: "Edit your profile", content: "Step through each section — identity, experience, education, and skills — to complete your profile." },
+  { target: '[data-tour="resume-export"]', title: "Export your resume", content: "Download an ATS-clean PDF or DOCX at any time. Hunter keeps it up to date as you edit." },
+];
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useResume } from "@/hooks/useResume";
@@ -88,6 +98,7 @@ const ResumeBuilder = () => {
   const { user, loading: authLoading } = useAuth();
   const { profile: existingProfile, loading: profileLoading, setProfile: setGlobalProfile } = useResume();
   const { isPro, isLoading: subLoading, canAccess, recordUsage } = useSubscription();
+  const tourRef = useRef<PageTourHandle>(null);
 
   const [currentStep, setCurrentStep] = useState<StepId>("personal");
   const [selectedTemplate, setSelectedTemplate] = useState("minimalist");
@@ -313,6 +324,9 @@ const ResumeBuilder = () => {
                 />
               ))}
             </div>
+            <button onClick={() => tourRef.current?.start()} title="Take a tour" className="text-muted-foreground hover:text-foreground transition-colors">
+              <HelpCircle className="w-4 h-4" />
+            </button>
           </div>
         }
       />
@@ -809,6 +823,7 @@ const ResumeBuilder = () => {
         </div>
       )}
     </div>
+    <PageTour ref={tourRef} tourKey="resume_builder" steps={RESUME_TOUR_STEPS} />
     </ProGate.Page>
   );
 };

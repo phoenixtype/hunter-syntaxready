@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Send, Loader2, BrainCircuit, MessageSquare, Swords, HandCoins, RotateCcw, Search, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import { Send, Loader2, BrainCircuit, MessageSquare, Swords, HandCoins, RotateCcw, Search, ChevronDown, ChevronUp, ExternalLink, HelpCircle } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import SEOHead from "@/components/SEOHead";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,6 +14,32 @@ import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { useSubscription } from "@/hooks/useSubscription";
 import ProGate from "@/components/ProGate";
+import PageTour, { PageTourHandle } from "@/components/PageTour";
+import { Step } from "react-joyride";
+
+const INTERVIEW_TOUR_STEPS: Step[] = [
+  {
+    target: "body",
+    content: "Welcome to Interview Coach — your AI-powered practice partner. Let's walk through how it works.",
+    placement: "center",
+    disableBeacon: true,
+  },
+  {
+    target: "[data-tour=\"ic-role\"]",
+    content: "Enter the job title you're preparing for. This lets the AI tailor every question to your target role.",
+    disableBeacon: true,
+  },
+  {
+    target: "[data-tour=\"ic-research\"]",
+    content: "Research likely interview questions sourced from Reddit, Glassdoor, and community forums for your role and company.",
+    disableBeacon: true,
+  },
+  {
+    target: "[data-tour=\"ic-modes\"]",
+    content: "Choose a practice mode: Behavioral (STAR method), Technical deep-dives, or Negotiation coaching.",
+    disableBeacon: true,
+  },
+];
 
 interface ResearchResult {
   questions: string[];
@@ -53,6 +79,7 @@ const InterviewCoach = () => {
   const [loading, setLoading] = useState(false);
   const [started, setStarted] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const tourRef = useRef<PageTourHandle>(null);
 
   // Community question research
   const [researching, setResearching] = useState(false);
@@ -217,23 +244,28 @@ const InterviewCoach = () => {
         ]}
         icon={<BrainCircuit className="w-4 h-4 text-primary" />}
         actions={
-          started ? (
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-[10px] shrink-0">
-                {MODES.find(m => m.id === mode)?.label} · {jobTitle}
-              </Badge>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={resetSession}
-                className="h-7 px-2 text-xs text-muted-foreground gap-1"
-                title="Start a new session"
-              >
-                <RotateCcw className="w-3 h-3" />
-                New Session
-              </Button>
-            </div>
-          ) : undefined
+          <div className="flex items-center gap-2">
+            {started && (
+              <>
+                <Badge variant="outline" className="text-[10px] shrink-0">
+                  {MODES.find(m => m.id === mode)?.label} · {jobTitle}
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={resetSession}
+                  className="h-7 px-2 text-xs text-muted-foreground gap-1"
+                  title="Start a new session"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  New Session
+                </Button>
+              </>
+            )}
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground" onClick={() => tourRef.current?.start()} title="Page tour">
+              <HelpCircle className="w-4 h-4" />
+            </Button>
+          </div>
         }
       />
 
@@ -250,7 +282,7 @@ const InterviewCoach = () => {
 
           {/* Role & Company inputs */}
           <div className="w-full space-y-3 mb-8 text-left">
-            <div className="space-y-1.5">
+            <div className="space-y-1.5" data-tour="ic-role">
               <Label className="text-sm font-medium">Your Role</Label>
               <Input
                 value={jobTitle}
@@ -271,7 +303,7 @@ const InterviewCoach = () => {
           </div>
 
           {/* Research Likely Questions */}
-          <div className="w-full">
+          <div className="w-full" data-tour="ic-research">
             <Button
               variant="outline"
               className="w-full gap-2 h-10 rounded-md border-dashed"
@@ -357,7 +389,7 @@ const InterviewCoach = () => {
             )}
           </div>
 
-          <div className="grid gap-3 w-full">
+          <div className="grid gap-3 w-full" data-tour="ic-modes">
             {MODES.map((m) => (
               <button
                 key={m.id}
@@ -443,6 +475,7 @@ const InterviewCoach = () => {
         </>
       )}
     </div>
+    <PageTour ref={tourRef} tourKey="interview_coach" steps={INTERVIEW_TOUR_STEPS} />
     </ProGate.Page>
   );
 };

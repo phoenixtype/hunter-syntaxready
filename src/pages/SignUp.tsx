@@ -51,8 +51,16 @@ const SignUp = () => {
       }
 
       if (data?.user) {
-        toast.success("Account created successfully!");
-        navigate("/onboarding", { replace: true });
+        if (data.session) {
+          // Email confirmation is disabled — user is immediately authenticated
+          toast.success("Account created successfully!");
+          navigate("/onboarding", { replace: true });
+        } else {
+          // Email confirmation is required — send them to the verification page
+          toast.success("Account created! Check your email to verify your address.");
+          sessionStorage.setItem('pendingVerificationEmail', validatedEmail);
+          navigate("/verify-email", { replace: true });
+        }
       } else {
         toast.error("Something went wrong. Please try again.");
       }

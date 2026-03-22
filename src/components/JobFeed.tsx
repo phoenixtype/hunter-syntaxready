@@ -8,10 +8,10 @@ import { generateTailoredContent, TailoredContent } from "@/lib/writer_engine";
 import { simulateApplication, ApplicationState, ComplianceError, getApplicationHistory } from "@/lib/application_engine";
 import { saveTailoredResume } from "@/lib/tailored_resume_store";
 import TailorResultSheet from "./TailorResultSheet";
+import JobDescriptionModal from "./JobDescriptionModal";
 import { recordFeedback } from "@/lib/learning_engine";
-import { ExternalLink, Sparkles, RefreshCw, Loader2, Globe, Search, MapPin, Building2, X, Bookmark, Link, ChevronDown, ChevronUp, Cpu, Newspaper, Users, Lightbulb } from "lucide-react";
+import { Sparkles, RefreshCw, Loader2, Globe, Search, MapPin, X, Bookmark, Link, ChevronDown, ChevronUp } from "lucide-react";
 import { researchCompany, crawlCareersPage, CompanyResearch } from "@/lib/crawler_engine";
-import SalaryInsights from "./SalaryInsights";
 import { useEffect, useState, useMemo } from "react";
 import JobFiltersBar, { JobFilters, DEFAULT_FILTERS, hasActiveFilters } from "./JobFiltersBar";
 import { toast } from "sonner";
@@ -55,7 +55,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
       return saved ? new Set<string>(JSON.parse(saved)) : new Set<string>();
     } catch { return new Set<string>(); }
   });
-  const [expandedJob, setExpandedJob] = useState<string | null>(null);
+  const [selectedJob, setSelectedJob] = useState<EnrichedJob | null>(null);
   const [tailoringJobId, setTailoringJobId] = useState<string | null>(null);
   const [tailorResult, setTailorResult] = useState<{ content: TailoredContent; job: { title: string; company: string } } | null>(null);
   const [showSavedOnly, setShowSavedOnly] = useState(false);
@@ -78,7 +78,15 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   };
 
   const filteredJobs = useMemo(() => {
-    let result = jobs.filter(job => !dismissedJobIds.has(job.id));
+    let result = jobs.filter(job => !dismissedJobIds.has(job.id) && !appliedJobIds.has(job.id));
+
+    // Hide jobs older than 90 days client-side
+    result = result.filter(job => {
+      if (!job.posted_at) return true;
+      const postedTime = new Date(job.posted_at).getTime();
+      if (isNaN(postedTime)) return true;
+      return Date.now() - postedTime < 90 * 24 * 60 * 60 * 1000;
+    });
 
     // Saved filter
     if (showSavedOnly) {
@@ -152,7 +160,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
     }
 
     return result;
-  }, [jobs, dismissedJobIds, filters, showSavedOnly, isSaved]);
+  }, [jobs, dismissedJobIds, appliedJobIds, filters, showSavedOnly, isSaved]);
 
   useEffect(() => {
     if (!user) return;
@@ -208,16 +216,12 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
     recordFeedback({ jobId: job.id, action: 'DISMISS', timestamp: Date.now(), jobMetadata: { skills: [], company: job.company, source: job.source } });
   };
 
-  const handleExpandJob = async (jobId: string) => {
-    if (expandedJob === jobId) { setExpandedJob(null); return; }
-    setExpandedJob(jobId);
-    if (!stakeholders[jobId]) {
-      const job = jobs.find(j => j.id === jobId);
-      if (job) {
-        const { findStakeholders } = await import("@/lib/recruiter_engine");
-        const network = await findStakeholders(job);
-        setStakeholders(prev => ({ ...prev, [jobId]: network }));
-      }
+  const handleSelectJob = async (job: EnrichedJob | null) => {
+    setSelectedJob(job);
+    if (job && !stakeholders[job.id]) {
+      const { findStakeholders } = await import("@/lib/recruiter_engine");
+      const network = await findStakeholders(job);
+      setStakeholders(prev => ({ ...prev, [job.id]: network }));
     }
   };
 
@@ -283,20 +287,20 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
       {/* Search & Actions */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
         <div className="flex flex-col sm:flex-row flex-1 gap-2">
-          <div className="relative flex-[2]">
+          <div className="relative flex-[2]" data-tour="job-search">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input placeholder="Search jobs..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 h-12 sm:h-11 text-base sm:text-sm" />
           </div>
-          <div className="relative flex-1">
+          <div className="relative flex-1" data-tour="job-location">
             <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input placeholder="Location..." value={locationQuery} onChange={(e) => setLocationQuery(e.target.value)} className="pl-10 h-12 sm:h-11 text-base sm:text-sm" />
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleCrawl} disabled={crawling || loading} className="flex-1 sm:flex-none h-12 sm:h-11 px-4 shrink-0 gap-1.5 font-semibold sm:font-medium">
+          <Button variant="outline" size="sm" onClick={handleCrawl} disabled={crawling || loading} className="flex-1 sm:flex-none h-12 sm:h-11 px-4 shrink-0 gap-1.5 font-semibold sm:font-medium" data-tour="find-jobs-btn">
             {crawling ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Searching...</> : <><Globe className="w-3.5 h-3.5" />Find Jobs</>}
           </Button>
-          <JobFiltersBar filters={filters} onChange={setFilters} />
+          <div data-tour="job-filters"><JobFiltersBar filters={filters} onChange={setFilters} /></div>
           {/* Saved filter toggle */}
           <Button
             variant={showSavedOnly ? "default" : "ghost"}
@@ -387,18 +391,17 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
       {/* Job List */}
       <div className="border border-border rounded-md overflow-hidden divide-y divide-border">
         {filteredJobs.map((job) => {
-          const isExpanded = expandedJob === job.id;
           const isApplied = appliedJobIds.has(job.id);
-          const isApplying = activeApplication?.jobId === job.id;
           const jobSaved = isSaved(job.id);
 
           return (
-            <div
-              key={job.id}
-              className="bg-card"
-            >
-              {/* Row */}
-              <div className="flex items-start gap-3 px-4 py-3.5 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => handleExpandJob(job.id)}>
+            <div key={job.id} className="bg-card">
+              {/* Row — click anywhere to open modal */}
+              <div
+                className="flex items-start gap-3 px-4 py-3.5 hover:bg-muted/30 transition-colors cursor-pointer"
+                data-tour="job-card-actions"
+                onClick={() => handleSelectJob(job)}
+              >
                 {/* Company initial */}
                 <div className="w-8 h-8 rounded-sm bg-muted flex items-center justify-center shrink-0 mt-0.5">
                   <span className="text-xs font-semibold text-foreground">{job.company[0]}</span>
@@ -413,7 +416,9 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                   <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                     {job.match && (
                       <MatchScoreTooltip match={job.match}>
-                        <span className="text-xs text-muted-foreground cursor-help">{job.match.overall_score}% match</span>
+                        <span className="text-xs text-muted-foreground cursor-help" data-tour="match-score">
+                          {job.match.overall_score}% match
+                        </span>
                       </MatchScoreTooltip>
                     )}
                     {job.salary_range && job.salary_range !== "Not specified" && (
@@ -422,10 +427,13 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                     {job.freshness_score > 0.9 && (
                       <span className="text-[10px] font-medium text-primary">New</span>
                     )}
+                    {isApplied && (
+                      <span className="text-[10px] font-medium text-muted-foreground">Applied</span>
+                    )}
                   </div>
                 </div>
 
-                {/* Actions */}
+                {/* Quick actions */}
                 <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={() => { if (!requirePro("Save Jobs")) return; toggleSave(job.id); toast(jobSaved ? "Removed from saved" : "Saved"); }}
@@ -437,132 +445,12 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                   <button
                     onClick={() => handleDismiss(job)}
                     className="p-1.5 rounded-sm text-muted-foreground/40 hover:text-muted-foreground transition-colors"
-                    title="Dismiss"
+                    title="Hide this job"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
-
-              {/* Expanded detail */}
-              {isExpanded && (
-                <div className="px-4 pb-4 border-t border-border bg-muted/20">
-                  <p className="text-sm text-muted-foreground py-3 leading-relaxed whitespace-pre-line">{job.description}</p>
-
-                  <div className="flex items-center gap-2 mb-3 flex-wrap">
-                    <SalaryInsights
-                      jobTitle={job.title}
-                      company={job.company}
-                      location={job.location}
-                      salaryRange={job.salary_range}
-                      description={job.description}
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-xs gap-1.5"
-                      disabled={researchingJobId === job.id}
-                      onClick={() => handleResearchCompany(job)}
-                    >
-                      {researchingJobId === job.id
-                        ? <><Loader2 className="w-3 h-3 animate-spin" />Researching…</>
-                        : <><Building2 className="w-3 h-3" />Research Company</>}
-                    </Button>
-                  </div>
-
-                  {/* Company Research Panel */}
-                  {companyResearch[job.id] && (
-                    <div className="mb-4 rounded-md border border-border bg-card p-3 space-y-3 text-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-foreground flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5" />{job.company} Intelligence</span>
-                        {companyResearch[job.id]!._scraped && <span className="text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded px-1.5 py-0.5">Live data</span>}
-                      </div>
-                      {companyResearch[job.id]!.mission && (
-                        <p className="text-muted-foreground leading-relaxed"><span className="font-medium text-foreground">Mission: </span>{companyResearch[job.id]!.mission}</p>
-                      )}
-                      <div className="grid grid-cols-2 gap-2">
-                        {companyResearch[job.id]!.industry && <div><span className="text-muted-foreground">Industry</span><p className="font-medium mt-0.5">{companyResearch[job.id]!.industry}</p></div>}
-                        {companyResearch[job.id]!.stage && <div><span className="text-muted-foreground">Stage</span><p className="font-medium mt-0.5">{companyResearch[job.id]!.stage}</p></div>}
-                        {companyResearch[job.id]!.headcount && <div><span className="text-muted-foreground">Headcount</span><p className="font-medium mt-0.5">{companyResearch[job.id]!.headcount}</p></div>}
-                      </div>
-                      {companyResearch[job.id]!.tech_stack?.length > 0 && (
-                        <div>
-                          <p className="text-muted-foreground flex items-center gap-1 mb-1"><Cpu className="w-3 h-3" />Tech Stack</p>
-                          <div className="flex flex-wrap gap-1">
-                            {companyResearch[job.id]!.tech_stack.map((t, i) => <span key={i} className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-medium">{t}</span>)}
-                          </div>
-                        </div>
-                      )}
-                      {companyResearch[job.id]!.culture_signals?.length > 0 && (
-                        <div>
-                          <p className="text-muted-foreground flex items-center gap-1 mb-1"><Users className="w-3 h-3" />Culture</p>
-                          <ul className="space-y-0.5">
-                            {companyResearch[job.id]!.culture_signals.slice(0, 3).map((s, i) => <li key={i} className="text-muted-foreground">· {s}</li>)}
-                          </ul>
-                        </div>
-                      )}
-                      {companyResearch[job.id]!.recent_news?.length > 0 && (
-                        <div>
-                          <p className="text-muted-foreground flex items-center gap-1 mb-1"><Newspaper className="w-3 h-3" />Recent News</p>
-                          <ul className="space-y-0.5">
-                            {companyResearch[job.id]!.recent_news.slice(0, 2).map((n, i) => <li key={i} className="text-muted-foreground">· {n}</li>)}
-                          </ul>
-                        </div>
-                      )}
-                      {companyResearch[job.id]!.interview_tip && (
-                        <div className="flex items-start gap-1.5 rounded bg-amber-500/10 border border-amber-500/20 px-2 py-1.5">
-                          <Lightbulb className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
-                          <p className="text-amber-700 dark:text-amber-300">{companyResearch[job.id]!.interview_tip}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <JobCardActions
-                    isApplied={isApplied}
-                    isApplying={isApplying}
-                    isTailoring={tailoringJobId === job.id}
-                    jobUrl={job.url || "#"}
-                    isPro={isPro}
-                    onApply={() => handleApply(job)}
-                    onTailor={() => handleTailor(job)}
-                    onPrep={() => { if (!requirePro("Interview Coach")) return; navigate(`/interview-coach?title=${encodeURIComponent(job.title)}&company=${encodeURIComponent(job.company)}&desc=${encodeURIComponent(job.description?.substring(0, 500) || '')}`); }}
-                    onIntel={() => handleExpandJob(job.id)}
-                    isExpanded={isExpanded}
-                  />
-
-                  {isApplying && activeApplication && (
-                    <div className="mt-3 space-y-1">
-                      <div className="h-0.5 w-full bg-muted overflow-hidden rounded-full">
-                        <div className="h-full bg-primary transition-all duration-300" style={{ width: `${activeApplication.progress}%` }} />
-                      </div>
-                      <p className="text-[10px] text-muted-foreground font-mono">{activeApplication.logs[activeApplication.logs.length - 1]}</p>
-                    </div>
-                  )}
-
-                  {/* Hiring team */}
-                  {stakeholders[job.id] && (
-                    <div className="mt-4 pt-3 border-t border-border space-y-1.5">
-                      <p className="text-xs font-medium text-muted-foreground mb-2">Hiring team</p>
-                      {stakeholders[job.id].map((person, i) => (
-                        <a key={i} href={person.profile_url} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center gap-2.5 py-1.5 text-sm hover:text-primary transition-colors">
-                          <div className="w-6 h-6 rounded-sm bg-muted flex items-center justify-center text-xs font-medium shrink-0">{person.name?.[0] || '?'}</div>
-                          <span className="font-medium text-xs">{person.name}</span>
-                          <span className="text-xs text-muted-foreground">{person.role}</span>
-                          <ExternalLink className="w-3 h-3 text-muted-foreground/50 ml-auto shrink-0" />
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                  {expandedJob === job.id && !stakeholders[job.id] && (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-3 pt-3 border-t border-border">
-                      <Loader2 className="w-3 h-3 animate-spin" /> Finding hiring team...
-                    </div>
-                  )}
-                </div>
-              )}
-
             </div>
           );
         })}
@@ -671,6 +559,32 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
           </div>
         )}
       </div>
+
+      <JobDescriptionModal
+        job={selectedJob}
+        stakeholders={selectedJob ? stakeholders[selectedJob.id] : undefined}
+        isLoadingStakeholders={selectedJob ? !stakeholders[selectedJob.id] : false}
+        companyResearch={selectedJob ? companyResearch[selectedJob.id] : undefined}
+        isApplied={selectedJob ? appliedJobIds.has(selectedJob.id) : false}
+        isApplying={selectedJob ? activeApplication?.jobId === selectedJob.id : false}
+        isTailoring={selectedJob ? tailoringJobId === selectedJob.id : false}
+        isSaved={selectedJob ? isSaved(selectedJob.id) : false}
+        isPro={isPro}
+        onClose={() => setSelectedJob(null)}
+        onApply={() => selectedJob && handleApply(selectedJob)}
+        onTailor={() => selectedJob && handleTailor(selectedJob)}
+        onSave={() => {
+          if (!selectedJob) return;
+          if (!requirePro("Save Jobs")) return;
+          toggleSave(selectedJob.id);
+          toast(isSaved(selectedJob.id) ? "Removed from saved" : "Saved");
+        }}
+        onPrep={() => {
+          if (!selectedJob) return;
+          if (!requirePro("Interview Coach")) return;
+          navigate(`/interview-coach?title=${encodeURIComponent(selectedJob.title)}&company=${encodeURIComponent(selectedJob.company)}&desc=${encodeURIComponent(selectedJob.description?.substring(0, 500) || '')}`);
+        }}
+      />
 
       <TailorResultSheet
         open={!!tailorResult}

@@ -47,7 +47,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string): Promise<SignUpResult> => {
-    const redirectUrl = `${window.location.origin}/onboarding`;
+    // Point to /verify-email so the token_hash in the confirmation link is handled
+    // correctly by EmailVerification.tsx (supports both PKCE and implicit flows).
+    const redirectUrl = `${window.location.origin}/verify-email`;
 
     const { data, error } = await supabase.auth.signUp({
       email,

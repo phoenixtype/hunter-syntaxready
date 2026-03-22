@@ -1,3 +1,4 @@
+Initialising login role...
 export type Json =
   | string
   | number
@@ -11,6 +12,31 @@ export type Database = {
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.1"
+  }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -495,6 +521,44 @@ export type Database = {
         }
         Relationships: []
       }
+      job_matches: {
+        Row: {
+          created_at: string
+          id: string
+          job_id: string
+          match_score: number
+          matched_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_id: string
+          match_score?: number
+          matched_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_id?: string
+          match_score?: number
+          matched_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_matches_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       learning_weights: {
         Row: {
           banned_companies: string[] | null
@@ -843,6 +907,45 @@ export type Database = {
           request_count?: number
           user_id?: string
           window_start?: string
+        }
+        Relationships: []
+      }
+      rate_limit_overrides: {
+        Row: {
+          created_at: string | null
+          exempted_users: string[] | null
+          function_overrides: Json | null
+          global_test_mode_enabled: boolean | null
+          global_test_mode_enabled_at: string | null
+          global_test_mode_enabled_by: string | null
+          global_test_mode_expires_at: string | null
+          global_test_mode_multiplier: number | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          exempted_users?: string[] | null
+          function_overrides?: Json | null
+          global_test_mode_enabled?: boolean | null
+          global_test_mode_enabled_at?: string | null
+          global_test_mode_enabled_by?: string | null
+          global_test_mode_expires_at?: string | null
+          global_test_mode_multiplier?: number | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          exempted_users?: string[] | null
+          function_overrides?: Json | null
+          global_test_mode_enabled?: boolean | null
+          global_test_mode_enabled_at?: string | null
+          global_test_mode_enabled_by?: string | null
+          global_test_mode_expires_at?: string | null
+          global_test_mode_multiplier?: number | null
+          id?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -1790,6 +1893,18 @@ export type Database = {
         }
         Returns: string
       }
+      toggle_test_mode: {
+        Args: { p_enabled: boolean; p_multiplier?: number }
+        Returns: boolean
+      }
+      update_function_override: {
+        Args: { p_function_name: string; p_limits: Json }
+        Returns: boolean
+      }
+      update_user_exemptions: {
+        Args: { p_exempted_users: string[] }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
@@ -1918,7 +2033,12 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },
 } as const
+A new version of Supabase CLI is available: v2.78.1 (currently installed v2.67.1)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli
