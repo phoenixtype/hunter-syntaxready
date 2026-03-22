@@ -166,7 +166,7 @@ const PostInterview = () => {
             />
 
             <main className="flex-1 flex flex-col justify-center p-6 max-w-lg w-full mx-auto">
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 min-h-0">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                     <TabsList className="grid w-full grid-cols-2 shrink-0 mb-6" data-tour="pi-tabs">
                         <TabsTrigger value="thankyou">Thank You Note</TabsTrigger>
                         <TabsTrigger value="negotiation">Negotiation Coach</TabsTrigger>
@@ -220,7 +220,7 @@ const PostInterview = () => {
                     </TabsContent>
 
                     {/* ── Negotiation Coach ── */}
-                    <TabsContent value="negotiation" className="flex-1 min-h-0">
+                    <TabsContent value="negotiation" className="space-y-4">
                         {negPhase === "input" && (
                             <div className="space-y-4">
                                 <div className="space-y-2">
