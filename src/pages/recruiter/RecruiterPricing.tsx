@@ -71,6 +71,7 @@ const RecruiterPricing = () => {
 
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { priceId: plan.priceId },
+        headers: { Authorization: `Bearer ${session.access_token}` },
       });
 
       if (error || !data?.url) {

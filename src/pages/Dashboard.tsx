@@ -26,6 +26,7 @@ import ProfilePanel from "@/components/ProfilePanel";
 import PreferencesPanel from "@/components/PreferencesPanel";
 import InsightsView from "@/components/InsightsView";
 import VisibilityCoachModal from "@/components/VisibilityCoachModal";
+import LinkedInOptimizer from "@/components/LinkedInOptimizer";
 import {
   Sheet,
   SheetContent,
@@ -118,6 +119,7 @@ const Dashboard = () => {
   const [settingsTab, setSettingsTab] = useState<"profile" | "preferences" | "alerts">("profile");
   const visitedTabs = useVisitedTabs(activeView);
   const [showCoach, setShowCoach] = useState(false);
+  const [showLinkedIn, setShowLinkedIn] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
 
   useEffect(() => {
@@ -324,6 +326,7 @@ const Dashboard = () => {
                   skillRecommendations={skillRecommendations}
                   profile={profile}
                   onConsultCoach={() => setShowCoach(true)}
+                  onOptimizeLinkedIn={() => setShowLinkedIn(true)}
                 />
 
               </WidgetErrorBoundary>
@@ -397,6 +400,12 @@ const Dashboard = () => {
         score={visibility ?? null}
         skillRecommendations={skillRecommendations || []}
         preferences={preferences}
+      />
+
+      <LinkedInOptimizer
+        isOpen={showLinkedIn}
+        onClose={() => setShowLinkedIn(false)}
+        profile={profile}
       />
 
     </div>

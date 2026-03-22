@@ -33,8 +33,8 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
     const limiter = new RateLimiter(supabase, user.id);
     const { allowed, error: limitError } = await limiter.isAllowed('salary-insights', {
-      free: { max: 5, window: 60 },
-      pro: { max: 25, window: 60 }
+      free: { max: 15, window: 60 },
+      pro: { max: 60, window: 60 }
     });
 
     if (!allowed) {

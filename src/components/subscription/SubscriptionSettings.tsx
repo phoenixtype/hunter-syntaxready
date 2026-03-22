@@ -22,6 +22,8 @@ import UsageDashboard from './UsageDashboard';
 import { format } from 'date-fns';
 import DashboardSkeleton from "@/components/DashboardSkeleton";
 import { SubscriptionPlan } from '@/types/subscription';
+import { upgradeToPro, openBillingPortal } from '@/lib/subscription';
+import { toast } from 'sonner';
 
 interface SubscriptionSettingsProps {
   defaultTab?: 'usage' | 'plans' | 'billing' | 'history';
@@ -35,7 +37,8 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
     subscriptionLoading
   } = useSubscription();
 
-  const [_selectedPlan, _setSelectedPlan] = useState<any>(null);
+  const [isUpgrading, setIsUpgrading] = useState(false);
+  const [isOpeningPortal, setIsOpeningPortal] = useState(false);
 
   if (plansLoading || subscriptionLoading) {
     return <DashboardSkeleton />;
@@ -50,15 +53,26 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
     id: '',
   };
 
-  const handleUpgrade = (plan: SubscriptionPlan) => {
-    _setSelectedPlan(plan);
-    // In a real implementation, this would redirect to Stripe checkout
-    console.log('Upgrading to plan:', plan.name);
+  const handleUpgrade = async (_plan: SubscriptionPlan) => {
+    setIsUpgrading(true);
+    try {
+      await upgradeToPro();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to start checkout');
+    } finally {
+      setIsUpgrading(false);
+    }
   };
 
-  const handleManageBilling = () => {
-    // In a real implementation, this would redirect to Stripe customer portal
-    console.log('Opening Stripe customer portal...');
+  const handleManageBilling = async () => {
+    setIsOpeningPortal(true);
+    try {
+      await openBillingPortal();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to open billing portal');
+    } finally {
+      setIsOpeningPortal(false);
+    }
   };
 
   const formatPrice = (monthly: number, yearly: number, interval: 'monthly' | 'yearly' = 'monthly') => {
@@ -104,9 +118,9 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
           </p>
         </div>
         {currentSubscription && (
-          <Button variant="outline" onClick={handleManageBilling}>
+          <Button variant="outline" onClick={handleManageBilling} disabled={isOpeningPortal}>
             <Settings className="w-4 h-4 mr-2" />
-            Manage Billing
+            {isOpeningPortal ? 'Opening...' : 'Manage Billing'}
           </Button>
         )}
       </div>
@@ -223,7 +237,7 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
                     <Button
                       className="w-full"
                       variant={isCurrent ? "outline" : "default"}
-                      disabled={isCurrent}
+                      disabled={isCurrent || isUpgrading}
                       onClick={() => handleUpgrade(plan)}
                     >
                       {isCurrent ? (
@@ -231,6 +245,8 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
                           <Check className="w-4 h-4 mr-2" />
                           Current Plan
                         </>
+                      ) : isUpgrading ? (
+                        'Redirecting...'
                       ) : isUpgrade ? (
                         <>
                           <TrendingUp className="w-4 h-4 mr-2" />
@@ -286,8 +302,8 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
                         </span>
                       </div>
                     </div>
-                    <Button variant="outline" className="w-full" onClick={handleManageBilling}>
-                      Manage Billing
+                    <Button variant="outline" className="w-full" onClick={handleManageBilling} disabled={isOpeningPortal}>
+                      {isOpeningPortal ? 'Opening...' : 'Manage Billing'}
                     </Button>
                   </>
                 ) : (
@@ -318,8 +334,8 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
                         <p className="text-sm text-muted-foreground">Expires 12/25</p>
                       </div>
                     </div>
-                    <Button variant="outline" className="w-full" onClick={handleManageBilling}>
-                      Update Payment Method
+                    <Button variant="outline" className="w-full" onClick={handleManageBilling} disabled={isOpeningPortal}>
+                      {isOpeningPortal ? 'Opening...' : 'Update Payment Method'}
                     </Button>
                   </div>
                 ) : (

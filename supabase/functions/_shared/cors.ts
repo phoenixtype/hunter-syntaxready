@@ -25,13 +25,17 @@ export function handleCorsPrelight(): Response {
 }
 
 /**
- * Add CORS headers to any response
+ * Add CORS headers to any response by creating a new Response
+ * (Response.headers is immutable, so we must construct a new object)
  */
 export function withCors(response: Response): Response {
-  Object.entries(corsHeaders).forEach(([key, value]) => {
-    response.headers.set(key, value);
+  const merged = new Headers(response.headers);
+  Object.entries(corsHeaders).forEach(([key, value]) => merged.set(key, value));
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: merged,
   });
-  return response;
 }
 
 /**

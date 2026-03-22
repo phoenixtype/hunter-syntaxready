@@ -30,3 +30,54 @@ verify_jwt = false
 
 [functions.process-notifications]
 verify_jwt = false
+
+# --- User-authenticated endpoints (handle JWT internally) ---
+# Gateway JWT check removed; each function calls auth.getUser() itself,
+# which provides better error messages and handles token refresh gracefully.
+[functions.generate-content]
+verify_jwt = false
+
+[functions.interview-coach]
+verify_jwt = false
+
+[functions.parse-resume]
+verify_jwt = false
+
+[functions.generate-resume]
+verify_jwt = false
+
+[functions.salary-insights]
+verify_jwt = false
+
+[functions.create-checkout]
+verify_jwt = false
+
+[functions.create-checkout-session]
+verify_jwt = false
+
+[functions.create-portal]
+verify_jwt = false
+
+[functions.delete-account]
+verify_jwt = false
+
+[functions.send-notification]
+verify_jwt = false
+
+[functions.send-sms]
+verify_jwt = false
+
+[functions.check-usage-warnings]
+verify_jwt = false
+
+[functions.approve-recruiter]
+verify_jwt = false
+
+[functions.recruiter-outreach]
+verify_jwt = false
+
+[functions.search-candidates]
+verify_jwt = false
+
+[functions.match-and-apply]
+verify_jwt = false

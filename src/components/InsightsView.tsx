@@ -1,4 +1,4 @@
-import { Brain, TrendingUp, GraduationCap, Info, Sparkles, Target } from "lucide-react";
+import { Brain, TrendingUp, GraduationCap, Info, Sparkles, Target, Linkedin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -12,9 +12,10 @@ interface InsightsViewProps {
   skillRecommendations: SkillRecommendation[];
   profile: CandidateProfile | null;
   onConsultCoach: () => void;
+  onOptimizeLinkedIn?: () => void;
 }
 
-const InsightsView = ({ visibility, skillRecommendations, profile, onConsultCoach }: InsightsViewProps) => {
+const InsightsView = ({ visibility, skillRecommendations, profile, onConsultCoach, onOptimizeLinkedIn }: InsightsViewProps) => {
   if (!profile) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
@@ -161,6 +162,27 @@ const InsightsView = ({ visibility, skillRecommendations, profile, onConsultCoac
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+      )}
+
+      {/* LinkedIn Optimizer */}
+      {onOptimizeLinkedIn && (
+        <section className="space-y-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">LinkedIn Profile</h2>
+          <div className="rounded-md border border-border bg-card p-6 flex items-start gap-4">
+            <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center shrink-0">
+              <Linkedin className="w-5 h-5 text-[#0077B5]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium">Optimize your LinkedIn profile</p>
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                Get AI-powered suggestions to improve your headline, summary, and skills section to attract more recruiter views.
+              </p>
+            </div>
+            <Button variant="outline" size="sm" className="shrink-0" onClick={onOptimizeLinkedIn}>
+              Optimize
+            </Button>
           </div>
         </section>
       )}

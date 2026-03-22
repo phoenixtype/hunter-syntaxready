@@ -351,11 +351,11 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
     const limiter  = new RateLimiter(supabase, user.id);
     const { allowed, error: limitError } = await limiter.isAllowed('generate-resume', {
-      free: { max: 5,  window: 300 },
-      pro:  { max: 25, window: 300 },
+      free: { max: 15, window: 300 },
+      pro:  { max: 60, window: 300 },
     });
     if (!allowed) {
-      return errorWithCors(limitError, 429);
+      return errorWithCors(limitError || 'Too many requests', 429);
     }
 
     const { profile, template = 'minimalist', accentColor = '#475569', onePage = false } = await req.json();

@@ -40,8 +40,9 @@ export class RateLimiter {
 
       if (error) {
         console.error(`[RATE_LIMIT] RPC Error for ${functionName}:`, error);
-        // Default to block on database error to protect resources
-        return { allowed: false, error: 'Request validation failed' };
+        // Fail-open: let the request through if rate-limit DB check fails.
+        // A DB hiccup should not block legitimate users.
+        return { allowed: true };
       }
 
       const allowed = data === true;
@@ -49,14 +50,19 @@ export class RateLimiter {
         console.warn(`[RATE_LIMIT] Blocked ${functionName} for user ${this.userId}`);
       }
 
-      return { 
-        allowed, 
-        error: allowed ? undefined : `Too many requests. Please try again in ${config.window} seconds.` 
+      const windowLabel = config.window >= 60
+        ? `${Math.round(config.window / 60)} minute${config.window >= 120 ? 's' : ''}`
+        : `${config.window} seconds`;
+
+      return {
+        allowed,
+        error: allowed ? undefined : `Too many requests. Please try again in ${windowLabel}.`
       };
 
     } catch (err) {
       console.error(`[RATE_LIMIT] Unexpected error for ${functionName}:`, err);
-      return { allowed: false, error: 'Internal validation error' };
+      // Fail-open on unexpected errors too
+      return { allowed: true };
     }
   }
 }

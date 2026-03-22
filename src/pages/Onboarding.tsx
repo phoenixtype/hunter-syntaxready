@@ -515,8 +515,12 @@ const Onboarding = () => {
                     <button
                       onClick={async () => {
                         if (!user) return;
-                        await setUserRole(user.id, "recruiter");
-                        navigate("/recruiter");
+                        try {
+                          await setUserRole(user.id, "recruiter");
+                          navigate("/recruiter");
+                        } catch (err) {
+                          toast.error("Failed to set role. Please try again.");
+                        }
                       }}
                       className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-border hover:border-primary/40 hover:bg-muted/50 transition-all hover:shadow-md-1"
                     >

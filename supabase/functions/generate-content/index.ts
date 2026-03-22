@@ -72,8 +72,8 @@ serve(async (req) => {
     const { RateLimiter } = await import('../_shared/rate-limiter.ts');
     const limiter = new RateLimiter(supabase, user.id);
     const { allowed, error: limitError } = await limiter.isAllowed('generate-content', {
-      free: { max: 10, window: 60 },
-      pro:  { max: 40, window: 60 },
+      free: { max: 30, window: 60 },
+      pro:  { max: 100, window: 60 },
     });
 
     if (!allowed) {

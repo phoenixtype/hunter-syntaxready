@@ -78,7 +78,8 @@ export const upgradeToPro = async (): Promise<void> => {
     if (!session) throw new Error("Not authenticated");
 
     const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: {}
+        body: {},
+        headers: { Authorization: `Bearer ${session.access_token}` }
     });
 
     if (error || !data?.url) {

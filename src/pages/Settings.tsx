@@ -117,28 +117,19 @@ const Settings = () => {
 
     setIsDeleting(true);
     try {
-      // 1. Delete all application data in parallel
-      await Promise.all([
-        supabase.from('feedback_actions').delete().eq('user_id', user.id),
-        supabase.from('tailored_resumes').delete().eq('user_id', user.id),
-        supabase.from('application_history').delete().eq('user_id', user.id),
-        supabase.from('agent_activity_logs').delete().eq('user_id', user.id),
-        supabase.from('learning_weights').delete().eq('user_id', user.id),
-        supabase.from('candidate_profiles').delete().eq('user_id', user.id),
-        supabase.from('user_preferences').delete().eq('user_id', user.id),
-        supabase.from('subscriptions').delete().eq('user_id', user.id),
-        supabase.from('profiles').delete().eq('id', user.id),
-      ]);
-
-      // 2. Delete the auth user record via edge function (service role required)
+      // Delete all user data and the auth record via edge function (service role required).
+      // The edge function handles all table cleanup + auth.admin.deleteUser in one operation.
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        await supabase.functions.invoke('delete-account', {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
+      if (!session) throw new Error("Session expired. Please sign in and try again.");
+
+      const { data: deleteData, error: deleteFnError } = await supabase.functions.invoke('delete-account', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (deleteFnError || !deleteData?.success) {
+        throw new Error(deleteFnError?.message || deleteData?.error || "Failed to delete account. Please contact support@syntaxready.com.");
       }
 
-      // 3. Sign out and redirect
+      // Sign out locally and redirect
       await signOut();
       toast.success("Your account has been permanently deleted.");
       navigate('/');
