@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 export enum SubscriptionTier {
     FREE = 'free',
     PRO = 'pro',
+    STARTER = 'starter',
+    GROWTH = 'growth',
     ENTERPRISE = 'enterprise'
 }
 
@@ -20,6 +22,8 @@ export interface UserSubscription {
 const TIER_FEATURES: Record<SubscriptionTier, Feature[]> = {
     [SubscriptionTier.FREE]: [],
     [SubscriptionTier.PRO]: ['autopilot', 'deep_intelligence', 'unlimited_applications', 'negotiation_coach', 'sms_notifications'],
+    [SubscriptionTier.STARTER]: ['autopilot', 'deep_intelligence', 'unlimited_applications', 'negotiation_coach', 'sms_notifications'],
+    [SubscriptionTier.GROWTH]: ['autopilot', 'deep_intelligence', 'unlimited_applications', 'negotiation_coach', 'sms_notifications'],
     [SubscriptionTier.ENTERPRISE]: ['autopilot', 'deep_intelligence', 'unlimited_applications', 'negotiation_coach', 'sms_notifications']
 };
 
@@ -73,7 +77,11 @@ export const checkAccess = (feature: Feature, subscription?: UserSubscription | 
     return subscription.features.includes(feature);
 };
 
-export const upgradeToPro = async (): Promise<void> => {
+export const upgradeToPro = async (paymentProvider: 'stripe' | 'paystack' = 'stripe'): Promise<{ provider: 'stripe' | 'paystack' }> => {
+    if (paymentProvider === 'paystack') {
+        return { provider: 'paystack' };
+    }
+
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) throw new Error("Not authenticated");
 
@@ -87,11 +95,24 @@ export const upgradeToPro = async (): Promise<void> => {
     }
 
     window.location.href = data.url;
+    return { provider: 'stripe' };
 };
 
 export const openBillingPortal = async (): Promise<void> => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) throw new Error("Not authenticated");
+
+    // Check if user is a Paystack subscriber
+    const { data: subData } = await supabase
+        .from('subscriptions')
+        .select('payment_provider')
+        .eq('user_id', session.user.id)
+        .maybeSingle();
+
+    if (subData?.payment_provider === 'paystack') {
+        window.location.href = '/settings?tab=billing';
+        return;
+    }
 
     const { data, error } = await supabase.functions.invoke('create-portal', {
         headers: { Authorization: `Bearer ${session.access_token}` }
