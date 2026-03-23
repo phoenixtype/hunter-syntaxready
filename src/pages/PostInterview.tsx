@@ -169,6 +169,16 @@ const PostInterview = () => {
             />
 
             <main className="flex-1 flex flex-col justify-center p-6 max-w-lg w-full mx-auto">
+                <div className="flex flex-col items-center text-center mb-6">
+                    <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center mb-6">
+                        <ClipboardCheck className="w-7 h-7 text-primary" />
+                    </div>
+                    <h2 className="text-2xl font-bold mb-2">Post-Interview Tools</h2>
+                    <p className="text-muted-foreground">
+                        Send a polished thank-you note or get AI-powered negotiation coaching for your offer.
+                    </p>
+                </div>
+
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                     <TabsList className="grid w-full grid-cols-2 shrink-0 mb-6" data-tour="pi-tabs">
                         <TabsTrigger value="thankyou">Thank You Note</TabsTrigger>
