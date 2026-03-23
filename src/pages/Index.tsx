@@ -17,6 +17,8 @@ import SkipLink from "@/components/SkipLink";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
 import SEOHead from "@/components/SEOHead";
+import { useGeo } from '@/hooks/useGeo';
+import { getPaymentBadge } from '@/lib/pricing';
 
 const FEATURES = [
   { icon: Briefcase, title: "Smart Job Discovery", desc: "Searches real job boards in real time to surface roles matched to your skills, target titles, and location." },
@@ -52,6 +54,10 @@ const COMPARISON = [
 const Index = () => {
   const { user, loading } = useAuth();
   const isAuthenticated = !loading && !!user;
+  const { isNigeria } = useGeo();
+  const trustBadges = TRUST_BADGES.map(badge =>
+    badge === 'Secure payments via Stripe' ? getPaymentBadge(isNigeria) : badge
+  );
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
@@ -170,7 +176,7 @@ const Index = () => {
 
             {/* Trust badges */}
             <div className="flex flex-wrap items-center justify-center gap-5 text-xs text-muted-foreground">
-              {TRUST_BADGES.map((badge) => (
+              {trustBadges.map((badge) => (
                 <span key={badge} className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
                   {badge}
