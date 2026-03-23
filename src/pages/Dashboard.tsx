@@ -17,6 +17,8 @@ import SkipLink from "@/components/SkipLink";
 import { useResume } from "@/hooks/useResume";
 import { upgradeToPro } from "@/lib/subscription";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useGeo } from '@/hooks/useGeo';
+import { PaystackCheckout } from '@/components/payment/PaystackCheckout';
 import { useQueryClient } from "@tanstack/react-query";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import WidgetErrorBoundary from "@/components/WidgetErrorBoundary";
@@ -131,6 +133,8 @@ const Dashboard = () => {
   // Settings sub-tab
   const [settingsTab, setSettingsTab] = useState<"profile" | "preferences" | "alerts">("profile");
   const visitedTabs = useVisitedTabs(activeView);
+  const { isNigeria } = useGeo();
+  const [showPaystack, setShowPaystack] = useState(false);
   const [showCoach, setShowCoach] = useState(false);
   const [showLinkedIn, setShowLinkedIn] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -213,10 +217,23 @@ const Dashboard = () => {
             {isPro ? (
               <Badge className="bg-primary/10 text-primary border-primary/20 text-xs font-semibold">Pro</Badge>
             ) : (
-              <Button size="sm" variant="outline" onClick={() => upgradeToPro().catch(() => {})} className="text-xs h-8 hidden sm:flex gap-1.5">
+              <Button size="sm" variant="outline" onClick={() => {
+                if (isNigeria) {
+                  setShowPaystack(true);
+                } else {
+                  upgradeToPro('stripe');
+                }
+              }} className="text-xs h-8 hidden sm:flex gap-1.5">
                 <Zap className="w-3 h-3" />
                 Upgrade to Pro
               </Button>
+              {showPaystack && (
+                <PaystackCheckout
+                  planName="pro"
+                  interval="monthly"
+                  onClose={() => setShowPaystack(false)}
+                />
+              )}
             )}
             <ThemeToggle />
             <div className="sm:hidden">
