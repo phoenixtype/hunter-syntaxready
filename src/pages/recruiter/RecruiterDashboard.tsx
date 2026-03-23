@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useRecruiterStats, useMyJobs, useRecruiterProfile } from "@/hooks/useRecruiter";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useGeo } from '@/hooks/useGeo';
+import { getStartingPrice } from '@/lib/pricing';
 import { LOCATION_TYPE_LABELS, EMPLOYMENT_TYPE_LABELS } from "@/lib/recruiter_engine";
 import type { RecruiterJob } from "@/lib/recruiter_engine";
 import { formatDistanceToNow } from "date-fns";
@@ -40,6 +42,7 @@ const RecruiterDashboard = () => {
   const { jobs, loading: jobsLoading } = useMyJobs();
   const { profile, loading: profileLoading } = useRecruiterProfile();
   const { currentSubscription: subscription } = useSubscription();
+  const { currency } = useGeo();
 
   // Checkout success feedback
   useEffect(() => {
@@ -99,7 +102,7 @@ const RecruiterDashboard = () => {
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm">Unlock your full recruiting power</p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Get AI candidate matching, unlimited job posts, and automated outreach. Starting at $79/mo.
+                Get AI candidate matching, unlimited job posts, and automated outreach. Starting at {getStartingPrice(currency)}.
               </p>
             </div>
             <Button size="sm" variant="outline" className="rounded-full shrink-0 border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-700 dark:text-amber-400" onClick={() => navigate("/recruiter/pricing")}>
