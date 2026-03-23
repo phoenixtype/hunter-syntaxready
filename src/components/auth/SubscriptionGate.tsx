@@ -4,6 +4,8 @@ import { upgradeToPro } from "@/lib/subscription";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useGeo } from '@/hooks/useGeo';
+import { getPaymentBadge } from '@/lib/pricing';
 
 interface SubscriptionGateProps {
   onClose?: () => void;
@@ -13,6 +15,7 @@ const SubscriptionGate = ({ onClose }: SubscriptionGateProps) => {
   const [loading, setLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { refetch } = useSubscription() as any;
+  const { isNigeria } = useGeo();
 
   const handleUpgrade = async () => {
     setLoading(true);
@@ -110,7 +113,7 @@ const SubscriptionGate = ({ onClose }: SubscriptionGateProps) => {
             </div>
 
             <p className="text-center label-eyebrow opacity-60">
-              Cancel anytime • Secure checkout via Stripe
+              Cancel anytime • {getPaymentBadge(isNigeria)}
             </p>
           </div>
         </div>
