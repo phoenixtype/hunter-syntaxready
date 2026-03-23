@@ -12,6 +12,9 @@ import { Button } from "@/components/ui/button";
 import { upgradeToPro } from "@/lib/subscription";
 import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
+import { useGeo } from '@/hooks/useGeo';
+import { getPrice, getPaymentBadge } from '@/lib/pricing';
+import { PaystackCheckout } from '@/components/payment/PaystackCheckout';
 
 // ── Shared internals ─────────────────────────────────────────────────────────
 
@@ -31,12 +34,20 @@ function UpgradeCard({
 }) {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [showPaystack, setShowPaystack] = useState(false);
   const { refetch } = useSubscription() as any;
+  const { isNigeria, currency } = useGeo();
+  const priceLabel = getPrice('pro', currency).label;
+  const paymentBadge = getPaymentBadge(isNigeria);
 
   const handleUpgrade = async () => {
+    if (isNigeria) {
+      setShowPaystack(true);
+      return;
+    }
     setLoading(true);
     try {
-      await upgradeToPro();
+      await upgradeToPro('stripe');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to start checkout. Please try again.");
       setLoading(false);
@@ -65,6 +76,13 @@ function UpgradeCard({
 
   return (
     <div className="space-y-5">
+      {showPaystack && (
+        <PaystackCheckout
+          planName="pro"
+          interval="monthly"
+          onClose={() => setShowPaystack(false)}
+        />
+      )}
       {/* Icon + heading */}
       <div className="flex flex-col items-center text-center gap-3">
         <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
@@ -105,7 +123,7 @@ function UpgradeCard({
           {loading ? (
             <><Loader2 className="w-4 h-4 animate-spin" /> Starting checkout…</>
           ) : (
-            <><Zap className="w-4 h-4" /> Upgrade to Pro — $19.99/mo <ArrowRight className="w-4 h-4 ml-auto" /></>
+            <><Zap className="w-4 h-4" /> Upgrade to Pro — {priceLabel} <ArrowRight className="w-4 h-4 ml-auto" /></>
           )}
         </Button>
 
@@ -119,7 +137,7 @@ function UpgradeCard({
         </button>
 
         <p className="text-center text-[11px] text-muted-foreground/60 font-medium uppercase tracking-widest">
-          Billed monthly · Cancel anytime · Secure via Stripe
+          Billed monthly · Cancel anytime · {paymentBadge}
         </p>
       </div>
     </div>
