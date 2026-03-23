@@ -124,11 +124,23 @@ The `detectCurrency()` function in `paystack-client.ts` is also updated to retur
 ### Subscription Storage
 The existing `subscriptions` table already has `payment_provider` (`stripe`/`paystack`) and `currency` (`usd`/`ngn`) columns with a CHECK constraint on currency allowing only these two values. No schema migrations needed for the subscriptions table.
 
+## Plan Name Convention
+
+**Canonical plan names:** `starter` and `growth` (not `recruiter_starter`/`recruiter_growth`).
+
+The Stripe webhook currently maps recruiter plans to `recruiter_starter`/`recruiter_growth` tier values. This must be updated to use `starter`/`growth` to match the database `subscription_plans.name` column and the `PaystackCheckout` component's `planName` prop. All code paths must use these canonical names consistently:
+- `subscription_plans.name`: `starter`, `growth`
+- `subscriptions.tier`: `starter`, `growth`
+- `PaystackCheckout planName`: `starter`, `growth`
+- `SubscriptionTier` enum: `STARTER = 'starter'`, `GROWTH = 'growth'`
+- Stripe webhook tier mapping: `starter`, `growth`
+- Paystack webhook tier detection: `starter`, `growth`
+
 ## Database Changes
 
-### Schema Migration: Insert recruiter plan rows
+### Schema Migration: Insert recruiter plan rows and update PPP prices
 
-The `subscription_plans` table currently only has `free`, `pro`, and `enterprise` rows. Recruiter plans (`starter`, `growth`) do not exist. A migration is required to:
+The `subscription_plans` table currently only has `free`, `pro`, and `enterprise` rows. Recruiter plans (`starter`, `growth`) do not exist. A migration is required:
 
 ```sql
 -- Insert recruiter plan rows
@@ -156,6 +168,30 @@ UPDATE subscription_plans SET overage_rates = overage_rates || '{
   "skill_assessments_ngn": 3750
 }'::jsonb
 WHERE name IN ('free', 'pro', 'enterprise', 'starter', 'growth');
+
+-- Fix get_overage_rate function: replace 1600x fallback with PPP ratio (250x)
+CREATE OR REPLACE FUNCTION get_overage_rate(p_plan_name text, p_feature text, p_currency text DEFAULT 'usd')
+RETURNS numeric AS $$
+DECLARE
+  rate numeric;
+  ngn_key text;
+BEGIN
+  IF p_currency = 'ngn' THEN
+    ngn_key := p_feature || '_ngn';
+    SELECT (overage_rates->>ngn_key)::numeric INTO rate
+    FROM subscription_plans WHERE name = p_plan_name;
+    IF rate IS NOT NULL THEN RETURN rate; END IF;
+    -- PPP fallback: use 250x ratio instead of old 1600x exchange rate
+    SELECT (overage_rates->>p_feature)::numeric * 250 INTO rate
+    FROM subscription_plans WHERE name = p_plan_name;
+    RETURN COALESCE(rate, 0);
+  ELSE
+    SELECT (overage_rates->>p_feature)::numeric INTO rate
+    FROM subscription_plans WHERE name = p_plan_name;
+    RETURN COALESCE(rate, 0);
+  END IF;
+END;
+$$ LANGUAGE plpgsql STABLE;
 ```
 
 This ensures the `PaystackCheckout` component (which reads from `subscription_plans`) and the `pricing.ts` display config are in sync.
@@ -183,7 +219,7 @@ Centralized pricing config for display purposes:
 
 ### `supabase/functions/detect-country/index.ts`
 - Public endpoint, no auth required
-- Reads IP from request headers
+- Reads country from `cf-ipcountry` header (Supabase edge functions run behind Cloudflare). If header is absent, falls back to reading `x-forwarded-for` and using a lightweight geo-IP lookup.
 - Returns only `{ country_code: string }` (minimal data, privacy-conscious)
 - In-memory rate limiting: 10 requests per IP per minute
 
@@ -197,6 +233,7 @@ Centralized pricing config for display purposes:
 ### `src/lib/subscription.ts`
 - **Critical:** `upgradeToPro()` must detect payment provider and route to Paystack for Nigerian users instead of always calling Stripe `create-checkout`
 - **Critical:** `openBillingPortal()` must check `payment_provider` on the subscription and route Paystack users to a billing info page instead of Stripe portal
+- **Critical:** Add `STARTER = 'starter'` and `GROWTH = 'growth'` to the `SubscriptionTier` enum and add corresponding entries to the `TIER_FEATURES` map
 
 ### `src/components/ProGate.tsx`
 - Import `useGeo()` hook
@@ -210,6 +247,7 @@ Centralized pricing config for display purposes:
 ### `src/pages/recruiter/RecruiterPricing.tsx`
 - Import `useGeo()` hook
 - Replace hardcoded CAD prices with dynamic prices from `pricing.ts`
+- Stripe price IDs (`STARTER_PRICE_ID`, `GROWTH_PRICE_ID`) remain hardcoded for international Stripe checkout; Nigerian path bypasses them via `PaystackCheckout`
 - Add Enterprise tier card: "Custom" pricing, feature list (dedicated account manager, custom integrations, SLA, priority support), "Contact Us" CTA with `mailto:hello@usehunter.app`
 - Route Nigerian users to Paystack checkout for Starter/Growth
 
@@ -246,6 +284,12 @@ Centralized pricing config for display purposes:
 ### `src/tests/email-templates.test.ts`
 - Update NGN price expectations from 32,000 to 4,999
 
+### `supabase/functions/stripe-webhook/index.ts`
+- Update tier mapping: change `recruiter_starter`/`recruiter_growth` to `starter`/`growth` to match canonical plan names
+
+### `supabase/functions/_shared/email-templates.ts`
+- Update any hardcoded NGN price references from 32,000 to 4,999
+
 ### `.env.example`
 - Fix `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` to `VITE_PAYSTACK_PUBLIC_KEY` (Vite convention)
 
@@ -256,6 +300,8 @@ Centralized pricing config for display purposes:
 The existing `src/webhooks/paystack-webhooks.ts` is a Node.js file that is not deployed anywhere. For Paystack subscriptions to work end-to-end (confirming payments, handling renewals and cancellations), this must be deployed as either:
 - A Vercel serverless function at `api/paystack-webhook.ts`, or
 - A Supabase edge function at `supabase/functions/paystack-webhook/index.ts` (requires porting from Node.js to Deno)
+
+The webhook's tier-detection logic (`handleSubscriptionCreate`) currently only recognizes "pro" and "enterprise" plan names. It must be extended to detect `starter` and `growth` plan names (e.g., "Hunter AI Starter Monthly (NGN)"), otherwise recruiter subscribers will be silently assigned `tier = 'free'`.
 
 This is a **prerequisite** for launching Paystack checkout to real users. It can be implemented in parallel with the pricing UI work but must be complete before going live.
 
