@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { EnrichedJob } from "@/hooks/useJobs";
 import type { Stakeholder } from "@/lib/recruiter_engine";
 import type { CompanyResearch } from "@/lib/crawler_engine";
-import ReactMarkdown from "react-markdown";
 import {
   Send, PenTool, Bookmark, GraduationCap, Loader2, ExternalLink,
   MapPin, DollarSign, Building2, Cpu, Users, Newspaper, Lightbulb,
@@ -13,40 +12,7 @@ import {
 } from "lucide-react";
 import MatchScoreTooltip from "./MatchScoreTooltip";
 import SalaryInsights from "./SalaryInsights";
-import { useState, useMemo } from "react";
-
-/**
- * Clean up raw job descriptions so they render nicely in Markdown.
- *
- * Handles common crawled-text problems:
- *  - inline bullet characters (•, -, ▪, ►, ●, ◦, ■) → proper markdown list items
- *  - section-heading keywords smashed into the previous sentence → separated with ## heading
- *  - missing paragraph breaks between dense blocks
- */
-function formatDescription(raw: string): string {
-  let text = raw;
-
-  // Normalise bullet-like characters that appear mid-line into newline + markdown bullet
-  text = text.replace(/\s*[•●◦▪►■]\s*/g, '\n- ');
-
-  // Common section-heading patterns: insert a blank line + ## heading before them
-  const headingPatterns = [
-    /(?<=\S)\s*((?:Why You Should Apply|What You(?:'ll| Will) (?:Be )?Do(?:ing)?|About (?:You|The (?:Role|Company|Team))|How To Apply|Requirements|Qualifications|Responsibilities|Benefits|Perks|Compensation|What We(?:'re| Are) (?:Looking For|Offering)|Who You Are|Key Skills|Nice To Have|Preferred|Must Have|Your Background|The Opportunity|The Role|Job Summary|Overview|Description|Duties|Skills|Education|Experience))/gi,
-  ];
-
-  for (const pat of headingPatterns) {
-    text = text.replace(pat, '\n\n## $1');
-  }
-
-  // If a line starts with "- " (our bullets) ensure a blank line before the first bullet
-  // so Markdown recognises the list.
-  text = text.replace(/([^\n])\n(- )/g, '$1\n\n$2');
-
-  // Collapse 3+ consecutive newlines to 2
-  text = text.replace(/\n{3,}/g, '\n\n');
-
-  return text.trim();
-}
+import { useState } from "react";
 
 interface Props {
   job: EnrichedJob | null;
@@ -82,11 +48,6 @@ export default function JobDescriptionModal({
   onPrep,
 }: Props) {
   const [intelOpen, setIntelOpen] = useState(false);
-
-  const formattedDescription = useMemo(
-    () => (job?.description ? formatDescription(job.description) : null),
-    [job?.description]
-  );
 
   if (!job) return null;
 
@@ -142,15 +103,6 @@ export default function JobDescriptionModal({
         {/* Scrollable body */}
         <ScrollArea className="flex-1 min-h-0">
           <div className="px-6 py-4 space-y-5">
-            {/* Description */}
-            {formattedDescription ? (
-              <div className="prose prose-sm dark:prose-invert max-w-none text-foreground leading-relaxed [&_h2]:text-sm [&_h2]:font-semibold [&_h2]:uppercase [&_h2]:tracking-wide [&_h2]:text-muted-foreground [&_h2]:mt-6 [&_h2]:mb-2 [&_ul]:space-y-1">
-                <ReactMarkdown>{formattedDescription}</ReactMarkdown>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground italic">No description available.</p>
-            )}
-
             {/* Tech stack */}
             {job.tech_stack && job.tech_stack.length > 0 && (
               <div className="space-y-1.5">
