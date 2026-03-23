@@ -12,10 +12,11 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, CreditCard, CheckCircle } from 'lucide-react';
 
 interface PaystackCheckoutProps {
-  planName: 'pro' | 'enterprise';
+  planName: 'pro' | 'enterprise' | 'starter' | 'growth';
   interval: 'monthly' | 'yearly';
   onSuccess?: (reference: string) => void;
   onError?: (error: string) => void;
+  onClose?: () => void;
   isOverage?: boolean;
   overageFeature?: string;
   overageQuantity?: number;
@@ -44,6 +45,7 @@ export function PaystackCheckout({
   interval,
   onSuccess,
   onError,
+  onClose,
   isOverage = false,
   overageFeature,
   overageQuantity = 1
@@ -194,6 +196,7 @@ export function PaystackCheckout({
         onClose: function() {
           console.log('Payment popup closed');
           setLoading(false);
+          onClose?.();
         },
         onerror: function(error: any) {
           console.error('Payment error:', error);
