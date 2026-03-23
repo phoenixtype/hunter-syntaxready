@@ -45,13 +45,13 @@ describe('Email Templates', () => {
     it('should build Paystack payment email with NGN currency', () => {
       const result = buildPaymentConfirmationEmail({
         tier: 'pro',
-        amount: 32000,
+        amount: 4999,
         currency: 'ngn',
         paymentProvider: 'paystack',
         userName: 'John Doe'
       });
 
-      expect(result.html).toContain('₦32,000'); // NGN formatting
+      expect(result.html).toContain('₦4,999'); // NGN formatting
       expect(result.html).toContain('Paystack'); // Provider mention
     });
 
