@@ -135,27 +135,39 @@ class PaystackClient {
     const plans = [
       {
         name: 'Hunter AI Pro Monthly (NGN)',
-        amount: this.convertNairaToKobo(32000), // ₦32,000/month
+        amount: this.convertNairaToKobo(4999), // ₦4,999/month (PPP-adjusted)
         interval: 'monthly' as const,
         description: 'Monthly Pro subscription for serious job seekers in Nigeria'
       },
       {
         name: 'Hunter AI Pro Yearly (NGN)',
-        amount: this.convertNairaToKobo(320000), // ₦320,000/year
+        amount: this.convertNairaToKobo(49990), // ₦49,990/year (2 months free)
         interval: 'annually' as const,
         description: 'Yearly Pro subscription for serious job seekers in Nigeria (2 months free)'
       },
       {
-        name: 'Hunter AI Enterprise Monthly (NGN)',
-        amount: this.convertNairaToKobo(160000), // ₦160,000/month
+        name: 'Hunter AI Starter Monthly (NGN)',
+        amount: this.convertNairaToKobo(14999), // ₦14,999/month
         interval: 'monthly' as const,
-        description: 'Monthly Enterprise subscription for teams and organizations in Nigeria'
+        description: 'Monthly Recruiter Starter subscription in Nigeria'
       },
       {
-        name: 'Hunter AI Enterprise Yearly (NGN)',
-        amount: this.convertNairaToKobo(1600000), // ₦1,600,000/year
+        name: 'Hunter AI Starter Yearly (NGN)',
+        amount: this.convertNairaToKobo(149990), // ₦149,990/year
         interval: 'annually' as const,
-        description: 'Yearly Enterprise subscription for teams and organizations in Nigeria'
+        description: 'Yearly Recruiter Starter subscription in Nigeria (2 months free)'
+      },
+      {
+        name: 'Hunter AI Growth Monthly (NGN)',
+        amount: this.convertNairaToKobo(34999), // ₦34,999/month
+        interval: 'monthly' as const,
+        description: 'Monthly Recruiter Growth subscription in Nigeria'
+      },
+      {
+        name: 'Hunter AI Growth Yearly (NGN)',
+        amount: this.convertNairaToKobo(349990), // ₦349,990/year
+        interval: 'annually' as const,
+        description: 'Yearly Recruiter Growth subscription in Nigeria (2 months free)'
       }
     ];
 
@@ -182,23 +194,13 @@ class PaystackClient {
 export const paystackClient = new PaystackClient();
 
 // Payment provider detection
-export function detectPaymentProvider(userLocation?: string, userCountry?: string): 'stripe' | 'paystack' {
-  // Check for Nigerian users
-  if (userCountry === 'NG' || userCountry === 'Nigeria') {
-    return 'paystack';
-  }
-
-  if (userLocation?.toLowerCase().includes('nigeria') || userLocation?.toLowerCase().includes('lagos')) {
-    return 'paystack';
-  }
-
-  // Default to Stripe for international users
-  return 'stripe';
+export function detectPaymentProvider(countryCode: string): 'stripe' | 'paystack' {
+  return countryCode === 'NG' ? 'paystack' : 'stripe';
 }
 
 // Currency detection
-export function detectCurrency(provider: 'stripe' | 'paystack'): 'usd' | 'ngn' {
-  return provider === 'paystack' ? 'ngn' : 'usd';
+export function detectCurrency(countryCode: string): 'usd' | 'ngn' {
+  return countryCode === 'NG' ? 'ngn' : 'usd';
 }
 
 // Price conversion utilities
@@ -229,13 +231,13 @@ export const OVERAGE_RATES = {
     skill_assessments: 15.00
   },
   ngn: {
-    job_applications: 3200,      // $2.00 * 1600
-    resume_generations: 8000,     // $5.00 * 1600
-    ai_interviews: 16000,         // $10.00 * 1600
-    cover_letters: 2400,          // $1.50 * 1600
-    job_matches: 800,             // $0.50 * 1600
-    company_research: 1600,       // $1.00 * 1600
-    skill_assessments: 24000      // $15.00 * 1600
+    job_applications: 500,        // PPP-adjusted (~₦250/$1)
+    resume_generations: 1250,     // PPP-adjusted
+    ai_interviews: 2500,          // PPP-adjusted
+    cover_letters: 375,           // PPP-adjusted
+    job_matches: 125,             // PPP-adjusted
+    company_research: 250,        // PPP-adjusted
+    skill_assessments: 3750       // PPP-adjusted
   }
 };
 
