@@ -6,6 +6,7 @@ import { useEffect, lazy, Suspense } from "react";
 import { HelmetProvider } from "react-helmet-async";
 import ScrollToTop from "@/components/ScrollToTop";
 import { AuthProvider } from "@/hooks/useAuth";
+import { GeoProvider } from "@/hooks/useGeo";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -140,66 +141,68 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <AuthProvider>
-              <AppInitializer />
-              <ScrollToTop />
-              <FloatingThemeToggle />
-              <CommandPalette />
-              <CookieConsent />
-              <div className="flex flex-col min-h-screen">
-                <div className="flex-1">
-                  <Suspense fallback={<PageLoader />}>
-                    <Routes>
-                      {/* ── Public ─────────────────────────────── */}
-                      <Route path="/" element={<Index />} />
-                      <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-                      <Route path="/signup" element={<PublicRoute><SignUp /></PublicRoute>} />
-                      <Route path="/privacy" element={<Privacy />} />
-                      <Route path="/terms" element={<Terms />} />
-                      <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
-                      <Route path="/verify-email" element={<EmailVerification />} />
-                      <Route path="/reset-password" element={<ResetPassword />} />
-                      <Route path="/recruiter-portal" element={<RecruiterPortal />} />
-                      <Route path="/recruiter-setup" element={<RecruiterSetup />} />
+              <GeoProvider>
+                <AppInitializer />
+                <ScrollToTop />
+                <FloatingThemeToggle />
+                <CommandPalette />
+                <CookieConsent />
+                <div className="flex flex-col min-h-screen">
+                  <div className="flex-1">
+                    <Suspense fallback={<PageLoader />}>
+                      <Routes>
+                        {/* ── Public ─────────────────────────────── */}
+                        <Route path="/" element={<Index />} />
+                        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+                        <Route path="/signup" element={<PublicRoute><SignUp /></PublicRoute>} />
+                        <Route path="/privacy" element={<Privacy />} />
+                        <Route path="/terms" element={<Terms />} />
+                        <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+                        <Route path="/verify-email" element={<EmailVerification />} />
+                        <Route path="/reset-password" element={<ResetPassword />} />
+                        <Route path="/recruiter-portal" element={<RecruiterPortal />} />
+                        <Route path="/recruiter-setup" element={<RecruiterSetup />} />
 
-                      {/* ── Onboarding (full-screen, no sidebar) ─ */}
-                      <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+                        {/* ── Onboarding (full-screen, no sidebar) ─ */}
+                        <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
 
-                      {/* ── Authenticated app shell (sidebar always visible) ─ */}
-                      <Route path="/dashboard"             element={<AppPage><Dashboard /></AppPage>} />
-                      <Route path="/profile"               element={<AppPage><Profile /></AppPage>} />
-                      <Route path="/resume-builder"        element={<AppPage><ResumeBuilder /></AppPage>} />
-                      <Route path="/application-wizard"    element={<AppPage><ApplicationWizard /></AppPage>} />
-                      <Route path="/interview-coach"       element={<AppPage><InterviewCoach /></AppPage>} />
-                      <Route path="/post-interview"        element={<AppPage><PostInterview /></AppPage>} />
-                      <Route path="/auto-applier-settings" element={<AppPage><AutoApplierSettings /></AppPage>} />
-                      <Route path="/tailored-resumes"      element={<AppPage><TailoredResumes /></AppPage>} />
-                      <Route path="/settings"              element={<AppPage><Settings /></AppPage>} />
-                      <Route path="/admin/analytics"       element={<AdminPage><AdminAnalytics /></AdminPage>} />
+                        {/* ── Authenticated app shell (sidebar always visible) ─ */}
+                        <Route path="/dashboard"             element={<AppPage><Dashboard /></AppPage>} />
+                        <Route path="/profile"               element={<AppPage><Profile /></AppPage>} />
+                        <Route path="/resume-builder"        element={<AppPage><ResumeBuilder /></AppPage>} />
+                        <Route path="/application-wizard"    element={<AppPage><ApplicationWizard /></AppPage>} />
+                        <Route path="/interview-coach"       element={<AppPage><InterviewCoach /></AppPage>} />
+                        <Route path="/post-interview"        element={<AppPage><PostInterview /></AppPage>} />
+                        <Route path="/auto-applier-settings" element={<AppPage><AutoApplierSettings /></AppPage>} />
+                        <Route path="/tailored-resumes"      element={<AppPage><TailoredResumes /></AppPage>} />
+                        <Route path="/settings"              element={<AppPage><Settings /></AppPage>} />
+                        <Route path="/admin/analytics"       element={<AdminPage><AdminAnalytics /></AdminPage>} />
 
-                      {/* ── Platform admin shell ──────────────────────── */}
-                      <Route path="/admin"                            element={<AdminPage><AdminOverview /></AdminPage>} />
-                      <Route path="/admin/recruiter-applications"     element={<AdminPage><RecruiterApplicationsPage /></AdminPage>} />
-                      <Route path="/admin/users"                      element={<AdminPage><AdminUsers /></AdminPage>} />
-                      <Route path="/admin/logs"                       element={<AdminPage><AdminLogs /></AdminPage>} />
+                        {/* ── Platform admin shell ──────────────────────── */}
+                        <Route path="/admin"                            element={<AdminPage><AdminOverview /></AdminPage>} />
+                        <Route path="/admin/recruiter-applications"     element={<AdminPage><RecruiterApplicationsPage /></AdminPage>} />
+                        <Route path="/admin/users"                      element={<AdminPage><AdminUsers /></AdminPage>} />
+                        <Route path="/admin/logs"                       element={<AdminPage><AdminLogs /></AdminPage>} />
 
-                      {/* ── Recruiter app shell ──────────────────────── */}
-                      <Route path="/recruiter"             element={<RecruiterPage><RecruiterDashboard /></RecruiterPage>} />
-                      <Route path="/recruiter/jobs"        element={<RecruiterPage><MyJobs /></RecruiterPage>} />
-                      <Route path="/recruiter/post-job"    element={<RecruiterPage><PostJob /></RecruiterPage>} />
-                      <Route path="/recruiter/jobs/:jobId"      element={<RecruiterPage><JobApplicants /></RecruiterPage>} />
-                      <Route path="/recruiter/jobs/:jobId/edit" element={<RecruiterPage><EditJob /></RecruiterPage>} />
-                      <Route path="/recruiter/company"     element={<RecruiterPage><CompanyProfile /></RecruiterPage>} />
-                      <Route path="/recruiter/candidates"  element={<RecruiterPage><CandidateTalentSearch /></RecruiterPage>} />
-                      <Route path="/recruiter/analytics"   element={<RecruiterPage><RecruiterAnalytics /></RecruiterPage>} />
-                      <Route path="/recruiter/pricing"     element={<ProtectedRoute><RecruiterPricing /></ProtectedRoute>} />
+                        {/* ── Recruiter app shell ──────────────────────── */}
+                        <Route path="/recruiter"             element={<RecruiterPage><RecruiterDashboard /></RecruiterPage>} />
+                        <Route path="/recruiter/jobs"        element={<RecruiterPage><MyJobs /></RecruiterPage>} />
+                        <Route path="/recruiter/post-job"    element={<RecruiterPage><PostJob /></RecruiterPage>} />
+                        <Route path="/recruiter/jobs/:jobId"      element={<RecruiterPage><JobApplicants /></RecruiterPage>} />
+                        <Route path="/recruiter/jobs/:jobId/edit" element={<RecruiterPage><EditJob /></RecruiterPage>} />
+                        <Route path="/recruiter/company"     element={<RecruiterPage><CompanyProfile /></RecruiterPage>} />
+                        <Route path="/recruiter/candidates"  element={<RecruiterPage><CandidateTalentSearch /></RecruiterPage>} />
+                        <Route path="/recruiter/analytics"   element={<RecruiterPage><RecruiterAnalytics /></RecruiterPage>} />
+                        <Route path="/recruiter/pricing"     element={<ProtectedRoute><RecruiterPricing /></ProtectedRoute>} />
 
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </Suspense>
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </Suspense>
+                  </div>
+                  <Footer />
                 </div>
-                <Footer />
-              </div>
-              <BottomNavigation />
+                <BottomNavigation />
+              </GeoProvider>
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>
