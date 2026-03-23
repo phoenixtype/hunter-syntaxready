@@ -34,7 +34,8 @@ serve(async (req) => {
     const limiter = new RateLimiter(supabase, user.id);
     const { allowed, error: limitError } = await limiter.isAllowed('salary-insights', {
       free: { max: 15, window: 60 },
-      pro: { max: 60, window: 60 }
+      pro: { max: 60, window: 60 },
+      requirePro: true,
     });
 
     if (!allowed) {
@@ -150,6 +151,6 @@ Use the real market data above to ground your analysis. You MUST call the functi
     });
   } catch (error: unknown) {
     console.error('[SALARY] Error:', error);
-    return jsonWithCors({ error: 'Service unavailable' }, { status: 500 });
+    return errorWithCors('Service unavailable', 500);
   }
 });

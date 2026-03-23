@@ -2,6 +2,7 @@
 // This utility leverages the existing `public.check_rate_limit` RPC function.
 
 import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkSubscriptionAccess } from './input-validation.ts';
 
 export class RateLimiter {
   constructor(private supabase: SupabaseClient, private userId: string) {}
@@ -12,9 +13,10 @@ export class RateLimiter {
    */
   async isAllowed(
     functionName: string,
-    limits: { 
-      free: { max: number; window: number }; 
-      pro: { max: number; window: number } 
+    limits: {
+      free: { max: number; window: number };
+      pro: { max: number; window: number };
+      requirePro?: boolean;
     }
   ): Promise<{ allowed: boolean; error?: string }> {
     try {
@@ -29,6 +31,13 @@ export class RateLimiter {
 
       const subscription = subscriptions?.[0] ?? null;
       const tier = subscription?.tier === 'pro' ? 'pro' : 'free';
+
+      // 2. IMPORTANT-4: Enforce Pro subscription before hitting the rate-limit DB.
+      if (limits.requirePro) {
+        const access = checkSubscriptionAccess(tier, true);
+        if (!access.allowed) return access;
+      }
+
       const config = limits[tier];
 
       console.log(`[RATE_LIMIT] Checking ${functionName} for user ${this.userId} (Tier: ${tier})`);

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders, handleCorsPrelight, jsonWithCors, errorWithCors } from '../_shared/cors.ts';
+import { handleCorsPrelight, jsonWithCors, errorWithCors } from '../_shared/cors.ts';
+import { sanitizeCommunityQuestions, buildCommunityQuestionsContext } from '../_shared/input-validation.ts';
 
 // SECURITY: Generic error messages to avoid information disclosure
 const GENERIC_SERVICE_ERROR = 'Service temporarily unavailable';
@@ -74,20 +75,14 @@ serve(async (req) => {
 
   // HEALTH CHECK: Return 200 OK for crawlers/probes
   if (isHealthCheckRequest(req)) {
-    return new Response(
-      JSON.stringify({ status: 'healthy', service: 'interview-coach', timestamp: new Date().toISOString() }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return jsonWithCors({ status: 'healthy', service: 'interview-coach', timestamp: new Date().toISOString() });
   }
 
   try {
     // Verify authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ success: false, error: GENERIC_AUTH_ERROR }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return errorWithCors(GENERIC_AUTH_ERROR, 401);
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -97,24 +92,18 @@ serve(async (req) => {
     // SECURITY: Validate config server-side only
     if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
       console.error('[SECURITY] Missing required configuration');
-      return new Response(
-        JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return errorWithCors(GENERIC_SERVICE_ERROR, 503);
     }
 
     // Verify user token
     const authClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } }
     });
-    
+
     const { data: { user }, error: authError } = await authClient.auth.getUser();
     if (authError || !user) {
       console.error('[AUTH] Token verification failed');
-      return new Response(
-        JSON.stringify({ success: false, error: GENERIC_AUTH_ERROR }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return errorWithCors(GENERIC_AUTH_ERROR, 401);
     }
 
     // Use service role for rate limiting
@@ -126,27 +115,26 @@ serve(async (req) => {
     const { allowed, error: limitError } = await limiter.isAllowed('interview-coach', {
       free: { max: 60, window: 60 },
       pro:  { max: 200, window: 60 },
+      requirePro: true,
     });
 
     if (!allowed) {
       console.log('[RATE_LIMIT] User rate limited:', user.id);
-      return new Response(
-        JSON.stringify({ success: false, error: limitError || GENERIC_RATE_LIMIT_ERROR }),
-        { 
-          status: 429, 
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/json',
-            'Retry-After': String(RATE_LIMIT_WINDOW_SECONDS)
-          } 
-        }
-      );
+      const rateLimitResp = errorWithCors(limitError || GENERIC_RATE_LIMIT_ERROR, 429);
+      rateLimitResp.headers.set('Retry-After', String(RATE_LIMIT_WINDOW_SECONDS));
+      return rateLimitResp;
     }
 
     // SECURITY: Log only user ID
     console.log('[AUTH] Authenticated user:', user.id);
 
     const { messages, profile, job, mode } = await req.json();
+
+    // SECURITY: Sanitize client-supplied community questions before any use
+    // in the system prompt to prevent prompt injection attacks.
+    if (job) {
+      job.communityQuestions = sanitizeCommunityQuestions(job.communityQuestions);
+    }
 
     const { callAI, MODEL_FAST, MODEL_REASONING } = await import('../_shared/ai-client.ts');
 
@@ -156,17 +144,13 @@ serve(async (req) => {
     if (mode === 'research_questions') {
       const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
       if (!firecrawlApiKey) {
-        return new Response(JSON.stringify({ questions: [], patterns: [], insights: 'Research feature unavailable.' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        return jsonWithCors({ questions: [], patterns: [], insights: 'Research feature unavailable.' });
       }
 
       const company = (job?.company || '').trim();
       const role = (job?.title || '').trim();
       if (!company && !role) {
-        return new Response(JSON.stringify({ questions: [], patterns: [], insights: 'Provide a company and role to research.' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        return jsonWithCors({ questions: [], patterns: [], insights: 'Provide a company and role to research.' });
       }
 
       const searches = [
@@ -204,12 +188,12 @@ serve(async (req) => {
         .join('\n\n---\n\n');
 
       if (!combinedContent) {
-        return new Response(JSON.stringify({
+        return jsonWithCors({
           questions: [],
           patterns: [],
           insights: `No community interview data found for ${role} at ${company}. The company may be too niche or the role too general. Try practicing with the AI coach — it will adapt to your specific role.`,
           sources: [],
-        }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        });
       }
 
       const extractPrompt = `You are analysing real interview experience posts from Reddit, Glassdoor, Blind, and community forums to extract actual questions asked at ${company || 'this company'} for the ${role || 'this role'} role.
@@ -262,12 +246,12 @@ Focus on questions SPECIFIC to this company/role. Skip completely generic questi
       } catch { /* malformed AI response — return empty */ }
       const sources = settled.flatMap(r => r.urls).filter(Boolean).slice(0, 6);
 
-      return new Response(JSON.stringify({
+      return jsonWithCors({
         questions: extracted?.questions ?? [],
         patterns: extracted?.patterns ?? [],
         insights: extracted?.insights ?? '',
         sources,
-      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      });
     }
 
     // Handle "Briefing Generation" mode (Structured Output)
@@ -277,19 +261,6 @@ Focus on questions SPECIFIC to this company/role. Skip completely generic questi
         const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
         if (firecrawlApiKey && job?.company) {
             try {
-                const supabaseUrl2 = Deno.env.get('SUPABASE_URL')!;
-                const supabaseServiceKey2 = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-                // Call the crawl-jobs function in company_research mode using service role
-                const researchResponse = await fetch(`${supabaseUrl2}/functions/v1/crawl-jobs`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${supabaseServiceKey2}`,
-                        'Content-Type': 'application/json',
-                        // Bypass the auth check by using service role — crawl-jobs verifies user JWT
-                        // so we call Firecrawl search directly here instead
-                    },
-                });
-                // Direct Firecrawl search (faster than going through crawl-jobs with auth)
                 const searchResponse = await fetch('https://api.firecrawl.dev/v1/search', {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${firecrawlApiKey}`, 'Content-Type': 'application/json' },
@@ -406,18 +377,12 @@ Generate a dossier that gives the candidate a genuine unfair advantage. Include:
                 ...dossier
             };
 
-            return new Response(
-                JSON.stringify(safeDossier), // Return raw JSON directly as expected by frontend
-                { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
+            return jsonWithCors(safeDossier);
 
         } catch (err) {
             clearTimeout(timeoutId);
             console.error('[INTERVIEW] Briefing error:', err);
-            return new Response(
-                JSON.stringify({ success: false, error: 'Briefing generation timed out or failed' }),
-                { status: 504, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
+            return errorWithCors('Briefing generation timed out or failed', 504);
         }
 
 
@@ -471,20 +436,17 @@ Salary Range: ${job.salary_range || 'Not disclosed'}
 Role Context: ${(job.description || '').substring(0, 400)}`;
     }
 
-    // Community-sourced questions: weave them into the practice session
-    const communityQuestions: string[] = job?.communityQuestions ?? [];
-    if (communityQuestions.length > 0) {
-      systemPrompt += `\n\nReal Questions from Community Research (Reddit/Glassdoor/Blind):
-These are questions real candidates report being asked at ${job?.company || 'this company'} for this role. You MUST incorporate these into the session — ask at least 3 of them verbatim or with minor adaptation. Candidates want to be prepared for these specifically:
-${communityQuestions.slice(0, 12).map((q: string, i: number) => `${i + 1}. ${q}`).join('\n')}
-
-When you ask a community question, briefly note it came from candidate reports (e.g. "(Commonly reported question)")`;
-    }
-
     systemPrompt += `\n\nAfter EVERY candidate response, end with a brief coaching note in [square brackets] on one of: clarity, specificity, structure, confidence, or what to improve. Keep the note to 1–2 sentences. Example: [Good STAR structure — add the business impact metric to make this answer truly memorable.]`;
+
+    // SECURITY: Community questions are injected as user-turn context, not into
+    // the system prompt. User-controlled content in the system prompt is a
+    // prompt-injection risk; the user turn is less privileged.
+    const communityQuestions: string[] = job?.communityQuestions ?? [];
+    const communityContext = buildCommunityQuestionsContext(communityQuestions, job?.company ?? '');
 
     const chatMessages: ChatMessage[] = [
       { role: 'system', content: systemPrompt },
+      ...communityContext,
       ...(messages || [])
     ];
 
@@ -504,14 +466,7 @@ When you ask a community question, briefly note it came from candidate reports (
         starterMessage = `Hi ${profile?.identity?.name ? profile.identity.name.split(' ')[0] : 'there'}, great to connect. We've completed our interview process and the team loved meeting you — we'd like to extend an offer for the ${title} role.${salary}\n\nBefore I send the formal offer letter, I wanted to have a quick conversation about compensation. Does that range work for you?`;
       }
 
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: starterMessage,
-          mode: interviewMode
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonWithCors({ success: true, message: starterMessage, mode: interviewMode });
     }
 
     const controller = new AbortController();
@@ -528,36 +483,20 @@ When you ask a community question, briefly note it came from candidate reports (
         const content = chatResult.content;
 
         if (!content) {
-            return new Response(
-                JSON.stringify({ success: false, error: 'No response generated' }),
-                { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
+            return errorWithCors('No response generated', 502);
         }
 
-        return new Response(
-            JSON.stringify({ 
-                success: true, 
-                message: content,
-                mode: interviewMode
-            }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        return jsonWithCors({ success: true, message: content, mode: interviewMode });
 
     } catch (err) {
         clearTimeout(timeoutId);
         console.error('[INTERVIEW] AI Chat error:', err);
-        return new Response(
-            JSON.stringify({ success: false, error: 'Interview coach timed out' }),
-            { status: 504, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        return errorWithCors('Interview coach timed out', 504);
     }
 
   } catch (error) {
     // SECURITY: Never expose internal errors
     console.error('[ERROR] Interview coach error occurred');
-    return new Response(
-      JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return errorWithCors(GENERIC_SERVICE_ERROR, 500);
   }
 });

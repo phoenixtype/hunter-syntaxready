@@ -13,6 +13,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { useSubscription } from "@/hooks/useSubscription";
+import { parseStoredSession, serializeSession } from "@/lib/interview-session";
+import { classifyInvokeError } from "@/lib/invoke-error";
 import ProGate from "@/components/ProGate";
 import PageTour, { PageTourHandle } from "@/components/PageTour";
 import { Step } from "react-joyride";
@@ -58,7 +60,7 @@ const MODES: { id: Mode; label: string; icon: React.ElementType; desc: string }[
 ];
 
 const InterviewCoach = () => {
-  const _navigate = useNavigate(); void _navigate;
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { profile } = useResume();
@@ -86,29 +88,25 @@ const InterviewCoach = () => {
   const [research, setResearch] = useState<ResearchResult | null>(null);
   const [researchExpanded, setResearchExpanded] = useState(true);
 
-  // Restore persisted session on mount
+  // Restore persisted session on mount (expired sessions are silently discarded)
   useEffect(() => {
     if (!sessionKey) return;
-    try {
-      const saved = localStorage.getItem(sessionKey);
-      if (saved) {
-        const { messages: savedMessages, mode: savedMode } = JSON.parse(saved);
-        if (savedMessages?.length > 0) {
-          setMessages(savedMessages);
-          setMode(savedMode || "behavioral");
-          setStarted(true);
-        }
-      }
-    } catch {
-      // ignore corrupt storage
+    const session = parseStoredSession(localStorage.getItem(sessionKey));
+    if (session) {
+      setMessages(session.messages as typeof messages);
+      setMode((session.mode as typeof mode) || "behavioral");
+      setStarted(true);
+    } else if (localStorage.getItem(sessionKey)) {
+      // Remove stale/corrupt entry
+      localStorage.removeItem(sessionKey);
     }
   }, [sessionKey]);
 
-  // Persist session whenever messages change
+  // Persist session with timestamp whenever messages change
   useEffect(() => {
     if (!sessionKey || messages.length === 0) return;
     try {
-      localStorage.setItem(sessionKey, JSON.stringify({ messages, mode }));
+      localStorage.setItem(sessionKey, serializeSession(messages, mode));
     } catch {
       // ignore storage quota errors
     }
@@ -185,11 +183,28 @@ const InterviewCoach = () => {
         setMessages([{ role: "assistant", content: data.message }]);
       }
     } catch (err) {
-      toast.error("Couldn't start session", {
-        description: "Check your connection and try again.",
-        action: { label: "Retry", onClick: () => startInterview(selectedMode) },
-      });
       console.error(err);
+      const kind = await classifyInvokeError(err);
+      if (kind === "pro_gate") {
+        toast.error("Pro subscription required", {
+          description: "Upgrade to Hunter Pro to access Interview Coach.",
+          action: { label: "Upgrade", onClick: () => navigate("/settings") },
+        });
+      } else if (kind === "rate_limit") {
+        toast.error("Too many requests", {
+          description: "Slow down and try again in a moment.",
+        });
+      } else if (kind === "timeout") {
+        toast.error("Request timed out", {
+          description: "The AI took too long. Try again.",
+          action: { label: "Retry", onClick: () => startInterview(selectedMode) },
+        });
+      } else {
+        toast.error("Couldn't start session", {
+          description: "Check your connection and try again.",
+          action: { label: "Retry", onClick: () => startInterview(selectedMode) },
+        });
+      }
       setStarted(false);
     } finally {
       setLoading(false);
@@ -226,8 +241,26 @@ const InterviewCoach = () => {
         setMessages([...newMessages, { role: "assistant", content: data.message }]);
       }
     } catch (err) {
-      toast.error("Failed to get response");
       console.error(err);
+      const kind = await classifyInvokeError(err);
+      if (kind === "pro_gate") {
+        toast.error("Pro subscription required", {
+          description: "Upgrade to Hunter Pro to access Interview Coach.",
+          action: { label: "Upgrade", onClick: () => navigate("/settings") },
+        });
+      } else if (kind === "rate_limit") {
+        toast.error("Too many requests", {
+          description: "Slow down and try again in a moment.",
+        });
+      } else if (kind === "timeout") {
+        toast.error("Response timed out", {
+          description: "The AI took too long. Try a shorter message.",
+        });
+      } else {
+        toast.error("Failed to get response", {
+          description: "Check your connection and try again.",
+        });
+      }
     } finally {
       setLoading(false);
     }

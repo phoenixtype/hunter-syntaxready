@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, handleCorsPrelight, jsonWithCors, errorWithCors } from '../_shared/cors.ts';
+import { validateAccentColor, validateTemplate } from '../_shared/input-validation.ts';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -353,16 +354,21 @@ serve(async (req) => {
     const { allowed, error: limitError } = await limiter.isAllowed('generate-resume', {
       free: { max: 30,  window: 60 },
       pro:  { max: 100, window: 60 },
+      requirePro: true,
     });
     if (!allowed) {
       return errorWithCors(limitError || 'Rate limit exceeded', 429);
     }
 
-    const { profile, template = 'minimalist', accentColor = '#475569', onePage = false } = await req.json();
+    const { profile, template: rawTemplate, accentColor: rawAccent, onePage = false } = await req.json();
 
     if (!profile?.identity) {
       return errorWithCors('Profile data required', 400);
     }
+
+    // SECURITY: Validate template and accent color server-side to prevent CSS injection.
+    const template   = validateTemplate(rawTemplate);
+    const accentColor = validateAccentColor(rawAccent);
 
     const content = buildHtml(profile as Profile, {
       template,
@@ -376,7 +382,6 @@ serve(async (req) => {
 
   } catch (error: unknown) {
     console.error('[RESUME] Error:', error);
-    const msg = error instanceof Error ? error.message : 'Unknown error';
-    return errorWithCors(msg, 500);
+    return errorWithCors('Service temporarily unavailable', 500);
   }
 });

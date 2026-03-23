@@ -65,12 +65,15 @@ const PostInterview = () => {
     // Thank You Note
     const [company, setCompany] = useState("");
     const [interviewer, setInterviewer] = useState("");
+    const [jobTitle, setJobTitle] = useState("");
     const [topics, setTopics] = useState("");
     const [generatedNote, setGeneratedNote] = useState("");
 
     // Negotiation Coach
     const [negCompany, setNegCompany] = useState("");
     const [baseSalary, setBaseSalary] = useState("");
+    const [equity, setEquity] = useState("");
+    const [bonus, setBonus] = useState("");
     const [strategy, setStrategy] = useState<NegotiationStrategy | null>(null);
     const [negPhase, setNegPhase] = useState<"input" | "choose" | "result">("input");
     const [scriptContent, setScriptContent] = useState("");
@@ -80,7 +83,7 @@ const PostInterview = () => {
         if (!profile) { toast.error("Build your profile first."); return; }
         setLoading(true);
         try {
-            const note = await generateThankYouNote(interviewer, company, "Candidate", topics.split(","), profile);
+            const note = await generateThankYouNote(interviewer, company, jobTitle || "Candidate", topics.split(",").map(t => t.trim()), profile);
             setGeneratedNote(stripMarkdown(note));
             toast.success("Draft generated.");
         } catch {
@@ -97,8 +100,8 @@ const PostInterview = () => {
             const offer: OfferDetails = {
                 company: negCompany,
                 baseSalary: parseInt(baseSalary) || 0,
-                equity: "0.5%",
-                bonus: "10%",
+                equity: equity.trim() || "Not disclosed",
+                bonus: bonus.trim() || "Not disclosed",
                 benefits: [],
             };
             const strat = await generateNegotiationStrategy(offer, profile);
@@ -127,8 +130,8 @@ const PostInterview = () => {
             const offer: OfferDetails = {
                 company: negCompany,
                 baseSalary: parseInt(baseSalary) || 0,
-                equity: "0.5%",
-                bonus: "10%",
+                equity: equity.trim() || "Not disclosed",
+                bonus: bonus.trim() || "Not disclosed",
                 benefits: [],
             };
             const script = await generateNegotiationScript(
@@ -184,9 +187,13 @@ const PostInterview = () => {
                                 <Input placeholder="e.g. Sarah Connor" value={interviewer} onChange={(e) => setInterviewer(e.target.value)} />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">Topics Discussed</label>
-                                <Input placeholder="Scalability, Culture" value={topics} onChange={(e) => setTopics(e.target.value)} />
+                                <label className="text-sm font-medium">Job Title</label>
+                                <Input placeholder="e.g. Software Engineer" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} data-testid="thankyou-jobtitle" />
                             </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Topics Discussed</label>
+                            <Input placeholder="Scalability, Culture" value={topics} onChange={(e) => setTopics(e.target.value)} />
                         </div>
 
                         <div data-tour="pi-generate">
@@ -235,6 +242,29 @@ const PostInterview = () => {
                                         value={baseSalary}
                                         onChange={(e) => setBaseSalary(e.target.value)}
                                     />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium" htmlFor="neg-equity">Equity <span className="text-muted-foreground font-normal">(optional)</span></label>
+                                        <Input
+                                            id="neg-equity"
+                                            placeholder="e.g. 0.5%"
+                                            value={equity}
+                                            onChange={(e) => setEquity(e.target.value)}
+                                            aria-label="Equity"
+                                            data-testid="neg-equity"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium" htmlFor="neg-bonus">Bonus <span className="text-muted-foreground font-normal">(optional)</span></label>
+                                        <Input
+                                            id="neg-bonus"
+                                            placeholder="e.g. 10%"
+                                            value={bonus}
+                                            onChange={(e) => setBonus(e.target.value)}
+                                            data-testid="neg-bonus"
+                                        />
+                                    </div>
                                 </div>
                                 <Button
                                     onClick={handleAnalyzeOffer}

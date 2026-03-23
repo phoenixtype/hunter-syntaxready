@@ -74,6 +74,7 @@ serve(async (req) => {
     const { allowed, error: limitError } = await limiter.isAllowed('generate-content', {
       free: { max: 30, window: 60 },
       pro:  { max: 100, window: 60 },
+      requirePro: true,
     });
 
     if (!allowed) {
