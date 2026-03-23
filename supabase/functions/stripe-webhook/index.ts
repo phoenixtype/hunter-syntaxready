@@ -126,8 +126,8 @@ function tierFromPriceId(priceId: string | undefined): string {
   if (!priceId) return 'pro';
   const starterPrice = Deno.env.get('STRIPE_RECRUITER_STARTER_PRICE_ID');
   const growthPrice  = Deno.env.get('STRIPE_RECRUITER_GROWTH_PRICE_ID');
-  if (starterPrice && priceId === starterPrice) return 'recruiter_starter';
-  if (growthPrice  && priceId === growthPrice)  return 'recruiter_growth';
+  if (starterPrice && priceId === starterPrice) return 'starter';
+  if (growthPrice  && priceId === growthPrice)  return 'growth';
   return 'pro'; // default: candidate pro plan
 }
 
