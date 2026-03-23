@@ -30,8 +30,12 @@ const PageTour = forwardRef<PageTourHandle, PageTourProps>(({ tourKey, steps }, 
   useEffect(() => {
     if (!user) return;
     const storageKey = `hunter_tour_${user.id}_${tourKey}`;
-    if (!localStorage.getItem(storageKey)) {
-      const timer = setTimeout(() => setRun(true), 1000);
+    // Only auto-start if this tour hasn't been seen AND no other tour has
+    // auto-started this session. Subsequent pages require the user to click ?
+    const sessionKey = "hunter_tour_auto_session";
+    if (!localStorage.getItem(storageKey) && !sessionStorage.getItem(sessionKey)) {
+      sessionStorage.setItem(sessionKey, "1");
+      const timer = setTimeout(() => setRun(true), 2000);
       return () => clearTimeout(timer);
     }
   }, [tourKey, user]);
