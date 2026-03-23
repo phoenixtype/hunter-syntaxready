@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Users, AlertCircle, ChevronDown } from 'lucide-react';
+import { Loader2, Users, AlertCircle, ChevronDown, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import SEOHead from '@/components/SEOHead';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
+import { useAdmin } from '@/hooks/useAdmin';
 
 interface UserRow {
   id: string;
@@ -42,10 +45,16 @@ const planBadge = (plan: string | null, status: string | null) => {
 };
 
 const AdminUsers = () => {
+  const { user: currentUser } = useAuth();
+  const { adminRole } = useAdmin();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<UserRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const isRootAdmin = adminRole === 'root';
 
   const fetchUsers = async () => {
     try {
@@ -136,6 +145,26 @@ const AdminUsers = () => {
     setUpdating(null);
   };
 
+  const deleteUser = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+
+    const { data, error } = await supabase.functions.invoke('delete-account', {
+      body: { target_user_id: deleteTarget.id },
+    });
+
+    if (error || !data?.success) {
+      const msg = error?.message || 'Failed to delete user';
+      toast.error(msg);
+    } else {
+      toast.success('User deleted');
+      setUsers(prev => prev.filter(u => u.id !== deleteTarget.id));
+    }
+
+    setDeleting(false);
+    setDeleteTarget(null);
+  };
+
   return (
     <>
       <SEOHead title="Users" path="/admin/users" />
@@ -210,6 +239,17 @@ const AdminUsers = () => {
                           <ChevronDown className="w-3 h-3 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground" />
                         </div>
 
+                        {/* Delete button — root admins only, hidden on own row */}
+                        {isRootAdmin && u.id !== currentUser?.id && (
+                          <button
+                            onClick={() => setDeleteTarget(u)}
+                            className="p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                            title="Delete user"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+
                         {updating?.startsWith(u.id) && (
                           <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
                         )}
@@ -222,6 +262,44 @@ const AdminUsers = () => {
           </div>
         )}
       </div>
+
+      {/* Delete confirmation dialog */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-card border border-border rounded-xl shadow-lg p-6 max-w-md w-full mx-4">
+            <h2 className="text-lg font-semibold mb-2">Delete User</h2>
+            <p className="text-sm text-muted-foreground mb-6">
+              Permanently delete <span className="font-medium text-foreground">{deleteTarget.full_name || 'this user'}</span>
+              {deleteTarget.email && <> ({deleteTarget.email})</>}? This removes all their data and cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={deleteUser}
+                disabled={deleting}
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                    Deleting…
+                  </>
+                ) : (
+                  'Delete'
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

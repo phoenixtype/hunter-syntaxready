@@ -3,6 +3,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 import { corsHeaders, jsonWithCors, errorWithCors } from '../_shared/cors.ts';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -27,21 +29,103 @@ serve(async (req) => {
       return errorWithCors('Invalid session', 401);
     }
 
-    const uid = user.id;
+    // Parse optional target_user_id from request body
+    let targetUserId: string | null = null;
+    try {
+      const body = await req.json();
+      if (body?.target_user_id) {
+        targetUserId = body.target_user_id;
+      }
+    } catch {
+      // No body or invalid JSON — self-deletion mode
+    }
+
+    // Determine if this is an admin deletion of another user
+    const isAdminDeletion = targetUserId && targetUserId !== user.id;
+
+    if (isAdminDeletion) {
+      // Validate UUID format
+      if (!UUID_RE.test(targetUserId)) {
+        return errorWithCors('Invalid target_user_id format', 400);
+      }
+    }
 
     // Service role client — bypasses RLS, can delete from any table and auth.users
     const admin = createClient(supabaseUrl, supabaseServiceKey, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    // 1. Nullify non-CASCADE nullable FK columns that would block auth user deletion
-    //    (tables that reference auth.users without ON DELETE CASCADE)
+    let uid = user.id;
+
+    if (isAdminDeletion) {
+      // 1. Verify caller is a root admin
+      const { data: callerAdmin } = await admin
+        .from('platform_admins')
+        .select('role')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!callerAdmin || callerAdmin.role !== 'root') {
+        return errorWithCors('Forbidden: root admin access required', 403);
+      }
+
+      // 2. Prevent deletion of other root admins
+      const { data: targetAdmin } = await admin
+        .from('platform_admins')
+        .select('role')
+        .eq('user_id', targetUserId)
+        .maybeSingle();
+
+      if (targetAdmin?.role === 'root') {
+        return errorWithCors('Cannot delete a root admin', 403);
+      }
+
+      // 3. Verify target user exists
+      const { data: targetUser, error: targetError } = await admin.auth.admin.getUserById(targetUserId);
+      if (targetError || !targetUser?.user) {
+        return errorWithCors('User not found', 404);
+      }
+
+      // 4. Cancel Stripe subscription if active
+      const { data: sub } = await admin
+        .from('subscriptions')
+        .select('stripe_subscription_id')
+        .eq('user_id', targetUserId)
+        .maybeSingle();
+
+      if (sub?.stripe_subscription_id) {
+        const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
+        if (stripeKey) {
+          try {
+            await fetch(`https://api.stripe.com/v1/subscriptions/${sub.stripe_subscription_id}`, {
+              method: 'DELETE',
+              headers: { Authorization: `Bearer ${stripeKey}` },
+            });
+            console.log('[DELETE-ACCOUNT] Cancelled Stripe subscription:', sub.stripe_subscription_id);
+          } catch (stripeErr) {
+            console.error('[DELETE-ACCOUNT] Stripe cancel failed (continuing):', stripeErr);
+          }
+        }
+      }
+
+      // 5. Audit log
+      await admin.from('platform_logs').insert({
+        actor_id: user.id,
+        action: 'admin_delete_user',
+        entity_type: 'user',
+        entity_id: targetUserId,
+      });
+
+      uid = targetUserId;
+      console.log(`[DELETE-ACCOUNT] Root admin ${user.id} deleting user ${uid}`);
+    }
+
+    // Nullify non-CASCADE nullable FK columns that would block auth user deletion
     await admin.from('recruiter_outreach').delete().eq('candidate_id', uid);
     await admin.from('platform_logs').update({ actor_id: null }).eq('actor_id', uid);
     await admin.from('recruiter_applications').update({ reviewed_by: null }).eq('reviewed_by', uid);
 
-    // 2. Delete all user data from tables WITH cascade (belt-and-suspenders, catches any
-    //    rows that might linger before the auth delete propagates the cascade).
+    // Delete all user data from tables WITH cascade (belt-and-suspenders)
     const tables: Array<{ table: string; column: string }> = [
       { table: 'agent_activity_logs',    column: 'user_id' },
       { table: 'application_history',    column: 'user_id' },
@@ -72,7 +156,7 @@ serve(async (req) => {
       tables.map(({ table, column }) => admin.from(table).delete().eq(column, uid))
     );
 
-    // 3. Delete the auth user — cascades to any remaining FK-linked rows
+    // Delete the auth user — cascades to any remaining FK-linked rows
     const { error: deleteError } = await admin.auth.admin.deleteUser(uid);
     if (deleteError) {
       console.error('[DELETE-ACCOUNT] Auth delete failed:', deleteError.message);

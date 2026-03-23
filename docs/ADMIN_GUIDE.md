@@ -199,10 +199,22 @@ Or via Supabase Dashboard → Table Editor → `profiles`.
 
 ### Deleting a user
 
-User deletion is not available via the admin UI. To remove a user:
+**Root admins** can permanently delete any user directly from the admin Users page:
 
-1. Supabase Dashboard → Authentication → Users → find user → Delete.
-2. The `profiles` row will cascade-delete automatically (foreign key with `ON DELETE CASCADE`).
+1. Navigate to `/admin/users`.
+2. Find the user in the table and click the trash icon in the Actions column.
+3. Confirm the deletion in the dialog that appears.
+
+This will:
+- Cancel any active Stripe subscription
+- Remove all user data from every table (profiles, subscriptions, applications, etc.)
+- Delete the authentication record
+- Log the action in the audit trail (`admin_delete_user`)
+
+**Restrictions:**
+- Only root admins see the delete button (regular admins cannot delete users).
+- Root admins cannot be deleted through this UI.
+- You cannot delete your own account from the admin panel.
 
 ---
 
