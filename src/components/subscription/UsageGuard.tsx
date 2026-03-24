@@ -20,6 +20,7 @@ import {
   
 } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useGeo } from '@/hooks/useGeo';
 import { OverageModal } from './OverageModal';
 import { FeatureName, FEATURE_DISPLAY_NAMES } from '@/types/subscription';
 import { useAuth } from '@/hooks/useAuth';
@@ -42,6 +43,7 @@ export function UsageGuard({
   showInlineWarnings = true
 }: UsageGuardProps) {
   const { user } = useAuth();
+  const { isNigeria, currency } = useGeo();
   const { canAccess, getRemainingUsage: _getRemainingUsage, recordUsage, usageOverview } = useSubscription() as any;
   const [usageStatus, setUsageStatus] = useState<UsageStatus>('loading');
   const [usageCheck, setUsageCheck] = useState<any>(null);
@@ -265,7 +267,7 @@ export function UsageGuard({
                     <div>
                       <p className="font-medium text-sm">Purchase Credits</p>
                       <p className="text-xs text-muted-foreground">
-                        {usageCheck?.overage_cost && `Starting at $${usageCheck.overage_cost.toFixed(2)}`}
+                        {usageCheck?.overage_cost && `Starting at ${isNigeria || currency === 'NGN' ? '₦' : '$'}${isNigeria || currency === 'NGN' ? new Intl.NumberFormat('en-NG').format(usageCheck.overage_cost) : usageCheck.overage_cost.toFixed(2)}`}
                       </p>
                     </div>
                   </div>

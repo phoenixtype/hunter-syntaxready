@@ -18,6 +18,7 @@ import {
   Settings
 } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useGeo } from '@/hooks/useGeo';
 import UsageDashboard from './UsageDashboard';
 import { format } from 'date-fns';
 import DashboardSkeleton from "@/components/DashboardSkeleton";
@@ -37,6 +38,7 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
     subscriptionLoading
   } = useSubscription();
 
+  const { currency, isNigeria } = useGeo();
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
 
@@ -75,9 +77,15 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
     }
   };
 
-  const formatPrice = (monthly: number, yearly: number, interval: 'monthly' | 'yearly' = 'monthly') => {
+  const formatPrice = (monthly: number, yearly: number, interval: 'monthly' | 'yearly' = 'monthly', plan?: any) => {
     const price = interval === 'monthly' ? monthly : yearly;
     if (price === 0) return 'Free';
+    if (isNigeria || currency === 'NGN') {
+      const ngnPrice = interval === 'monthly'
+        ? (plan?.price_monthly_ngn ?? monthly)
+        : (plan?.price_yearly_ngn ?? yearly);
+      return `₦${new Intl.NumberFormat('en-NG').format(ngnPrice)}/${interval === 'monthly' ? 'mo' : 'yr'}`;
+    }
     return `$${price.toFixed(2)}/${interval === 'monthly' ? 'mo' : 'yr'}`;
   };
 
@@ -147,7 +155,7 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
             </div>
             <div className="text-right">
               <p className="text-2xl font-bold">
-                {formatPrice(currentPlan?.price_monthly || 0, currentPlan?.price_yearly || 0)}
+                {formatPrice(currentPlan?.price_monthly || 0, currentPlan?.price_yearly || 0, 'monthly', currentPlan)}
               </p>
               {currentSubscription && (
                 <p className="text-sm text-muted-foreground">

@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { CreditCard, CheckCircle2, Calculator, Clock, Info } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useGeo } from '@/hooks/useGeo';
 import { FeatureName, FEATURE_DISPLAY_NAMES, FEATURE_DESCRIPTIONS } from '@/types/subscription';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -32,6 +33,7 @@ export function OverageModal({ featureName, open, onClose }: OverageModalProps) 
   const [purchasing, setPurchasing] = useState(false);
 
   const { getOverageQuote, purchaseOverage, usageOverview } = useSubscription();
+  const { isNigeria, currency } = useGeo();
 
   // Get current feature usage info
   const featureInfo = usageOverview?.features.find((f: any) => f.feature_name === featureName);
@@ -100,6 +102,9 @@ export function OverageModal({ featureName, open, onClose }: OverageModalProps) 
   };
 
   const formatCurrency = (amount: number) => {
+    if (isNigeria || currency === 'NGN') {
+      return `₦${new Intl.NumberFormat('en-NG').format(amount)}`;
+    }
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',

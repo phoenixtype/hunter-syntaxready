@@ -217,23 +217,25 @@ const Dashboard = () => {
             {isPro ? (
               <Badge className="bg-primary/10 text-primary border-primary/20 text-xs font-semibold">Pro</Badge>
             ) : (
-              <Button size="sm" variant="outline" onClick={() => {
-                if (isNigeria) {
-                  setShowPaystack(true);
-                } else {
-                  upgradeToPro('stripe');
-                }
-              }} className="text-xs h-8 hidden sm:flex gap-1.5">
-                <Zap className="w-3 h-3" />
-                Upgrade to Pro
-              </Button>
-              {showPaystack && (
-                <PaystackCheckout
-                  planName="pro"
-                  interval="monthly"
-                  onClose={() => setShowPaystack(false)}
-                />
-              )}
+              <>
+                <Button size="sm" variant="outline" onClick={() => {
+                  if (isNigeria) {
+                    setShowPaystack(true);
+                  } else {
+                    upgradeToPro('stripe');
+                  }
+                }} className="text-xs h-8 hidden sm:flex gap-1.5">
+                  <Zap className="w-3 h-3" />
+                  Upgrade to Pro
+                </Button>
+                {showPaystack && (
+                  <PaystackCheckout
+                    planName="pro"
+                    interval="monthly"
+                    onClose={() => setShowPaystack(false)}
+                  />
+                )}
+              </>
             )}
             <ThemeToggle />
             <div className="sm:hidden">
