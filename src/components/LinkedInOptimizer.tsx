@@ -2,12 +2,13 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Linkedin, Copy, Check } from "lucide-react";
+import { Loader2, Linkedin, Copy, Check, Lock } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { CandidateProfile } from "@/lib/resume_engine";
 import { JobOpportunity } from "@/lib/crawler_engine";
 import { generateLinkedInOptimization } from "@/lib/writer_engine";
 import { toast } from "sonner";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface LinkedInOptimizerProps {
     isOpen: boolean;
@@ -20,8 +21,14 @@ const LinkedInOptimizer = ({ isOpen, onClose, profile, job }: LinkedInOptimizerP
     const [loading, setLoading] = useState(false);
     const [suggestions, setSuggestions] = useState<string>("");
     const [copied, setCopied] = useState(false);
+    const { isPro } = useSubscription();
 
     const handleGenerate = async () => {
+        if (!isPro) {
+            toast.error("This feature requires a Pro subscription. Upgrade at Settings → Subscription.");
+            return;
+        }
+
         if (!profile) {
             toast.error("Build your profile first using the Resume Builder.");
             return;
@@ -45,8 +52,9 @@ const LinkedInOptimizer = ({ isOpen, onClose, profile, job }: LinkedInOptimizerP
         try {
             const result = await generateLinkedInOptimization(profile, targetJob);
             setSuggestions(result);
-        } catch {
-            toast.error("Failed to generate LinkedIn suggestions. Try again.");
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Failed to generate LinkedIn suggestions. Try again.";
+            toast.error(message);
         } finally {
             setLoading(false);
         }
@@ -84,6 +92,11 @@ const LinkedInOptimizer = ({ isOpen, onClose, profile, job }: LinkedInOptimizerP
                                 <>
                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                                     Analyzing profile...
+                                </>
+                            ) : !isPro ? (
+                                <>
+                                    <Lock className="w-4 h-4 mr-2" />
+                                    Upgrade to Pro to Use
                                 </>
                             ) : (
                                 <>

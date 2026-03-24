@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useGeo } from '@/hooks/useGeo';
 import { getPaymentBadge } from '@/lib/pricing';
+import { PaystackCheckout } from '@/components/payment/PaystackCheckout';
 
 interface SubscriptionGateProps {
   onClose?: () => void;
@@ -14,13 +15,19 @@ interface SubscriptionGateProps {
 const SubscriptionGate = ({ onClose }: SubscriptionGateProps) => {
   const [loading, setLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showPaystack, setShowPaystack] = useState(false);
   const { refetch } = useSubscription() as any;
   const { isNigeria } = useGeo();
 
   const handleUpgrade = async () => {
+    if (isNigeria) {
+      setShowPaystack(true);
+      return;
+    }
+
     setLoading(true);
     try {
-      await upgradeToPro();
+      await upgradeToPro('stripe');
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to start checkout. Please try again.";
       toast.error(message);
@@ -118,6 +125,14 @@ const SubscriptionGate = ({ onClose }: SubscriptionGateProps) => {
           </div>
         </div>
       </div>
+
+      {showPaystack && (
+        <PaystackCheckout
+          planName="pro"
+          interval="monthly"
+          onClose={() => setShowPaystack(false)}
+        />
+      )}
     </div>
   );
 };

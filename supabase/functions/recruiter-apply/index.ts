@@ -32,17 +32,38 @@ serve(async (req) => {
     // Check for duplicate application
     const { data: existing } = await supabase
       .from('recruiter_applications')
-      .select('id, status')
+      .select('id, status, user_id')
       .eq('email', email.toLowerCase().trim())
       .maybeSingle();
 
     if (existing) {
-      const msg = existing.status === 'approved'
-        ? 'This email already has an approved recruiter account.'
-        : 'An application for this email is already under review.';
-      return new Response(JSON.stringify({ error: msg }), {
-        status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      if (existing.status === 'pending') {
+        return new Response(JSON.stringify({ error: 'An application for this email is already under review.' }), {
+          status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // For approved/rejected applications, check if the user account still exists
+      // If the DB was cleared or the account was deleted, allow re-application
+      if (existing.status === 'approved' && existing.user_id) {
+        const { data: userExists } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', existing.user_id)
+          .maybeSingle();
+
+        if (userExists) {
+          return new Response(JSON.stringify({ error: 'This email already has an approved recruiter account.' }), {
+            status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
+
+      // Stale approved (no active user) or rejected — delete old record to allow re-application
+      await supabase
+        .from('recruiter_applications')
+        .delete()
+        .eq('id', existing.id);
     }
 
     // Insert application

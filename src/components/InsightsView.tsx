@@ -175,7 +175,10 @@ const InsightsView = ({ visibility, skillRecommendations, profile, onConsultCoac
               <Linkedin className="w-5 h-5 text-[#0077B5]" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium">Optimize your LinkedIn profile</p>
+              <p className="text-sm font-medium flex items-center gap-2">
+                Optimize your LinkedIn profile
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-semibold border-primary/30 text-primary">PRO</Badge>
+              </p>
               <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                 Get AI-powered suggestions to improve your headline, summary, and skills section to attract more recruiter views.
               </p>
