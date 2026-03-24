@@ -28,6 +28,7 @@ import NotificationSettings from "@/components/NotificationSettings";
 import ProfilePanel from "@/components/ProfilePanel";
 import PreferencesPanel from "@/components/PreferencesPanel";
 import ThemeToggle from "@/components/ThemeToggle";
+import ReferralPanel from "@/components/ReferralPanel";
 import { useResume } from "@/hooks/useResume";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { format } from "date-fns";
@@ -199,10 +200,11 @@ const Settings = () => {
               variant={activeTab === id ? "secondary" : "ghost"}
               size="sm"
               onClick={() => setActiveTab(id)}
-              className={`h-8 px-4 text-xs flex-1 ${activeTab === id ? "shadow-sm font-medium" : "text-muted-foreground"}`}
+              className={`h-8 px-2 sm:px-4 text-xs flex-1 min-w-0 ${activeTab === id ? "shadow-sm font-medium" : "text-muted-foreground"}`}
             >
-              <Icon className="w-3.5 h-3.5 mr-1.5" />
-              {label}
+              <Icon className="w-3.5 h-3.5 sm:mr-1.5 shrink-0" />
+              <span className="hidden sm:inline">{label}</span>
+              <span className="sm:hidden truncate">{label}</span>
             </Button>
           ))}
         </div>
@@ -244,7 +246,7 @@ const Settings = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="space-y-1">
                 <Label className="text-base font-medium">Current Plan</Label>
                 <div className="flex items-center gap-2 mt-1">
@@ -268,6 +270,7 @@ const Settings = () => {
                   variant="outline"
                   onClick={handleOpenBillingPortal}
                   disabled={isOpeningPortal}
+                  className="w-full sm:w-auto"
                 >
                   {isOpeningPortal ? (
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -277,7 +280,7 @@ const Settings = () => {
                   Manage Billing
                 </Button>
               ) : (
-                <Button onClick={() => navigate("/dashboard")}>
+                <Button onClick={() => navigate("/dashboard")} className="w-full sm:w-auto">
                   Upgrade to Pro
                 </Button>
               )}
@@ -286,7 +289,7 @@ const Settings = () => {
             {isPro && (
               <>
                 <Separator />
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="space-y-1">
                     <Label className="text-base font-medium text-destructive">Cancel Subscription</Label>
                     <p className="text-sm text-muted-foreground">
@@ -331,6 +334,9 @@ const Settings = () => {
           </CardContent>
         </Card>
 
+        {/* Referrals */}
+        <ReferralPanel />
+
         {/* Privacy & Data */}
         <Card className="border-border" data-tour="settings-privacy">
           <CardHeader>
@@ -343,14 +349,14 @@ const Settings = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="space-y-1">
                 <Label className="text-base font-medium">Export Your Data</Label>
                 <p className="text-sm text-muted-foreground">
                   Download a copy of all your data in JSON format
                 </p>
               </div>
-              <Button variant="outline" onClick={handleExportData} disabled={isExporting}>
+              <Button variant="outline" onClick={handleExportData} disabled={isExporting} className="w-full sm:w-auto">
                 {isExporting ? (
                   <Loader2 className="w-4 h-4 animate-spin mr-2" />
                 ) : (
@@ -362,7 +368,7 @@ const Settings = () => {
 
             <Separator />
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="space-y-1">
                 <Label className="text-base font-medium text-destructive">Delete Account</Label>
                 <p className="text-sm text-muted-foreground">
@@ -423,7 +429,7 @@ const Settings = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3">
               <div className="space-y-1">
                 <Label className="text-base font-medium">Theme</Label>
                 <p className="text-sm text-muted-foreground">

@@ -115,6 +115,7 @@ const InsightsView = ({ visibility, skillRecommendations, profile, onConsultCoac
 
             <Button variant="outline" className="w-full" onClick={onConsultCoach}>
               View AI Analysis
+              <Badge variant="outline" className="ml-2 text-[10px] px-1.5 py-0 font-semibold border-primary/30 text-primary">PRO</Badge>
             </Button>
           </div>
         </section>

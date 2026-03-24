@@ -8,6 +8,7 @@ import { ArrowLeft, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { loginFormSchema, validateWithSchema } from "@/lib/validation";
+import { getUserRole } from "@/lib/recruiter_engine";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -42,8 +43,12 @@ const Login = () => {
         return;
       }
 
+      // Route to the correct dashboard based on user role
+      const { data: { user: authUser } } = await (await import("@/integrations/supabase/client")).supabase.auth.getUser();
+      const role = authUser ? await getUserRole(authUser.id) : 'candidate';
+
       toast.success("Welcome back!");
-      navigate("/dashboard", { replace: true });
+      navigate(role === 'recruiter' ? '/recruiter' : '/dashboard', { replace: true });
     } catch (error) {
       toast.error("Unable to sign in. Please try again later.");
     } finally {

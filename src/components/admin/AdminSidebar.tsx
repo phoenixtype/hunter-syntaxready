@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, ScrollText, LogOut, Building2 } from 'lucide-react';
+import { LayoutDashboard, Users, ScrollText, LogOut, Building2, Gift } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
@@ -7,6 +7,7 @@ const NAV = [
   { to: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true },
   { to: '/admin/recruiter-applications', label: 'Recruiter Applications', icon: Building2 },
   { to: '/admin/users', label: 'Users', icon: Users },
+  { to: '/admin/referrals', label: 'Referrals', icon: Gift },
   { to: '/admin/logs', label: 'Audit Logs', icon: ScrollText },
 ];
 

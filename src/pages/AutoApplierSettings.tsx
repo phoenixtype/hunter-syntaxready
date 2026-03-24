@@ -219,7 +219,6 @@ const JobHuntPlanner = () => {
   }
 
   return (
-    <ProGate.Page featureLabel="Hunt Planner" isPro={isPro} isLoading={subLoading}>
     <div className="min-h-screen bg-background text-foreground">
       <SEOHead title="Auto-Applier Settings" description="Configure your automated job application preferences." path="/auto-applier-settings" noIndex />
       <PageHeader
@@ -445,7 +444,13 @@ const JobHuntPlanner = () => {
                               When a recruiter posts a job that matches your profile above the score threshold, Hunter automatically submits your application.
                             </p>
                           </div>
-                          <Switch checked={autoApplyEnabled} onCheckedChange={setAutoApplyEnabled} />
+                          <Switch checked={autoApplyEnabled} onCheckedChange={(checked) => {
+                            if (!isPro && checked) {
+                              toast.error('Auto-Apply requires a Pro subscription.');
+                              return;
+                            }
+                            setAutoApplyEnabled(checked);
+                          }} />
                         </div>
 
                         {autoApplyEnabled && (
@@ -501,7 +506,6 @@ const JobHuntPlanner = () => {
         </div>
       </main>
     </div>
-    </ProGate.Page>
   );
 };
 

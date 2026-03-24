@@ -9,7 +9,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, CreditCard, CheckCircle } from 'lucide-react';
+import { Loader2, CreditCard, CheckCircle, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface PaystackCheckoutProps {
   planName: 'pro' | 'enterprise' | 'starter' | 'growth';
@@ -115,6 +116,13 @@ export function PaystackCheckout({
   const handlePayment = async () => {
     if (!user || !scriptLoaded || !planDetails) {
       onError?.('Payment system not ready');
+      return;
+    }
+
+    const paystackKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+    if (!paystackKey) {
+      toast.error('Payment system is not configured. Please contact support.');
+      onError?.('Paystack public key not configured');
       return;
     }
 
@@ -227,19 +235,29 @@ export function PaystackCheckout({
 
   if (!planDetails || amount === 0) {
     return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-center">
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            Loading payment details...
-          </div>
-        </CardContent>
-      </Card>
+      <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-background/60 backdrop-blur-sm">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center">
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              Loading payment details...
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-background/60 backdrop-blur-sm overflow-y-auto">
+    <Card className="w-full max-w-md relative">
+      <button
+        onClick={onClose}
+        className="absolute top-3 right-3 text-muted-foreground hover:text-foreground rounded-md p-1"
+        aria-label="Close"
+      >
+        <X className="w-4 h-4" />
+      </button>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center">
@@ -315,6 +333,7 @@ export function PaystackCheckout({
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }
 

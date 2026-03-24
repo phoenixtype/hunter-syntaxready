@@ -25,6 +25,7 @@ import DashboardSkeleton from "@/components/DashboardSkeleton";
 import { SubscriptionPlan } from '@/types/subscription';
 import { upgradeToPro, openBillingPortal } from '@/lib/subscription';
 import { toast } from 'sonner';
+import { PaystackCheckout } from '@/components/payment/PaystackCheckout';
 
 interface SubscriptionSettingsProps {
   defaultTab?: 'usage' | 'plans' | 'billing' | 'history';
@@ -41,6 +42,9 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
   const { currency, isNigeria } = useGeo();
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
+  const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
+  const [showPaystack, setShowPaystack] = useState(false);
+  const [paystackPlan, setPaystackPlan] = useState<'pro' | 'enterprise'>('pro');
 
   if (plansLoading || subscriptionLoading) {
     return <DashboardSkeleton />;
@@ -55,10 +59,16 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
     id: '',
   };
 
-  const handleUpgrade = async (_plan: SubscriptionPlan) => {
+  const handleUpgrade = async (plan: SubscriptionPlan) => {
+    if (isNigeria) {
+      setPaystackPlan((plan.name as 'pro' | 'enterprise') || 'pro');
+      setShowPaystack(true);
+      return;
+    }
+
     setIsUpgrading(true);
     try {
-      await upgradeToPro();
+      await upgradeToPro('stripe');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to start checkout');
     } finally {
@@ -183,6 +193,18 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
 
         {/* Plans Tab */}
         <TabsContent value="plans" className="space-y-6">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <span className={`text-sm font-medium ${billingInterval === 'monthly' ? 'text-foreground' : 'text-muted-foreground'}`}>Monthly</span>
+            <button
+              onClick={() => setBillingInterval(billingInterval === 'monthly' ? 'yearly' : 'monthly')}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${billingInterval === 'yearly' ? 'bg-green-500' : 'bg-muted'}`}
+            >
+              <span className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${billingInterval === 'yearly' ? 'translate-x-6' : 'translate-x-1'}`} />
+            </button>
+            <span className={`text-sm font-medium ${billingInterval === 'yearly' ? 'text-foreground' : 'text-muted-foreground'}`}>
+              Yearly <Badge variant="secondary" className="ml-1 text-[10px] bg-green-100 text-green-700">Save 17%</Badge>
+            </span>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {plans?.map((plan: any) => {
               const isCurrent = currentPlan?.id === plan.id;
@@ -207,11 +229,11 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
                     <CardDescription className="h-12">{plan.description}</CardDescription>
                     <div className="space-y-1">
                       <p className="text-3xl font-bold">
-                        {formatPrice(plan.price_monthly, plan.price_yearly)}
+                        {formatPrice(plan.price_monthly, plan.price_yearly, billingInterval, plan)}
                       </p>
-                      {plan.price_yearly > 0 && (
-                        <p className="text-sm text-muted-foreground">
-                          {formatPrice(plan.price_monthly, plan.price_yearly, 'yearly')} (save 17%)
+                      {billingInterval === 'yearly' && plan.price_yearly > 0 && (
+                        <p className="text-sm text-green-600 font-medium">
+                          Save 2 months free
                         </p>
                       )}
                     </div>
@@ -378,6 +400,18 @@ export default function SubscriptionSettings({ defaultTab = 'usage' }: Subscript
           </Card>
         </TabsContent>
       </Tabs>
+
+      {showPaystack && (
+        <PaystackCheckout
+          planName={paystackPlan}
+          interval={billingInterval}
+          onClose={() => setShowPaystack(false)}
+          onSuccess={() => {
+            setShowPaystack(false);
+            toast.success('Subscription activated!');
+          }}
+        />
+      )}
     </div>
   );
 }

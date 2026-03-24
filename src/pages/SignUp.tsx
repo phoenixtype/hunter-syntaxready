@@ -3,11 +3,12 @@ import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { signUpFormSchema, validateWithSchema, getPasswordStrength } from "@/lib/validation";
+import { recordReferral } from "@/lib/referral";
 
 const SignUp = () => {
   const [fullName, setFullName] = useState("");
@@ -17,6 +18,8 @@ const SignUp = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const referralCode = searchParams.get("ref");
   const passwordStrength = useMemo(() => getPasswordStrength(password), [password]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -51,6 +54,13 @@ const SignUp = () => {
       }
 
       if (data?.user) {
+        // Record referral if signup came from a referral link
+        if (referralCode && data.user.id) {
+          recordReferral(data.user.id, referralCode).catch(() => {
+            // Non-critical — don't block signup on referral failure
+          });
+        }
+
         if (data.session) {
           // Email confirmation is disabled — user is immediately authenticated
           toast.success("Account created successfully!");

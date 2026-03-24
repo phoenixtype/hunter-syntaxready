@@ -124,12 +124,12 @@ const ApplicationWizard = () => {
               ]}
               icon={<Briefcase className="w-4 h-4 text-primary" />}
             />
-            <div className="container max-w-4xl mx-auto px-6 pt-8 pb-6 animate-fade-in-up">
+            <div className="container max-w-4xl mx-auto px-4 sm:px-6 pt-8 pb-6 animate-fade-in-up">
               <h1 className="text-2xl font-bold tracking-tight">Targeted Application Wizard</h1>
               <p className="text-muted-foreground text-sm mt-1">Paste a job link — Hunter scrapes the posting, tailors your resume, and writes your cover letter.</p>
             </div>
 
-            <main className="container max-w-4xl mx-auto px-6 space-y-8 pb-12 animate-fade-in-up">
+            <main className="container max-w-4xl mx-auto px-4 sm:px-6 space-y-8 pb-12 animate-fade-in-up">
 
                 {/* INPUT STEP */}
                 {step === 'input' && (
@@ -178,15 +178,15 @@ const ApplicationWizard = () => {
                                 <h2 className="text-sm font-semibold">Parsed Extracted Strategy</h2>
                             </div>
                             <Card className="border-border bg-card shadow-sm overflow-hidden">
-                                <div className="p-5 border-b border-border flex justify-between items-start">
+                                <div className="p-4 sm:p-5 border-b border-border flex flex-col sm:flex-row justify-between items-start gap-2">
                                     <div>
                                         <h3 className="text-lg font-bold tracking-tight text-foreground">{job.title}</h3>
                                         <p className="text-sm text-primary font-medium mt-1">{job.company}</p>
                                     </div>
                                     <Badge variant="outline" className="bg-background/80 backdrop-blur-sm border-border text-xs px-3 py-1 text-muted-foreground">{job.source}</Badge>
                                 </div>
-                                <CardContent className="p-6">
-                                    <div className="flex gap-4 mb-6 text-sm text-muted-foreground font-medium">
+                                <CardContent className="p-4 sm:p-6">
+                                    <div className="flex flex-wrap gap-2 sm:gap-4 mb-6 text-sm text-muted-foreground font-medium">
                                         <span className="flex items-center gap-1.5 bg-secondary/50 px-3 py-1.5 rounded-md"><Briefcase className="w-4 h-4" /> {job.location || 'Remote'}</span>
                                         {job.salary_range && <span className="flex items-center gap-1.5 bg-secondary/50 px-3 py-1.5 rounded-md"><span className="text-foreground">$</span> {job.salary_range}</span>}
                                     </div>
@@ -202,7 +202,7 @@ const ApplicationWizard = () => {
                             </Card>
                         </section>
 
-                        <div className="grid md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                             {/* 2. Tailored Assets */}
                             <section className="space-y-4">

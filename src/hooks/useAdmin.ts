@@ -2,9 +2,23 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
+export type AdminRole = 'root' | 'admin' | 'moderator' | 'viewer';
+
+const ROLE_HIERARCHY: Record<AdminRole, number> = {
+  root: 4,
+  admin: 3,
+  moderator: 2,
+  viewer: 1,
+};
+
+export function hasMinRole(current: AdminRole | null, required: AdminRole): boolean {
+  if (!current) return false;
+  return ROLE_HIERARCHY[current] >= ROLE_HIERARCHY[required];
+}
+
 interface AdminState {
   isAdmin: boolean;
-  adminRole: 'root' | 'admin' | null;
+  adminRole: AdminRole | null;
   loading: boolean;
 }
 
@@ -29,7 +43,7 @@ export function useAdmin(): AdminState {
           .maybeSingle() as { data: { role: string } | null; error: unknown };
         if (cancelled) return;
         if (!error && data) {
-          setState({ isAdmin: true, adminRole: data.role as 'root' | 'admin', loading: false });
+          setState({ isAdmin: true, adminRole: data.role as AdminRole, loading: false });
         } else {
           setState({ isAdmin: false, adminRole: null, loading: false });
         }

@@ -44,6 +44,7 @@ const AdminOverview = lazy(() => import("./pages/admin/AdminOverview"));
 const RecruiterApplicationsPage = lazy(() => import("./pages/admin/RecruiterApplications"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
 const AdminLogs = lazy(() => import("./pages/admin/AdminLogs"));
+const AdminReferrals = lazy(() => import("./pages/admin/AdminReferrals"));
 
 // Lazy-load heavy tool pages — reduces initial bundle by ~40%
 const ApplicationWizard = lazy(() => import("./pages/ApplicationWizard"));
@@ -183,6 +184,7 @@ const App = () => (
                         <Route path="/admin/recruiter-applications"     element={<AdminPage><RecruiterApplicationsPage /></AdminPage>} />
                         <Route path="/admin/users"                      element={<AdminPage><AdminUsers /></AdminPage>} />
                         <Route path="/admin/logs"                       element={<AdminPage><AdminLogs /></AdminPage>} />
+                        <Route path="/admin/referrals"                  element={<AdminPage><AdminReferrals /></AdminPage>} />
 
                         {/* ── Recruiter app shell ──────────────────────── */}
                         <Route path="/recruiter"             element={<RecruiterPage><RecruiterDashboard /></RecruiterPage>} />

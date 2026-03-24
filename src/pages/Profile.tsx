@@ -327,10 +327,10 @@ const Profile = () => {
                         <section className="space-y-4">
                             <h2 className="text-xl font-semibold">Personal Information</h2>
                             <Card className="border-border bg-card">
-                                <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+                                <CardContent className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                                     <div>
                                         <Label className="text-muted-foreground">Full Name</Label>
-                                        <p className="text-lg font-medium">{formData.identity.name}</p>
+                                        <p className="text-base sm:text-lg font-medium">{formData.identity.name}</p>
                                     </div>
                                     <div>
                                         <Label className="text-muted-foreground">Email</Label>
@@ -368,13 +368,13 @@ const Profile = () => {
                             <div className="space-y-4">
                                 {formData.experience_atoms.map((exp, idx) => (
                                     <Card key={idx} className="border-border bg-card hover:border-primary/30 transition-colors">
-                                        <CardContent className="p-6 space-y-2">
-                                            <div className="flex justify-between items-start">
+                                        <CardContent className="p-4 sm:p-6 space-y-2">
+                                            <div className="flex flex-col sm:flex-row justify-between items-start gap-1">
                                                 <div>
                                                     <h3 className="text-lg font-bold">{exp.role}</h3>
                                                     <p className="text-muted-foreground">{exp.company}</p>
                                                 </div>
-                                                <Badge variant="secondary">{exp.duration}</Badge>
+                                                <Badge variant="secondary" className="shrink-0">{exp.duration}</Badge>
                                             </div>
                                             <Separator className="my-2" />
                                             <p className="text-sm leading-relaxed whitespace-pre-wrap">{exp.content}</p>
@@ -390,14 +390,14 @@ const Profile = () => {
                             <div className="grid gap-4">
                                 {formData.education.map((edu, idx) => (
                                     <Card key={idx} className="border-border bg-card hover:border-primary/30 transition-colors">
-                                        <CardContent className="p-6 flex justify-between items-start">
-                                            <div>
+                                        <CardContent className="p-4 sm:p-6 flex justify-between items-start gap-2">
+                                            <div className="min-w-0">
                                                 <h3 className="font-semibold">{edu.school}</h3>
-                                                <p className="text-sm text-muted-foreground">
+                                                <p className="text-sm text-muted-foreground truncate">
                                                     {edu.degree}{edu.field ? ` — ${edu.field}` : ""}
                                                 </p>
                                             </div>
-                                            <Badge variant="outline">{edu.year}</Badge>
+                                            <Badge variant="outline" className="shrink-0">{edu.year}</Badge>
                                         </CardContent>
                                     </Card>
                                 ))}
@@ -504,16 +504,18 @@ const Profile = () => {
 
                             {/* Experience Section */}
                             <section className="space-y-4">
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                     <h2 className="text-xl font-semibold">Experience</h2>
                                     <div className="flex gap-2">
-                                        <Button size="sm" variant="outline" onClick={sortExperiencesByDate}>
-                                            <ArrowUpDown className="w-4 h-4 mr-2" />
-                                            Sort by Date
+                                        <Button size="sm" variant="outline" onClick={sortExperiencesByDate} className="flex-1 sm:flex-initial">
+                                            <ArrowUpDown className="w-4 h-4 sm:mr-2" />
+                                            <span className="hidden sm:inline">Sort by Date</span>
+                                            <span className="sm:hidden">Sort</span>
                                         </Button>
-                                        <Button size="sm" variant="outline" onClick={addExperience}>
-                                            <Plus className="w-4 h-4 mr-2" />
-                                            Add Role
+                                        <Button size="sm" variant="outline" onClick={addExperience} className="flex-1 sm:flex-initial">
+                                            <Plus className="w-4 h-4 sm:mr-2" />
+                                            <span className="hidden sm:inline">Add Role</span>
+                                            <span className="sm:hidden">Add</span>
                                         </Button>
                                     </div>
                                 </div>
@@ -588,11 +590,12 @@ const Profile = () => {
 
                             {/* Education Section */}
                             <section className="space-y-4">
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between gap-2">
                                     <h2 className="text-xl font-semibold">Education</h2>
                                     <Button size="sm" variant="outline" onClick={addEducation}>
-                                        <Plus className="w-4 h-4 mr-2" />
-                                        Add Education
+                                        <Plus className="w-4 h-4 sm:mr-2" />
+                                        <span className="hidden sm:inline">Add Education</span>
+                                        <span className="sm:hidden">Add</span>
                                     </Button>
                                 </div>
                                 <div className="grid gap-4">

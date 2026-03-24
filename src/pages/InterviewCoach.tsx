@@ -304,7 +304,7 @@ const InterviewCoach = () => {
 
       {/* Content */}
       {!started ? (
-        <div className="flex-1 flex flex-col items-center justify-center p-6 max-w-lg mx-auto text-center">
+        <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 max-w-lg mx-auto text-center">
           <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center mb-6">
             <BrainCircuit className="w-7 h-7 text-primary" />
           </div>
@@ -484,7 +484,7 @@ const InterviewCoach = () => {
           </div>
 
           {/* Input */}
-          <div className="border-t border-border p-4 bg-background">
+          <div className="border-t border-border p-4 bg-background pb-safe" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -497,10 +497,10 @@ const InterviewCoach = () => {
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Type your answer..."
                 disabled={loading}
-                className="flex-1"
+                className="flex-1 h-11"
                 autoFocus
               />
-              <Button type="submit" size="icon" disabled={loading || !input.trim()}>
+              <Button type="submit" size="icon" disabled={loading || !input.trim()} className="h-11 w-11 shrink-0">
                 <Send className="w-4 h-4" />
               </Button>
             </form>

@@ -120,10 +120,44 @@ serve(async (req) => {
       console.log(`[DELETE-ACCOUNT] Root admin ${user.id} deleting user ${uid}`);
     }
 
+    // Cancel Stripe subscription for self-deletion (admin deletion handled above)
+    if (!isAdminDeletion) {
+      const { data: selfSub } = await admin
+        .from('subscriptions')
+        .select('stripe_subscription_id')
+        .eq('user_id', uid)
+        .maybeSingle();
+
+      if (selfSub?.stripe_subscription_id) {
+        const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
+        if (stripeKey) {
+          try {
+            await fetch(`https://api.stripe.com/v1/subscriptions/${selfSub.stripe_subscription_id}`, {
+              method: 'DELETE',
+              headers: { Authorization: `Bearer ${stripeKey}` },
+            });
+            console.log('[DELETE-ACCOUNT] Cancelled Stripe subscription:', selfSub.stripe_subscription_id);
+          } catch (stripeErr) {
+            console.error('[DELETE-ACCOUNT] Stripe cancel failed (continuing):', stripeErr);
+          }
+        }
+      }
+    }
+
     // Nullify non-CASCADE nullable FK columns that would block auth user deletion
     await admin.from('recruiter_outreach').delete().eq('candidate_id', uid);
     await admin.from('platform_logs').update({ actor_id: null }).eq('actor_id', uid);
     await admin.from('recruiter_applications').update({ reviewed_by: null }).eq('reviewed_by', uid);
+
+    // Delete recruiter applications by user_id so re-registration with same email works
+    await admin.from('recruiter_applications').delete().eq('user_id', uid);
+    // Also clear any applications matched by email (no user_id set yet)
+    const userEmail = isAdminDeletion
+      ? (await admin.auth.admin.getUserById(uid)).data?.user?.email
+      : user.email;
+    if (userEmail) {
+      await admin.from('recruiter_applications').delete().eq('email', userEmail.toLowerCase().trim());
+    }
 
     // Delete all user data from tables WITH cascade (belt-and-suspenders)
     const tables: Array<{ table: string; column: string }> = [
@@ -147,6 +181,10 @@ serve(async (req) => {
       { table: 'recruiter_outreach',     column: 'recruiter_id' },
       { table: 'recruiter_profiles',     column: 'user_id' },
       { table: 'recruiter_job_applications', column: 'candidate_id' },
+      { table: 'referral_rewards',        column: 'user_id' },
+      { table: 'referral_events',         column: 'referrer_id' },
+      { table: 'referral_events',         column: 'referred_id' },
+      { table: 'referral_codes',          column: 'owner_id' },
       { table: 'platform_admins',        column: 'user_id' },
       { table: 'users',                  column: 'id' },
       { table: 'profiles',               column: 'id' },

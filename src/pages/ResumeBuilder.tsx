@@ -299,7 +299,6 @@ const ResumeBuilder = () => {
   };
 
   return (
-    <ProGate.Page featureLabel="Resume Builder" isPro={isPro} isLoading={subLoading}>
     <div className="min-h-screen bg-background text-foreground">
       <SEOHead title="Resume Builder" description="Build and optimize your professional resume with AI assistance." path="/resume-builder" noIndex />
       <PageHeader
@@ -790,19 +789,30 @@ const ResumeBuilder = () => {
 
       {/* Bottom Navigation */}
       {currentStep !== "generate" && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-t border-border pb-safe safe-area-inset-bottom">
-          <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-t border-border" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
+          {/* Mobile step indicator */}
+          <div className="sm:hidden flex items-center justify-center gap-1.5 pt-3 pb-1">
+            {STEPS.map((s, i) => (
+              <div
+                key={s.id}
+                className={`h-1.5 rounded-full transition-all ${
+                  i === stepIndex ? "bg-primary w-6" : i < stepIndex ? "bg-primary/50 w-1.5" : "bg-muted w-1.5"
+                }`}
+              />
+            ))}
+          </div>
+          <div className="max-w-3xl mx-auto px-4 py-3 sm:py-4 flex items-center justify-between gap-4">
             <Button
               variant="ghost"
               onClick={() => stepIndex > 0 ? goBack() : navigate("/dashboard")}
               className="gap-2 shrink-0"
             >
               <ArrowLeft className="w-4 h-4" />
-              {stepIndex > 0 ? "Back" : "Dashboard"}
+              <span className="hidden sm:inline">{stepIndex > 0 ? "Back" : "Dashboard"}</span>
             </Button>
             <div className="flex flex-col items-end gap-1 min-w-0">
               {!canProceed() && (
-                <p className="text-xs text-muted-foreground text-right">
+                <p className="text-xs text-muted-foreground text-right hidden sm:block">
                   {currentStep === "personal"
                     ? "Name and email are required"
                     : currentStep === "skills"
@@ -824,7 +834,6 @@ const ResumeBuilder = () => {
       )}
     </div>
     <PageTour ref={tourRef} tourKey="resume_builder" steps={RESUME_TOUR_STEPS} />
-    </ProGate.Page>
   );
 };
 

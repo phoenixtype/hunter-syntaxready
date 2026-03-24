@@ -57,12 +57,12 @@ const DashboardWelcome = ({ profile, preferences, jobCount, appCount, metrics, o
   // All setup done — show compact metrics row
   if (allDone && metrics) {
     return (
-      <div className="flex items-center gap-6 py-3 border-b border-border mb-6 text-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 py-3 border-b border-border mb-6 text-sm">
         <span className="text-muted-foreground">
           {firstName ? `Hi, ${firstName}` : "Dashboard"}
         </span>
-        <div className="flex items-center gap-5 ml-auto text-xs text-muted-foreground">
-          <span><strong className="text-foreground font-semibold">{appCount}</strong> applications</span>
+        <div className="flex items-center gap-4 sm:gap-5 sm:ml-auto text-xs text-muted-foreground">
+          <span><strong className="text-foreground font-semibold">{appCount}</strong> applied</span>
           <span><strong className="text-foreground font-semibold">{metrics.interviews}</strong> interviews</span>
           <span><strong className="text-foreground font-semibold">{metrics.offers}</strong> offers</span>
         </div>
