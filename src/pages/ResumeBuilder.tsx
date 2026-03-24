@@ -299,6 +299,7 @@ const ResumeBuilder = () => {
   };
 
   return (
+    <>
     <div className="min-h-screen bg-background text-foreground">
       <SEOHead title="Resume Builder" description="Build and optimize your professional resume with AI assistance." path="/resume-builder" noIndex />
       <PageHeader
@@ -834,6 +835,7 @@ const ResumeBuilder = () => {
       )}
     </div>
     <PageTour ref={tourRef} tourKey="resume_builder" steps={RESUME_TOUR_STEPS} />
+    </>
   );
 };
 
