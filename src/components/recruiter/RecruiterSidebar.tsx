@@ -171,8 +171,8 @@ const RecruiterSidebar = () => {
               onClick={() => navigate(item.route)}
               title={collapsed ? item.label : undefined}
               aria-current={active ? "page" : undefined}
-              className={`w-full flex items-center gap-2 rounded-md text-sm transition-colors ${collapsed ? "justify-center p-2" : "px-2.5 py-1.5"} ${
-                active ? "bg-muted text-foreground font-medium" : "text-muted-foreground hover:text-foreground hover:bg-muted/60 font-normal"
+              className={`w-full flex items-center gap-2 rounded-md text-sm transition-colors ${collapsed ? "justify-center p-2" : "px-3 py-2"} ${
+                active ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground hover:text-foreground hover:bg-muted transition-colors duration-150 font-normal"
               }`}
             >
               <item.icon className="w-4 h-4 shrink-0" />
@@ -190,8 +190,8 @@ const RecruiterSidebar = () => {
           onClick={() => navigate("/recruiter/company")}
           title={collapsed ? "Company Profile" : undefined}
           aria-current={pathname === "/recruiter/company" ? "page" : undefined}
-          className={`w-full flex items-center gap-2 rounded-md text-sm transition-colors ${collapsed ? "justify-center p-2" : "px-2.5 py-1.5"} ${
-            pathname === "/recruiter/company" ? "bg-muted text-foreground font-medium" : "text-muted-foreground hover:text-foreground hover:bg-muted/60 font-normal"
+          className={`w-full flex items-center gap-2 rounded-md text-sm transition-colors ${collapsed ? "justify-center p-2" : "px-3 py-2"} ${
+            pathname === "/recruiter/company" ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground hover:text-foreground hover:bg-muted transition-colors duration-150 font-normal"
           }`}
         >
           <Building2 className="w-4 h-4 shrink-0" />
@@ -209,7 +209,7 @@ const RecruiterSidebar = () => {
         <button
           onClick={() => navigate("/settings")}
           title={collapsed ? "Settings" : undefined}
-          className={`w-full flex items-center gap-2 rounded-md text-sm transition-colors ${collapsed ? "justify-center p-2" : "px-2.5 py-1.5"} text-muted-foreground hover:text-foreground hover:bg-muted/60 font-normal`}
+          className={`w-full flex items-center gap-2 rounded-md text-sm transition-colors ${collapsed ? "justify-center p-2" : "px-3 py-2"} text-muted-foreground hover:text-foreground hover:bg-muted/60 font-normal`}
         >
           <Settings className="w-4 h-4 shrink-0" />
           {!collapsed && "Settings"}
@@ -217,7 +217,7 @@ const RecruiterSidebar = () => {
         <button
           onClick={handleSignOut}
           title={collapsed ? "Sign out" : undefined}
-          className={`w-full flex items-center gap-2 rounded-md text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors font-normal ${collapsed ? "justify-center p-2" : "px-2.5 py-1.5"}`}
+          className={`w-full flex items-center gap-2 rounded-md text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors font-normal ${collapsed ? "justify-center p-2" : "px-3 py-2"}`}
         >
           <LogOut className="w-4 h-4 shrink-0" />
           {!collapsed && "Sign out"}
