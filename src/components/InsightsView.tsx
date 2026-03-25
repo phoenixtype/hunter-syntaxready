@@ -63,13 +63,13 @@ const InsightsView = ({ visibility, skillRecommendations, profile, onConsultCoac
                 <div className="flex items-center gap-2">
                   <Target className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   <div className="flex-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-muted-foreground">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-xs text-muted-foreground truncate">
                         {visibility.roleFitDetail.targetRoles.length > 0
                           ? `Role fit: ${visibility.roleFitDetail.targetRoles[0]}`
                           : 'Role fit: no target roles set'}
                       </span>
-                      <span className={`text-xs font-semibold tabular-nums ${
+                      <span className={`text-xs font-semibold tabular-nums shrink-0 ${
                         visibility.roleFitLikelihood >= 70 ? 'text-emerald-500' :
                         visibility.roleFitLikelihood >= 40 ? 'text-amber-500' : 'text-destructive'
                       }`}>{visibility.roleFitLikelihood}%</span>
