@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Users, Building2, CheckCircle2, Clock, AlertCircle, CreditCard, TrendingUp } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
+import { SkeletonCard } from '@/components/ui/skeleton-card';
 
 interface Stats {
   totalUsers: number;
@@ -61,29 +62,48 @@ const AdminOverview = () => {
     );
   }
 
+  if (!stats) {
+    return (
+      <>
+        <SEOHead title="Admin Overview | Hunter" />
+        <div className="p-6 max-w-5xl mx-auto w-full">
+          <div className="h-7 w-40 bg-muted animate-pulse rounded-md mb-6" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        </div>
+      </>
+    );
+  }
+
   const userCards = [
-    { label: 'Total Users', value: stats?.totalUsers ?? '—', icon: Users, color: 'text-primary' },
-    { label: 'Pending Applications', value: stats?.pendingApplications ?? '—', icon: Clock, color: 'text-amber-500' },
-    { label: 'Approved Recruiters', value: stats?.approvedRecruiters ?? '—', icon: CheckCircle2, color: 'text-green-500' },
-    { label: 'Total Applications', value: stats?.totalApplications ?? '—', icon: Building2, color: 'text-primary' },
+    { label: 'Total Users', value: stats.totalUsers, icon: Users, color: 'text-primary' },
+    { label: 'Pending Applications', value: stats.pendingApplications, icon: Clock, color: 'text-amber-500' },
+    { label: 'Approved Recruiters', value: stats.approvedRecruiters, icon: CheckCircle2, color: 'text-green-500' },
+    { label: 'Total Applications', value: stats.totalApplications, icon: Building2, color: 'text-primary' },
   ];
 
   const subCards = [
     {
       label: 'Pro Subscribers',
-      value: stats?.proSubscribers ?? '—',
+      value: stats.proSubscribers,
       icon: CreditCard,
       color: 'text-amber-500',
     },
     {
       label: 'Free Users',
-      value: stats?.freeUsers ?? '—',
+      value: stats.freeUsers,
       icon: Users,
       color: 'text-muted-foreground',
     },
     {
       label: 'Est. MRR',
-      value: stats ? `$${stats.mrr.toLocaleString()}` : '—',
+      value: `$${stats.mrr.toLocaleString()}`,
       icon: TrendingUp,
       color: 'text-green-500',
       sub: `${PRICE_PER_MONTH}/user`,
