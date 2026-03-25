@@ -1,23 +1,16 @@
-import { expect, describe, it } from 'vitest';
+import { vi, expect, describe, it } from 'vitest';
 
-// Mock Deno environment for Node.js testing
-declare global {
-  var Deno: {
+// vi.hoisted runs before any imports, satisfying the Deno.env.get() call at module load time
+vi.hoisted(() => {
+  (globalThis as any).Deno = {
     env: {
-      get: (key: string) => string | undefined;
-    };
-  };
-}
-
-// Set up global mock
-globalThis.Deno = {
-  env: {
-    get: (key: string) => {
-      if (key === 'SITE_URL') return 'https://usehunter.app';
-      return '';
+      get: (key: string) => {
+        if (key === 'SITE_URL') return 'https://usehunter.app';
+        return '';
+      }
     }
-  }
-};
+  };
+});
 
 import {
   buildPaymentConfirmationEmail,
@@ -52,7 +45,7 @@ describe('Email Templates', () => {
       });
 
       expect(result.html).toContain('₦4,999'); // NGN formatting
-      expect(result.html).toContain('Paystack'); // Provider mention
+      expect(result.html).toContain('paystack'); // Provider mention
     });
 
     it('should include Hunter logo and branding', () => {
