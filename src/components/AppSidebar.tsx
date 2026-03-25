@@ -242,21 +242,6 @@ const AppSidebar = () => {
         ))}
       </nav>
 
-      {/* ── Recruiter switcher ──────────────────────── */}
-      {isRecruiter && (
-        <div className={`px-1.5 pb-1 shrink-0 ${collapsed ? "flex justify-center" : ""}`}>
-          <button
-            onClick={() => navigate("/recruiter")}
-            title={collapsed ? "Recruiter Portal" : undefined}
-            className={`flex items-center gap-2 rounded-md text-xs font-medium text-primary hover:bg-primary/10 transition-colors ${
-              collapsed ? "justify-center p-2 w-full" : "px-3 py-2 w-full"
-            }`}
-          >
-            <Building2 className="w-4 h-4 shrink-0" />
-            {!collapsed && "Switch to Recruiter"}
-          </button>
-        </div>
-      )}
 
       {/* ── Footer actions ──────────────────────────── */}
       <div className="px-1.5 py-3 border-t border-border space-y-0.5 shrink-0">

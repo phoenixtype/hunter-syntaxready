@@ -502,35 +502,15 @@ const Onboarding = () => {
                   })}
                 </div>
 
-                {/* Role selector */}
-                <div className="space-y-3 mb-6 border border-border rounded-xl p-4 bg-muted/30">
-                  <p className="text-sm font-semibold text-center">I am joining Hunter as a…</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => setCurrentStep("intent")}
-                      className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-primary bg-primary/5 transition-all hover:shadow-md-1"
-                    >
-                      <Briefcase className="w-6 h-6 text-primary" />
-                      <span className="text-sm font-semibold">Job Seeker</span>
-                      <span className="text-[11px] text-muted-foreground text-center leading-tight">Find jobs, get matched & auto-apply</span>
-                    </button>
-                    <button
-                      onClick={async () => {
-                        if (!user) return;
-                        try {
-                          await setUserRole(user.id, "recruiter");
-                          navigate("/recruiter");
-                        } catch (err) {
-                          toast.error("Failed to set role. Please try again.");
-                        }
-                      }}
-                      className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-border hover:border-primary/40 hover:bg-muted/50 transition-all hover:shadow-md-1"
-                    >
-                      <User className="w-6 h-6 text-muted-foreground" />
-                      <span className="text-sm font-semibold">Recruiter / HM</span>
-                      <span className="text-[11px] text-muted-foreground text-center leading-tight">Post jobs & manage your pipeline</span>
-                    </button>
-                  </div>
+                {/* Start Setup Button */}
+                <div className="mb-6 mt-4">
+                  <Button 
+                    size="lg" 
+                    className="w-full gap-2 rounded-full shadow-md-1"
+                    onClick={() => setCurrentStep("intent")}
+                  >
+                    Start Profile Setup <ArrowRight className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
             )}
