@@ -301,18 +301,29 @@ export const getMatchedJobsServerSide = async (
   try {
     // Extract user skills for matching
     const candidateSkills = profile.skills.map(s => s.name.toLowerCase());
-    const _experienceLevel = preferences?.experience_level || 'mid';
-    const _locationPreferences = preferences?.locations || [];
-    const _remotePolicy = preferences?.remote_policy || 'any';
-    void _experienceLevel; void _locationPreferences; void _remotePolicy;
+
+    let query = supabaseWithLimits.from('job_listings').select('*');
+
+    // Strict Remote Policy Filtering
+    if (preferences?.remote_policy === 'remote') {
+      query = query.ilike('location', '%remote%');
+    } else if (preferences?.remote_policy === 'onsite') {
+      query = query.not('location', 'ilike', '%remote%');
+    }
+
+    // Strict Role Filtering
+    if (preferences?.target_roles && preferences.target_roles.length > 0) {
+      const orClauses = preferences.target_roles.map(role => 
+        `title.ilike.%${role}%,description.ilike.%${role}%`
+      ).join(',');
+      query = query.or(orClauses);
+    }
 
     // Server-side matching using our performance indexes
-    const { data: jobs, error } = await supabaseWithLimits
-      .from('job_listings')
-      .select('*')
+    const { data: jobs, error } = await query
       .order('freshness_score', { ascending: false })
       .order('created_at', { ascending: false })
-      .limit(limit * 3); // Get more to filter on server side
+      .limit(limit * 4); // Get more to filter on server side
 
     if (error) {
       console.error('[getMatchedJobsServerSide] Database error:', error);

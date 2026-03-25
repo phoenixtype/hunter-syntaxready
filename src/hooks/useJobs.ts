@@ -78,26 +78,50 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
             // For logged-in users, use cached job matches when available
             if (user?.id && (!searchQuery?.trim() && !locationQuery?.trim())) {
                 try {
-                    const cachedMatches = await getJobMatchesCached(user.id, PAGE_SIZE);
+                    // Fetch extra matches in case active preferences filter out stale cached ones
+                    const cachedMatches = await getJobMatchesCached(user.id, PAGE_SIZE * 3);
 
                     if (cachedMatches.length > 0) {
-                        const enrichedMatches = cachedMatches.map(match => ({
-                            ...match.job_listings,
-                            match: {
-                                overall_score: match.match_score,
-                                skill_match: match.skill_match || 0.8,
-                                culture_fit: match.culture_fit || 0.7,
-                                location_match: match.location_match || 0.9,
-                                reasoning: match.reasoning || "Pre-computed match"
-                            } as MatchResult
-                        } as EnrichedJob));
+                        // Strictly enforce user preferences client-side in case background cache is loose/outdated
+                        const filteredMatches = cachedMatches.filter(match => {
+                            const job = match.job_listings;
+                            if (!job) return false;
+                            
+                            const jobText = `${job.title} ${job.description}`.toLowerCase();
+                            
+                            // Enforce remote policy
+                            const isRemote = (job.location || '').toLowerCase().includes('remote');
+                            if (preferences?.remote_policy === 'remote' && !isRemote) return false;
+                            if (preferences?.remote_policy === 'onsite' && isRemote) return false;
+                            
+                            // Enforce target roles strictly
+                            if (preferences?.target_roles && preferences.target_roles.length > 0) {
+                                const hasRole = preferences.target_roles.some(role => jobText.includes(role.toLowerCase()));
+                                if (!hasRole) return false;
+                            }
+                            
+                            return true;
+                        }).slice(0, PAGE_SIZE);
 
-                        return {
-                            jobs: enrichedMatches,
-                            totalPages: 1,
-                            filteredJobCount: enrichedMatches.length,
-                            fromCache: true
-                        };
+                        if (filteredMatches.length > 0) {
+                            const enrichedMatches = filteredMatches.map(match => ({
+                                ...match.job_listings,
+                                match: {
+                                    overall_score: match.match_score,
+                                    skill_match: match.skill_match || 0.8,
+                                    culture_fit: match.culture_fit || 0.7,
+                                    location_match: match.location_match || 0.9,
+                                    reasoning: match.reasoning || "Pre-computed match"
+                                } as MatchResult
+                            } as EnrichedJob));
+
+                            return {
+                                jobs: enrichedMatches,
+                                totalPages: 1,
+                                filteredJobCount: enrichedMatches.length,
+                                fromCache: true
+                            };
+                        }
                     }
                 } catch (error) {
                     console.warn('[JOBS] Cached matches failed, falling back to fresh search:', error);
