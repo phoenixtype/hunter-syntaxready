@@ -71,12 +71,12 @@ export default function JobCardActions({
           ) : !isPro ? (
             <>
               <Lock className="w-3 h-3" />
-              Apply Now
+              Apply on Company Site
             </>
           ) : (
             <>
               <Send className="w-3 h-3" />
-              Apply Now
+              Apply on Company Site
             </>
           )}
         </Button>

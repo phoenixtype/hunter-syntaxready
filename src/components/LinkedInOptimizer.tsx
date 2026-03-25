@@ -9,6 +9,7 @@ import { JobOpportunity } from "@/lib/crawler_engine";
 import { generateLinkedInOptimization } from "@/lib/writer_engine";
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
+import ProGate from "@/components/ProGate";
 
 interface LinkedInOptimizerProps {
     isOpen: boolean;
@@ -22,10 +23,11 @@ const LinkedInOptimizer = ({ isOpen, onClose, profile, job }: LinkedInOptimizerP
     const [suggestions, setSuggestions] = useState<string>("");
     const [copied, setCopied] = useState(false);
     const { isPro } = useSubscription();
+    const [showProGate, setShowProGate] = useState(false);
 
     const handleGenerate = async () => {
         if (!isPro) {
-            toast.error("This feature requires a Pro subscription. Upgrade at Settings → Subscription.");
+            setShowProGate(true);
             return;
         }
 
@@ -69,6 +71,7 @@ const LinkedInOptimizer = ({ isOpen, onClose, profile, job }: LinkedInOptimizerP
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
+            <ProGate.Dialog open={showProGate} onOpenChange={setShowProGate} featureLabel="LinkedIn Optimizer" />
             <DialogContent className="max-w-2xl max-h-[85vh]">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">

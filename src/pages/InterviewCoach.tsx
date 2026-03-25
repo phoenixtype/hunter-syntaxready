@@ -82,6 +82,7 @@ const InterviewCoach = () => {
   const [started, setStarted] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const tourRef = useRef<PageTourHandle>(null);
+  const [showProGate, setShowProGate] = useState(false);
 
   // Community question research
   const [researching, setResearching] = useState(false);
@@ -186,10 +187,7 @@ const InterviewCoach = () => {
       console.error(err);
       const kind = await classifyInvokeError(err);
       if (kind === "pro_gate") {
-        toast.error("Pro subscription required", {
-          description: "Upgrade to Hunter Pro to access Interview Coach.",
-          action: { label: "Upgrade", onClick: () => navigate("/settings") },
-        });
+        setShowProGate(true);
       } else if (kind === "rate_limit") {
         toast.error("Too many requests", {
           description: "Slow down and try again in a moment.",
@@ -244,10 +242,7 @@ const InterviewCoach = () => {
       console.error(err);
       const kind = await classifyInvokeError(err);
       if (kind === "pro_gate") {
-        toast.error("Pro subscription required", {
-          description: "Upgrade to Hunter Pro to access Interview Coach.",
-          action: { label: "Upgrade", onClick: () => navigate("/settings") },
-        });
+        setShowProGate(true);
       } else if (kind === "rate_limit") {
         toast.error("Too many requests", {
           description: "Slow down and try again in a moment.",
@@ -268,6 +263,7 @@ const InterviewCoach = () => {
 
   return (
     <ProGate.Page featureLabel="Interview Coach" isPro={isPro} isLoading={subLoading}>
+    <ProGate.Dialog open={showProGate} onOpenChange={setShowProGate} featureLabel="Interview Coach" />
     <div className="min-h-screen bg-background text-foreground flex flex-col" data-hide-footer>
       <SEOHead title="Interview Coach" description="Practice interviews with AI-powered coaching and real-time feedback." path="/interview-coach" noIndex />
       <PageHeader

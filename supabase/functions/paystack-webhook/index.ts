@@ -99,7 +99,8 @@ serve(async (req) => {
         if (data.plan?.interval === 'annually') {
           periodEnd.setFullYear(periodEnd.getFullYear() + 1);
         } else {
-          periodEnd.setMonth(periodEnd.getMonth() + 1);
+          // Paystack plans are weekly
+          periodEnd.setDate(periodEnd.getDate() + 7);
         }
 
         const { error } = await supabase

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Plus, X, Loader2, Eye, Save, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,8 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import ProGate from "@/components/ProGate";
 import { useAuth } from "@/hooks/useAuth";
 import { useRecruiterProfile } from "@/hooks/useRecruiter";
+import { useGeo } from "@/hooks/useGeo";
 import { supabase } from "@/integrations/supabase/client";
 import {
   createJob,
@@ -37,7 +39,7 @@ const DEFAULT_FORM: RecruiterJobInsert = {
   employment_type: "full_time",
   salary_min: undefined,
   salary_max: undefined,
-  salary_currency: "CAD",
+  salary_currency: "USD",
   description: "",
   requirements: "",
   responsibilities: "",
@@ -54,15 +56,28 @@ const PostJob = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { profile } = useRecruiterProfile();
+  const { isNigeria } = useGeo();
 
   const [form, setForm] = useState<RecruiterJobInsert>({
     ...DEFAULT_FORM,
     company: profile?.company_name ?? "",
+    salary_currency: isNigeria ? "NGN" : "USD",
   });
   const [techInput, setTechInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [showProGate, setShowProGate] = useState(false);
+
+  // Update currency when geo detection resolves (isNigeria is async)
+  useEffect(() => {
+    setForm(prev => {
+      if (!prev.salary_min && !prev.salary_max) {
+        return { ...prev, salary_currency: isNigeria ? "NGN" : "USD" };
+      }
+      return prev;
+    });
+  }, [isNigeria]);
 
   const set = <K extends keyof RecruiterJobInsert>(key: K, val: RecruiterJobInsert[K]) =>
     setForm((prev) => ({ ...prev, [key]: val }));
@@ -136,7 +151,12 @@ const PostJob = () => {
       }));
       toast.success("Job description generated! Review and edit before publishing.");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Generation failed — please try again");
+      const msg = e instanceof Error ? e.message : "";
+      if (/pro subscription|requires a pro/i.test(msg)) {
+        setShowProGate(true);
+      } else {
+        toast.error(msg || "Generation failed — please try again");
+      }
     } finally {
       setGenerating(false);
     }
@@ -162,6 +182,7 @@ const PostJob = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <ProGate.Dialog open={showProGate} onOpenChange={setShowProGate} featureLabel="AI Job Description" />
       {/* Header */}
       <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-card shrink-0">
         <div className="flex items-center gap-3">
@@ -260,18 +281,18 @@ const PostJob = () => {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="sal-min">Min Salary</Label>
-                <Input id="sal-min" type="number" placeholder="80000" value={form.salary_min ?? ""} onChange={(e) => set("salary_min", e.target.value ? Number(e.target.value) : undefined)} className="rounded-xl" />
+                <Input id="sal-min" type="number" placeholder={form.salary_currency === "NGN" ? "150000" : "80000"} value={form.salary_min ?? ""} onChange={(e) => set("salary_min", e.target.value ? Number(e.target.value) : undefined)} className="rounded-xl" />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="sal-max">Max Salary</Label>
-                <Input id="sal-max" type="number" placeholder="120000" value={form.salary_max ?? ""} onChange={(e) => set("salary_max", e.target.value ? Number(e.target.value) : undefined)} className="rounded-xl" />
+                <Input id="sal-max" type="number" placeholder={form.salary_currency === "NGN" ? "15000000" : "120000"} value={form.salary_max ?? ""} onChange={(e) => set("salary_max", e.target.value ? Number(e.target.value) : undefined)} className="rounded-xl" />
               </div>
               <div className="space-y-1.5">
                 <Label>Currency</Label>
                 <Select value={form.salary_currency} onValueChange={(v) => set("salary_currency", v)}>
                   <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {["USD", "CAD", "GBP", "EUR", "AUD"].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    {["USD", "CAD", "GBP", "EUR", "AUD", "NGN"].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>

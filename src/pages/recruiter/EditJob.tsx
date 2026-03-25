@@ -21,6 +21,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import ProGate from "@/components/ProGate";
 import {
   getRecruiterJobById,
   updateJob,
@@ -53,6 +54,7 @@ const EditJob = () => {
   const [publishing, setPublishing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [showProGate, setShowProGate] = useState(false);
 
   useEffect(() => {
     if (!jobId) return;
@@ -155,7 +157,12 @@ const EditJob = () => {
       }));
       toast.success("Job description regenerated! Review before saving.");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Generation failed — please try again");
+      const msg = e instanceof Error ? e.message : "";
+      if (/pro subscription|requires a pro/i.test(msg)) {
+        setShowProGate(true);
+      } else {
+        toast.error(msg || "Generation failed — please try again");
+      }
     } finally {
       setGenerating(false);
     }
@@ -187,6 +194,7 @@ const EditJob = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <ProGate.Dialog open={showProGate} onOpenChange={setShowProGate} featureLabel="AI Job Description" />
       <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-card shrink-0">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" className="rounded-full" onClick={() => navigate(-1)}>
@@ -289,7 +297,7 @@ const EditJob = () => {
                 <Label>Currency</Label>
                 <Select value={form.salary_currency ?? "USD"} onValueChange={(v) => set("salary_currency", v)}>
                   <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-                  <SelectContent>{["USD","CAD","GBP","EUR","AUD"].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                  <SelectContent>{["USD","CAD","GBP","EUR","AUD","NGN"].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
             </div>

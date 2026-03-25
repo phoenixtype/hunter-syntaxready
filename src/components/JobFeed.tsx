@@ -176,7 +176,8 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
     }
 
     if (!canAccess('job_applications')) {
-      toast.error('You\'ve reached your monthly application limit. Upgrade to Pro for unlimited applications.');
+      setGateFeature('Job Applications');
+      setGateOpen(true);
       return;
     }
 
@@ -372,7 +373,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
             <Badge variant="secondary" className="text-[10px] gap-1 pr-1">{filters.experienceLevel}<button onClick={() => setFilters(f => ({ ...f, experienceLevel: "all" }))} className="ml-0.5 hover:text-destructive"><X className="w-2.5 h-2.5" /></button></Badge>
           )}
           {filters.minSalary > 0 && (
-            <Badge variant="secondary" className="text-[10px] gap-1 pr-1">${filters.minSalary}k+<button onClick={() => setFilters(f => ({ ...f, minSalary: 0 }))} className="ml-0.5 hover:text-destructive"><X className="w-2.5 h-2.5" /></button></Badge>
+            <Badge variant="secondary" className="text-[10px] gap-1 pr-1">{filters.minSalary >= 1000 ? `${(filters.minSalary / 1000).toFixed(filters.minSalary % 1000 === 0 ? 0 : 1)}M+` : `${filters.minSalary}k+`}<button onClick={() => setFilters(f => ({ ...f, minSalary: 0 }))} className="ml-0.5 hover:text-destructive"><X className="w-2.5 h-2.5" /></button></Badge>
           )}
           {filters.datePosted !== "all" && (
             <Badge variant="secondary" className="text-[10px] gap-1 pr-1">

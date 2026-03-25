@@ -447,8 +447,9 @@ export const polishText = async (text: string, type: 'experience' | 'skill'): Pr
 
     // 2. Fix bullet points
     if (type === 'experience') {
-        // Ensure bullet points start on new lines
-        polished = polished.replace(/([•\-*])\s*/g, '\n• ');
+        // ATS Optimization: Replace complex unicode bullets (•, *, >, -, etc) with a clean standard hyphen
+        // as some older ATS systems choke on unicode bullets.
+        polished = polished.replace(/^[\s]*[•\-*▪►➢>]\s*/gm, '\n- ');
         // Fix double spaces
         polished = polished.replace(/\s{2,}/g, ' ');
         // Ensure atomic actions are capitalized

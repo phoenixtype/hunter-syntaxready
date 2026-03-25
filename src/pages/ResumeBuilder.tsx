@@ -106,6 +106,7 @@ const ResumeBuilder = () => {
   const [fitToOnePage, setFitToOnePage] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
+  const [showProGate, setShowProGate] = useState(false);
   const [generatedHtml, setGeneratedHtml] = useState<string | null>(null);
   const [atsResult, setAtsResult] = useState<ATSResult | null>(null);
   const [skillInput, setSkillInput] = useState("");
@@ -144,6 +145,11 @@ const ResumeBuilder = () => {
 
   const goNext = () => {
     const idx = STEPS.findIndex(s => s.id === currentStep);
+    // Gate: free users cannot proceed past the Template step
+    if (currentStep === "template" && !isPro) {
+      setShowProGate(true);
+      return;
+    }
     if (idx < STEPS.length - 1) setCurrentStep(STEPS[idx + 1].id);
   };
 
@@ -200,9 +206,9 @@ const ResumeBuilder = () => {
   const handleGenerate = async () => {
     if (!user) return;
 
-    // Check usage limits before generating
+    // Check usage limits before generating (safety net — goNext already gates this)
     if (!canAccess('resume_generations')) {
-      toast.error('Monthly resume limit reached. Upgrade to Pro for 50 resumes per month.');
+      setShowProGate(true);
       return;
     }
 
@@ -301,6 +307,7 @@ const ResumeBuilder = () => {
   return (
     <>
     <div className="min-h-screen bg-background text-foreground">
+      <ProGate.Dialog open={showProGate} onOpenChange={setShowProGate} featureLabel="Resume Builder" />
       <SEOHead title="Resume Builder" description="Build and optimize your professional resume with AI assistance." path="/resume-builder" noIndex />
       <PageHeader
         breadcrumbs={[

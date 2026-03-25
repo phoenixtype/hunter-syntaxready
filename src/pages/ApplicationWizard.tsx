@@ -23,6 +23,7 @@ const ApplicationWizard = () => {
 
     const [url, setUrl] = useState("");
     const [_loading, setLoading] = useState(false);
+    const [showProGate, setShowProGate] = useState(false);
     const [step, setStep] = useState<'input' | 'analyzing' | 'generating' | 'results'>('input');
 
     // Results
@@ -75,14 +76,13 @@ const ApplicationWizard = () => {
 
             // Check usage limits before generating
             if (!canAccess('cover_letters')) {
-                const remaining = getRemainingUsage('cover_letters');
-                toast.error(`You've reached your monthly cover letter limit. ${remaining} cover letters remaining.`);
+                setShowProGate(true);
                 setStep('input');
                 return;
             }
 
             if (!canAccess('resume_generations')) {
-                toast.error('Monthly resume limit reached. Upgrade to Pro for 50 resumes per month.');
+                setShowProGate(true);
                 setStep('input');
                 return;
             }
@@ -116,6 +116,7 @@ const ApplicationWizard = () => {
     return (
     <ProGate.Page featureLabel="Application Wizard" isPro={isPro} isLoading={subLoading}>
     <div className="min-h-screen bg-background text-foreground">
+      <ProGate.Dialog open={showProGate} onOpenChange={setShowProGate} featureLabel="Application Wizard" />
       <SEOHead title="Application Wizard" description="Find and apply to jobs with AI-powered automation." path="/application-wizard" noIndex />
             <PageHeader
               breadcrumbs={[

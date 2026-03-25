@@ -42,11 +42,17 @@ serve(async (req) => {
 
     const { resumeText, userId, resumeUrl } = await req.json();
 
-    const systemPrompt = `You are an expert resume parser. Extract structured data from the provided resume text.
+    const systemPrompt = `You are an expert ATS-optimized resume parser and writer. Extract and significantly improve structured data from the provided resume text.
 Rules:
 - Categorize content into: identity (name, email, phone, location, links), summary, experience_atoms (role, company, duration, content), education (degree, school, year), and skills (name).
-- For experience, each entry should be an "atom" with a clear ID (uuid-like), role, company, duration, and content (bullet points).
-- For skills, identify key technical and professional skills.
+- **ATS Optimization Rules for Experience Bullets:**
+  - Rewrite bullet points to be highly quantifiable (add metrics where implied).
+  - Use strong action verbs.
+  - Remove all fluff words ("responsible for", "helped", "worked on"); jump straight to the action.
+  - Break long paragraphs into concise, punchy bullet points.
+- **ATS Optimization Rules for Skills:**
+  - Extract only hard, technical, and domain-specific skills. Do not extract soft skills like "teamwork" or "hard worker" as ATS parsers discard them.
+- For experience, each entry must be an "atom" with a clear ID (uuid-like), role, company, duration, and content (bullet points separated by newlines).
 - Return ONLY valid JSON matching the CandidateProfile schema. No markdown, no fences.`;
 
     const userPrompt = `Parse this resume text:

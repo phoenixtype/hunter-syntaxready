@@ -21,6 +21,8 @@ import ProGate from "@/components/ProGate";
 import { getPreferences, savePreferences, UserPreferences } from "@/lib/user_preferences";
 import { saveCandidateProfile } from "@/lib/resume_engine";
 import { supabase } from "@/integrations/supabase/client";
+import { useGeo } from "@/hooks/useGeo";
+import ProGate from "@/components/ProGate";
 
 const INTENSITY_LABELS: Record<number, string> = {
   1: "Very selective — few highly targeted roles",
@@ -37,9 +39,11 @@ const JobHuntPlanner = () => {
   const { profile } = useResume();
   const { user } = useAuth();
   const { isPro, isLoading: subLoading } = useSubscription();
+  const { isNigeria } = useGeo();
   const [activeStep, setActiveStep] = useState(1);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showProGate, setShowProGate] = useState(false);
   const [searching, setSearching] = useState(false);
 
   // Personal details
@@ -220,6 +224,7 @@ const JobHuntPlanner = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <ProGate.Dialog open={showProGate} onOpenChange={setShowProGate} featureLabel="Auto-Apply" />
       <SEOHead title="Auto-Applier Settings" description="Configure your automated job application preferences." path="/auto-applier-settings" noIndex />
       <PageHeader
         breadcrumbs={[
@@ -389,8 +394,8 @@ const JobHuntPlanner = () => {
                         <Switch checked={hasClearance} onCheckedChange={setHasClearance} />
                       </div>
                       <div className="space-y-2">
-                        <Label>Expected Annual Salary (USD)</Label>
-                        <Input type="number" value={expectedSalary} onChange={e => setExpectedSalary(e.target.value)} placeholder="120000" />
+                        <Label>Expected Annual Salary ({isNigeria ? "NGN" : "USD"})</Label>
+                        <Input type="number" value={expectedSalary} onChange={e => setExpectedSalary(e.target.value)} placeholder={isNigeria ? "3000000" : "120000"} />
                       </div>
                       <div className="space-y-2">
                         <Label>Notice Period (Days)</Label>
@@ -446,7 +451,7 @@ const JobHuntPlanner = () => {
                           </div>
                           <Switch checked={autoApplyEnabled} onCheckedChange={(checked) => {
                             if (!isPro && checked) {
-                              toast.error('Auto-Apply requires a Pro subscription.');
+                              setShowProGate(true);
                               return;
                             }
                             setAutoApplyEnabled(checked);

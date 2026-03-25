@@ -2,7 +2,9 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
-import { openBillingPortal } from "@/lib/subscription";
+import { openBillingPortal, upgradeToPro } from "@/lib/subscription";
+import { useGeo } from "@/hooks/useGeo";
+import { PaystackCheckout } from "@/components/payment/PaystackCheckout";
 import SEOHead from "@/components/SEOHead";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -72,6 +74,8 @@ const Settings = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
+  const { isNigeria } = useGeo();
+  const [showPaystack, setShowPaystack] = useState(false);
 
   const handleOpenBillingPortal = async () => {
     setIsOpeningPortal(true);
@@ -280,9 +284,24 @@ const Settings = () => {
                   Manage Billing
                 </Button>
               ) : (
-                <Button onClick={() => navigate("/dashboard")} className="w-full sm:w-auto">
-                  Upgrade to Pro
-                </Button>
+                <>
+                  <Button onClick={() => {
+                    if (isNigeria) {
+                      setShowPaystack(true);
+                    } else {
+                      upgradeToPro('stripe');
+                    }
+                  }} className="w-full sm:w-auto">
+                    Upgrade to Pro
+                  </Button>
+                  {showPaystack && (
+                    <PaystackCheckout
+                      planName="pro"
+                      interval="monthly"
+                      onClose={() => setShowPaystack(false)}
+                    />
+                  )}
+                </>
               )}
             </div>
 

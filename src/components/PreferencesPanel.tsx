@@ -6,6 +6,7 @@ import { Loader2, Save } from "lucide-react";
 import TagInput from "@/components/ui/tag-input";
 import { UserPreferences, savePreferences } from "@/lib/user_preferences";
 import { useAuth } from "@/hooks/useAuth";
+import { useGeo } from "@/hooks/useGeo";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import LocationPicker from "./LocationPicker";
@@ -17,6 +18,7 @@ interface PreferencesPanelProps {
 
 const PreferencesPanel = ({ preferences, onSaved }: PreferencesPanelProps) => {
     const { user } = useAuth();
+    const { isNigeria } = useGeo();
     const queryClient = useQueryClient();
     const [saving, setSaving] = useState(false);
 
@@ -80,9 +82,9 @@ const PreferencesPanel = ({ preferences, onSaved }: PreferencesPanelProps) => {
                 <div className="space-y-3">
                     <div className="flex justify-between items-baseline">
                         <Label className="text-sm font-semibold">Minimum Base Salary</Label>
-                        <span className="text-sm font-mono font-semibold">${salary[0].toLocaleString()}</span>
+                        <span className="text-sm font-mono font-semibold">{isNigeria ? `₦${salary[0].toLocaleString()}` : `$${salary[0].toLocaleString()}`}</span>
                     </div>
-                    <Slider value={salary} onValueChange={setSalary} min={30000} max={500000} step={5000} />
+                    <Slider value={salary} onValueChange={setSalary} min={isNigeria ? 50000 : 30000} max={isNigeria ? 25000000 : 500000} step={isNigeria ? 50000 : 5000} />
                 </div>
 
                 <div className="space-y-3">

@@ -240,7 +240,7 @@ export default function JobDescriptionModal({
                 ) : isApplying ? (
                   <><Loader2 className="w-3.5 h-3.5 animate-spin" />Applying…</>
                 ) : (
-                  <><Send className="w-3.5 h-3.5" />Apply Now</>
+                  <><Send className="w-3.5 h-3.5" />Apply on Company Site</>
                 )}
               </Button>
             </a>

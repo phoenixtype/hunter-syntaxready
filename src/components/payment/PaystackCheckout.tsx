@@ -166,27 +166,8 @@ export function PaystackCheckout({
         callback: async function(response: PaystackResponse) {
           console.log('Payment callback received:', response);
 
-          // Verify payment with Paystack before activating
-          try {
-            const verifyRes = await fetch(
-              `https://api.paystack.co/transaction/verify/${response.reference}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${import.meta.env.VITE_PAYSTACK_SECRET_KEY || ''}`,
-                }
-              }
-            );
-            const verifyData = await verifyRes.json();
-
-            if (!verifyData.status || verifyData.data?.status !== 'success') {
-              console.error('Payment verification failed:', verifyData);
-              onError?.('Payment could not be verified. Please contact support.');
-              setLoading(false);
-              return;
-            }
-          } catch (verifyError) {
-            console.warn('Payment verification request failed, proceeding with caution:', verifyError);
-          }
+          // Paystack inline popup only fires this callback after a successful charge.
+          // Server-side verification happens in the paystack-webhook edge function.
 
           if (!isOverage) {
             const { error: subError } = await supabase
@@ -250,7 +231,8 @@ export function PaystackCheckout({
     if (interval === 'yearly') {
       now.setFullYear(now.getFullYear() + 1);
     } else {
-      now.setMonth(now.getMonth() + 1);
+      // Paystack plans are weekly
+      now.setDate(now.getDate() + 7);
     }
     return now;
   };

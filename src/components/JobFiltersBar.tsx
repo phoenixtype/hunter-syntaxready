@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import { SlidersHorizontal, X } from "lucide-react";
+import { useGeo } from "@/hooks/useGeo";
 
 export type WorkMode = "all" | "remote" | "hybrid" | "onsite";
 export type ExperienceLevel = "all" | "intern" | "entry" | "mid" | "senior" | "lead";
@@ -67,6 +68,7 @@ export const hasActiveFilters = (filters: JobFilters): boolean =>
 
 const JobFiltersBar = ({ filters, onChange }: JobFiltersBarProps) => {
   const [open, setOpen] = useState(false);
+  const { isNigeria } = useGeo();
   const active = hasActiveFilters(filters);
 
   const activeCount = [
@@ -177,20 +179,22 @@ const JobFiltersBar = ({ filters, onChange }: JobFiltersBarProps) => {
             <div className="flex items-center justify-between">
               <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Min Salary</label>
               <span className="text-xs font-mono text-muted-foreground">
-                {filters.minSalary === 0 ? "Any" : `$${filters.minSalary}k+`}
+                {filters.minSalary === 0 ? "Any" : isNigeria
+                  ? (filters.minSalary >= 1000 ? `₦${(filters.minSalary / 1000).toFixed(filters.minSalary % 1000 === 0 ? 0 : 1)}M+` : `₦${filters.minSalary}k+`)
+                  : `$${filters.minSalary}k+`}
               </span>
             </div>
             <Slider
               value={[filters.minSalary]}
               onValueChange={([val]) => onChange({ ...filters, minSalary: val })}
               min={0}
-              max={300}
-              step={10}
+              max={isNigeria ? 25000 : 300}
+              step={isNigeria ? 500 : 10}
               className="w-full"
             />
             <div className="flex justify-between text-[10px] text-muted-foreground">
               <span>Any</span>
-              <span>$300k+</span>
+              <span>{isNigeria ? "₦25M+" : "$300k+"}</span>
             </div>
           </div>
 

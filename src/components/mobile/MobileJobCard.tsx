@@ -169,7 +169,7 @@ export const MobileJobCard = ({
             className="flex-1"
             onClick={() => onApply?.(job)}
           >
-            Apply Now
+            Apply on Company Site
           </Button>
 
           <Button

@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
 import SingleLocationPicker from "@/components/SingleLocationPicker";
+import { useGeo } from "@/hooks/useGeo";
 import { useAuth } from "@/hooks/useAuth";
 import SEOHead from "@/components/SEOHead";
 import { toast } from "sonner";
 import { savePreferences, getPreferences, UserPreferences } from "@/lib/user_preferences";
 import { CandidateProfile, saveCandidateProfile, getCandidateProfile, ExperienceAtom, Education, Skill } from "@/lib/resume_engine";
+import { useQueryClient } from "@tanstack/react-query";
 import { triggerJobCrawl } from "@/lib/crawler_engine";
 import { setUserRole } from "@/lib/recruiter_engine";
 
@@ -151,6 +152,7 @@ function handleBulletKeyDown(
 
 const Onboarding = () => {
   const { user, loading: authLoading } = useAuth();
+  const { isNigeria } = useGeo();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
@@ -866,9 +868,9 @@ const Onboarding = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between items-baseline">
                       <Label className="text-sm font-semibold">Minimum Base Salary</Label>
-                      <span className="text-base font-mono font-semibold">${salary[0].toLocaleString()}</span>
+                      <span className="text-base font-mono font-semibold">{isNigeria ? `₦${salary[0].toLocaleString()}` : `$${salary[0].toLocaleString()}`}</span>
                     </div>
-                    <Slider value={salary} onValueChange={setSalary} min={30000} max={500000} step={5000} />
+                    <Slider value={salary} onValueChange={setSalary} min={isNigeria ? 50000 : 30000} max={isNigeria ? 25000000 : 500000} step={isNigeria ? 50000 : 5000} />
                   </div>
 
                   {/* Locations */}

@@ -260,10 +260,21 @@ export const deleteJob = async (jobId: string): Promise<void> => {
   if (error) throw new Error(error.message);
 };
 
+/** Format a salary value with the correct currency symbol and scale */
+const fmtSalaryValue = (n: number, currency: string): string => {
+  if (currency === 'NGN') {
+    if (n >= 1_000_000) return `₦${(n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 1)}M`;
+    if (n >= 1_000) return `₦${(n / 1_000).toFixed(0)}k`;
+    return `₦${n.toLocaleString('en-NG')}`;
+  }
+  const sym = currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '$';
+  return `${sym}${(n / 1000).toFixed(0)}k`;
+};
+
 const _mirrorToJobListings = async (job: RecruiterJob): Promise<string | null> => {
   const salaryRange =
     job.salary_min && job.salary_max
-      ? `$${(job.salary_min / 1000).toFixed(0)}k – $${(job.salary_max / 1000).toFixed(0)}k ${job.salary_currency}`
+      ? `${fmtSalaryValue(job.salary_min, job.salary_currency)} – ${fmtSalaryValue(job.salary_max, job.salary_currency)} ${job.salary_currency}`
       : undefined;
 
   const fullDescription = [
@@ -473,10 +484,9 @@ export const APPLICATION_STATUS_COLORS: Record<RecruiterApplicationStatus, strin
 
 export const formatSalary = (job: RecruiterJob): string => {
   if (!job.salary_min && !job.salary_max) return "Not specified";
-  const fmt = (n: number) => `$${(n / 1000).toFixed(0)}k`;
-  if (job.salary_min && job.salary_max) return `${fmt(job.salary_min)} – ${fmt(job.salary_max)} ${job.salary_currency}`;
-  if (job.salary_min) return `From ${fmt(job.salary_min)} ${job.salary_currency}`;
-  return `Up to ${fmt(job.salary_max!)} ${job.salary_currency}`;
+  if (job.salary_min && job.salary_max) return `${fmtSalaryValue(job.salary_min, job.salary_currency)} – ${fmtSalaryValue(job.salary_max, job.salary_currency)} ${job.salary_currency}`;
+  if (job.salary_min) return `From ${fmtSalaryValue(job.salary_min, job.salary_currency)} ${job.salary_currency}`;
+  return `Up to ${fmtSalaryValue(job.salary_max!, job.salary_currency)} ${job.salary_currency}`;
 };
 
 // ── Talent Search ─────────────────────────────────────────────────────────────
