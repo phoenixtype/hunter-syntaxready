@@ -234,7 +234,7 @@ export const ApplicationsView = () => {
 
   const renderCard = (app: ApplicationRecord, isDragOverlay = false) => (
     <div
-      className={`p-4 rounded-md border border-border bg-card hover:bg-muted/20 transition-colors ${isDragOverlay ? "shadow-lg" : ""} ${!isDragOverlay ? "pl-7" : ""}`}
+      className={`p-4 rounded-md border border-border bg-card hover:bg-muted/20 transition-colors ${isDragOverlay ? "shadow-modal" : ""} ${!isDragOverlay ? "pl-7" : ""}`}
     >
       <div
         className="flex items-start justify-between gap-2 mb-2 cursor-pointer"

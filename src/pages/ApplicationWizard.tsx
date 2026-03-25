@@ -133,7 +133,7 @@ const ApplicationWizard = () => {
 
                 {/* INPUT STEP */}
                 {step === 'input' && (
-                    <Card className="border-border bg-card shadow-sm">
+                    <Card className="border-border bg-card shadow-card">
                         <CardContent className="p-5 sm:p-6">
                             <form onSubmit={handleAnalyze} className="space-y-6">
                                 <div className="space-y-4">
@@ -177,7 +177,7 @@ const ApplicationWizard = () => {
                                 <FileCheck className="w-5 h-5 text-primary" />
                                 <h2 className="text-sm font-semibold">Parsed Extracted Strategy</h2>
                             </div>
-                            <Card className="border-border bg-card shadow-sm overflow-hidden">
+                            <Card className="border-border bg-card shadow-card overflow-hidden">
                                 <div className="p-4 sm:p-5 border-b border-border flex flex-col sm:flex-row justify-between items-start gap-2">
                                     <div>
                                         <h3 className="text-lg font-bold tracking-tight text-foreground">{job.title}</h3>
@@ -210,7 +210,7 @@ const ApplicationWizard = () => {
                                     <FileText className="w-5 h-5 text-primary" />
                                     <h2 className="text-sm font-semibold">Application Assets</h2>
                                 </div>
-                                <Card className="h-full border-border bg-card shadow-sm">
+                                <Card className="h-full border-border bg-card shadow-card">
                                     <CardContent className="p-6 space-y-6">
                                         <div className="space-y-3">
                                             <div className="flex items-center gap-2 font-medium">
@@ -256,7 +256,7 @@ const ApplicationWizard = () => {
                                     <UserPlus className="w-5 h-5 text-primary" />
                                     <h2 className="text-sm font-semibold">Find the Team on LinkedIn</h2>
                                 </div>
-                                <Card className="h-full border-border bg-card shadow-sm">
+                                <Card className="h-full border-border bg-card shadow-card">
                                     <CardContent className="p-6 space-y-4">
                                         <p className="text-sm text-muted-foreground">
                                             Use these searches to find real people at <strong>{job?.company}</strong> and reach out directly. A personal connection often gets your application noticed.

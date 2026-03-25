@@ -114,7 +114,7 @@ const EmailVerification = () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <div className="w-full max-w-md animate-scale-in">
-        <div className="bg-card border border-border shadow-sm rounded-md p-6 sm:p-8 space-y-6 text-center">
+        <div className="bg-card border border-border shadow-card rounded-md p-6 sm:p-8 space-y-6 text-center">
           {status === 'loading' && (
             <>
               <div className="w-14 h-14 mx-auto rounded-md bg-muted flex items-center justify-center">

@@ -95,7 +95,7 @@ const JobFiltersBar = ({ filters, onChange }: JobFiltersBarProps) => {
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-72 p-4 bg-popover border border-border shadow-lg z-50"
+        className="w-72 p-4 bg-popover border border-border shadow-modal z-50"
         align="start"
         sideOffset={8}
       >

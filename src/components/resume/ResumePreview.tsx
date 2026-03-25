@@ -33,7 +33,7 @@ export const ResumePreview = ({ profile }: ResumePreviewProps) => {
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-6 bg-card border rounded-md shadow-sm">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-6 bg-card border rounded-md shadow-card">
                 <div className="space-y-1">
                     <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
                         {identity.name}

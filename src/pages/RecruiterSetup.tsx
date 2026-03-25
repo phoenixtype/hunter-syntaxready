@@ -60,7 +60,7 @@ const RecruiterSetup = () => {
     <>
       <SEOHead title="Set Up Your Recruiter Account" path="/recruiter-setup" />
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="bg-card border border-border rounded-2xl p-8 max-w-md w-full shadow-sm">
+        <div className="bg-card border border-border rounded-2xl p-8 max-w-md w-full shadow-card">
           <div className="text-center mb-8">
             <div className="w-14 h-14 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
               <CheckCircle2 className="w-7 h-7 text-green-600 dark:text-green-400" />

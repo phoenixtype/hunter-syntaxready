@@ -266,7 +266,7 @@ const AdminUsers = () => {
       {/* Delete confirmation dialog */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-card border border-border rounded-xl shadow-lg p-6 max-w-md w-full mx-4">
+          <div className="bg-card border border-border rounded-xl shadow-modal p-6 max-w-md w-full mx-4">
             <h2 className="text-lg font-semibold mb-2">Delete User</h2>
             <p className="text-sm text-muted-foreground mb-6">
               Permanently delete <span className="font-medium text-foreground">{deleteTarget.full_name || 'this user'}</span>

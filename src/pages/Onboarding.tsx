@@ -435,7 +435,7 @@ const Onboarding = () => {
         </div>
 
         {/* ── Card ─────────────────────────────────────────────────────── */}
-        <div className="bg-card rounded-md border border-border shadow-sm overflow-hidden">
+        <div className="bg-card rounded-md border border-border shadow-card overflow-hidden">
 
           {/* Progress bar */}
           <div className="h-[3px] bg-muted/60">
@@ -1156,7 +1156,7 @@ function SchoolCombobox({ value, onChange }: { value: string; onChange: (v: stri
         className="h-10"
       />
       {open && filtered.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-52 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-modal max-h-52 overflow-y-auto">
           {filtered.map(u => (
             <button
               key={u}

@@ -47,7 +47,7 @@ export function CountryCombobox({ value, onChange, className, inputClassName }: 
         autoComplete="off"
       />
       {open && filtered.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-52 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-modal max-h-52 overflow-y-auto">
           {filtered.map(c => (
             <button
               key={c.isoCode}

@@ -710,7 +710,7 @@ const ResumeBuilder = () => {
                     <Eye className="w-3.5 h-3.5" />
                     <span>Resume preview — scroll to review</span>
                   </div>
-                  <div className="border border-border rounded-md overflow-hidden shadow-sm">
+                  <div className="border border-border rounded-md overflow-hidden shadow-card">
                     <iframe
                       srcDoc={generatedHtml}
                       title="Resume Preview"

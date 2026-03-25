@@ -281,7 +281,7 @@ const JobHuntPlanner = () => {
 
           {/* Form */}
           <div className="md:col-span-3">
-            <Card className="border-border bg-card shadow-sm">
+            <Card className="border-border bg-card shadow-card">
               <CardContent className="p-5 sm:p-6">
 
                 {/* Step 1: Personal Details */}

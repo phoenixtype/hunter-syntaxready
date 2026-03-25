@@ -68,7 +68,7 @@ const Login = () => {
           Back to Home
         </Link>
 
-        <div className="bg-card border border-border shadow-sm rounded-md p-6 sm:p-8 space-y-6">
+        <div className="bg-card border border-border shadow-card rounded-md p-6 sm:p-8 space-y-6">
           <div className="space-y-1.5 text-center">
             <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
             <p className="text-muted-foreground text-sm">Sign in to continue to Hunter</p>

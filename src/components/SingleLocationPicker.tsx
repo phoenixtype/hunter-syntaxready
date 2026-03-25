@@ -121,7 +121,7 @@ const SingleLocationPicker = ({ value, onChange }: SingleLocationPickerProps) =>
             className="h-10 text-sm"
           />
           {showDropdown && citySuggestions.length > 0 && (
-            <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-52 overflow-y-auto">
+            <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-modal max-h-52 overflow-y-auto">
               {citySuggestions.map(c => (
                 <button
                   key={`${c.name}-${c.stateCode}`}

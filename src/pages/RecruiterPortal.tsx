@@ -171,7 +171,7 @@ const RecruiterPortal = () => {
               </div>
 
               {/* Right — application form */}
-              <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">
+              <div className="bg-card border border-border rounded-2xl p-8 shadow-card">
                 <div className="mb-6">
                   <h2 className="text-xl font-bold tracking-tight">Apply to join Hunter</h2>
                   <p className="text-sm text-muted-foreground mt-1">We'll review your application within 2 business days.</p>
