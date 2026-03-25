@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { describe, it, expect } from 'vitest';
+import * as hookModule from '@/hooks/useSubscription';
 
 /**
  * Basic validation tests for enhanced subscription hook
@@ -7,8 +8,6 @@ import { describe, it, expect } from 'vitest';
  */
 describe('Enhanced Subscription Hook Validation', () => {
   it('should have the correct interface structure', () => {
-    // Import the hook to validate it exists and compiles
-    const hookModule = require('@/hooks/useSubscription');
     expect(typeof hookModule.useSubscription).toBe('function');
   });
 
