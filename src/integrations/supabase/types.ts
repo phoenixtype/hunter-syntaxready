@@ -1,4 +1,3 @@
-Initialising login role...
 export type Json =
   | string
   | number
@@ -1268,6 +1267,104 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_codes: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          created_by: string | null
+          id: string
+          label: string | null
+          max_uses: number | null
+          owner_id: string | null
+          type: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string | null
+          max_uses?: number | null
+          owner_id?: string | null
+          type?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string | null
+          max_uses?: number | null
+          owner_id?: string | null
+          type?: string
+        }
+        Relationships: []
+      }
+      referral_events: {
+        Row: {
+          created_at: string
+          id: string
+          referral_code: string
+          referred_id: string
+          referrer_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referral_code: string
+          referred_id: string
+          referrer_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referred_id?: string
+          referrer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_events_referral_code_fkey"
+            columns: ["referral_code"]
+            isOneToOne: false
+            referencedRelation: "referral_codes"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      referral_rewards: {
+        Row: {
+          amount: number
+          expires_at: string | null
+          granted_at: string
+          id: string
+          reason: string | null
+          reward_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          expires_at?: string | null
+          granted_at?: string
+          id?: string
+          reason?: string | null
+          reward_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          expires_at?: string | null
+          granted_at?: string
+          id?: string
+          reason?: string | null
+          reward_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscription_plans: {
         Row: {
           created_at: string | null
@@ -1842,6 +1939,7 @@ export type Database = {
         }[]
       }
       get_platform_analytics: { Args: never; Returns: Json }
+      get_referral_stats: { Args: never; Returns: Json }
       get_usage_overview: {
         Args: { p_user_id: string }
         Returns: {
@@ -1874,6 +1972,7 @@ export type Database = {
         }
         Returns: string
       }
+      purge_old_jobs: { Args: never; Returns: number }
       record_feature_usage: {
         Args: {
           p_feature_name: string
@@ -2040,5 +2139,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-A new version of Supabase CLI is available: v2.78.1 (currently installed v2.67.1)
-We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli

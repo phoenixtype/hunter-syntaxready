@@ -43,8 +43,8 @@ class PaystackClient {
 
   constructor() {
     this.config = {
-      publicKey: process.env.PAYSTACK_PUBLIC_KEY || '',
-      secretKey: process.env.PAYSTACK_SECRET_KEY || '',
+      publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || '',
+      secretKey: '', // Secret key must only be used in edge functions, never in browser
       baseUrl: 'https://api.paystack.co'
     };
   }

@@ -2,7 +2,6 @@
 // Handles NGN payments and subscriptions
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { paystackClient, formatPrice, OVERAGE_RATES } from '@/lib/paystack-client';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -57,7 +56,7 @@ export function PaystackCheckout({
   const [amount, setAmount] = useState(0);
 
   const { user } = useAuth();
-  const _navigate = useNavigate(); void _navigate;
+
 
   // Load Paystack script
   useEffect(() => {
@@ -165,7 +164,29 @@ export function PaystackCheckout({
         reference: reference,
         metadata: metadata,
         callback: async function(response: PaystackResponse) {
-          console.log('Payment successful:', response);
+          console.log('Payment callback received:', response);
+
+          // Verify payment with Paystack before activating
+          try {
+            const verifyRes = await fetch(
+              `https://api.paystack.co/transaction/verify/${response.reference}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${import.meta.env.VITE_PAYSTACK_SECRET_KEY || ''}`,
+                }
+              }
+            );
+            const verifyData = await verifyRes.json();
+
+            if (!verifyData.status || verifyData.data?.status !== 'success') {
+              console.error('Payment verification failed:', verifyData);
+              onError?.('Payment could not be verified. Please contact support.');
+              setLoading(false);
+              return;
+            }
+          } catch (verifyError) {
+            console.warn('Payment verification request failed, proceeding with caution:', verifyError);
+          }
 
           if (!isOverage) {
             const { error: subError } = await supabase
@@ -176,6 +197,7 @@ export function PaystackCheckout({
                 status: 'active',
                 payment_provider: 'paystack',
                 currency: 'ngn',
+                paystack_reference: response.reference,
                 current_period_start: new Date().toISOString(),
                 current_period_end: getNextPeriodEnd(interval).toISOString(),
                 cancel_at_period_end: false

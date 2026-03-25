@@ -138,5 +138,5 @@ export const useRealtimeNotifications = (userId: string | undefined) => {
         channelRef.current = null;
       }
     };
-  }, [userId, queryClient]);
+  }, [userId, channelName, isPro, queryClient]);
 };

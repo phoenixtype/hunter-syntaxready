@@ -43,7 +43,7 @@ export function useSubscription() {
         .from('subscriptions')
         .select('*')
         .eq('user_id', user.id)
-        .eq('status', 'active')
+        .in('status', ['active', 'trialing'])
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;

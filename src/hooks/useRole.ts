@@ -16,6 +16,9 @@ export const useRole = () => {
     let cancelled = false;
     getUserRole(user.id).then((r) => {
       if (!cancelled) { setRole(r); setLoading(false); }
+    }).catch((err) => {
+      console.error('Failed to fetch user role:', err);
+      if (!cancelled) setLoading(false);
     });
     return () => { cancelled = true; };
   }, [user]);

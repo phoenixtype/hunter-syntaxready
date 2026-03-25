@@ -30,7 +30,6 @@ export function OverageModal({ featureName, open, onClose }: OverageModalProps) 
   const [quantity, setQuantity] = useState(10);
   const [quote, setQuote] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [purchasing, setPurchasing] = useState(false);
 
   const { getOverageQuote, purchaseOverage, usageOverview } = useSubscription();
   const { isNigeria, currency } = useGeo();
@@ -63,33 +62,9 @@ export function OverageModal({ featureName, open, onClose }: OverageModalProps) 
   const handlePurchase = async () => {
     if (!quote) return;
 
-    setPurchasing(true);
-    try {
-      // In a real implementation, you would integrate with Stripe here
-      // For now, we'll simulate the payment process
-
-      // Create a mock payment intent ID
-      const mockPaymentIntentId = `pi_mock_${Date.now()}`;
-
-      await purchaseOverage({
-        featureName,
-        quantity,
-        paymentIntentId: mockPaymentIntentId
-      });
-
-      toast.success(`Successfully purchased ${quantity} ${FEATURE_DISPLAY_NAMES[featureName]} credits!`, {
-        description: 'Your credits are now available for use.'
-      });
-
-      onClose();
-    } catch (error: any) {
-      console.error('Error purchasing overage:', error);
-      toast.error('Failed to purchase credits', {
-        description: error.message
-      });
-    } finally {
-      setPurchasing(false);
-    }
+    toast.info('Credit purchases are coming soon!', {
+      description: 'Please upgrade your plan for more usage.'
+    });
   };
 
   const calculateSavings = (qty: number) => {
@@ -238,20 +213,17 @@ export function OverageModal({ featureName, open, onClose }: OverageModalProps) 
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={purchasing}>
+          <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
           <Button
             onClick={handlePurchase}
-            disabled={!quote || quantity <= 0 || loading || purchasing}
+            disabled={!quote || quantity <= 0 || loading}
           >
-            {purchasing ? (
-              "Processing..."
-            ) : quote ? (
-              `Purchase for ${formatCurrency(quote.total_cost)}`
-            ) : (
-              "Calculate Price"
-            )}
+            {quote
+              ? "Coming Soon"
+              : "Calculate Price"
+            }
           </Button>
         </DialogFooter>
       </DialogContent>

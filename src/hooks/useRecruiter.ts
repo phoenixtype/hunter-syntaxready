@@ -30,6 +30,9 @@ export const useRecruiterProfile = () => {
     setLoading(true);
     getRecruiterProfile(user.id).then((p) => {
       if (!cancelled) { setProfile(p); setLoading(false); }
+    }).catch((err) => {
+      console.error('Failed to fetch recruiter profile:', err);
+      if (!cancelled) setLoading(false);
     });
     return () => { cancelled = true; };
   }, [user]);
@@ -56,6 +59,9 @@ export const useMyJobs = () => {
     setLoading(true);
     getMyJobs(user.id).then((data) => {
       if (!cancelled) { setJobs(data); setLoading(false); }
+    }).catch((err) => {
+      console.error('Failed to fetch recruiter jobs:', err);
+      if (!cancelled) setLoading(false);
     });
     return () => { cancelled = true; };
   }, [user]);
@@ -81,6 +87,9 @@ export const useJobApplicants = (recruiterJobId: string | null) => {
     setLoading(true);
     getJobApplicants(recruiterJobId).then((data) => {
       if (!cancelled) { setApplicants(data); setLoading(false); }
+    }).catch((err) => {
+      console.error('Failed to fetch job applicants:', err);
+      if (!cancelled) setLoading(false);
     });
     return () => { cancelled = true; };
   }, [recruiterJobId]);
@@ -103,6 +112,9 @@ export const useRecruiterStats = () => {
     let cancelled = false;
     getRecruiterStats(user.id).then((s) => {
       if (!cancelled) { setStats(s); setLoading(false); }
+    }).catch((err) => {
+      console.error('Failed to fetch recruiter stats:', err);
+      if (!cancelled) setLoading(false);
     });
     return () => { cancelled = true; };
   }, [user]);

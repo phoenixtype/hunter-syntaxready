@@ -8,8 +8,8 @@ import { useGeo } from '@/hooks/useGeo';
 import { getPrice } from '@/lib/pricing';
 import { PaystackCheckout } from '@/components/payment/PaystackCheckout';
 
-const STARTER_PRICE_ID = 'price_1TCh6SD543enPilsbw1iTJ3A';
-const GROWTH_PRICE_ID  = 'price_1TCh6fD543enPilsmDANdgi0';
+const STARTER_PRICE_ID = import.meta.env.VITE_STRIPE_RECRUITER_STARTER_PRICE_ID || 'price_1TCh6SD543enPilsbw1iTJ3A';
+const GROWTH_PRICE_ID  = import.meta.env.VITE_STRIPE_RECRUITER_GROWTH_PRICE_ID  || 'price_1TCh6fD543enPilsmDANdgi0';
 
 interface Plan {
   id: string;

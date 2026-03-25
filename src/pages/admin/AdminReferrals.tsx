@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Loader2, Users, Gift, Link2, Plus, Copy, Check, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
+import SEOHead from "@/components/SEOHead";
 import {
   BarChart,
   Bar,
@@ -154,7 +155,9 @@ const AdminReferrals = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <>
+    <SEOHead title="Admin Referrals" path="/admin/referrals" />
+    <div className="p-6 max-w-5xl mx-auto w-full space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold">Referral Program</h1>
@@ -335,6 +338,7 @@ const AdminReferrals = () => {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </>
   );
 };
 
