@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Users, AlertCircle, ChevronDown, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/EmptyState';
 import SEOHead from '@/components/SEOHead';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
@@ -186,10 +187,11 @@ const AdminUsers = () => {
             <p className="text-sm">{error}</p>
           </div>
         ) : users.length === 0 ? (
-          <div className="text-center py-20 text-muted-foreground">
-            <Users className="w-8 h-8 mx-auto mb-3 opacity-40" />
-            <p className="text-sm">No users found.</p>
-          </div>
+          <EmptyState
+            icon={<Users className="w-5 h-5 text-muted-foreground" />}
+            title="No users found"
+            description="No users match your current search or filter criteria."
+          />
         ) : (
           <div className="bg-card border border-border rounded-xl overflow-hidden">
             <table className="w-full text-sm">
