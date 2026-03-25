@@ -249,7 +249,7 @@ const AppSidebar = () => {
             onClick={() => navigate("/recruiter")}
             title={collapsed ? "Recruiter Portal" : undefined}
             className={`flex items-center gap-2 rounded-md text-xs font-medium text-primary hover:bg-primary/10 transition-colors ${
-              collapsed ? "justify-center p-2 w-full" : "px-2.5 py-1.5 w-full"
+              collapsed ? "justify-center p-2 w-full" : "px-3 py-2 w-full"
             }`}
           >
             <Building2 className="w-4 h-4 shrink-0" />
@@ -311,7 +311,7 @@ const AppSidebar = () => {
         ) : (
           <button
             onClick={handleSignOut}
-            className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors font-normal"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors font-normal"
           >
             <LogOut className="w-4 h-4 shrink-0" />
             Sign out
