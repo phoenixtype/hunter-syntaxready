@@ -94,6 +94,9 @@ export default {
         "md-3": "0px 4px 8px 3px rgba(0,0,0,0.07), 0px 1px 3px rgba(0,0,0,0.10)",
         "md-4": "0px 6px 10px 4px rgba(0,0,0,0.07), 0px 2px 3px rgba(0,0,0,0.10)",
         "md-5": "0px 8px 12px 6px rgba(0,0,0,0.07), 0px 4px 4px rgba(0,0,0,0.10)",
+        card: "0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04)",
+        dropdown: "0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -1px rgba(0,0,0,0.04)",
+        modal: "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.04)",
       },
       keyframes: {
         "accordion-down": {
@@ -116,6 +119,10 @@ export default {
           "0%": { opacity: "0", transform: "scale(0.95)" },
           "100%": { opacity: "1", transform: "scale(1)" },
         },
+        shimmer: {
+          "0%": { backgroundPosition: "200% 0" },
+          "100%": { backgroundPosition: "-200% 0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -123,6 +130,7 @@ export default {
         "fade-in-up": "fade-in-up 0.5s ease-out forwards",
         "pulse-slow": "pulse-slow 3s ease-in-out infinite",
         "scale-in": "scale-in 0.3s ease-out",
+        shimmer: "shimmer 1.4s ease-in-out infinite",
       },
     },
   },
