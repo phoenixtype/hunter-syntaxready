@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { SkeletonCard } from "@/components/ui/skeleton-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -144,8 +145,17 @@ const AdminReferrals = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      <div className="p-6 max-w-5xl mx-auto w-full space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+        <div className="rounded-xl border bg-card shadow-card p-5 space-y-3">
+          <div className="h-3 w-1/4 bg-muted animate-pulse rounded-md" />
+          <div className="h-3 w-full bg-muted animate-pulse rounded-md" />
+          <div className="h-3 w-3/4 bg-muted animate-pulse rounded-md" />
+          <div className="h-3 w-5/6 bg-muted animate-pulse rounded-md" />
+        </div>
       </div>
     );
   }
