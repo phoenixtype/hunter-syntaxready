@@ -44,3 +44,4 @@ Thumbs.db
 # Build cache
 .cache
 .turbo
+.worktrees/
