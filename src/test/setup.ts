@@ -2,29 +2,27 @@ import { afterEach as _afterEach } from 'vitest'
 import { cleanup as _cleanup } from '@testing-library/react'
 void _afterEach; void _cleanup;
 
-// Mock localStorage for Supabase tests
+// In-memory localStorage for tests — returns null for non-existent keys but
+// actually stores values so that Supabase auth sessions persist within a test run.
+const makeInMemoryStorage = () => {
+  const store: Record<string, string> = {};
+  return {
+    getItem: (key: string) => store[key] ?? null,
+    setItem: (key: string, value: string) => { store[key] = value; },
+    removeItem: (key: string) => { delete store[key]; },
+    clear: () => { Object.keys(store).forEach(k => delete store[k]); },
+    get length() { return Object.keys(store).length; },
+    key: (index: number) => Object.keys(store)[index] ?? null,
+  };
+};
+
 Object.defineProperty(global, 'localStorage', {
-  value: {
-    getItem: (_key: string) => null,
-    setItem: (_key: string, _value: string) => {},
-    removeItem: (_key: string) => {},
-    clear: () => {},
-    length: 0,
-    key: (_index: number) => null,
-  },
+  value: makeInMemoryStorage(),
   writable: true
 });
 
-// Mock sessionStorage
 Object.defineProperty(global, 'sessionStorage', {
-  value: {
-    getItem: (_key: string) => null,
-    setItem: (_key: string, _value: string) => {},
-    removeItem: (_key: string) => {},
-    clear: () => {},
-    length: 0,
-    key: (_index: number) => null,
-  },
+  value: makeInMemoryStorage(),
   writable: true
 });
 
