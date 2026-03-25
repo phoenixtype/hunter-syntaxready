@@ -59,7 +59,7 @@ describe('Enhanced Subscription Hook', () => {
     const mockFrom = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
+          in: vi.fn().mockReturnValue({
             single: vi.fn().mockResolvedValue({
               data: {
                 id: 'sub-123',
@@ -113,11 +113,25 @@ describe('Enhanced Subscription Hook', () => {
       error: null
     });
 
+    // Mock the subscription_plans table query (.eq().order())
+    const mockFromPlans = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          order: vi.fn().mockResolvedValue({
+            data: [],
+            error: null
+          })
+        })
+      })
+    });
+
     (supabase.from as any).mockImplementation((tableName: string) => {
       if (tableName === 'subscriptions') {
         return mockFrom();
       } else if (tableName === 'subscription_usage') {
         return mockFromUsage();
+      } else if (tableName === 'subscription_plans') {
+        return mockFromPlans();
       }
       return mockFrom(); // fallback
     });
@@ -182,7 +196,7 @@ describe('Enhanced Subscription Hook', () => {
     const mockFromUnlimited = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
+          in: vi.fn().mockReturnValue({
             single: vi.fn().mockResolvedValue({
               data: {
                 id: 'sub-123',
@@ -211,9 +225,22 @@ describe('Enhanced Subscription Hook', () => {
       })
     });
 
+    const mockFromPlansUnlimited = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          order: vi.fn().mockResolvedValue({
+            data: [],
+            error: null
+          })
+        })
+      })
+    });
+
     (supabase.from as any).mockImplementation((tableName: string) => {
       if (tableName === 'subscriptions') {
         return mockFromUnlimited();
+      } else if (tableName === 'subscription_plans') {
+        return mockFromPlansUnlimited();
       }
       return mockFromUnlimited();
     });
