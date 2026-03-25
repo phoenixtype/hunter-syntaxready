@@ -119,7 +119,7 @@ const RecruiterPricing = () => {
                 key={plan.id}
                 className={`relative flex flex-col rounded-2xl border p-8 ${
                   plan.highlight
-                    ? 'border-primary bg-primary/5 shadow-lg'
+                    ? 'border-primary bg-primary/5 shadow-modal'
                     : 'border-border bg-card'
                 }`}
               >
