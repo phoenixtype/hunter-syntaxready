@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/EmptyState";
 import { supabase } from "@/integrations/supabase/client";
 import { useJobApplicants } from "@/hooks/useRecruiter";
 import {
@@ -509,15 +510,11 @@ const JobApplicants = () => {
             {[1, 2, 3].map((i) => <div key={i} className="h-24 bg-muted/50 rounded-2xl animate-pulse" />)}
           </div>
         ) : applicants.length === 0 ? (
-          <div className="bg-card border border-border rounded-2xl p-12 flex flex-col items-center gap-3 text-center">
-            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-              <Users className="w-5 h-5 text-muted-foreground" />
-            </div>
-            <p className="font-medium">No applicants yet</p>
-            <p className="text-sm text-muted-foreground max-w-xs">
-              Once candidates apply (or auto-apply), their profiles will appear here.
-            </p>
-          </div>
+          <EmptyState
+            icon={<Users className="w-5 h-5 text-muted-foreground" />}
+            title="No applicants yet"
+            description="Candidates who apply to this job will appear here."
+          />
         ) : view === "kanban" ? (
           <PipelineKanban applicants={displayed} onStatusChange={handleStatusChange} />
         ) : (
