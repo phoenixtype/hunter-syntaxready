@@ -132,7 +132,7 @@ const CommandPalette = () => {
     <CommandDialog open={open} onOpenChange={setOpen}>
       <CommandInput
         placeholder="Type a command or search..."
-        className="focus:ring-0 focus:outline-none"
+        className="focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
         value={query}
         onValueChange={setQuery}
       />
