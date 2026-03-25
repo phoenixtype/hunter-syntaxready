@@ -175,13 +175,6 @@
     outline: none;
   }
 
-  [cmdk-input]:focus,
-  [cmdk-input]:focus-visible {
-    outline: none !important;
-    box-shadow: none !important;
-    --tw-ring-shadow: none !important;
-  }
-
   .touch-manipulation {
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
@@ -362,17 +355,14 @@ textarea:focus-visible,
   @apply outline-none;
 }
 
-/* Sidebar nav item active indicator */
-.nav-active {
-  position: relative;
+/* ── Scoped typography scale (does not affect Radix portals) ── */
+.app-content h1, .page-content h1 {
+  font-size: 1.75rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.2;
 }
-.nav-active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 25%;
-  bottom: 25%;
-  width: 2.5px;
-  border-radius: 0 2px 2px 0;
-  background: hsl(var(--primary));
+.app-content h2, .page-content h2 {
+  font-size: 1.375rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25;
 }
+.app-content h3, .page-content h3 {
+  font-size: 1.125rem; font-weight: 600; letter-spacing: -0.01em; line-height: 1.3;
+}
+
