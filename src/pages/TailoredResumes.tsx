@@ -34,13 +34,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { FileDown, Trash2, FileText, Building2, Loader2, Calendar, Copy, Check, ChevronDown, HelpCircle } from "lucide-react";
+import { FileDown, Trash2, FileText, Building2, Loader2, Calendar, Copy, Check, ChevronDown, HelpCircle, FolderOpen } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import PageHeader from "@/components/PageHeader";
 import SEOHead from "@/components/SEOHead";
 import PageTour, { PageTourHandle } from "@/components/PageTour";
 import { Step } from "react-joyride";
+import { EmptyState } from "@/components/EmptyState";
 
 const TAILORED_TOUR_STEPS: Step[] = [
   {
@@ -187,18 +188,11 @@ const TailoredResumes = () => {
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           </div>
         ) : resumes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-border rounded-md">
-            <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mb-4">
-              <FileText className="w-6 h-6 text-muted-foreground" />
-            </div>
-            <h3 className="font-semibold mb-1">No tailored resumes yet</h3>
-            <p className="text-sm text-muted-foreground max-w-xs">
-              Hit the <strong>Tailor</strong> button on any job card or use the <strong>Application Wizard</strong> to generate your first AI-optimised resume.
-            </p>
-            <Button variant="outline" size="sm" className="mt-4" onClick={() => navigate("/dashboard")}>
-              Go to Dashboard
-            </Button>
-          </div>
+          <EmptyState
+            icon={<FolderOpen className="w-5 h-5 text-muted-foreground" />}
+            title="No tailored resumes yet"
+            description="Generate a tailored resume for a specific job to see it here."
+          />
         ) : (
           <div className="space-y-4" data-tour="tr-list">
             {paginatedResumes.map((resume) => (
