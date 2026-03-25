@@ -42,9 +42,9 @@ const AdminSidebar = () => {
               key={to}
               to={to}
               className={cn(
-                'flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors',
+                'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors',
                 active
-                  ? 'bg-primary/10 text-primary font-medium'
+                  ? 'bg-primary/10 text-primary font-semibold'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               )}
             >
@@ -59,7 +59,7 @@ const AdminSidebar = () => {
       <div className="px-2 py-3 border-t border-border">
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors w-full text-left"
+          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors w-full text-left"
         >
           <LogOut className="w-4 h-4" />
           Sign out
