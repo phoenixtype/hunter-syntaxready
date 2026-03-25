@@ -62,9 +62,9 @@ const DashboardWelcome = ({ profile, preferences, jobCount, appCount, metrics, o
           {firstName ? `Hi, ${firstName}` : "Dashboard"}
         </span>
         <div className="flex items-center gap-4 sm:gap-5 sm:ml-auto text-xs text-muted-foreground">
-          <span><strong className="text-foreground font-semibold">{appCount}</strong> applied</span>
-          <span><strong className="text-foreground font-semibold">{metrics.interviews}</strong> interviews</span>
-          <span><strong className="text-foreground font-semibold">{metrics.offers}</strong> offers</span>
+          <span><strong className="text-foreground font-extrabold tracking-tight tabular-nums">{appCount}</strong> applied</span>
+          <span><strong className="text-foreground font-extrabold tracking-tight tabular-nums">{metrics.interviews}</strong> interviews</span>
+          <span><strong className="text-foreground font-extrabold tracking-tight tabular-nums">{metrics.offers}</strong> offers</span>
         </div>
       </div>
     );
