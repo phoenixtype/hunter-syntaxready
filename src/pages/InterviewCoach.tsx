@@ -308,7 +308,7 @@ const InterviewCoach = () => {
           <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center mb-6">
             <BrainCircuit className="w-7 h-7 text-primary" />
           </div>
-          <h2 className="text-2xl font-bold mb-2">Interview Practice</h2>
+          <h2 className="text-2xl font-bold tracking-tight mb-2">Interview Practice</h2>
           <p className="text-muted-foreground mb-6">
             Tell us what role you're preparing for, then pick a mode to begin.
           </p>

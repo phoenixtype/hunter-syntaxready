@@ -173,7 +173,7 @@ const PostInterview = () => {
                     <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center mb-6">
                         <ClipboardCheck className="w-7 h-7 text-primary" />
                     </div>
-                    <h2 className="text-2xl font-bold mb-2">Post-Interview Tools</h2>
+                    <h2 className="text-2xl font-bold tracking-tight mb-2">Post-Interview Tools</h2>
                     <p className="text-muted-foreground">
                         Send a polished thank-you note or get AI-powered negotiation coaching for your offer.
                     </p>

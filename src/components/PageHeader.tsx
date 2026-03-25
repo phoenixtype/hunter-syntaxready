@@ -62,7 +62,7 @@ const PageHeader = ({ breadcrumbs, icon, actions, sticky = true }: PageHeaderPro
               const isLast = i === breadcrumbs.length - 1;
               return (
                 <BreadcrumbItem key={i}>
-                  {i > 0 && <BreadcrumbSeparator />}
+                  {i > 0 && <BreadcrumbSeparator><span className="text-muted-foreground/40 text-xs">›</span></BreadcrumbSeparator>}
                   {isLast ? (
                     <BreadcrumbPage className="truncate font-semibold text-xs sm:text-sm">
                       {crumb.label}

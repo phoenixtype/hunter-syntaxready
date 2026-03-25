@@ -339,7 +339,7 @@ const ResumeBuilder = () => {
           {currentStep === "personal" && (
             <div className="animate-fade-in space-y-8 pt-8">
               <div className="space-y-2">
-                <h2 className="text-2xl font-bold">Personal Information</h2>
+                <h2 className="text-2xl font-bold tracking-tight">Personal Information</h2>
                 <p className="text-muted-foreground">Your contact details and professional links.</p>
               </div>
               <div className="space-y-5">
@@ -401,7 +401,7 @@ const ResumeBuilder = () => {
           {currentStep === "experience" && (
             <div className="animate-fade-in space-y-8 pt-8">
               <div className="space-y-2">
-                <h2 className="text-2xl font-bold">Work Experience</h2>
+                <h2 className="text-2xl font-bold tracking-tight">Work Experience</h2>
                 <p className="text-muted-foreground">Add your most relevant positions. Use bullet points for impact.</p>
               </div>
               <div className="space-y-4">
@@ -453,7 +453,7 @@ const ResumeBuilder = () => {
           {currentStep === "education" && (
             <div className="animate-fade-in space-y-8 pt-8">
               <div className="space-y-2">
-                <h2 className="text-2xl font-bold">Education</h2>
+                <h2 className="text-2xl font-bold tracking-tight">Education</h2>
                 <p className="text-muted-foreground">Degrees, certifications, and relevant training.</p>
               </div>
               <div className="space-y-4">
@@ -502,7 +502,7 @@ const ResumeBuilder = () => {
           {currentStep === "skills" && (
             <div className="animate-fade-in space-y-8 pt-8">
               <div className="space-y-2">
-                <h2 className="text-2xl font-bold">Skills & Expertise</h2>
+                <h2 className="text-2xl font-bold tracking-tight">Skills & Expertise</h2>
                 <p className="text-muted-foreground">Add your technical and professional skills.</p>
               </div>
 
@@ -559,7 +559,7 @@ const ResumeBuilder = () => {
             <div className="animate-fade-in space-y-8 pt-8">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <h2 className="text-2xl font-bold">Choose a Template</h2>
+                  <h2 className="text-2xl font-bold tracking-tight">Choose a Template</h2>
                   <p className="text-muted-foreground">Select an ATS-friendly layout that fits your industry and career level.</p>
                 </div>
                 <RadioGroup value={selectedTemplate} onValueChange={setSelectedTemplate} className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -638,7 +638,7 @@ const ResumeBuilder = () => {
           {currentStep === "generate" && (
             <div className="animate-fade-in space-y-6 pt-8">
               <div className="space-y-2 text-center">
-                <h2 className="text-2xl font-bold">Generate Your Resume</h2>
+                <h2 className="text-2xl font-bold tracking-tight">Generate Your Resume</h2>
                 <p className="text-muted-foreground">AI will craft a polished, ATS-optimised resume from your profile.</p>
               </div>
 
