@@ -176,11 +176,11 @@ const AppSidebar = () => {
                 onClick={() => handleNavClick(item.tab)}
                 aria-current={active ? "page" : undefined}
                 className={`w-full flex items-center gap-1.5 rounded-md text-sm transition-colors ${
-                  collapsed ? "justify-center p-2" : "px-2.5 py-1.5"
+                  collapsed ? "justify-center p-2" : "px-3 py-2"
                 } ${
                   active
-                    ? "bg-muted text-foreground font-medium"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60 font-normal"
+                    ? "bg-primary/10 text-primary font-semibold"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted transition-colors duration-150 font-normal"
                 }`}
               >
                 <item.icon className="w-4 h-4 shrink-0" />
@@ -214,11 +214,11 @@ const AppSidebar = () => {
                     key={tool.title}
                     onClick={() => handleToolClick(tool.route)}
                     className={`w-full flex items-center gap-1.5 rounded-md text-sm transition-colors font-normal ${
-                      collapsed ? "justify-center p-2" : "px-2.5 py-1.5"
+                      collapsed ? "justify-center p-2" : "px-3 py-2"
                     } ${
                       active
-                        ? "bg-muted text-foreground font-medium"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                        ? "bg-primary/10 text-primary font-semibold"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted transition-colors duration-150"
                     }`}
                   >
                     <tool.icon className="w-4 h-4 shrink-0" />
@@ -279,7 +279,7 @@ const AppSidebar = () => {
               <button
                 onClick={() => navigate("/settings")}
                 aria-current={pathname === "/settings" ? "page" : undefined}
-                className={`w-full flex justify-center p-2 rounded-md text-sm transition-colors ${pathname === "/settings" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}
+                className={`w-full flex justify-center p-2 rounded-md text-sm transition-colors ${pathname === "/settings" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted transition-colors duration-150"}`}
               >
                 <Settings className="w-4 h-4 shrink-0" />
               </button>
@@ -290,7 +290,7 @@ const AppSidebar = () => {
           <button
             onClick={() => navigate("/settings")}
             aria-current={pathname === "/settings" ? "page" : undefined}
-            className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm transition-colors ${pathname === "/settings" ? "bg-muted text-foreground font-medium" : "text-muted-foreground hover:text-foreground hover:bg-muted/60 font-normal"}`}
+            className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${pathname === "/settings" ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground hover:text-foreground hover:bg-muted transition-colors duration-150 font-normal"}`}
           >
             <Settings className="w-4 h-4 shrink-0" />
             Settings
