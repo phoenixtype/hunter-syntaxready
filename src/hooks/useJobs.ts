@@ -5,11 +5,12 @@ import { MatchResult, getMatchedJobsServerSide } from "@/lib/matching_engine";
 import { getOptimizedWeights } from "@/lib/learning_engine";
 import { UserPreferences } from "@/lib/user_preferences";
 import { toast } from "sonner";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { searchJobsCached, getJobMatchesCached } from "@/lib/cached-job-engine";
 import { checkFeatureLimit, recordUsage } from "@/lib/redis-rate-limiter";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { invalidateJobsCache, cache } from "@/lib/cache-manager";
 
 export interface EnrichedJob extends JobOpportunity {
     match?: MatchResult;
@@ -144,6 +145,17 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
                 } as MatchResult
             } as EnrichedJob));
 
+            // If role-filtered matching returned nothing but there ARE jobs in the DB,
+            // fall back to the unfiltered cached results so the user sees something.
+            if (matches.length === 0 && cachedResult.jobs.length > 0) {
+                return {
+                    jobs: cachedResult.jobs.map(job => ({ ...job, match: undefined })) as EnrichedJob[],
+                    totalPages,
+                    filteredJobCount: cachedResult.totalCount,
+                    fromCache: true
+                };
+            }
+
             return {
                 jobs: matches,
                 totalPages,
@@ -211,6 +223,9 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
         },
         onSuccess: (data) => {
             toast.success(`Crawl complete! Found ${data.inserted || 0} new jobs`);
+            // Clear in-memory caches so the refetch hits the DB fresh
+            invalidateJobsCache();
+            if (user?.id) cache.invalidatePattern(`job_matches:${user.id}`);
             queryClient.invalidateQueries({ queryKey: ['jobs'] });
             queryClient.invalidateQueries({ queryKey: ['jobCount'] });
         },
@@ -218,6 +233,18 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
             toast.error("Crawl failed", { description: error.message });
         }
     });
+
+    // Auto-crawl once per session when the user has a profile + preferences but no jobs yet
+    const autoCrawledRef = useRef(false);
+    useEffect(() => {
+        if (autoCrawledRef.current || isCrawling || jobsLoading) return;
+        if (!user?.id || !profile || !preferences?.target_roles?.length) return;
+        if (data === undefined || (data.jobs?.length ?? 0) > 0) return;
+
+        autoCrawledRef.current = true;
+        crawl(undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [data?.jobs?.length, jobsLoading, isCrawling, user?.id, !!profile, preferences?.target_roles?.join(',')]);
 
     return {
         jobs: currentPageJobs,
