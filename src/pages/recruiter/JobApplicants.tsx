@@ -1,43 +1,33 @@
+import { useState, useEffect, useMemo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft, Users, Mail, MapPin, Code2, Star, ChevronDown, Loader2, StickyNote, Save,
+  Trophy, Filter, Send, CheckCircle,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { EmptyState } from "@/components/EmptyState";
+import { supabase } from "@/integrations/supabase/client";
+import { useJobApplicants } from "@/hooks/useRecruiter";
+import {
+  getRecruiterJobById,
+  updateRecruiterApplicationStatus,
+  rankApplicants,
+  APPLICATION_STATUS_LABELS,
+  APPLICATION_STATUS_COLORS,
+  type RecruiterJob,
+  type RecruiterApplication,
+  type RecruiterApplicationStatus,
+} from "@/lib/recruiter_engine";
+import { formatDistanceToNow } from "date-fns";
 import { RecruiterPaywall } from "@/components/recruiter/RecruiterPaywall";
 
-const PIPELINE_STAGES: RecruiterApplicationStatus[] = [
-// ...
-const JobApplicants = () => {
-  // ...
-  return (
-    <RecruiterPaywall>
-      <div className="flex flex-col min-h-screen">
-        {rejectionPending && (
-          <RejectionModal
-            app={rejectionPending.app}
-            jobTitle={job?.title ?? ""}
-            onConfirm={handleRejectionConfirm}
-            onCancel={() => setRejectionPending(null)}
-          />
-        )}
-        <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-card shrink-0">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="rounded-full" onClick={() => navigate("/recruiter/jobs")}>
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-            <div>
-              <h1 className="text-base font-semibold">{job?.title ?? "Applicants"}</h1>
-              <p className="text-xs text-muted-foreground">
-                {job?.company} · {applicants.length} applicant{applicants.length !== 1 ? "s" : ""}
-                {cap !== null && ` · Cap: ${cap}`}
-              </p>
-            </div>
-          </div>
-          {/* ... */}
-        </header>
-
-        {/* ... remaining content ... */}
-      </div>
-    </RecruiterPaywall>
-  );
-};
-
-export default JobApplicants;
+type RankedApplication = RecruiterApplication & { _score: number; _rank: number };
 
 /** Confirmation modal for rejection — lets recruiter optionally send a personalised rejection email */
 const RejectionModal = ({
@@ -444,122 +434,124 @@ const JobApplicants = () => {
   }, {});
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {rejectionPending && (
-        <RejectionModal
-          app={rejectionPending.app}
-          jobTitle={job?.title ?? ""}
-          onConfirm={handleRejectionConfirm}
-          onCancel={() => setRejectionPending(null)}
-        />
-      )}
-      <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-card shrink-0">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="rounded-full" onClick={() => navigate("/recruiter/jobs")}>
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          <div>
-            <h1 className="text-base font-semibold">{job?.title ?? "Applicants"}</h1>
-            <p className="text-xs text-muted-foreground">
-              {job?.company} · {applicants.length} applicant{applicants.length !== 1 ? "s" : ""}
-              {cap !== null && ` · Cap: ${cap}`}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          {cap !== null && (
-            <div className="flex items-center gap-2">
-              <Filter className="w-3.5 h-3.5 text-muted-foreground" />
-              <Label htmlFor="shortlist-toggle" className="text-xs text-muted-foreground cursor-pointer">Top {cap} only</Label>
-              <Switch id="shortlist-toggle" checked={shortlistOnly} onCheckedChange={setShortlistOnly} />
-            </div>
-          )}
-          <div className="flex rounded-full border border-border overflow-hidden">
-            {(["list", "kanban"] as const).map((v) => (
-              <button
-                key={v}
-                onClick={() => setView(v)}
-                className={`px-3 py-1.5 text-xs font-medium transition-colors ${view === v ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-              >
-                {v.charAt(0).toUpperCase() + v.slice(1)}
-              </button>
-            ))}
-          </div>
-        </div>
-      </header>
-
-      <main className="flex-1 overflow-y-auto p-6 space-y-4">
-        {/* Pipeline summary bar */}
-        <div className="flex gap-3 flex-wrap items-center">
-          {PIPELINE_STAGES.map((stage) => (
-            <div key={stage} className="flex items-center gap-1.5 text-sm">
-              <span className="font-semibold">{stageCounts[stage] ?? 0}</span>
-              <span className="text-muted-foreground">{APPLICATION_STATUS_LABELS[stage]}</span>
-            </div>
-          ))}
-          {cap !== null && (
-            <Badge className="ml-auto rounded-full bg-primary/10 text-primary border border-primary/20 text-xs font-medium">
-              Shortlist cap: {cap}
-            </Badge>
-          )}
-        </div>
-
-        {/* Shortlist banner when cap is set */}
-        {cap !== null && applicants.length > 0 && (
-          <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-2.5 flex items-center gap-2.5 text-sm">
-            <Trophy className="w-4 h-4 text-primary shrink-0" />
-            <span className="text-foreground">
-              Showing <strong>{Math.min(cap, applicants.length)}</strong> shortlisted candidates (top by match score)
-              {applicants.length > cap && ` out of ${applicants.length} total`}.
-              Toggle "Top {cap} only" to filter the list.
-            </span>
-          </div>
-        )}
-
-        {loading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => <div key={i} className="h-24 bg-muted/50 rounded-2xl animate-pulse" />)}
-          </div>
-        ) : applicants.length === 0 ? (
-          <EmptyState
-            icon={<Users className="w-5 h-5 text-muted-foreground" />}
-            title="No applicants yet"
-            description="Candidates who apply to this job will appear here."
+    <RecruiterPaywall>
+      <div className="flex flex-col min-h-screen">
+        {rejectionPending && (
+          <RejectionModal
+            app={rejectionPending.app}
+            jobTitle={job?.title ?? ""}
+            onConfirm={handleRejectionConfirm}
+            onCancel={() => setRejectionPending(null)}
           />
-        ) : view === "kanban" ? (
-          <PipelineKanban applicants={displayed} onStatusChange={handleStatusChange} />
-        ) : (
-          <div className="space-y-3">
-            {displayed.map((app, idx) => {
-              const isShortlisted = cap !== null ? idx < cap : null;
-              return (
-                <ApplicantCard
-                  key={app.id}
-                  app={app}
-                  rank={app._rank}
-                  isShortlisted={isShortlisted}
-                  onStatusChange={handleStatusChange}
-                />
-              );
-            })}
-
-            {/* "Below cap" divider when not filtering */}
-            {cap !== null && !shortlistOnly && ranked.length > cap && (
-              <div className="relative py-2">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-dashed border-border" />
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="bg-background px-3 text-xs text-muted-foreground">
-                    {ranked.length - cap} below cap — not in shortlist
-                  </span>
-                </div>
+        )}
+        <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-card shrink-0">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="rounded-full" onClick={() => navigate("/recruiter/jobs")}>
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            <div>
+              <h1 className="text-base font-semibold">{job?.title ?? "Applicants"}</h1>
+              <p className="text-xs text-muted-foreground">
+                {job?.company} · {applicants.length} applicant{applicants.length !== 1 ? "s" : ""}
+                {cap !== null && ` · Cap: ${cap}`}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            {cap !== null && (
+              <div className="flex items-center gap-2">
+                <Filter className="w-3.5 h-3.5 text-muted-foreground" />
+                <Label htmlFor="shortlist-toggle" className="text-xs text-muted-foreground cursor-pointer">Top {cap} only</Label>
+                <Switch id="shortlist-toggle" checked={shortlistOnly} onCheckedChange={setShortlistOnly} />
               </div>
             )}
+            <div className="flex rounded-full border border-border overflow-hidden">
+              {(["list", "kanban"] as const).map((v) => (
+                <button
+                  key={v}
+                  onClick={() => setView(v)}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${view === v ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                >
+                  {v.charAt(0).toUpperCase() + v.slice(1)}
+                </button>
+              ))}
+            </div>
           </div>
-        )}
-      </main>
-    </div>
+        </header>
+
+        <main className="flex-1 overflow-y-auto p-6 space-y-4">
+          {/* Pipeline summary bar */}
+          <div className="flex gap-3 flex-wrap items-center">
+            {PIPELINE_STAGES.map((stage) => (
+              <div key={stage} className="flex items-center gap-1.5 text-sm">
+                <span className="font-semibold">{stageCounts[stage] ?? 0}</span>
+                <span className="text-muted-foreground">{APPLICATION_STATUS_LABELS[stage]}</span>
+              </div>
+            ))}
+            {cap !== null && (
+              <Badge className="ml-auto rounded-full bg-primary/10 text-primary border border-primary/20 text-xs font-medium">
+                Shortlist cap: {cap}
+              </Badge>
+            )}
+          </div>
+
+          {/* Shortlist banner when cap is set */}
+          {cap !== null && applicants.length > 0 && (
+            <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-2.5 flex items-center gap-2.5 text-sm">
+              <Trophy className="w-4 h-4 text-primary shrink-0" />
+              <span className="text-foreground">
+                Showing <strong>{Math.min(cap, applicants.length)}</strong> shortlisted candidates (top by match score)
+                {applicants.length > cap && ` out of ${applicants.length} total`}.
+                Toggle "Top {cap} only" to filter the list.
+              </span>
+            </div>
+          )}
+
+          {loading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => <div key={i} className="h-24 bg-muted/50 rounded-2xl animate-pulse" />)}
+            </div>
+          ) : applicants.length === 0 ? (
+            <EmptyState
+              icon={<Users className="w-5 h-5 text-muted-foreground" />}
+              title="No applicants yet"
+              description="Candidates who apply to this job will appear here."
+            />
+          ) : view === "kanban" ? (
+            <PipelineKanban applicants={displayed} onStatusChange={handleStatusChange} />
+          ) : (
+            <div className="space-y-3">
+              {displayed.map((app, idx) => {
+                const isShortlisted = cap !== null ? idx < cap : null;
+                return (
+                  <ApplicantCard
+                    key={app.id}
+                    app={app}
+                    rank={app._rank}
+                    isShortlisted={isShortlisted}
+                    onStatusChange={handleStatusChange}
+                  />
+                );
+              })}
+
+              {/* "Below cap" divider when not filtering */}
+              {cap !== null && !shortlistOnly && ranked.length > cap && (
+                <div className="relative py-2">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-dashed border-border" />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-background px-3 text-xs text-muted-foreground">
+                      {ranked.length - cap} below cap — not in shortlist
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </main>
+      </div>
+    </RecruiterPaywall>
   );
 };
 
