@@ -1,36 +1,52 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, X, Loader2, Eye, Save, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
-import ProGate from "@/components/ProGate";
-import { useAuth } from "@/hooks/useAuth";
-import { useRecruiterProfile } from "@/hooks/useRecruiter";
-import { useGeo } from "@/hooks/useGeo";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  createJob,
-  RecruiterJobInsert,
-  LOCATION_TYPE_LABELS,
-  EMPLOYMENT_TYPE_LABELS,
-} from "@/lib/recruiter_engine";
-import { classifyInvokeError, getInvokeErrorMessage } from "@/lib/invoke-error";
+import { RecruiterPaywall } from "@/components/recruiter/RecruiterPaywall";
 
 const EXPERIENCE_LEVELS = [
-  { value: "entry",      label: "Entry Level" },
-  { value: "junior",     label: "Junior" },
-  { value: "mid",        label: "Mid-Level" },
-  { value: "senior",     label: "Senior" },
-  { value: "lead",       label: "Lead" },
-  { value: "principal",  label: "Principal" },
-  { value: "executive",  label: "Executive" },
-] as const;
+// ...
+const PostJob = () => {
+  // ...
+  return (
+    <RecruiterPaywall>
+      <div className="flex flex-col min-h-screen">
+        <ProGate.Dialog open={showProGate} onOpenChange={setShowProGate} featureLabel="AI Job Description" />
+        {/* Header */}
+        <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-card shrink-0">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="rounded-full" onClick={() => navigate(-1)}>
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            <div>
+              <h1 className="text-base font-semibold">Post a Job</h1>
+              <p className="text-xs text-muted-foreground">Fill in the details to attract the right candidates</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              className="rounded-full gap-2"
+              onClick={() => handleSave(false)}
+              disabled={saving || publishing}
+            >
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Save Draft
+            </Button>
+            <Button
+              className="rounded-full gap-2 shadow-md-1"
+              onClick={() => handleSave(true)}
+              disabled={saving || publishing}
+            >
+              {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
+              Publish Now
+            </Button>
+          </div>
+        </header>
+
+        {/* ... remaining content ... */}
+      </div>
+    </RecruiterPaywall>
+  );
+};
+
+export default PostJob;
 
 const DEFAULT_FORM: RecruiterJobInsert = {
   title: "",

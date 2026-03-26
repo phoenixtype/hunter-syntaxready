@@ -1,32 +1,43 @@
-import { useState, useEffect, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import {
-  ArrowLeft, Users, Mail, MapPin, Code2, Star, ChevronDown, Loader2, StickyNote, Save,
-  Trophy, Filter, Send, CheckCircle,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { EmptyState } from "@/components/EmptyState";
-import { supabase } from "@/integrations/supabase/client";
-import { useJobApplicants } from "@/hooks/useRecruiter";
-import {
-  getRecruiterJobById,
-  updateRecruiterApplicationStatus,
-  rankApplicants,
-  APPLICATION_STATUS_LABELS,
-  APPLICATION_STATUS_COLORS,
-  type RecruiterJob,
-  type RecruiterApplication,
-  type RecruiterApplicationStatus,
-} from "@/lib/recruiter_engine";
-import { formatDistanceToNow } from "date-fns";
+import { RecruiterPaywall } from "@/components/recruiter/RecruiterPaywall";
 
-type RankedApplication = RecruiterApplication & { _score: number; _rank: number };
+const PIPELINE_STAGES: RecruiterApplicationStatus[] = [
+// ...
+const JobApplicants = () => {
+  // ...
+  return (
+    <RecruiterPaywall>
+      <div className="flex flex-col min-h-screen">
+        {rejectionPending && (
+          <RejectionModal
+            app={rejectionPending.app}
+            jobTitle={job?.title ?? ""}
+            onConfirm={handleRejectionConfirm}
+            onCancel={() => setRejectionPending(null)}
+          />
+        )}
+        <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-card shrink-0">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="rounded-full" onClick={() => navigate("/recruiter/jobs")}>
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            <div>
+              <h1 className="text-base font-semibold">{job?.title ?? "Applicants"}</h1>
+              <p className="text-xs text-muted-foreground">
+                {job?.company} · {applicants.length} applicant{applicants.length !== 1 ? "s" : ""}
+                {cap !== null && ` · Cap: ${cap}`}
+              </p>
+            </div>
+          </div>
+          {/* ... */}
+        </header>
+
+        {/* ... remaining content ... */}
+      </div>
+    </RecruiterPaywall>
+  );
+};
+
+export default JobApplicants;
 
 /** Confirmation modal for rejection — lets recruiter optionally send a personalised rejection email */
 const RejectionModal = ({

@@ -1,16 +1,44 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { useMyJobs } from "@/hooks/useRecruiter";
-import { Loader2, TrendingUp, Users, Briefcase, BarChart3, Send } from "lucide-react";
-import { type RecruiterApplicationStatus, APPLICATION_STATUS_LABELS } from "@/lib/recruiter_engine";
-
-interface FunnelStage {
-  status: RecruiterApplicationStatus;
-  count: number;
-}
+import { RecruiterPaywall } from "@/components/recruiter/RecruiterPaywall";
 
 const FUNNEL_ORDER: RecruiterApplicationStatus[] = ["applied", "screening", "interview", "offer", "accepted"];
+// ...
+const RecruiterAnalytics = () => {
+  // ...
+  return (
+    <RecruiterPaywall>
+      <div className="flex flex-col min-h-screen">
+        <header className="h-14 border-b border-border flex items-center px-6 bg-card shrink-0">
+          <h1 className="text-base font-semibold">Analytics</h1>
+        </header>
+
+        <main className="flex-1 overflow-y-auto p-6 max-w-4xl mx-auto w-full">
+          {loading ? (
+            <div className="flex items-center justify-center py-24 gap-2 text-muted-foreground">
+              <Loader2 className="w-5 h-5 animate-spin" />
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {/* Stats grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                {stats.map(({ label, value, icon: Icon, color }) => (
+                  <div key={label} className="bg-card border border-border rounded-xl p-4">
+                    <div className={`mb-2 ${color}`}><Icon className="w-4.5 h-4.5 w-[18px] h-[18px]" /></div>
+                    <div className="text-2xl font-bold tracking-tight">{value}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* ... remaining content ... */}
+            </div>
+          )}
+        </main>
+      </div>
+    </RecruiterPaywall>
+  );
+};
+
+export default RecruiterAnalytics;
 
 const FUNNEL_COLORS: Record<string, string> = {
   applied: "bg-blue-500",

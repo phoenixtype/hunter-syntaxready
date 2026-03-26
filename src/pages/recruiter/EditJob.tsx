@@ -1,47 +1,77 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, X, Loader2, Eye, Save, Trash2, Sparkles } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
-import ProGate from "@/components/ProGate";
-import {
-  getRecruiterJobById,
-  updateJob,
-  deleteJob,
-  LOCATION_TYPE_LABELS,
-  EMPLOYMENT_TYPE_LABELS,
-  type RecruiterJob,
-  type RecruiterJobInsert,
-} from "@/lib/recruiter_engine";
-import { classifyInvokeError, getInvokeErrorMessage } from "@/lib/invoke-error";
+import { RecruiterPaywall } from "@/components/recruiter/RecruiterPaywall";
 
 const EXPERIENCE_LEVELS = [
-  { value: "entry",      label: "Entry Level" },
-  { value: "junior",     label: "Junior" },
-  { value: "mid",        label: "Mid-Level" },
-  { value: "senior",     label: "Senior" },
-  { value: "lead",       label: "Lead" },
-  { value: "principal",  label: "Principal" },
-  { value: "executive",  label: "Executive" },
-] as const;
+// ...
+const EditJob = () => {
+  // ...
+  if (loadingJob) {
+    return (
+      <RecruiterPaywall>
+        <div className="flex flex-col min-h-screen">
+          <div className="h-14 border-b border-border bg-card" />
+          <div className="flex-1 flex items-center justify-center">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
+        </div>
+      </RecruiterPaywall>
+    );
+  }
+
+  return (
+    <RecruiterPaywall>
+      <div className="flex flex-col min-h-screen">
+        <ProGate.Dialog open={showProGate} onOpenChange={setShowProGate} featureLabel="AI Job Description" />
+        <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-card shrink-0">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="rounded-full" onClick={() => navigate(-1)}>
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            <div>
+              <h1 className="text-base font-semibold">Edit Job</h1>
+              <p className="text-xs text-muted-foreground">{job?.title}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full text-destructive/70 hover:bg-destructive/10 hover:text-destructive" title="Delete job">
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="rounded-2xl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete this listing?</AlertDialogTitle>
+                  <AlertDialogDescription>This will permanently delete <strong>{job?.title}</strong> and remove it from the candidate feed. This cannot be undone.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="rounded-full">Cancel</AlertDialogCancel>
+                  <AlertDialogAction className="rounded-full bg-destructive hover:bg-destructive/90" onClick={handleDelete} disabled={deleting}>
+                    {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Delete"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <Button variant="outline" className="rounded-full gap-2" onClick={() => handleSave()} disabled={saving || publishing}>
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Save
+            </Button>
+            {job?.status !== "active" && (
+              <Button className="rounded-full gap-2 shadow-md-1" onClick={() => handleSave(true)} disabled={saving || publishing}>
+                {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
+                Publish
+              </Button>
+            )}
+          </div>
+        </header>
+
+        {/* ... remaining content ... */}
+      </div>
+    </RecruiterPaywall>
+  );
+};
+
+export default EditJob;
 
 const EditJob = () => {
   const { jobId } = useParams<{ jobId: string }>();

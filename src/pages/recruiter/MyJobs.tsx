@@ -1,42 +1,26 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Plus, Search, Briefcase, Users, Eye, Pencil, Pause, Play, Trash2, Clock, CheckCircle2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
-import { useMyJobs } from "@/hooks/useRecruiter";
-import {
-  updateJob,
-  deleteJob,
-  JOB_STATUS_LABELS,
-  LOCATION_TYPE_LABELS,
-  EMPLOYMENT_TYPE_LABELS,
-  formatSalary,
-  type RecruiterJob,
-  type JobStatus,
-} from "@/lib/recruiter_engine";
-import { formatDistanceToNow } from "date-fns";
+import { RecruiterPaywall } from "@/components/recruiter/RecruiterPaywall";
 
 const STATUS_COLORS: Record<JobStatus, string> = {
-  active:  "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  draft:   "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
-  paused:  "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-  closed:  "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  filled:  "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+// ...
+const MyJobs = () => {
+  // ...
+  return (
+    <RecruiterPaywall>
+      <div className="flex flex-col min-h-screen">
+        <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-card shrink-0">
+          <h1 className="text-base font-semibold">My Job Listings</h1>
+          <Button onClick={() => navigate("/recruiter/post-job")} className="rounded-full shadow-md-1 gap-2">
+            <Plus className="w-4 h-4" /> Post a Job
+          </Button>
+        </header>
+
+        {/* ... remaining content ... */}
+      </div>
+    </RecruiterPaywall>
+  );
 };
+
+export default MyJobs;
 
 const MyJobs = () => {
   const navigate = useNavigate();
