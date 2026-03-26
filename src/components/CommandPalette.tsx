@@ -116,13 +116,18 @@ const CommandPalette = () => {
         key={item.id}
         value={`${item.label} ${item.keywords?.join(" ") ?? ""}`}
         onSelect={() => handleSelect(item)}
+        className="group"
       >
-        <Icon className="mr-2 h-4 w-4 shrink-0 opacity-60" />
-        <div className="flex flex-col">
-          <span>{item.label}</span>
-          {item.description && (
-            <span className="text-xs text-muted-foreground">{item.description}</span>
-          )}
+        <div className="flex items-center gap-4 w-full">
+          <div className="w-9 h-9 rounded-lg bg-primary/5 flex items-center justify-center shrink-0 group-data-[selected=true]:bg-primary/10 transition-colors">
+            <Icon className="h-[18px] w-[18px] text-primary/70 group-data-[selected=true]:text-primary transition-colors" />
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="font-medium text-[13.5px] leading-tight">{item.label}</span>
+            {item.description && (
+              <span className="text-[11.5px] text-muted-foreground/60 mt-0.5 truncate">{item.description}</span>
+            )}
+          </div>
         </div>
       </CommandItem>
     );
@@ -136,8 +141,11 @@ const CommandPalette = () => {
         value={query}
         onValueChange={setQuery}
       />
-      <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
+      <CommandList className="pb-4">
+        <CommandEmpty className="py-12 flex flex-col items-center gap-2">
+          <Search className="w-8 h-8 text-muted-foreground/20" />
+          <p className="text-muted-foreground/50 font-medium">No results found.</p>
+        </CommandEmpty>
 
         {showSmartSections && (
           <>
