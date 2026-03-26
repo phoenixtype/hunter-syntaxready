@@ -149,15 +149,17 @@ const Dashboard = () => {
       let attempts = 0;
       const interval = setInterval(async () => {
         attempts++;
-        await queryClient.refetchQueries({
+        const results = await queryClient.refetchQueries({
           queryKey: ['enhanced-subscription', user?.id]
         });
-        const refreshedSubscription = subscription;
+
+        // Get the latest data from the query cache instead of the stale closure variable
+        const refreshedSubscription = queryClient.getQueryData(['enhanced-subscription', user?.id]) as any;
+        
         if (refreshedSubscription?.tier === 'pro' || attempts > 15) {
           clearInterval(interval);
           if (refreshedSubscription?.tier === 'pro') {
             toast.success("Hunter Pro is now active! 🚀");
-            // Remove the query param without reload
             navigate(location.pathname, { replace: true });
           }
         }

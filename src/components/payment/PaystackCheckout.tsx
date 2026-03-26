@@ -168,48 +168,16 @@ export function PaystackCheckout({
         reference: reference,
         metadata: metadata,
         callback: async function(response: PaystackResponse) {
-          console.log('Payment callback received:', response);
-
           // Paystack inline popup only fires this callback after a successful charge.
           // Server-side verification happens in the paystack-webhook edge function.
 
-          if (!isOverage) {
-            const { error: subError } = await supabase
-              .from('subscriptions')
-              .upsert({
-                user_id: user.id,
-                tier: planName,
-                status: 'active',
-                payment_provider: 'paystack',
-                currency: 'ngn',
-                paystack_reference: response.reference,
-                current_period_start: new Date().toISOString(),
-                current_period_end: getNextPeriodEnd(interval).toISOString(),
-                cancel_at_period_end: false
-              });
-
-            if (subError) {
-              console.error('Failed to create subscription:', subError);
-              onError?.('Payment successful but subscription setup failed');
-              return;
-            }
-          } else {
-            const { error: overageError } = await supabase
-              .from('overage_purchases')
-              .update({ status: 'succeeded' })
-              .eq('stripe_payment_intent_id', reference)
-              .eq('user_id', user.id);
-
-            if (overageError) {
-              console.error('Failed to update overage purchase:', overageError);
-            }
-          }
+          // Trust the paystack-webhook edge function for database updates.
+          // The parent component (Dashboard) will poll for the subscription change.
 
           onSuccess?.(response.reference);
           setLoading(false);
         },
         onClose: function() {
-          console.log('Payment popup closed');
           setLoading(false);
           onClose?.();
         },

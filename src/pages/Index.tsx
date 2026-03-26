@@ -73,9 +73,7 @@ const Index = () => {
     return () => observerRef.current?.disconnect();
   }, []);
 
-  const trustBadges = TRUST_BADGES.map(badge =>
-    badge === 'Secure payments via Stripe' ? getPaymentBadge(isNigeria) : badge
-  );
+  const trustBadges = TRUST_BADGES;
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background text-foreground">

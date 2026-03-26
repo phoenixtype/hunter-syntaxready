@@ -18,7 +18,6 @@ export async function ensureUserProfile(user: User) {
       .maybeSingle();
 
     if (!profile) {
-      console.log('[AUTH_HELPER] Profile missing, creating default profile for:', user.id);
       const { error: insertError } = await supabase
         .from('profiles')
         .insert({
@@ -40,7 +39,6 @@ export async function ensureUserProfile(user: User) {
       .maybeSingle();
 
     if (!prefs) {
-      console.log('[AUTH_HELPER] Preferences missing, creating default preferences for:', user.id);
       const { error: insertError } = await supabase
         .from('user_preferences')
         .insert({

@@ -20,6 +20,11 @@ const REQUIRED_ENV_VARS = {
         description: 'Supabase anonymous key',
         example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
         critical: true
+    },
+    VITE_PAYSTACK_PUBLIC_KEY: {
+        description: 'Paystack public key',
+        example: 'pk_live_xxxxxxxxxxxxxxxxxxxxxxxx',
+        critical: true
     }
 };
 
