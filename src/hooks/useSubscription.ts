@@ -39,12 +39,13 @@ export function useSubscription() {
     queryFn: async () => {
       if (!user?.id) return null;
 
-      const { data, error } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .in('status', ['active', 'trialing'])
-        .single();
+        const { data, error } = await supabase
+          .from('subscriptions')
+          .select('*')
+          .eq('user_id', user.id)
+          .in('status', ['active', 'trialing'])
+          .or(`current_period_end.is.null,current_period_end.gt.${new Date().toISOString()}`)
+          .single();
 
       if (error && error.code !== 'PGRST116') throw error;
       return data as unknown as EnhancedSubscription | null;

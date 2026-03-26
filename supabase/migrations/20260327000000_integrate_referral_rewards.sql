@@ -44,7 +44,8 @@ BEGIN
     INTO user_tier, user_currency, feature_limit
     FROM subscriptions s
     WHERE s.user_id = p_user_id
-    AND s.status IN ('active', 'trialing');
+    AND s.status IN ('active', 'trialing')
+    AND (s.current_period_end IS NULL OR s.current_period_end > NOW());
 
     -- Default to free tier if no subscription found
     IF user_tier IS NULL THEN
