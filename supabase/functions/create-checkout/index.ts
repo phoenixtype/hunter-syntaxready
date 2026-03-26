@@ -52,9 +52,11 @@ serve(async (req) => {
 
     // Parse request body
     let priceId: string | undefined;
+    let returnUrl: string | undefined;
     try {
       const body = await req.json();
       priceId = body?.priceId;
+      returnUrl = body?.returnUrl;
     } catch {
       // Body empty or malformed
     }
@@ -128,10 +130,10 @@ serve(async (req) => {
           'line_items[0][quantity]': '1',
           'success_url': isRecruiterPlan
             ? `${siteUrl}/recruiter?checkout=success`
-            : `${siteUrl}/dashboard?checkout=success`,
+            : `${siteUrl}${returnUrl === '/settings' ? '/settings' : '/dashboard'}?checkout=success`,
           'cancel_url': isRecruiterPlan
             ? `${siteUrl}/recruiter/pricing`
-            : `${siteUrl}/dashboard?checkout=canceled`,
+            : `${siteUrl}${returnUrl === '/settings' ? '/settings' : '/dashboard'}?checkout=canceled`,
           'metadata[supabase_user_id]': user.id,
           'metadata[price_id]': stripePriceId,
         }),

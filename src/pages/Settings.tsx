@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -24,7 +24,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Download, Trash2, Shield, Bell, Moon, Loader2, CreditCard, ExternalLink, User, Settings as SettingsIcon, HelpCircle } from "lucide-react";
+import { Download, Trash2, Shield, Bell, Moon, Loader2, CreditCard, ExternalLink, User, Settings as SettingsIcon, HelpCircle, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import NotificationSettings from "@/components/NotificationSettings";
 import ProfilePanel from "@/components/ProfilePanel";
@@ -76,6 +76,18 @@ const Settings = () => {
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
   const { isNigeria } = useGeo();
   const [showPaystack, setShowPaystack] = useState(false);
+  const [isUpgrading, setIsUpgrading] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('checkout') === 'canceled') {
+      toast.info("Checkout was canceled.");
+      navigate(window.location.pathname, { replace: true });
+    } else if (params.get('checkout') === 'success') {
+      toast.success("Payment successful! Your new plan will be active shortly.");
+      navigate(window.location.pathname, { replace: true });
+    }
+  }, [navigate]);
 
   const handleOpenBillingPortal = async () => {
     setIsOpeningPortal(true);
@@ -285,13 +297,24 @@ const Settings = () => {
                 </Button>
               ) : (
                 <>
-                  <Button onClick={() => {
+                  <Button onClick={async () => {
                     if (isNigeria) {
                       setShowPaystack(true);
                     } else {
-                      upgradeToPro('stripe');
+                      setIsUpgrading(true);
+                      try {
+                        await upgradeToPro('stripe', '/settings');
+                      } catch (err) {
+                        toast.error(err instanceof Error ? err.message : "Failed to start checkout");
+                        setIsUpgrading(false);
+                      }
                     }
-                  }} className="w-full sm:w-auto">
+                  }} disabled={isUpgrading} className="w-full sm:w-auto">
+                    {isUpgrading ? (
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    ) : (
+                      <Zap className="w-4 h-4 mr-2" />
+                    )}
                     Upgrade to Pro
                   </Button>
                   {showPaystack && (

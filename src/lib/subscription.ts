@@ -77,7 +77,7 @@ export const checkAccess = (feature: Feature, subscription?: UserSubscription | 
     return subscription.features.includes(feature);
 };
 
-export const upgradeToPro = async (paymentProvider: 'stripe' | 'paystack' = 'stripe'): Promise<{ provider: 'stripe' | 'paystack' }> => {
+export const upgradeToPro = async (paymentProvider: 'stripe' | 'paystack' = 'stripe', returnUrl?: string): Promise<{ provider: 'stripe' | 'paystack' }> => {
     if (paymentProvider === 'paystack') {
         return { provider: 'paystack' };
     }
@@ -86,7 +86,7 @@ export const upgradeToPro = async (paymentProvider: 'stripe' | 'paystack' = 'str
     if (!session) throw new Error("Not authenticated");
 
     const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: {},
+        body: returnUrl ? { returnUrl } : {},
         headers: { Authorization: `Bearer ${session.access_token}` }
     });
 
