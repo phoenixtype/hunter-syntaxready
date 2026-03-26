@@ -35,8 +35,8 @@ export default function JobCardActions({
   return (
     <div className="flex items-center gap-2 mt-4 flex-wrap">
       <a
-        href={isApplying ? undefined : (isPro && isApplied ? (jobUrl || "#") : undefined)}
-        target={isPro && isApplied && jobUrl ? "_blank" : undefined}
+        href={jobUrl || "#"}
+        target="_blank"
         rel="noopener noreferrer"
         className="w-full sm:w-auto"
         onClick={(e) => {
@@ -44,12 +44,9 @@ export default function JobCardActions({
             e.preventDefault();
             return;
           }
-          if (isPro && isApplied) {
-            // Allow navigation to the link
-            return;
+          if (isPro && !isApplied) {
+            onApply();
           }
-          e.preventDefault();
-          onApply();
         }}
       >
         <Button

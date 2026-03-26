@@ -181,18 +181,16 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
       return;
     }
 
-    toast.info(`Applying to ${job.company}...`);
-    await recordFeedback({ jobId: job.id, action: 'APPLY', timestamp: Date.now(), jobMetadata: { skills: job.tech_stack || [], company: job.company, source: job.source } });
+    toast.info(`Recording application...`);
+    
+    // Fire it in the background if we're not waiting for a specific simulation
+    simulateApplication(job, (state) => {
+      if (state.status === 'applied') {
+        toast.success(`Recorded application!`);
+        setAppliedJobIds(prev => new Set(prev).add(job.id));
+      }
+    }, user?.id, true);
 
-    try {
-      await simulateApplication(job, (state) => {
-        setActiveApplication(state);
-        if (state.status === 'applied') {
-          toast.success(`Applied to ${job.company}!`);
-          setAppliedJobIds(prev => new Set(prev).add(job.id));
-          setTimeout(() => setActiveApplication(null), 3000);
-        }
-      }, user?.id, true);
 
       // Record usage after successful application
       await recordUsage({ featureName: 'job_applications' });
