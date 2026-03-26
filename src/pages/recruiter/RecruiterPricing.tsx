@@ -30,7 +30,7 @@ const PLANS: Plan[] = [
     priceId: STARTER_PRICE_ID,
     name: 'Starter',
     price: 79,
-    description: 'Everything you need to start hiring on Hunter.',
+    description: 'Everything you need to start hiring on hunter.ai.',
     icon: Building2,
     features: [
       '3 active job posts',

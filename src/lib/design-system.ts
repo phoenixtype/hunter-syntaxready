@@ -1,5 +1,5 @@
 /**
- * Hunter AI Design System
+ * hunter.ai Design System
  * Consistent design tokens for spacing, typography, colors, and touch targets
  */
 

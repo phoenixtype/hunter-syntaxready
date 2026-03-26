@@ -12,7 +12,7 @@ const Privacy = () => {
     <div className="min-h-screen bg-background text-foreground bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
       <SEOHead 
         title="Privacy Policy" 
-        description="How Hunter AI collects, uses, and protects your personal data. GDPR and CCPA compliant." 
+        description="How hunter.ai collects, uses, and protects your personal data. GDPR and CCPA compliant." 
         path="/privacy" 
       />
       <div className="container max-w-4xl mx-auto px-6 py-16">
@@ -202,7 +202,7 @@ const Privacy = () => {
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold">7. Children's Privacy</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Hunter AI is not intended for users under 16 years of age. We do not knowingly collect personal 
+              hunter.ai is not intended for users under 16 years of age. We do not knowingly collect personal 
               information from children. If you believe we have collected data from a minor, please contact us 
               immediately and we will delete the information.
             </p>

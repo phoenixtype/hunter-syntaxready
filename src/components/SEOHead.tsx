@@ -7,7 +7,7 @@ interface SEOHeadProps {
   noIndex?: boolean;
 }
 
-const SITE_NAME = "Hunter AI";
+const SITE_NAME = "hunter.ai";
 const BASE_URL = "https://usehunter.app";
 
 const SEOHead = ({

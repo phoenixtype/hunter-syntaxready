@@ -4,10 +4,10 @@ import { HelpCircle } from "lucide-react";
 import type { Step } from "react-joyride";
 
 const RESUME_TOUR_STEPS: Step[] = [
-  { target: "body", title: "Resume Builder", content: "Build your profile step-by-step. Hunter uses it to match jobs and tailor your resume automatically.", placement: "center", disableBeacon: true },
-  { target: '[data-tour="resume-upload"]', title: "Upload your resume", content: "Upload an existing resume and Hunter will parse it to pre-fill your profile.", disableBeacon: true },
+  { target: "body", title: "Resume Builder", content: "Build your profile step-by-step. hunter.ai uses it to match jobs and tailor your resume automatically.", placement: "center", disableBeacon: true },
+  { target: '[data-tour="resume-upload"]', title: "Upload your resume", content: "Upload an existing resume and hunter.ai will parse it to pre-fill your profile.", disableBeacon: true },
   { target: '[data-tour="resume-sections"]', title: "Edit your profile", content: "Step through each section — identity, experience, education, and skills — to complete your profile." },
-  { target: '[data-tour="resume-export"]', title: "Export your resume", content: "Download an ATS-clean PDF or DOCX at any time. Hunter keeps it up to date as you edit." },
+  { target: '[data-tour="resume-export"]', title: "Export your resume", content: "Download an ATS-clean PDF or DOCX at any time. hunter.ai keeps it up to date as you edit." },
 ];
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -303,8 +303,8 @@ const ResumeBuilder = () => {
 
   const handleShare = async () => {
     try {
-      await navigator.clipboard.writeText(`Check out Hunter AI — the autonomous job search agent! ${window.location.origin}`);
-      toast.success("Link copied!", { description: "Share Hunter with your network." });
+      await navigator.clipboard.writeText(`Check out hunter.ai — the autonomous job search agent! ${window.location.origin}`);
+      toast.success("Link copied!", { description: "Share hunter.ai with your network." });
     } catch {
       toast.error("Failed to copy link");
     }

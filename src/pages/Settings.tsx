@@ -267,7 +267,7 @@ const Settings = () => {
                 <Label className="text-base font-medium">Current Plan</Label>
                 <div className="flex items-center gap-2 mt-1">
                   <Badge variant={isPro ? "default" : "secondary"} className="text-xs">
-                    {isPro ? "Hunter Pro" : "Free"}
+                    {isPro ? "hunter.ai Pro" : "Free"}
                   </Badge>
                   {subscription?.cancel_at_period_end && subscription.current_period_end && (
                     <span className="text-xs text-warning font-medium">

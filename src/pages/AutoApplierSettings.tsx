@@ -255,7 +255,7 @@ const JobHuntPlanner = () => {
             Job Hunt <span className="text-primary">Planner</span>
           </h1>
           <p className="text-muted-foreground max-w-xl mx-auto text-sm sm:text-base">
-            Set your preferences once. Hunter uses them to surface the most relevant jobs in your feed and tailor your applications.
+            Set your preferences once. hunter.ai uses them to surface the most relevant jobs in your feed and tailor your applications.
           </p>
         </div>
 
@@ -326,7 +326,7 @@ const JobHuntPlanner = () => {
                   <div className="space-y-6 animate-fade-in">
                     <div>
                       <h2 className="text-xl font-semibold mb-0.5">Job Preferences</h2>
-                      <p className="text-sm text-muted-foreground">What kinds of roles should Hunter surface for you?</p>
+                      <p className="text-sm text-muted-foreground">What kinds of roles should hunter.ai surface for you?</p>
                     </div>
                     <div className="space-y-4">
                       <div className="space-y-2">
@@ -365,7 +365,7 @@ const JobHuntPlanner = () => {
                           className="border-destructive/20 focus-within:ring-destructive/40"
                           tagClassName="border-destructive/20 bg-destructive/5 text-destructive"
                         />
-                        <p className="text-xs text-muted-foreground">Hunter will deprioritize these companies in your feed.</p>
+                        <p className="text-xs text-muted-foreground">hunter.ai will deprioritize these companies in your feed.</p>
                       </div>
                     </div>
                   </div>
@@ -410,7 +410,7 @@ const JobHuntPlanner = () => {
                   <div className="space-y-6 animate-fade-in">
                     <div>
                       <h2 className="text-xl font-semibold mb-0.5">Search Settings</h2>
-                      <p className="text-sm text-muted-foreground">Control how broadly Hunter searches for job matches.</p>
+                      <p className="text-sm text-muted-foreground">Control how broadly hunter.ai searches for job matches.</p>
                     </div>
                     <div className="space-y-5">
                       <div className="space-y-4">
@@ -426,7 +426,7 @@ const JobHuntPlanner = () => {
                           step={1}
                         />
                         <p className="text-sm text-muted-foreground">{INTENSITY_LABELS[intensity[0]]}</p>
-                        <p className="text-xs text-muted-foreground/70">Higher intensity means Hunter searches across more query variations and surfaces a broader range of matching roles.</p>
+                        <p className="text-xs text-muted-foreground/70">Higher intensity means hunter.ai searches across more query variations and surfaces a broader range of matching roles.</p>
                       </div>
 
                       <div className="flex items-center justify-between p-4 rounded-md border border-border bg-muted/30">
@@ -446,7 +446,7 @@ const JobHuntPlanner = () => {
                               Auto-Apply (Autopilot)
                             </Label>
                             <p className="text-xs text-muted-foreground mt-0.5">
-                              When a recruiter posts a job that matches your profile above the score threshold, Hunter automatically submits your application.
+                              When a recruiter posts a job that matches your profile above the score threshold, hunter.ai automatically submits your application.
                             </p>
                           </div>
                           <Switch checked={autoApplyEnabled} onCheckedChange={(checked) => {

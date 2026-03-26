@@ -12,7 +12,7 @@ const Terms = () => {
     <div className="min-h-screen bg-background text-foreground bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
       <SEOHead 
         title="Terms of Service" 
-        description="Terms and conditions for using the Hunter AI job search automation platform." 
+        description="Terms and conditions for using the hunter.ai job search automation platform." 
         path="/terms" 
       />
       <div className="container max-w-4xl mx-auto px-6 py-16">
@@ -58,13 +58,13 @@ const Terms = () => {
             </h2>
             <div className="text-muted-foreground leading-relaxed space-y-4">
               <p>
-                By accessing or using Hunter AI ("Service," "Platform," "we," "us," or "our"), you agree to be bound 
+                By accessing or using hunter.ai ("Service," "Platform," "we," "us," or "our"), you agree to be bound 
                 by these Terms of Service ("Terms"). If you do not agree to these Terms, you must not access or use 
                 the Service.
               </p>
               <p>
                 These Terms constitute a legally binding agreement between you ("User," "you," or "your") and 
-                Hunter AI Inc. regarding your use of our job search automation platform.
+                hunter.ai Inc. regarding your use of our job search automation platform.
               </p>
               <p>
                 You must be at least 16 years old to use this Service. By using the Service, you represent that you 
@@ -76,7 +76,7 @@ const Terms = () => {
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold">2. Description of Service</h2>
             <div className="text-muted-foreground leading-relaxed space-y-4">
-              <p>Hunter AI provides an AI-powered job search and application automation platform that includes:</p>
+              <p>hunter.ai provides an AI-powered job search and application automation platform that includes:</p>
               <ul className="list-disc pl-6 space-y-2">
                 <li><strong>Resume Parsing & Storage:</strong> Upload and securely store your resume data</li>
                 <li><strong>Job Discovery:</strong> AI-powered matching with relevant job opportunities</li>
@@ -121,7 +121,7 @@ const Terms = () => {
               <Card className="border-amber-500/30 bg-amber-500/5">
                 <CardContent className="p-4">
                   <p className="text-sm font-medium text-foreground">
-                    IMPORTANT: By enabling automated applications, you expressly authorize Hunter AI to submit job 
+                    IMPORTANT: By enabling automated applications, you expressly authorize hunter.ai to submit job 
                     applications on your behalf using the information you provide.
                   </p>
                 </CardContent>
@@ -183,7 +183,7 @@ const Terms = () => {
               <h3 className="text-xl font-medium text-foreground">6.2 Our Content</h3>
               <p>
                 The Service, including its design, features, AI models, and all related intellectual property, 
-                is owned by Hunter AI Inc. You may not copy, modify, distribute, or reverse engineer any part 
+                is owned by hunter.ai Inc. You may not copy, modify, distribute, or reverse engineer any part 
                 of the Service.
               </p>
 
@@ -263,7 +263,7 @@ const Terms = () => {
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold">9. Indemnification</h2>
             <p className="text-muted-foreground leading-relaxed">
-              You agree to indemnify and hold harmless Hunter AI, its officers, directors, employees, and 
+              You agree to indemnify and hold harmless hunter.ai, its officers, directors, employees, and 
               agents from any claims, damages, losses, or expenses arising from your use of the Service, 
               your violation of these Terms, or your violation of any rights of a third party.
             </p>

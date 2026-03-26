@@ -159,7 +159,7 @@ const Dashboard = () => {
         if (refreshedSubscription?.tier === 'pro' || attempts > 15) {
           clearInterval(interval);
           if (refreshedSubscription?.tier === 'pro') {
-            toast.success("Hunter Pro is now active! 🚀");
+            toast.success("hunter.ai Pro is now active! 🚀");
             navigate(location.pathname, { replace: true });
           }
         }

@@ -1,5 +1,5 @@
 /**
- * Dexter — Hunter's floating AI assistant.
+ * Dexter — hunter.ai's floating AI assistant.
  * Available on all authenticated pages. Provides contextual help,
  * career coaching, resume tips, and negotiation guidance.
  */
@@ -34,7 +34,7 @@ const DEFAULT_PROMPTS = [
   "How do I improve my resume?",
 ];
 
-const SYSTEM_PROMPT = `You are Dexter, Hunter's friendly and expert AI career assistant. You help job seekers with:
+const SYSTEM_PROMPT = `You are Dexter, hunter.ai's friendly and expert AI career assistant. You help job seekers with:
 - Resume writing and ATS optimisation
 - Interview preparation (behavioural, technical, negotiation)
 - Job search strategy and prioritisation
@@ -44,7 +44,7 @@ const SYSTEM_PROMPT = `You are Dexter, Hunter's friendly and expert AI career as
 You are warm, concise, and practical. You give specific, actionable advice — not generic tips.
 You use markdown for structure when helpful (bullet points, **bold** for emphasis).
 Keep responses under 200 words unless the user explicitly asks for more depth.
-If the user seems to be looking for a specific Hunter feature, mention it: e.g. "You can use the Interview Coach for a full mock interview."`;
+If the user seems to be looking for a specific hunter.ai feature, mention it: e.g. "You can use the Interview Coach for a full mock interview."`;
 
 const DexterAssistant = () => {
   const { user } = useAuth();
@@ -159,7 +159,7 @@ const DexterAssistant = () => {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold leading-tight">Dexter</p>
-            <p className="text-[11px] text-muted-foreground">Hunter's AI career coach</p>
+            <p className="text-[11px] text-muted-foreground">hunter.ai's AI career coach</p>
           </div>
           <button
             onClick={() => setOpen(false)}

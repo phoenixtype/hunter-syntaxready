@@ -127,7 +127,7 @@ const ApplicationWizard = () => {
             />
             <div className="container max-w-4xl mx-auto px-4 sm:px-6 pt-8 pb-6 animate-fade-in-up">
               <h1 className="text-2xl font-bold tracking-tight">Targeted Application Wizard</h1>
-              <p className="text-muted-foreground text-sm mt-1">Paste a job link — Hunter scrapes the posting, tailors your resume, and writes your cover letter.</p>
+              <p className="text-muted-foreground text-sm mt-1">Paste a job link — hunter.ai scrapes the posting, tailors your resume, and writes your cover letter.</p>
             </div>
 
             <main className="container max-w-4xl mx-auto px-4 sm:px-6 space-y-8 pb-12 animate-fade-in-up">
@@ -150,7 +150,7 @@ const ApplicationWizard = () => {
                                             Analyze with AI
                                         </Button>
                                     </div>
-                                    <p className="text-sm text-muted-foreground">Hunter scrapes the job page and uses AI to extract skills, keywords, and compensation data to tailor your application.</p>
+                                    <p className="text-sm text-muted-foreground">hunter.ai scrapes the job page and uses AI to extract skills, keywords, and compensation data to tailor your application.</p>
                                 </div>
                             </form>
                         </CardContent>

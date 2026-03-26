@@ -58,7 +58,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-background bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
-      <SEOHead title="Sign In" description="Sign in to your Hunter AI account to manage your job search." path="/login" />
+      <SEOHead title="Sign In" description="Sign in to your hunter.ai account to manage your job search." path="/login" />
       <div className="w-full max-w-md animate-fade-in-up">
         <Link
           to="/"
@@ -71,7 +71,7 @@ const Login = () => {
         <div className="bg-card border border-border shadow-card rounded-md p-6 sm:p-8 space-y-6">
           <div className="space-y-1.5 text-center">
             <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
-            <p className="text-muted-foreground text-sm">Sign in to continue to Hunter</p>
+            <p className="text-muted-foreground text-sm">Sign in to continue to hunter.ai</p>
           </div>
 
           <form className="space-y-4" onSubmit={handleSubmit}>

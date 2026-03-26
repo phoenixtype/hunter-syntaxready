@@ -13,7 +13,7 @@ import { toast } from "sonner";
 const COMPANY_SIZES = ["1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"];
 
 const BENEFITS = [
-  { icon: Target, title: "AI-matched candidates", desc: "Hunter scores every candidate against your role automatically — you only see strong matches." },
+  { icon: Target, title: "AI-matched candidates", desc: "hunter.ai scores every candidate against your role automatically — you only see strong matches." },
   { icon: Users, title: "Active job seekers", desc: "Our candidates are actively job hunting and opted-in — far higher response rates than passive sourcing." },
   { icon: Zap, title: "Auto-apply pipeline", desc: "Qualified candidates can auto-apply to your roles, filling your pipeline 24/7 without manual outreach." },
   { icon: BrainCircuit, title: "Vetted profiles", desc: "Every candidate profile is AI-parsed and structured — skills, experience, and match score surfaced instantly." },
@@ -75,7 +75,7 @@ const RecruiterPortal = () => {
     <>
       <SEOHead
         title="Recruiter Portal"
-        description="Apply to join Hunter as a recruiter and get access to AI-matched, active job seekers."
+        description="Apply to join hunter.ai as a recruiter and get access to AI-matched, active job seekers."
         path="/recruiter-portal"
       />
 
@@ -87,7 +87,7 @@ const RecruiterPortal = () => {
               <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-sm">H</span>
               </div>
-              <span className="font-bold text-base tracking-tight">Hunter</span>
+              <span className="font-bold text-base tracking-tight">hunter.ai</span>
               <span className="text-xs text-muted-foreground border border-border rounded-full px-2 py-0.5">For Recruiters</span>
             </Link>
             <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -143,7 +143,7 @@ const RecruiterPortal = () => {
                     <span className="text-primary">AI-matched talent</span>
                   </h1>
                   <p className="text-muted-foreground text-lg leading-relaxed">
-                    Hunter's AI surfaces the best-fit candidates for every role automatically.
+                    hunter.ai's AI surfaces the best-fit candidates for every role automatically.
                     No resume sifting, no cold outreach — just matched, motivated candidates.
                   </p>
                 </div>
@@ -164,7 +164,7 @@ const RecruiterPortal = () => {
 
                 <div className="bg-muted/40 border border-border rounded-xl p-5">
                   <p className="text-sm text-muted-foreground italic leading-relaxed">
-                    "We filled our senior engineering role in 4 days with Hunter. Every candidate was genuinely qualified — no noise."
+                    "We filled our senior engineering role in 4 days with hunter.ai. Every candidate was genuinely qualified — no noise."
                   </p>
                   <p className="text-xs font-semibold mt-3">— Engineering Manager, Series B startup</p>
                 </div>
@@ -173,7 +173,7 @@ const RecruiterPortal = () => {
               {/* Right — application form */}
               <div className="bg-card border border-border rounded-2xl p-8 shadow-card">
                 <div className="mb-6">
-                  <h2 className="text-xl font-bold tracking-tight">Apply to join Hunter</h2>
+                  <h2 className="text-xl font-bold tracking-tight">Apply to join hunter.ai</h2>
                   <p className="text-sm text-muted-foreground mt-1">We'll review your application within 2 business days.</p>
                 </div>
 
@@ -221,7 +221,7 @@ const RecruiterPortal = () => {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="useCase">How do you plan to use Hunter? <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                    <Label htmlFor="useCase">How do you plan to use hunter.ai? <span className="text-muted-foreground font-normal">(optional)</span></Label>
                     <Textarea
                       id="useCase"
                       value={form.useCase}

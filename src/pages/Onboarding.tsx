@@ -425,7 +425,7 @@ const Onboarding = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-start sm:justify-center py-8 px-4">
-      <SEOHead title="Onboarding" description="Set up your Hunter AI profile and job search preferences." path="/onboarding" noIndex />
+      <SEOHead title="Onboarding" description="Set up your hunter.ai profile and job search preferences." path="/onboarding" noIndex />
       <div className="w-full max-w-[580px]">
 
         {/* Logo mark */}
@@ -433,7 +433,7 @@ const Onboarding = () => {
           <div className="h-7 w-7 rounded-md bg-muted flex items-center justify-center">
             <Sparkles className="w-3.5 h-3.5 text-primary" />
           </div>
-          <span className="font-bold text-sm tracking-wide text-foreground/70">Hunter</span>
+          <span className="font-bold text-sm tracking-wide text-foreground/70">hunter.ai</span>
         </div>
 
         {/* ── Card ─────────────────────────────────────────────────────── */}
@@ -480,7 +480,7 @@ const Onboarding = () => {
                   </div>
                   <h1 className="text-2xl font-bold tracking-tight">Let's build your profile</h1>
                   <p className="text-muted-foreground max-w-xs mx-auto text-sm leading-relaxed">
-                    7 quick steps — Hunter uses your profile to find, match, and auto-apply to jobs for you.
+                    7 quick steps — hunter.ai uses your profile to find, match, and auto-apply to jobs for you.
                   </p>
                 </div>
 
@@ -521,7 +521,7 @@ const Onboarding = () => {
                 <div className="mb-6">
                   <p className="text-[11px] font-semibold text-primary uppercase tracking-widest mb-1">Job status</p>
                   <h2 className="text-xl font-bold">Are you looking for a new job?</h2>
-                  <p className="text-sm text-muted-foreground mt-1">This helps Hunter tune your experience.</p>
+                  <p className="text-sm text-muted-foreground mt-1">This helps hunter.ai tune your experience.</p>
                 </div>
                 <div className="space-y-3 mb-4">
                   {[

@@ -120,7 +120,7 @@ const AppSidebar = () => {
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-md-1">
               <span className="text-primary-foreground font-bold text-sm leading-none">H</span>
             </div>
-            <span className="text-base font-bold tracking-tight">Hunter</span>
+            <span className="text-base font-bold tracking-tight">hunter.ai</span>
           </Link>
         )}
         {!collapsed && (

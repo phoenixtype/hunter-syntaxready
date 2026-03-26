@@ -24,7 +24,7 @@ import { getPaymentBadge } from '@/lib/pricing';
 const FEATURES = [
   { icon: Briefcase, title: "Smart Job Discovery", desc: "Searches real job boards in real time to surface roles matched to your skills, target titles, and location." },
   { icon: FileText, title: "AI Resume Builder", desc: "Build a polished, ATS-optimised resume through a guided flow. AI generates professional copy from your experience." },
-  { icon: Zap, title: "One-Click Tailoring", desc: "Hunter rewrites your resume bullets and writes a cover letter matched to any specific job in seconds." },
+  { icon: Zap, title: "One-Click Tailoring", desc: "hunter.ai rewrites your resume bullets and writes a cover letter matched to any specific job in seconds." },
   { icon: Shield, title: "ATS Compatibility Check", desc: "Scores your resume against applicant tracking systems before you apply, so you know it will actually be read." },
   { icon: Users, title: "Hiring Team Intel", desc: "Find recruiters and hiring managers at target companies with direct LinkedIn search links for every role." },
   { icon: Star, title: "Interview Coach", desc: "Practice behavioral, technical, and salary negotiation scenarios with an AI coach tailored to your target role." },
@@ -88,11 +88,11 @@ const Index = () => {
       >
         <div className="container max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           {/* Logo — MD3 brand mark */}
-          <Link to="/" className="flex items-center gap-2.5" aria-label="Hunter AI Home">
+          <Link to="/" className="flex items-center gap-2.5" aria-label="hunter.ai Home">
             <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center shadow-md-1">
               <span className="text-primary-foreground font-bold text-base leading-none">H</span>
             </div>
-            <span className="text-lg font-medium tracking-tight text-foreground">Hunter</span>
+            <span className="text-lg font-medium tracking-tight text-foreground">hunter.ai</span>
           </Link>
 
           {/* Desktop nav */}
@@ -157,7 +157,7 @@ const Index = () => {
 
             {/* MD3 Body Large */}
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-10 animate-fade-in-up [animation-delay:200ms] opacity-0 [animation-fill-mode:forwards]">
-              Stop scrolling and start winning. Hunter sharpens your skills through AI coaching while effortlessly discovering, ranking, and tailoring your path to the perfect role.
+              Stop scrolling and start winning. hunter.ai sharpens your skills through AI coaching while effortlessly discovering, ranking, and tailoring your path to the perfect role.
             </p>
 
             {/* Floating Mock UI element (hidden on small mobile) */}
@@ -252,7 +252,7 @@ const Index = () => {
                 Everything you need to land your next role
               </h2>
               <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-                Hunter handles the tedious parts of job searching so you can focus on what matters — your career.
+                hunter.ai handles the tedious parts of job searching so you can focus on what matters — your career.
               </p>
             </div>
 
@@ -279,9 +279,9 @@ const Index = () => {
         <section className="py-24 bg-background border-t border-border reveal">
           <div className="container max-w-6xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-14">
-              <p className="text-xs font-medium text-primary uppercase tracking-widest mb-3">Why Hunter</p>
-              <h2 className="text-3xl sm:text-4xl font-normal tracking-tight mb-4">
-                How Hunter compares
+              <p className="text-xs font-medium text-primary uppercase tracking-widest mb-3">Why hunter.ai</p>
+              <h2 className="text-2xl font-bold tracking-tight mb-4">
+                How hunter.ai compares
               </h2>
               <p className="text-base text-muted-foreground">
                 See why candidates switch from manual job searching.
@@ -302,7 +302,7 @@ const Index = () => {
                           <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center shadow-md-1">
                             <span className="text-primary-foreground font-bold text-[10px]">H</span>
                           </div>
-                          <span className="font-semibold text-primary">Hunter</span>
+                          <span className="font-semibold text-primary">hunter.ai</span>
                         </div>
                       </th>
                       <th className="text-left py-4 px-5 text-xs font-medium text-muted-foreground uppercase tracking-wider w-1/4">
@@ -350,8 +350,8 @@ const Index = () => {
               <div className="hidden md:block absolute top-6 left-[calc(16.67%+1.5rem)] right-[calc(16.67%+1.5rem)] h-px bg-border" aria-hidden="true" />
 
               {[
-                { step: "1", title: "Build your profile", desc: "Walk through a guided flow to enter your experience, skills, and education. Hunter generates a polished, ATS-ready resume." },
-                { step: "2", title: "Find matching roles", desc: "Tell Hunter what roles you want and where. It searches live job boards and ranks matches by fit in real time." },
+                { step: "1", title: "Build your profile", desc: "Walk through a guided flow to enter your experience, skills, and education. hunter.ai generates a polished, ATS-ready resume." },
+                { step: "2", title: "Find matching roles", desc: "Tell hunter.ai what roles you want and where. It searches live job boards and ranks matches by fit in real time." },
                 { step: "3", title: "Apply with confidence", desc: "Tailor any application in seconds, prep with an AI interview coach, and track every application in one place." },
               ].map((item) => (
                 <div key={item.step} className="flex flex-col items-center text-center md:items-start md:text-left relative">
