@@ -1,39 +1,32 @@
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Search, SlidersHorizontal, Users, Star, MapPin, Briefcase, Mail, Loader2, X, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
+import {
+  searchCandidates,
+  type TalentCandidate,
+  type TalentSearchFilters,
+} from "@/lib/recruiter_engine";
+import { useMyJobs } from "@/hooks/useRecruiter";
+import CandidateProfileDrawer from "@/components/recruiter/CandidateProfileDrawer";
+import OutreachModal from "@/components/recruiter/OutreachModal";
 import { RecruiterPaywall } from "@/components/recruiter/RecruiterPaywall";
 
 const MatchBadge = ({ score }: { score?: number }) => {
-// ...
-const CandidateTalentSearch = () => {
-  // ...
+  if (score === undefined) return null;
+  const color =
+    score >= 80 ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" :
+    score >= 60 ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" :
+    "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
   return (
-    <RecruiterPaywall>
-      <div className="flex flex-col min-h-screen">
-        {/* Page header */}
-        <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-card shrink-0">
-          <div>
-            <h1 className="text-base font-semibold">Talent Search</h1>
-            <p className="text-xs text-muted-foreground">
-              {loading ? "Loading…" : `${total} active candidate${total !== 1 ? "s" : ""} available`}
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1.5 h-8 text-xs rounded-full"
-            onClick={() => setShowFilters(v => !v)}
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            Filters
-            {hasFilters && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
-          </Button>
-        </header>
-
-        {/* ... remaining content ... */}
-      </div>
-    </RecruiterPaywall>
+    <span className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full ${color}`}>
+      <Star className="w-3 h-3" />{score}%
+    </span>
   );
 };
-
-export default CandidateTalentSearch;
 
 const CandidateCard = ({
   candidate,
@@ -180,205 +173,207 @@ const CandidateTalentSearch = () => {
   const hasFilters = searchText || remotePolicy !== "__all__" || selectedJobId !== "__none__";
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Page header */}
-      <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-card shrink-0">
-        <div>
-          <h1 className="text-base font-semibold">Talent Search</h1>
-          <p className="text-xs text-muted-foreground">
-            {loading ? "Loading…" : `${total} active candidate${total !== 1 ? "s" : ""} available`}
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-1.5 h-8 text-xs rounded-full"
-          onClick={() => setShowFilters(v => !v)}
-        >
-          <SlidersHorizontal className="w-3.5 h-3.5" />
-          Filters
-          {hasFilters && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
-        </Button>
-      </header>
-
-      {/* Filters panel */}
-      {showFilters && (
-        <div className="border-b border-border bg-muted/30 px-6 py-4">
-          <div className="flex flex-wrap gap-3 items-end">
-            {/* Skill / name search */}
-            <div className="flex-1 min-w-[200px]">
-              <label className="text-xs text-muted-foreground mb-1 block">Search by skill</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
-                <Input
-                  value={searchText}
-                  onChange={e => setSearchText(e.target.value)}
-                  placeholder="e.g. React, TypeScript, Python…"
-                  className="pl-8 h-9 text-sm"
-                />
-              </div>
-            </div>
-
-            {/* Remote policy */}
-            <div className="min-w-[160px]">
-              <label className="text-xs text-muted-foreground mb-1 block">Work style</label>
-              <Select value={remotePolicy} onValueChange={setRemotePolicy}>
-                <SelectTrigger className="h-9 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {REMOTE_OPTIONS.map(o => (
-                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Match against job */}
-            <div className="min-w-[200px]">
-              <label className="text-xs text-muted-foreground mb-1 block">Match against job</label>
-              <Select value={selectedJobId} onValueChange={setSelectedJobId}>
-                <SelectTrigger className="h-9 text-sm">
-                  <SelectValue placeholder="No job selected" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none__">No job selected</SelectItem>
-                  {activeJobs.map(j => (
-                    <SelectItem key={j.id} value={j.id}>{j.title}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {hasFilters && (
-              <Button variant="ghost" size="sm" className="h-9 gap-1 text-xs text-muted-foreground rounded-full" onClick={clearSearch}>
-                <X className="w-3.5 h-3.5" /> Clear
-              </Button>
-            )}
-          </div>
-
-          {selectedJobId !== "__none__" && (
-            <p className="text-xs text-primary mt-2 flex items-center gap-1">
-              <Star className="w-3 h-3" />
-              Match scores shown — candidates ranked by fit for{" "}
-              <strong>{activeJobs.find(j => j.id === selectedJobId)?.title ?? "selected job"}</strong>
+    <RecruiterPaywall>
+      <div className="flex flex-col min-h-screen">
+        {/* Page header */}
+        <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-card shrink-0">
+          <div>
+            <h1 className="text-base font-semibold">Talent Search</h1>
+            <p className="text-xs text-muted-foreground">
+              {loading ? "Loading…" : `${total} active candidate${total !== 1 ? "s" : ""} available`}
             </p>
-          )}
-        </div>
-      )}
-
-      {/* Default search bar (when filters panel hidden) */}
-      {!showFilters && (
-        <div className="border-b border-border px-6 py-3 bg-background">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-            <Input
-              value={searchText}
-              onChange={e => setSearchText(e.target.value)}
-              placeholder="Search by skill, e.g. React, Python, AWS…"
-              className="pl-9 h-9 text-sm"
-            />
-            {searchText && (
-              <button onClick={() => setSearchText("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-muted-foreground hover:text-foreground">
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
           </div>
-        </div>
-      )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 h-8 text-xs rounded-full"
+            onClick={() => setShowFilters(v => !v)}
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            Filters
+            {hasFilters && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+          </Button>
+        </header>
 
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto p-6">
-        {loading ? (
-          <div className="flex items-center justify-center py-24 gap-2 text-muted-foreground">
-            <Loader2 className="w-5 h-5 animate-spin" />
-            <span className="text-sm">Finding candidates…</span>
-          </div>
-        ) : candidates.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
-            <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center">
-              <Users className="w-6 h-6 text-muted-foreground" />
-            </div>
-            <div>
-              <p className="font-medium text-sm">No candidates found</p>
-              <p className="text-sm text-muted-foreground max-w-xs mt-1">
-                {hasFilters
-                  ? "Try broadening your filters — fewer skill keywords or a different work style."
-                  : "Candidates appear here once they enable auto-apply in their hunter.ai account. Share hunter.ai with your network to grow the talent pool."}
-              </p>
-            </div>
-            {hasFilters && (
-              <Button variant="outline" size="sm" className="rounded-full gap-1.5" onClick={clearSearch}>
-                <X className="w-3.5 h-3.5" /> Clear filters
-              </Button>
-            )}
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {candidates.map(c => (
-                <CandidateCard
-                  key={c.user_id}
-                  candidate={c}
-                  onView={setSelectedCandidate}
-                  onOutreach={setOutreachTarget}
-                />
-              ))}
-            </div>
-
-            {candidates.length < total && (
-              <div className="flex justify-center mt-8">
-                <Button
-                  variant="outline"
-                  className="rounded-full gap-1.5"
-                  onClick={() => {
-                    const filters: TalentSearchFilters = {
-                      skills: searchText.trim() ? searchText.split(/[\s,]+/).filter(Boolean) : [],
-                      remotePolicy: remotePolicy !== "__all__" ? remotePolicy : undefined,
-                      jobId: selectedJobId !== "__none__" ? selectedJobId : undefined,
-                      limit: 60,
-                      offset: candidates.length,
-                    };
-                    setLoading(true);
-                    searchCandidates(filters)
-                      .then(r => {
-                        setCandidates(prev => [...prev, ...r.candidates]);
-                        setTotal(r.total);
-                      })
-                      .catch(() => toast.error("Failed to load more"))
-                      .finally(() => setLoading(false));
-                  }}
-                >
-                  <ChevronDown className="w-4 h-4" />
-                  Load more ({total - candidates.length} remaining)
-                </Button>
+        {/* Filters panel */}
+        {showFilters && (
+          <div className="border-b border-border bg-muted/30 px-6 py-4">
+            <div className="flex flex-wrap gap-3 items-end">
+              {/* Skill / name search */}
+              <div className="flex-1 min-w-[200px]">
+                <label className="text-xs text-muted-foreground mb-1 block">Search by skill</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+                  <Input
+                    value={searchText}
+                    onChange={e => setSearchText(e.target.value)}
+                    placeholder="e.g. React, TypeScript, Python…"
+                    className="pl-8 h-9 text-sm"
+                  />
+                </div>
               </div>
+
+              {/* Remote policy */}
+              <div className="min-w-[160px]">
+                <label className="text-xs text-muted-foreground mb-1 block">Work style</label>
+                <Select value={remotePolicy} onValueChange={setRemotePolicy}>
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {REMOTE_OPTIONS.map(o => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Match against job */}
+              <div className="min-w-[200px]">
+                <label className="text-xs text-muted-foreground mb-1 block">Match against job</label>
+                <Select value={selectedJobId} onValueChange={setSelectedJobId}>
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue placeholder="No job selected" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">No job selected</SelectItem>
+                    {activeJobs.map(j => (
+                      <SelectItem key={j.id} value={j.id}>{j.title}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {hasFilters && (
+                <Button variant="ghost" size="sm" className="h-9 gap-1 text-xs text-muted-foreground rounded-full" onClick={clearSearch}>
+                  <X className="w-3.5 h-3.5" /> Clear
+                </Button>
+              )}
+            </div>
+
+            {selectedJobId !== "__none__" && (
+              <p className="text-xs text-primary mt-2 flex items-center gap-1">
+                <Star className="w-3 h-3" />
+                Match scores shown — candidates ranked by fit for{" "}
+                <strong>{activeJobs.find(j => j.id === selectedJobId)?.title ?? "selected job"}</strong>
+              </p>
             )}
-          </>
+          </div>
         )}
-      </main>
 
-      {/* Profile drawer */}
-      {selectedCandidate && (
-        <CandidateProfileDrawer
-          candidate={selectedCandidate}
-          onClose={() => setSelectedCandidate(null)}
-          onOutreach={(c) => {
-            setSelectedCandidate(null);
-            setOutreachTarget(c);
-          }}
-        />
-      )}
+        {/* Default search bar (when filters panel hidden) */}
+        {!showFilters && (
+          <div className="border-b border-border px-6 py-3 bg-background">
+            <div className="relative max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <Input
+                value={searchText}
+                onChange={e => setSearchText(e.target.value)}
+                placeholder="Search by skill, e.g. React, Python, AWS…"
+                className="pl-9 h-9 text-sm"
+              />
+              {searchText && (
+                <button onClick={() => setSearchText("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-muted-foreground hover:text-foreground">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
-      {/* Outreach modal */}
-      {outreachTarget && (
-        <OutreachModal
-          candidate={outreachTarget}
-          jobs={jobs}
-          onClose={() => setOutreachTarget(null)}
-        />
-      )}
-    </div>
+        {/* Main content */}
+        <main className="flex-1 overflow-y-auto p-6">
+          {loading ? (
+            <div className="flex items-center justify-center py-24 gap-2 text-muted-foreground">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span className="text-sm">Finding candidates…</span>
+            </div>
+          ) : candidates.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
+              <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center">
+                <Users className="w-6 h-6 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="font-medium text-sm">No candidates found</p>
+                <p className="text-sm text-muted-foreground max-w-xs mt-1">
+                  {hasFilters
+                    ? "Try broadening your filters — fewer skill keywords or a different work style."
+                    : "Candidates appear here once they enable auto-apply in their hunter.ai account. Share hunter.ai with your network to grow the talent pool."}
+                </p>
+              </div>
+              {hasFilters && (
+                <Button variant="outline" size="sm" className="rounded-full gap-1.5" onClick={clearSearch}>
+                  <X className="w-3.5 h-3.5" /> Clear filters
+                </Button>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {candidates.map(c => (
+                  <CandidateCard
+                    key={c.user_id}
+                    candidate={c}
+                    onView={setSelectedCandidate}
+                    onOutreach={setOutreachTarget}
+                  />
+                ))}
+              </div>
+
+              {candidates.length < total && (
+                <div className="flex justify-center mt-8">
+                  <Button
+                    variant="outline"
+                    className="rounded-full gap-1.5"
+                    onClick={() => {
+                      const filters: TalentSearchFilters = {
+                        skills: searchText.trim() ? searchText.split(/[\s,]+/).filter(Boolean) : [],
+                        remotePolicy: remotePolicy !== "__all__" ? remotePolicy : undefined,
+                        jobId: selectedJobId !== "__none__" ? selectedJobId : undefined,
+                        limit: 60,
+                        offset: candidates.length,
+                      };
+                      setLoading(true);
+                      searchCandidates(filters)
+                        .then(r => {
+                          setCandidates(prev => [...prev, ...r.candidates]);
+                          setTotal(r.total);
+                        })
+                        .catch(() => toast.error("Failed to load more"))
+                        .finally(() => setLoading(false));
+                    }}
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                    Load more ({total - candidates.length} remaining)
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+        </main>
+
+        {/* Profile drawer */}
+        {selectedCandidate && (
+          <CandidateProfileDrawer
+            candidate={selectedCandidate}
+            onClose={() => setSelectedCandidate(null)}
+            onOutreach={(c) => {
+              setSelectedCandidate(null);
+              setOutreachTarget(c);
+            }}
+          />
+        )}
+
+        {/* Outreach modal */}
+        {outreachTarget && (
+          <OutreachModal
+            candidate={outreachTarget}
+            jobs={jobs}
+            onClose={() => setOutreachTarget(null)}
+          />
+        )}
+      </div>
+    </RecruiterPaywall>
   );
 };
 
