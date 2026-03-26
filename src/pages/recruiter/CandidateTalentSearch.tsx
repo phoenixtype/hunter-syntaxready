@@ -1,38 +1,39 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Search, SlidersHorizontal, Users, Star, MapPin, Briefcase, Mail, Loader2, X, ChevronDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "sonner";
-import {
-  searchCandidates,
-  type TalentCandidate,
-  type TalentSearchFilters,
-} from "@/lib/recruiter_engine";
-import { useMyJobs } from "@/hooks/useRecruiter";
-import CandidateProfileDrawer from "@/components/recruiter/CandidateProfileDrawer";
-import OutreachModal from "@/components/recruiter/OutreachModal";
-
-const REMOTE_OPTIONS = [
-  { value: "__all__", label: "Any work style" },
-  { value: "remote", label: "Remote only" },
-  { value: "hybrid", label: "Hybrid" },
-  { value: "onsite", label: "On-site" },
-];
+import { RecruiterPaywall } from "@/components/recruiter/RecruiterPaywall";
 
 const MatchBadge = ({ score }: { score?: number }) => {
-  if (score === undefined) return null;
-  const color =
-    score >= 80 ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" :
-    score >= 60 ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" :
-    "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
+// ...
+const CandidateTalentSearch = () => {
+  // ...
   return (
-    <span className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full ${color}`}>
-      <Star className="w-3 h-3" />{score}%
-    </span>
+    <RecruiterPaywall>
+      <div className="flex flex-col min-h-screen">
+        {/* Page header */}
+        <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-card shrink-0">
+          <div>
+            <h1 className="text-base font-semibold">Talent Search</h1>
+            <p className="text-xs text-muted-foreground">
+              {loading ? "Loading…" : `${total} active candidate${total !== 1 ? "s" : ""} available`}
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 h-8 text-xs rounded-full"
+            onClick={() => setShowFilters(v => !v)}
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            Filters
+            {hasFilters && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+          </Button>
+        </header>
+
+        {/* ... remaining content ... */}
+      </div>
+    </RecruiterPaywall>
   );
 };
+
+export default CandidateTalentSearch;
 
 const CandidateCard = ({
   candidate,

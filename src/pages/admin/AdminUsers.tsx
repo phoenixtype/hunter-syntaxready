@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Users, AlertCircle, ChevronDown, Trash2 } from 'lucide-react';
+import { Loader2, Users, AlertCircle, ChevronDown, Trash2, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/EmptyState';
 import SEOHead from '@/components/SEOHead';
@@ -54,6 +54,10 @@ const AdminUsers = () => {
   const [updating, setUpdating] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<UserRow | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [grantTarget, setGrantTarget] = useState<UserRow | null>(null);
+  const [grantTier, setGrantTier] = useState<'pro' | 'enterprise'>('pro');
+  const [grantMonths, setGrantMonths] = useState(1);
+  const [granting, setGranting] = useState(false);
 
   const isRootAdmin = adminRole === 'root';
 
@@ -166,6 +170,37 @@ const AdminUsers = () => {
     setDeleteTarget(null);
   };
 
+  const handleGrant = async () => {
+    if (!grantTarget) return;
+    setGranting(true);
+
+    try {
+      const { data, error } = await supabase.rpc('manual_grant_subscription', {
+        p_user_id: grantTarget.id,
+        p_tier: grantTier,
+        p_months: grantMonths
+      });
+
+      if (error) throw error;
+      if (!data) throw new Error('Failed to grant subscription');
+
+      toast.success(`Successfully granted ${grantTier} for ${grantMonths} months`);
+      
+      // Update local state
+      setUsers(prev => prev.map(u => 
+        u.id === grantTarget.id 
+          ? { ...u, plan: grantTier, plan_status: 'active' } 
+          : u
+      ));
+      
+      setGrantTarget(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to grant access');
+    } finally {
+      setGranting(false);
+    }
+  };
+
   return (
     <>
       <SEOHead title="Users" path="/admin/users" />
@@ -241,15 +276,30 @@ const AdminUsers = () => {
                           <ChevronDown className="w-3 h-3 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground" />
                         </div>
 
+                        {/* Grant Access button — recruiters only */}
+                        {u.role === 'recruiter' && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-primary hover:text-primary hover:bg-primary/10"
+                            onClick={() => setGrantTarget(u)}
+                            title="Grant manual access"
+                          >
+                            <Zap className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+
                         {/* Delete button — root admins only, hidden on own row */}
                         {isRootAdmin && u.id !== currentUser?.id && (
-                          <button
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                             onClick={() => setDeleteTarget(u)}
-                            className="p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                             title="Delete user"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
                         )}
 
                         {updating?.startsWith(u.id) && (
@@ -264,6 +314,81 @@ const AdminUsers = () => {
           </div>
         )}
       </div>
+
+      {/* Grant Access Modal */}
+      {grantTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-card border border-border rounded-xl shadow-modal p-6 max-w-sm w-full animate-in fade-in zoom-in duration-200">
+            <h2 className="text-lg font-semibold mb-1">Grant Manual Access</h2>
+            <p className="text-sm text-muted-foreground mb-6">
+              Grant Pro or Enterprise access to {grantTarget.full_name || 'this recruiter'}.
+            </p>
+
+            <div className="space-y-4 mb-8">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Plan Tier</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant={grantTier === 'pro' ? 'default' : 'outline'}
+                    size="sm"
+                    className="h-9"
+                    onClick={() => setGrantTier('pro')}
+                  >
+                    Pro
+                  </Button>
+                  <Button
+                    variant={grantTier === 'enterprise' ? 'default' : 'outline'}
+                    size="sm"
+                    className="h-9"
+                    onClick={() => setGrantTier('enterprise')}
+                  >
+                    Enterprise
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Duration</label>
+                <select
+                  value={grantMonths}
+                  onChange={(e) => setGrantMonths(Number(e.target.value))}
+                  className="w-full h-9 px-3 text-sm bg-muted border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                >
+                  <option value={1}>1 Month</option>
+                  <option value={3}>3 Months</option>
+                  <option value={6}>6 Months</option>
+                  <option value={12}>1 Year</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setGrantTarget(null)}
+                disabled={granting}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleGrant}
+                disabled={granting}
+              >
+                {granting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                    Granting…
+                  </>
+                ) : (
+                  'Grant Access'
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete confirmation dialog */}
       {deleteTarget && (
