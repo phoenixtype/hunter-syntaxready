@@ -154,12 +154,12 @@ const Index = () => {
 
             {/* MD3 Display Large */}
             <h1 className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight leading-[1.06] text-foreground mb-6 animate-fade-in-up">
-              Build <span className="font-medium text-primary">skills</span> while we find the <span className="font-medium text-primary">job you desire.</span>
+              Level up while we find the <span className="font-medium text-primary">job you deserve.</span>
             </h1>
 
             {/* MD3 Body Large */}
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-10 animate-fade-in-up [animation-delay:200ms] opacity-0 [animation-fill-mode:forwards]">
-              Accelerate your career with Hunter. Master high-demand skills through AI coaching while our engine discovers and tailors your path to the perfect role.
+              Stop scrolling and start winning. Hunter sharpens your skills through AI coaching while effortlessly discovering, ranking, and tailoring your path to the perfect role.
             </p>
 
             {/* Floating Mock UI element (hidden on small mobile) */}
