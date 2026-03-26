@@ -387,55 +387,42 @@ export const applyToRecruiterJob = async (opts: {
 // ── Stats ─────────────────────────────────────────────────────────────────────
 
 export const getRecruiterStats = async (recruiterId: string): Promise<RecruiterStats> => {
-  // Single query with PostgreSQL aggregation to eliminate 3x latency penalty
-  const { data, error } = await supabase
+  // Query jobs and their application counts
+  const { data: jobs, error: jobsError } = await supabase
     .from("recruiter_jobs")
-    .select(`
-      status,
-      application_count,
-      recruiter_job_applications!inner(status)
-    `)
+    .select("id, status, application_count")
     .eq("recruiter_id", recruiterId);
 
-  if (error) {
-    console.error('[getRecruiterStats] Error:', error);
+  if (jobsError) {
+    console.error('[getRecruiterStats] Jobs Error:', jobsError);
     return { active_jobs: 0, total_applications: 0, total_interviews: 0, total_offers: 0 };
   }
 
-  // Server-side aggregation with single pass through data
+  // Query application statuses separately to avoid complex join deduplication overhead
+  const { data: appStatuses, error: appsError } = await supabase
+    .from("recruiter_job_applications")
+    .select("status, recruiter_job_id")
+    .in("recruiter_job_id", (jobs || []).map(j => j.id));
+
+  if (appsError) {
+    console.error('[getRecruiterStats] Apps Error:', appsError);
+  }
+
   let activeJobs = 0;
   let totalApplications = 0;
   let totalInterviews = 0;
   let totalOffers = 0;
 
-  // Track processed applications to avoid double counting
-  const processedApps = new Set<string>();
+  // Process jobs
+  (jobs || []).forEach((job) => {
+    if (job.status === "active") activeJobs++;
+    totalApplications += job.application_count || 0;
+  });
 
-  (data || []).forEach((job) => {
-    const jobData = job as unknown as {
-      id: string;
-      status: string;
-      application_count: number;
-      recruiter_job_applications: { status: string; id?: string }[];
-    };
-
-    // Count active jobs
-    if (jobData.status === "active") {
-      activeJobs++;
-    }
-
-    // Sum total applications (from pre-computed count)
-    totalApplications += jobData.application_count || 0;
-
-    // Count interviews and offers from applications
-    (jobData.recruiter_job_applications || []).forEach((app) => {
-      const appKey = `${jobData.id}-${app.status}`;
-      if (!processedApps.has(appKey)) {
-        processedApps.add(appKey);
-        if (app.status === "interview") totalInterviews++;
-        if (app.status === "offer" || app.status === "accepted") totalOffers++;
-      }
-    });
+  // Process application statuses
+  (appStatuses || []).forEach((app) => {
+    if (app.status === "interview") totalInterviews++;
+    if (app.status === "offer" || app.status === "accepted") totalOffers++;
   });
 
   return {

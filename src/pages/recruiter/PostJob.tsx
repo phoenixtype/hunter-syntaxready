@@ -58,28 +58,32 @@ const PostJob = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { profile } = useRecruiterProfile();
-  const { isNigeria } = useGeo();
+  const { isNigeria, isLoading: geoLoading } = useGeo();
 
-  const [form, setForm] = useState<RecruiterJobInsert>({
-    ...DEFAULT_FORM,
-    company: profile?.company_name ?? "",
-    salary_currency: isNigeria ? "NGN" : "USD",
-  });
+  const [form, setForm] = useState<RecruiterJobInsert>(DEFAULT_FORM);
   const [techInput, setTechInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [showProGate, setShowProGate] = useState(false);
 
-  // Update currency when geo detection resolves (isNigeria is async)
+  // Auto-fill company name from profile when it loads
   useEffect(() => {
+    if (profile?.company_name && !form.company) {
+      setForm(prev => ({ ...prev, company: profile.company_name }));
+    }
+  }, [profile, form.company]);
+
+  // Update currency when geo detection resolves
+  useEffect(() => {
+    if (geoLoading) return;
     setForm(prev => {
       if (!prev.salary_min && !prev.salary_max) {
         return { ...prev, salary_currency: isNigeria ? "NGN" : "USD" };
       }
       return prev;
     });
-  }, [isNigeria]);
+  }, [isNigeria, geoLoading]);
 
   const set = <K extends keyof RecruiterJobInsert>(key: K, val: RecruiterJobInsert[K]) =>
     setForm((prev) => ({ ...prev, [key]: val }));

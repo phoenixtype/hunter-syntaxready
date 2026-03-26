@@ -1,5 +1,6 @@
 import React from 'react';
 import { useRecruiterSubscription } from '@/hooks/useRecruiterSubscription';
+import { useRole } from '@/hooks/useRole';
 import RecruiterPricing from '@/pages/recruiter/RecruiterPricing';
 import { Loader2, Lock } from 'lucide-react';
 
@@ -8,7 +9,10 @@ interface RecruiterPaywallProps {
 }
 
 export const RecruiterPaywall: React.FC<RecruiterPaywallProps> = ({ children }) => {
-  const { isSubscribed, loading } = useRecruiterSubscription();
+  const { isSubscribed, loading: subLoading } = useRecruiterSubscription();
+  const { isAdmin, loading: roleLoading } = useRole();
+
+  const loading = subLoading || roleLoading;
 
   if (loading) {
     return (
@@ -19,7 +23,7 @@ export const RecruiterPaywall: React.FC<RecruiterPaywallProps> = ({ children }) 
     );
   }
 
-  if (!isSubscribed) {
+  if (!isSubscribed && !isAdmin) {
     return (
       <div className="relative">
         <div className="absolute inset-0 z-10 bg-background/50 backdrop-blur-[2px] pointer-events-none" />

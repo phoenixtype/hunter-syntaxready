@@ -74,7 +74,7 @@ const Settings = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
-  const { isNigeria } = useGeo();
+  const { isNigeria, isLoading: geoLoading } = useGeo();
   const [showPaystack, setShowPaystack] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
 
@@ -309,8 +309,8 @@ const Settings = () => {
                         setIsUpgrading(false);
                       }
                     }
-                  }} disabled={isUpgrading} className="w-full sm:w-auto">
-                    {isUpgrading ? (
+                  }} disabled={isUpgrading || geoLoading} className="w-full sm:w-auto">
+                    {isUpgrading || geoLoading ? (
                       <Loader2 className="w-4 h-4 animate-spin mr-2" />
                     ) : (
                       <Zap className="w-4 h-4 mr-2" />

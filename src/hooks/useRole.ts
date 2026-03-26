@@ -23,5 +23,5 @@ export const useRole = () => {
     return () => { cancelled = true; };
   }, [user]);
 
-  return { role, loading, isRecruiter: role === "recruiter", isAdmin: role === "admin" };
+  return { role, loading, isRecruiter: role === "recruiter" || role === "admin", isAdmin: role === "admin" };
 };

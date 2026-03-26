@@ -103,7 +103,7 @@ const NotificationSettings = () => {
   };
 
   const savePreferences = async (newPreferences: NotificationPreferences) => {
-    if (!user) return;
+    if (!user || saving) return;
 
     try {
       setSaving(true);

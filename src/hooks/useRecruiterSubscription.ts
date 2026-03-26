@@ -47,7 +47,7 @@ export function useRecruiterSubscription() {
     fetchSubscription();
   }, [user, authLoading]);
 
-  const isSubscribed = subscription?.status === 'active' && 
+  const isSubscribed = (subscription?.status === 'active' || subscription?.status === 'trialing') && 
     (subscription?.tier === 'pro' || subscription?.tier === 'enterprise');
 
   return { subscription, isSubscribed, loading };
