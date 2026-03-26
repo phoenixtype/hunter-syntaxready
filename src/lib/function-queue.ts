@@ -1,5 +1,6 @@
 import PQueue from 'p-queue';
 import { supabaseWithLimits } from './supabase-with-limits';
+import { getInvokeErrorMessage } from './invoke-error';
 
 /**
  * Edge Function Queue System
@@ -77,7 +78,8 @@ export const queuedFunctionCall = async <T = any>(
         clearTimeout(timeoutId);
 
         if (error) {
-          throw new Error(`Function ${functionName} failed: ${error.message}`);
+          const msg = await getInvokeErrorMessage(error);
+          throw new Error(msg || `Function ${functionName} failed: ${error.message}`);
         }
 
         return data as T;

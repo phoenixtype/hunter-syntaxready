@@ -4,7 +4,7 @@ export async function classifyInvokeError(err: unknown): Promise<InvokeErrorKind
   if (!(err instanceof Error)) return "generic";
 
   const context = (err as Record<string, unknown>).context as
-    | { status: number; json: () => Promise<unknown> }
+    | { status: number; clone?: () => any; json: () => Promise<unknown> }
     | undefined;
 
   if (!context) return "connection"; // network failure — no HTTP response
@@ -13,7 +13,8 @@ export async function classifyInvokeError(err: unknown): Promise<InvokeErrorKind
 
   if (status === 429) {
     try {
-      const body = await context.json();
+      const responseClone = typeof context.clone === 'function' ? context.clone() : context;
+      const body = await responseClone.json();
       if (
         body &&
         typeof (body as Record<string, unknown>).error === "string" &&
@@ -31,3 +32,20 @@ export async function classifyInvokeError(err: unknown): Promise<InvokeErrorKind
 
   return "generic";
 }
+
+export async function getInvokeErrorMessage(err: unknown): Promise<string | null> {
+  if (!(err instanceof Error)) return null;
+  const context = (err as Record<string, unknown>).context as
+    | { clone?: () => any; json: () => Promise<unknown> }
+    | undefined;
+  if (!context) return err.message;
+
+  try {
+    const responseClone = typeof context.clone === 'function' ? context.clone() : context;
+    const body = await responseClone.json();
+    if (body && typeof body.error === 'string') return body.error;
+  } catch {}
+
+  return err.message;
+}
+

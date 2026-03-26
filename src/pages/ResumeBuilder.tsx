@@ -35,6 +35,7 @@ import PageHeader from "@/components/PageHeader";
 import DashboardSkeleton from "@/components/DashboardSkeleton";
 import { useSubscription } from "@/hooks/useSubscription";
 import ProGate from "@/components/ProGate";
+import { classifyInvokeError } from "@/lib/invoke-error";
 
 const STEPS = [
   { id: "personal", label: "Personal Info", icon: User },
@@ -251,10 +252,15 @@ const ResumeBuilder = () => {
         // Record usage for successful generation
         await recordUsage({ featureName: 'resume_generations' });
       } else {
-        throw new Error("Resume generation failed");
+        throw genRes.status === "fulfilled" && genRes.value.error ? genRes.value.error : new Error("Resume generation failed");
       }
     } catch (err) {
-      toast.error("Resume generation failed", { description: "Your profile was saved. Please try generating again." });
+      const type = await classifyInvokeError(err);
+      if (type === "pro_gate") {
+        setShowProGate(true);
+      } else {
+        toast.error("Resume generation failed", { description: "Your profile was saved. Please try generating again." });
+      }
     } finally {
       setGenerating(false);
     }

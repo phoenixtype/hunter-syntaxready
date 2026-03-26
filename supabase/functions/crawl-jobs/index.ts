@@ -670,8 +670,8 @@ serve(async (req) => {
     const { RateLimiter } = await import('../_shared/rate-limiter.ts');
     const limiter = new RateLimiter(supabase, user.id);
     const { allowed, error: limitError } = await limiter.isAllowed('crawl-jobs', {
-      free: { max: 5,  window: 60 },
-      pro:  { max: 20, window: 60 },
+      free: { max: 10,  window: 60 },
+      pro:  { max: 30, window: 60 },
     });
     if (!allowed) {
       return new Response(JSON.stringify({ success: false, error: limitError || GENERIC_RATE_LIMIT_ERROR }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': '60' } });

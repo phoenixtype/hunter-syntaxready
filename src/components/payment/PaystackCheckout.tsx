@@ -67,6 +67,7 @@ export function PaystackCheckout({
       script.onload = () => setScriptLoaded(true);
       script.onerror = () => {
         console.error('Failed to load Paystack script');
+        toast.error('Failed to load payment system. Please disable adblockers or check connection.');
         onError?.('Failed to load payment system');
       };
       document.head.appendChild(script);
@@ -105,6 +106,7 @@ export function PaystackCheckout({
         }
       } catch (error: any) {
         console.error('Failed to load plan details:', error);
+        toast.error('Failed to load plan pricing details.');
         onError?.('Failed to load plan details');
       }
     }
@@ -114,7 +116,9 @@ export function PaystackCheckout({
 
   const handlePayment = async () => {
     if (!user || !scriptLoaded || !planDetails) {
-      onError?.('Payment system not ready');
+      const msg = 'Payment system not ready. Please wait a moment.';
+      toast.error(msg);
+      onError?.(msg);
       return;
     }
 
@@ -211,6 +215,7 @@ export function PaystackCheckout({
         },
         onerror: function(error: any) {
           console.error('Payment error:', error);
+          toast.error(error.message || 'Payment window closed or failed');
           onError?.(error.message || 'Payment failed');
           setLoading(false);
         }
@@ -221,6 +226,7 @@ export function PaystackCheckout({
 
     } catch (error: any) {
       console.error('Payment initialization failed:', error);
+      toast.error(error.message || 'Failed to initialize payment window. Ensure popups are allowed.');
       onError?.(error.message || 'Failed to initialize payment');
       setLoading(false);
     }

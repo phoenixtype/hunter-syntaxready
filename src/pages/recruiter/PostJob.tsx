@@ -20,6 +20,7 @@ import {
   LOCATION_TYPE_LABELS,
   EMPLOYMENT_TYPE_LABELS,
 } from "@/lib/recruiter_engine";
+import { classifyInvokeError, getInvokeErrorMessage } from "@/lib/invoke-error";
 
 const EXPERIENCE_LEVELS = [
   { value: "entry",      label: "Entry Level" },
@@ -131,7 +132,7 @@ const PostJob = () => {
         },
       });
 
-      if (error || !data?.content) throw new Error(error?.message ?? "No content returned");
+      if (error || !data?.content) throw error || new Error("No content returned");
 
       let parsed: { description?: string; responsibilities?: string; requirements?: string; benefits?: string };
       try {
@@ -151,11 +152,12 @@ const PostJob = () => {
       }));
       toast.success("Job description generated! Review and edit before publishing.");
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "";
-      if (/pro subscription|requires a pro/i.test(msg)) {
+      const type = await classifyInvokeError(e);
+      if (type === "pro_gate") {
         setShowProGate(true);
       } else {
-        toast.error(msg || "Generation failed — please try again");
+        const msg = await getInvokeErrorMessage(e) || (e instanceof Error ? e.message : "Generation failed — please try again");
+        toast.error(msg);
       }
     } finally {
       setGenerating(false);
