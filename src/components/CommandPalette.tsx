@@ -135,12 +135,14 @@ const CommandPalette = () => {
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput
-        placeholder="Type a command or search..."
-        className="focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
-        value={query}
-        onValueChange={setQuery}
-      />
+      <div className="pt-4 px-1">
+        <CommandInput
+          placeholder="Type a command or search..."
+          className="h-12 text-lg"
+          value={query}
+          onValueChange={setQuery}
+        />
+      </div>
       <CommandList className="pb-4">
         <CommandEmpty className="py-12 flex flex-col items-center gap-2">
           <Search className="w-8 h-8 text-muted-foreground/20" />
