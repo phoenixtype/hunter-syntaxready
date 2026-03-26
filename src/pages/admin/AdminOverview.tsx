@@ -65,7 +65,7 @@ const AdminOverview = () => {
   if (!stats) {
     return (
       <>
-        <SEOHead title="Admin Overview | Hunter" />
+        <SEOHead title="Admin Overview | hunter.ai" />
         <div className="p-6 max-w-5xl mx-auto w-full">
           <div className="h-7 w-40 bg-muted animate-pulse rounded-md mb-6" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

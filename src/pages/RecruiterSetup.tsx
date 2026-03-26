@@ -66,7 +66,7 @@ const RecruiterSetup = () => {
               <CheckCircle2 className="w-7 h-7 text-green-600 dark:text-green-400" />
             </div>
             <h1 className="text-xl font-bold tracking-tight mb-2">You're approved!</h1>
-            <p className="text-sm text-muted-foreground">Set a password to complete your Hunter recruiter account.</p>
+            <p className="text-sm text-muted-foreground">Set a password to complete your hunter.ai recruiter account.</p>
           </div>
 
           {!sessionReady ? (

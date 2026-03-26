@@ -173,7 +173,7 @@ const AdminUsers = () => {
         <div className="mb-6">
           <h1 className="text-2xl font-bold tracking-tight">Users</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            All registered Hunter accounts (most recent 100). Change role or plan directly from here.
+            All registered hunter.ai accounts (most recent 100). Change role or plan directly from here.
           </p>
         </div>
 

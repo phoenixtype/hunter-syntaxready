@@ -47,7 +47,7 @@ const RecruiterDashboard = () => {
   // Checkout success feedback
   useEffect(() => {
     if (searchParams.get("checkout") === "success") {
-      toast.success("Subscription activated! Welcome to Hunter Recruiter.");
+      toast.success("Subscription activated! Welcome to hunter.ai Recruiter.");
       
       // Poll a few times to ensure the webhook has processed
       let attempts = 0;
