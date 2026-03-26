@@ -232,6 +232,10 @@ const Dashboard = () => {
                   <PaystackCheckout
                     planName="pro"
                     interval="monthly"
+                    onSuccess={() => {
+                      setShowPaystack(false); // Assuming setShowPaystack is used to control visibility
+                      window.location.href = '/dashboard?checkout=success';
+                    }}
                     onClose={() => setShowPaystack(false)}
                   />
                 )}

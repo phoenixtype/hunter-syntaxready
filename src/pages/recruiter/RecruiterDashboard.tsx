@@ -41,16 +41,31 @@ const RecruiterDashboard = () => {
   const { stats, loading: statsLoading } = useRecruiterStats();
   const { jobs, loading: jobsLoading } = useMyJobs();
   const { profile, loading: profileLoading } = useRecruiterProfile();
-  const { currentSubscription: subscription } = useSubscription();
+  const { currentSubscription: subscription, refetch: refetchSubscription } = useSubscription();
   const { currency } = useGeo();
-
+ 
   // Checkout success feedback
   useEffect(() => {
     if (searchParams.get("checkout") === "success") {
       toast.success("Subscription activated! Welcome to Hunter Recruiter.");
-      setSearchParams({});
+      
+      // Poll a few times to ensure the webhook has processed
+      let attempts = 0;
+      const interval = setInterval(async () => {
+        attempts++;
+        const { data } = await refetchSubscription();
+        if (data?.tier !== 'free' || attempts > 10) {
+          clearInterval(interval);
+          if (data?.tier !== 'free') {
+            toast.success("Your recruiter plan is now active! 🚀");
+            setSearchParams({});
+          }
+        }
+      }, 2000);
+
+      return () => clearInterval(interval);
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, refetchSubscription]);
 
   const recentJobs = jobs.slice(0, 5);
   const activeJobCount = jobs.filter((j) => j.status === "active").length;

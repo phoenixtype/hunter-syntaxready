@@ -321,6 +321,10 @@ const Settings = () => {
                     <PaystackCheckout
                       planName="pro"
                       interval="monthly"
+                      onSuccess={() => {
+                        setShowPaystack(false);
+                        window.location.href = '/settings?checkout=success';
+                      }}
                       onClose={() => setShowPaystack(false)}
                     />
                   )}

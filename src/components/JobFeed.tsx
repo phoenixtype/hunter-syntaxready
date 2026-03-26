@@ -384,11 +384,6 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
         </div>
       )}
 
-      {/* Show loading state only */}
-      {loading && (
-        <p className="text-xs text-muted-foreground">Loading...</p>
-      )}
-
       {/* Job List */}
       <div className="border border-border rounded-md overflow-hidden divide-y divide-border">
         {filteredJobs.map((job) => {

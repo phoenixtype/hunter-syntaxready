@@ -80,6 +80,12 @@ function UpgradeCard({
         <PaystackCheckout
           planName="pro"
           interval="monthly"
+          onSuccess={() => {
+            setShowPaystack(false);
+            const isRecruiter = window.location.pathname.startsWith('/recruiter');
+            const target = isRecruiter ? '/recruiter?checkout=success' : '/dashboard?checkout=success';
+            window.location.href = target;
+          }}
           onClose={() => setShowPaystack(false)}
         />
       )}

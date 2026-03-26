@@ -24,7 +24,7 @@ const Footer = forwardRef<HTMLElement>((_, ref) => {
 
   return (
     /* MD3 Footer — thin divider, surface background, muted text */
-    <footer ref={ref} className="border-t border-border bg-card mt-auto" role="contentinfo">
+    <footer ref={ref} className="border-t border-border bg-card/80 backdrop-blur-md mt-auto reveal" role="contentinfo">
       <div className="container max-w-6xl mx-auto px-4 sm:px-6 py-6">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           {/* Brand */}

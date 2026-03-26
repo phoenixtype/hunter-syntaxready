@@ -102,7 +102,7 @@ const RecruiterPricing = () => {
   return (
     <>
       <SEOHead title="Recruiter Plans" path="/recruiter/pricing" />
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 py-16">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-start px-4 py-16">
         <div className="text-center mb-12 max-w-xl">
           <h1 className="text-3xl font-bold tracking-tight mb-3">Simple, transparent pricing</h1>
           <p className="text-muted-foreground text-base">
@@ -214,6 +214,10 @@ const RecruiterPricing = () => {
           <PaystackCheckout
             planName={paystackPlan}
             interval="monthly"
+            onSuccess={() => {
+              setPaystackPlan(null);
+              window.location.href = '/recruiter?checkout=success';
+            }}
             onClose={() => setPaystackPlan(null)}
           />
         )}

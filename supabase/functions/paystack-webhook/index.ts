@@ -99,7 +99,7 @@ serve(async (req) => {
         if (data.plan?.interval === 'annually') {
           periodEnd.setFullYear(periodEnd.getFullYear() + 1);
         } else {
-          // Paystack plans are weekly
+          // Default to 7 days (Weekly) as requested
           periodEnd.setDate(periodEnd.getDate() + 7);
         }
 

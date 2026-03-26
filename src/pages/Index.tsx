@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Building2,
 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import MobileNav from "@/components/MobileNav";
 import SkipLink from "@/components/SkipLink";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -55,6 +56,23 @@ const Index = () => {
   const { user, loading } = useAuth();
   const isAuthenticated = !loading && !!user;
   const { isNigeria } = useGeo();
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("active");
+        }
+      });
+    }, { threshold: 0.1 });
+
+    const revealElements = document.querySelectorAll(".reveal");
+    revealElements.forEach((el) => observerRef.current?.observe(el));
+
+    return () => observerRef.current?.disconnect();
+  }, []);
+
   const trustBadges = TRUST_BADGES.map(badge =>
     badge === 'Secure payments via Stripe' ? getPaymentBadge(isNigeria) : badge
   );
@@ -116,11 +134,17 @@ const Index = () => {
       <main id="main-content">
 
         {/* ── Hero ── MD3 Display typography, tonal chip, pill buttons */}
-        <section className="pt-28 sm:pt-40 pb-20 md:pb-28 bg-background">
-          <div className="container max-w-5xl mx-auto px-4 sm:px-6 text-center">
+        <section className="relative pt-28 sm:pt-40 pb-20 md:pb-28 overflow-hidden bg-background">
+          {/* Animated Background Blobs */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+            <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-primary/10 blur-[100px] animate-blob" />
+            <div className="absolute top-[20%] -right-[10%] w-[35%] h-[35%] rounded-full bg-secondary/30 blur-[100px] animate-blob animation-delay-2000" />
+            <div className="absolute -bottom-[10%] left-[20%] w-[30%] h-[30%] rounded-full bg-primary/5 blur-[80px] animate-blob animation-delay-4000" />
+          </div>
 
+          <div className="container max-w-5xl mx-auto px-4 sm:px-6 text-center relative z-10">
             {/* MD3 Assist chip */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary text-secondary-foreground text-xs font-medium border border-primary/20 mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary text-secondary-foreground text-xs font-medium border border-primary/20 mb-8 animate-fade-in">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
@@ -129,19 +153,36 @@ const Index = () => {
             </div>
 
             {/* MD3 Display Large */}
-            <h1 className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight leading-[1.06] text-foreground mb-6">
-              Your career on{" "}
-              <span className="font-medium text-primary">autopilot.</span>
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight leading-[1.06] text-foreground mb-6 animate-fade-in-up">
+              Build <span className="font-medium text-primary">skills</span> while we find the <span className="font-medium text-primary">job you desire.</span>
             </h1>
 
             {/* MD3 Body Large */}
-            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-10">
-              Hunter discovers hidden opportunities, tailors every application to beat ATS filters,
-              and preps you for interviews — so you focus on what matters.
+            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-10 animate-fade-in-up [animation-delay:200ms] opacity-0 [animation-fill-mode:forwards]">
+              Accelerate your career with Hunter. Master high-demand skills through AI coaching while our engine discovers and tailors your path to the perfect role.
             </p>
 
+            {/* Floating Mock UI element (hidden on small mobile) */}
+            <div className="hidden lg:block absolute -right-20 top-20 w-64 p-4 rounded-2xl bg-card border border-border shadow-elevated animate-float opacity-0 [animation-fill-mode:forwards] [animation-delay:600ms]">
+               <div className="flex items-center gap-3 mb-3">
+                 <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                   <Zap className="w-4 h-4 text-green-600" />
+                 </div>
+                 <div className="flex-1">
+                   <div className="h-2 w-20 bg-muted rounded mb-1" />
+                   <div className="h-1.5 w-12 bg-muted/60 rounded" />
+                 </div>
+                 <span className="text-xs font-bold text-green-600">98% Match</span>
+               </div>
+               <div className="space-y-2">
+                 <div className="h-2 w-full bg-muted/40 rounded" />
+                 <div className="h-2 w-full bg-muted/40 rounded" />
+                 <div className="h-2 w-[80%] bg-muted/40 rounded" />
+               </div>
+            </div>
+
             {/* MD3 Filled + Outlined buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8 animate-fade-in-up [animation-delay:400ms] opacity-0 [animation-fill-mode:forwards]">
               {isAuthenticated ? (
                 <Link to="/dashboard" className="w-full sm:w-auto">
                   <Button size="lg" className="w-full sm:w-auto px-8 h-12 text-[0.9375rem] font-medium rounded-full gap-2 shadow-md-1">
@@ -169,7 +210,7 @@ const Index = () => {
             </div>
 
             {/* Trust badges */}
-            <div className="flex flex-wrap items-center justify-center gap-5 text-xs text-muted-foreground">
+              <div className="flex flex-wrap items-center justify-center gap-5 text-xs text-muted-foreground animate-fade-in [animation-delay:800ms] opacity-0 [animation-fill-mode:forwards]">
               {trustBadges.map((badge) => (
                 <span key={badge} className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
@@ -180,8 +221,8 @@ const Index = () => {
           </div>
 
           {/* Stats bar — MD3 tonal surface container */}
-          <div className="container max-w-4xl mx-auto px-4 sm:px-6 mt-20">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-border rounded-2xl overflow-hidden shadow-md-1">
+          <div className="container max-w-4xl mx-auto px-4 sm:px-6 mt-20 reveal">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-border rounded-2xl overflow-hidden shadow-md-1 hover:shadow-md-2 transition-shadow duration-300">
               {STATS.map((stat) => (
                 <div key={stat.label} className="bg-card px-6 py-6 text-center">
                   <div className="text-2xl sm:text-3xl font-medium text-primary">{stat.value}</div>
@@ -194,7 +235,7 @@ const Index = () => {
         </section>
 
         {/* ── Features ── MD3 Elevated Cards */}
-        <section className="py-24 bg-card border-t border-border" aria-labelledby="features-heading">
+        <section className="py-24 bg-card border-t border-border reveal" aria-labelledby="features-heading">
           <div className="container max-w-6xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-14">
               <p className="text-xs font-medium text-primary uppercase tracking-widest mb-3">Features</p>
@@ -210,10 +251,11 @@ const Index = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {FEATURES.map((feature) => (
+              {FEATURES.map((feature, i) => (
                 <article
                   key={feature.title}
-                  className="group p-6 rounded-2xl border border-border bg-background hover:shadow-md-2 hover:border-primary/25 transition-all duration-200"
+                  className="group p-6 rounded-2xl border border-border bg-background hover:shadow-lg hover:border-primary/25 transition-all duration-300 transform hover:-translate-y-1 reveal"
+                  style={{ transitionDelay: `${i * 100}ms` }}
                 >
                   {/* MD3 Icon container — tonal surface */}
                   <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center mb-4">
@@ -228,7 +270,7 @@ const Index = () => {
         </section>
 
         {/* ── Comparison ── MD3 Data table inside Elevated card */}
-        <section className="py-24 bg-background border-t border-border">
+        <section className="py-24 bg-background border-t border-border reveal">
           <div className="container max-w-6xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-14">
               <p className="text-xs font-medium text-primary uppercase tracking-widest mb-3">Why Hunter</p>
@@ -241,7 +283,7 @@ const Index = () => {
             </div>
 
             {/* MD3 Elevated Card wrapping the table */}
-            <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-md-1">
+            <div className="rounded-2xl border border-border bg-white/50 dark:bg-card/50 backdrop-blur-sm overflow-hidden shadow-md-1 hover:shadow-lg transition-all duration-300">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm border-collapse">
                   <thead>
@@ -287,7 +329,7 @@ const Index = () => {
         </section>
 
         {/* ── How it works ── MD3 step indicators */}
-        <section className="py-24 bg-card border-t border-border">
+        <section className="py-24 bg-card border-t border-border reveal">
           <div className="container max-w-6xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-14">
               <p className="text-xs font-medium text-primary uppercase tracking-widest mb-3">Process</p>
@@ -320,7 +362,7 @@ const Index = () => {
         </section>
 
         {/* ── Testimonials ── MD3 Elevated Cards */}
-        <section className="py-24 bg-background border-t border-border">
+        <section className="py-24 bg-background border-t border-border reveal">
           <div className="container max-w-6xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-14">
               <p className="text-xs font-medium text-primary uppercase tracking-widest mb-3">Testimonials</p>
@@ -363,7 +405,7 @@ const Index = () => {
 
 
         {/* ── CTA ── MD3 Tonal Surface container */}
-        <section className="py-24 bg-background border-t border-border">
+        <section className="py-24 bg-background border-t border-border reveal">
           <div className="container max-w-3xl mx-auto px-4 sm:px-6 text-center">
             <div className="bg-secondary rounded-3xl px-8 py-14 sm:px-14 sm:py-16 border border-primary/15">
               <h2 className="text-3xl sm:text-4xl font-normal tracking-tight mb-4 text-foreground">

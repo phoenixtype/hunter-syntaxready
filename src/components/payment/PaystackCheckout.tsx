@@ -237,7 +237,7 @@ export function PaystackCheckout({
     if (interval === 'yearly') {
       now.setFullYear(now.getFullYear() + 1);
     } else {
-      // Paystack plans are weekly
+      // Per user request, non-yearly subscriptions are weekly
       now.setDate(now.getDate() + 7);
     }
     return now;
@@ -259,8 +259,8 @@ export function PaystackCheckout({
   }
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-background/60 backdrop-blur-sm overflow-y-auto">
-    <Card className="w-full max-w-md relative">
+    <div className="fixed inset-0 z-[110] flex items-start justify-center p-4 bg-background/60 backdrop-blur-sm overflow-y-auto pt-10 pb-10">
+    <Card className="w-full max-w-md relative my-auto">
       <button
         onClick={onClose}
         className="absolute top-3 right-3 text-muted-foreground hover:text-foreground rounded-md p-1"
@@ -281,11 +281,11 @@ export function PaystackCheckout({
         <CardDescription>
           {isOverage
             ? `Buy ${overageQuantity} ${overageFeature?.replace('_', ' ')} credits`
-            : `${interval === 'yearly' ? 'Annual' : 'Monthly'} subscription`
+            : `${interval === 'yearly' ? 'Annual' : 'Weekly'} subscription`
           }
         </CardDescription>
       </CardHeader>
-
+ 
       <CardContent className="space-y-4">
         <div className="bg-gray-50 rounded-lg p-4">
           <div className="flex justify-between items-center">
@@ -294,7 +294,7 @@ export function PaystackCheckout({
               {formatPrice(amount, 'ngn')}
             </span>
           </div>
-
+ 
           {interval === 'yearly' && !isOverage && (
             <div className="mt-2 flex items-center text-sm text-green-600">
               <CheckCircle className="h-4 w-4 mr-1" />
@@ -302,7 +302,7 @@ export function PaystackCheckout({
             </div>
           )}
         </div>
-
+ 
         <div className="space-y-2 text-sm text-gray-600">
           <div className="flex items-center">
             <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
@@ -319,24 +319,26 @@ export function PaystackCheckout({
             </div>
           )}
         </div>
-
+ 
         <Button
           onClick={handlePayment}
-          disabled={loading || !scriptLoaded}
+          disabled={loading || !scriptLoaded || !planDetails || !user}
           className="w-full bg-green-600 hover:bg-green-700"
           size="lg"
         >
-          {loading ? (
+          {loading || !planDetails ? (
             <Loader2 className="h-4 w-4 animate-spin mr-2" />
           ) : (
             <CreditCard className="h-4 w-4 mr-2" />
           )}
-          {loading
-            ? 'Processing...'
-            : `Pay ${formatPrice(amount, 'ngn')}`
+          {loading 
+            ? 'Processing...' 
+            : !planDetails 
+              ? 'Loading pricing...' 
+              : `Pay ${formatPrice(amount, 'ngn')}`
           }
         </Button>
-
+ 
         <div className="text-xs text-gray-500 text-center">
           By proceeding, you agree to Hunter AI's Terms of Service and Privacy Policy.
           Payments are processed securely by Paystack.
