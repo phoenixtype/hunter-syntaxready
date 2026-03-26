@@ -223,10 +223,10 @@ export default function JobDescriptionModal({
         <div className="px-6 py-4 border-t border-border bg-card shrink-0 flex items-center gap-2 flex-wrap">
           {job.url && (
             <a
-              href={isApplied ? job.url : undefined}
-              target={isApplied ? "_blank" : undefined}
+              href={job.url}
+              target="_blank"
               rel="noopener noreferrer"
-              onClick={(e) => { if (!isApplied) { e.preventDefault(); onApply(); } }}
+              onClick={() => { if (!isApplied) onApply(); }}
               className="flex-1 sm:flex-none"
             >
               <Button

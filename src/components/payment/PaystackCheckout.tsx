@@ -33,7 +33,7 @@ interface PaystackResponse {
 declare global {
   interface Window {
     PaystackPop: {
-      setup: (config: any) => {
+      setup: (config: Record<string, unknown>) => {
         openIframe: () => void;
       };
     };
@@ -52,7 +52,7 @@ export function PaystackCheckout({
 }: PaystackCheckoutProps) {
   const [loading, setLoading] = useState(false);
   const [scriptLoaded, setScriptLoaded] = useState(false);
-  const [planDetails, setPlanDetails] = useState<any>(null);
+  const [planDetails, setPlanDetails] = useState<{ display_name?: string } | null>(null);
   const [amount, setAmount] = useState(0);
 
   const { user } = useAuth();
@@ -104,7 +104,7 @@ export function PaystackCheckout({
           const price = interval === 'yearly' ? data.price_yearly_ngn : data.price_monthly_ngn;
           setAmount(price ?? 0);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Failed to load plan details:', error);
         toast.error('Failed to load plan pricing details.');
         onError?.('Failed to load plan details');
@@ -181,7 +181,7 @@ export function PaystackCheckout({
           setLoading(false);
           onClose?.();
         },
-        onerror: function(error: any) {
+        onerror: function(error: { message?: string }) {
           console.error('Payment error:', error);
           toast.error(error.message || 'Payment window closed or failed');
           onError?.(error.message || 'Payment failed');
@@ -192,7 +192,7 @@ export function PaystackCheckout({
       const popup = window.PaystackPop.setup(paymentConfig);
       popup.openIframe();
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Payment initialization failed:', error);
       toast.error(error.message || 'Failed to initialize payment window. Ensure popups are allowed.');
       onError?.(error.message || 'Failed to initialize payment');

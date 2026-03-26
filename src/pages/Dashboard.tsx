@@ -154,7 +154,7 @@ const Dashboard = () => {
         });
 
         // Get the latest data from the query cache instead of the stale closure variable
-        const refreshedSubscription = queryClient.getQueryData(['enhanced-subscription', user?.id]) as any;
+        const refreshedSubscription = queryClient.getQueryData(['enhanced-subscription', user?.id]) as { tier?: string } | undefined;
         
         if (refreshedSubscription?.tier === 'pro' || attempts > 15) {
           clearInterval(interval);
@@ -167,6 +167,7 @@ const Dashboard = () => {
 
       return () => clearInterval(interval);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.search, navigate, queryClient, user?.id]); // location.pathname excluded — it would re-trigger the poll on every nav
   useRealtimeNotifications(user?.id);
 
