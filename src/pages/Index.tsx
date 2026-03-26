@@ -43,7 +43,7 @@ const STATS = [
   { value: "ATS-ready", label: "Every resume generated" },
 ];
 
-const TRUST_BADGES = ["Cancel anytime", "Secure payments via Stripe", "Built for serious job seekers"];
+const TRUST_BADGES = ["Cancel anytime", "Built for serious job seekers"];
 
 const COMPARISON = [
   { feature: "Job discovery", hunter: "AI-matched from live boards", manual: "Scroll through boards manually", other: "Basic keyword alerts" },
@@ -134,7 +134,7 @@ const Index = () => {
       <main id="main-content">
 
         {/* ── Hero ── MD3 Display typography, tonal chip, pill buttons */}
-        <section className="relative pt-28 sm:pt-40 pb-20 md:pb-28 overflow-hidden bg-background">
+        <section className="relative pt-32 sm:pt-48 pb-24 md:pb-36 overflow-hidden bg-background">
           {/* Animated Background Blobs */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
             <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-primary/10 blur-[100px] animate-blob" />
@@ -211,8 +211,12 @@ const Index = () => {
 
             {/* Trust badges */}
               <div className="flex flex-wrap items-center justify-center gap-5 text-xs text-muted-foreground animate-fade-in [animation-delay:800ms] opacity-0 [animation-fill-mode:forwards]">
-              {trustBadges.map((badge) => (
-                <span key={badge} className="flex items-center gap-1.5">
+              {trustBadges.map((badge, i) => (
+                <span 
+                  key={badge} 
+                  className="flex items-center gap-1.5 animate-fadeInUp opacity-0 [animation-fill-mode:forwards]"
+                  style={{ animationDelay: `${1000 + i * 100}ms` }}
+                >
                   <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
                   {badge}
                 </span>
@@ -221,12 +225,16 @@ const Index = () => {
           </div>
 
           {/* Stats bar — MD3 tonal surface container */}
-          <div className="container max-w-4xl mx-auto px-4 sm:px-6 mt-20 reveal">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-border rounded-2xl overflow-hidden shadow-md-1 hover:shadow-md-2 transition-shadow duration-300">
-              {STATS.map((stat) => (
-                <div key={stat.label} className="bg-card px-6 py-6 text-center">
-                  <div className="text-2xl sm:text-3xl font-medium text-primary">{stat.value}</div>
-                  <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
+          <div className="container max-w-4xl mx-auto px-4 sm:px-6 mt-24 reveal">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-border rounded-2xl overflow-hidden shadow-md-2 hover:shadow-lg transition-all duration-500">
+              {STATS.map((stat, i) => (
+                <div 
+                  key={stat.label} 
+                  className="bg-card px-6 py-8 text-center hover:bg-secondary/20 transition-colors duration-300 group"
+                  style={{ transitionDelay: `${i * 100}ms` }}
+                >
+                  <div className="text-2xl sm:text-3xl font-medium text-primary group-hover:scale-110 transition-transform duration-300">{stat.value}</div>
+                  <div className="text-xs text-muted-foreground mt-1 group-hover:text-foreground transition-colors duration-300">{stat.label}</div>
                 </div>
               ))}
             </div>
