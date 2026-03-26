@@ -116,39 +116,14 @@ serve(async (req) => {
 
     const admin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // 1. Find candidates who opted in
-    const { data: rawPrefs } = await admin
-      .from('user_preferences')
-      .select('user_id, target_roles, min_salary_usd, locations, remote_policy')
-      .eq('auto_apply_enabled', true);
-
-    const prefs = (rawPrefs ?? []) as Array<{
-      user_id: string;
-      target_roles: string[];
-      min_salary_usd: number;
-      locations: string[];
-      remote_policy: string;
-    }>;
-
-    if (!prefs.length) {
-      return new Response(JSON.stringify({ candidates: [], total: 0 }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Apply remote policy filter early to reduce data fetched
-    const filteredPrefs = remotePolicy
-      ? prefs.filter(p => p.remote_policy === remotePolicy || p.remote_policy === 'any' || remotePolicy === 'any')
-      : prefs;
-
-    const userIds = filteredPrefs.map(p => p.user_id);
-    const prefsByUserId = Object.fromEntries(filteredPrefs.map(p => [p.user_id, p]));
-
-    // 2. Get their candidate profiles (has skills + experience)
-    const { data: rawCandidateProfiles } = await admin
+    // 1. Get candidate profiles (those who have actually set up their profile/resume)
+    // We fetch ALL candidate profiles first to ensure everyone is searchable
+    const { data: rawCandidateProfiles, error: cpError } = await admin
       .from('candidate_profiles')
       .select('user_id, identity, skills, experience_atoms, education')
-      .in('user_id', userIds);
+      .order('updated_at', { ascending: false });
+
+    if (cpError) throw cpError;
 
     const candidateProfiles = (rawCandidateProfiles ?? []) as Array<{
       user_id: string;
@@ -158,7 +133,23 @@ serve(async (req) => {
       education: EducationItem[];
     }>;
 
-    // 3. Get their display profiles (name, avatar)
+    if (!candidateProfiles.length) {
+      return new Response(JSON.stringify({ candidates: [], total: 0 }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const userIds = candidateProfiles.map(cp => cp.user_id);
+
+    // 2. Get their preferences (for roles, salary, etc.)
+    const { data: rawPrefs } = await admin
+      .from('user_preferences')
+      .select('user_id, target_roles, min_salary_usd, locations, remote_policy')
+      .in('user_id', userIds);
+
+    const prefsByUserId = Object.fromEntries((rawPrefs ?? []).map(p => [p.user_id, p]));
+
+    // 3. Get their display profiles (name, avatar, role)
     const { data: rawProfiles } = await admin
       .from('profiles')
       .select('id, full_name, avatar_url, role')
@@ -231,6 +222,11 @@ serve(async (req) => {
         };
       })
       .filter(c => {
+        // Apply remote policy filter
+        if (remotePolicy && remotePolicy !== 'any') {
+          if (c.remote_policy !== remotePolicy && c.remote_policy !== 'any') return false;
+        }
+
         // Apply skill filter
         if (!skillFilter.length) return true;
         const cSkills = new Set(c.skills.map(normalise));

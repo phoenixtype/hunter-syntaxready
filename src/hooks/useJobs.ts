@@ -131,7 +131,7 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
 
             // Fallback to server-side matching for complex queries
             const weights = getOptimizedWeights();
-            const serverSideMatches = await getMatchedJobsServerSide(profile, weights, preferences, PAGE_SIZE);
+            const serverSideMatches = await getMatchedJobsServerSide(profile, weights, preferences, PAGE_SIZE, searchQuery, locationQuery);
 
             // Convert server-side results to enriched job format for backwards compatibility
             const matches = serverSideMatches.map(job => ({

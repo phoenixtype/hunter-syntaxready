@@ -220,6 +220,10 @@ export const createJob = async (
 
   if (job.status === "active") {
     await _mirrorToJobListings(created);
+    // Trigger auto-matching in the background
+    supabase.functions.invoke("match-and-apply", {
+      body: { recruiter_job_id: created.id }
+    }).catch(err => console.error("[RECRUITER_ENGINE] match-and-apply trigger failed:", err));
   }
 
   return created;
@@ -241,6 +245,10 @@ export const updateJob = async (
 
   if (updates.status === "active") {
     await _mirrorToJobListings(updated);
+    // Trigger auto-matching in the background
+    supabase.functions.invoke("match-and-apply", {
+      body: { recruiter_job_id: updated.id }
+    }).catch(err => console.error("[RECRUITER_ENGINE] match-and-apply trigger failed:", err));
   } else if (updates.status === "paused" || updates.status === "closed" || updates.status === "filled") {
     if (updated.job_listing_id) {
       await supabase.from("job_listings").delete().eq("id", updated.job_listing_id);

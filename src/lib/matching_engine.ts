@@ -296,13 +296,26 @@ export const getMatchedJobsServerSide = async (
   profile: CandidateProfile,
   weights?: MatchingWeights,
   preferences?: UserPreferences | null,
-  limit = 20
+  limit = 20,
+  searchQuery?: string,
+  locationQuery?: string
 ): Promise<ServerMatchResult[]> => {
   try {
     // Extract user skills for matching
     const candidateSkills = profile.skills.map(s => s.name.toLowerCase());
 
     let query = supabaseWithLimits.from('job_listings').select('*');
+
+    // Apply Search Query if present
+    if (searchQuery?.trim()) {
+      const q = searchQuery.trim();
+      query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%,company.ilike.%${q}%`);
+    }
+
+    // Apply Location Query if present
+    if (locationQuery?.trim()) {
+      query = query.ilike('location', `%${locationQuery.trim()}%`);
+    }
 
     // Strict Remote Policy Filtering
     if (preferences?.remote_policy === 'remote') {
