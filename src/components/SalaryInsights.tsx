@@ -14,6 +14,7 @@ interface SalaryInsightsProps {
   location?: string;
   salaryRange?: string;
   description?: string;
+  trigger?: React.ReactNode;
 }
 
 interface SalaryData {
@@ -23,7 +24,7 @@ interface SalaryData {
   keyPoints: string[];
 }
 
-export default function SalaryInsights({ jobTitle, company, location, salaryRange, description }: SalaryInsightsProps) {
+export default function SalaryInsights({ jobTitle, company, location, salaryRange, description, trigger }: SalaryInsightsProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<SalaryData | null>(null);
@@ -60,10 +61,12 @@ export default function SalaryInsights({ jobTitle, company, location, salaryRang
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-7 text-xs gap-1.5 text-muted-foreground hover:text-primary">
-          <DollarSign className="w-3 h-3" />
-          Salary Intel
-        </Button>
+        {trigger || (
+          <Button variant="ghost" size="sm" className="h-7 text-xs gap-1.5 text-muted-foreground hover:text-primary">
+            <DollarSign className="w-3 h-3" />
+            Salary Intel
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-lg">
         <DialogHeader>
