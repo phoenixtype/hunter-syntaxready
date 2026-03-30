@@ -147,66 +147,66 @@ export default function JobDescriptionModal({
               </div>
             )}
 
-            {/* Salary insights & Hiring Intel (Prominent) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-              <div className="rounded-lg border border-primary/20 bg-primary/5 p-5 flex flex-col justify-between gap-4 shadow-sm h-full">
-                <div>
-                  <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-primary" /> Salary Intelligence
-                  </h4>
-                  <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">Get AI-estimated compensation ranges, market positioning, and a personalized negotiation script.</p>
+            {/* Salary insights (Prominent) */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-semibold flex items-center gap-2 border-b border-border pb-2 text-foreground">
+                <DollarSign className="w-4 h-4 text-primary" /> Salary Intelligence
+              </h4>
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+                <p className="text-sm text-muted-foreground leading-relaxed flex-1">
+                  Get AI-estimated compensation ranges, market positioning, and a personalized negotiation script for this role.
+                </p>
+                <div className="w-full sm:w-auto shrink-0">
+                  <SalaryInsights
+                    jobTitle={job.title}
+                    company={job.company}
+                    location={job.location}
+                    salaryRange={job.salary_range}
+                    description={job.description}
+                    trigger={
+                      <Button variant="default" size="default" className="w-full gap-2 font-semibold shadow-sm">
+                        <Sparkles className="w-4 h-4" />
+                        Unlock Salary Insights
+                      </Button>
+                    }
+                  />
                 </div>
-                <SalaryInsights
-                  jobTitle={job.title}
-                  company={job.company}
-                  location={job.location}
-                  salaryRange={job.salary_range}
-                  description={job.description}
-                  trigger={
-                    <Button variant="default" size="sm" className="w-full gap-2 font-semibold shadow-sm mt-auto">
-                      <Sparkles className="w-4 h-4" />
-                      Unlock Salary Insights
-                    </Button>
-                  }
-                />
               </div>
-
-              {((stakeholders && stakeholders.length > 0) || isLoadingStakeholders) && (
-                <div className="rounded-lg border border-border bg-card p-5 flex flex-col gap-4 shadow-sm h-full">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                      <Users className="w-4 h-4 text-primary" /> Hiring Team
-                    </h4>
-                  </div>
-                  <div className="flex-1 overflow-y-auto space-y-2.5">
-                    {isLoadingStakeholders ? (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground p-3 border border-border rounded-md bg-muted/20">
-                        <Loader2 className="w-4 h-4 animate-spin" /> Finding hiring team…
-                      </div>
-                    ) : stakeholders?.slice(0, 3).map((person, i) => (
-                      <a
-                        key={i}
-                        href={person.profile_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-2.5 rounded-md border border-border bg-background hover:border-primary/40 transition-colors group"
-                      >
-                        <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">
-                          {person.name?.[0] || "?"}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <span className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors flex items-center gap-1.5 truncate">
-                            {person.name}
-                          </span>
-                          <span className="block text-[11px] text-muted-foreground truncate mt-0.5">{person.role}</span>
-                        </div>
-                        <ExternalLink className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
+
+            {/* Hiring Team Intel (Prominent) */}
+            {((stakeholders && stakeholders.length > 0) || isLoadingStakeholders) && (
+              <div className="space-y-4">
+                <h4 className="text-sm font-semibold flex items-center justify-between gap-2 border-b border-border pb-2 text-foreground">
+                  <span className="flex items-center gap-2"><Users className="w-4 h-4 text-primary" /> Hiring Team Intelligence</span>
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {isLoadingStakeholders ? (
+                    <div className="col-span-full flex items-center gap-2 text-sm text-muted-foreground p-4 border border-border rounded-md bg-muted/20">
+                      <Loader2 className="w-4 h-4 animate-spin" /> Finding hiring team…
+                    </div>
+                  ) : stakeholders?.slice(0, 3).map((person, i) => (
+                    <a
+                      key={i}
+                      href={person.profile_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 p-3 rounded-md border border-border bg-card hover:border-primary/40 transition-colors group shadow-sm"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-bold shrink-0">
+                        {person.name?.[0] || "?"}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors flex items-center gap-1.5 truncate">
+                          {person.name}
+                        </span>
+                        <span className="block text-xs text-muted-foreground truncate mt-0.5">{person.role}</span>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Company research */}
             {companyResearch && (

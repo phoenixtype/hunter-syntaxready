@@ -19,7 +19,9 @@ const rows = [
 export default function MatchScoreTooltip({ match, children }: Props) {
   return (
     <Tooltip delayDuration={200}>
-      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipTrigger asChild>
+        <span className="inline-flex">{children}</span>
+      </TooltipTrigger>
       <TooltipContent
         side="top"
         className="w-52 p-3 space-y-2"
