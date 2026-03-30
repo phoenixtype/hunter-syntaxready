@@ -150,18 +150,6 @@ export default function JobDescriptionModal({
               </div>
             )}
 
-            {/* Job Description */}
-            {job.description && (
-              <div className="space-y-4">
-                <h4 className="text-sm font-semibold flex items-center gap-2 border-b border-border pb-2 text-foreground">
-                  <FileText className="w-4 h-4 text-primary" /> Job Description
-                </h4>
-                <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground leading-relaxed prose-headings:font-semibold prose-headings:text-foreground prose-a:text-primary hover:prose-a:text-primary/80 prose-strong:text-foreground prose-li:my-0">
-                  <ReactMarkdown>{job.description}</ReactMarkdown>
-                </div>
-              </div>
-            )}
-
             {/* Salary insights button */}
             <div className="pt-2">
               <SalaryInsights
