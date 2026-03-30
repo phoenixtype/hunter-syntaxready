@@ -733,6 +733,200 @@ serve(async (req) => {
       return jsonWithCors({ success: true, market_data });
     }
 
+    // ── COMPANY FOCUSED MODE (Source Prioritization Integration) ─────────────
+    if (mode === 'company_focused') {
+      if (!firecrawlApiKey || !geminiApiKey || !jsearchApiKey) {
+        return jsonWithCors({ success: false, error: 'Missing required API keys for company focused crawl' });
+      }
+
+      const { company, limit = 50 } = body;
+      if (!company) {
+        return jsonWithCors({ success: false, error: 'Company name required for company focused mode' });
+      }
+
+      console.log(`[COMPANY_FOCUSED] Starting prioritized crawl for: ${company}`);
+      const companyJobs: any[] = [];
+      const duplicateHashes = new Set<string>();
+
+      // Tier 1: Company Career Pages (Highest Priority)
+      try {
+        console.log('[COMPANY_FOCUSED] Tier 1: Searching for career pages');
+        const careerSearchResults = await firecrawlSearch(firecrawlApiKey, `${company} careers jobs site:${company.toLowerCase().replace(/\s+/g, '')}.com`, 3);
+
+        for (const careerResult of careerSearchResults) {
+          if (companyJobs.length >= limit) break;
+
+          console.log(`[COMPANY_FOCUSED] Scraping career page: ${careerResult.url}`);
+          const careerJobs = await handleCareersCrawl(firecrawlApiKey, geminiApiKey, careerResult.url);
+
+          for (const job of careerJobs) {
+            if (companyJobs.length >= limit) break;
+            const jobCompany = String(job.company || company);
+            const jobTitle = String(job.title || '');
+            const jobPostedAt = String(job.posted_at || '1 hour ago');
+            const jobHash = generateJobHash(jobCompany, jobTitle);
+
+            if (!duplicateHashes.has(jobHash)) {
+              duplicateHashes.add(jobHash);
+              job.source = 'career_page';
+              job.priority = 1;
+              job.freshness_score = calculateFreshnessFromString(jobPostedAt);
+              companyJobs.push(job);
+            }
+          }
+        }
+
+        console.log(`[COMPANY_FOCUSED] Tier 1 complete: ${companyJobs.length} career page jobs`);
+      } catch (error) {
+        console.error('[COMPANY_FOCUSED] Tier 1 error:', error);
+      }
+
+      // Tier 2: Job Boards (Medium Priority) - only if we have space
+      if (companyJobs.length < limit) {
+        try {
+          console.log('[COMPANY_FOCUSED] Tier 2: Searching job boards');
+          const remainingSlots = limit - companyJobs.length;
+          const boardQueries = [`${company} jobs`, `"${company}" software engineer`, `"${company}" developer`];
+
+          for (const query of boardQueries) {
+            if (companyJobs.length >= limit) break;
+
+            const boardResults = await jsearchFetch(jsearchApiKey, query, false);
+
+            for (const job of boardResults) {
+              if (companyJobs.length >= limit) break;
+
+              const normalizedJob = mapJSearchJob(job);
+              const jobCompany = String(normalizedJob.company || company);
+              const jobTitle = String(normalizedJob.title || '');
+              const jobPostedAt = String(normalizedJob.posted_at || '1 day ago');
+              const jobHash = generateJobHash(jobCompany, jobTitle);
+
+              if (!duplicateHashes.has(jobHash) &&
+                  jobCompany.toLowerCase().includes(company.toLowerCase())) {
+                duplicateHashes.add(jobHash);
+                normalizedJob.source = 'job_board';
+                normalizedJob.priority = 2;
+                normalizedJob.freshness_score = calculateFreshnessFromString(jobPostedAt);
+                companyJobs.push(normalizedJob);
+              }
+            }
+          }
+
+          console.log(`[COMPANY_FOCUSED] Tier 2 complete: ${companyJobs.length} total jobs`);
+        } catch (error) {
+          console.error('[COMPANY_FOCUSED] Tier 2 error:', error);
+        }
+      }
+
+      // Tier 3: Niche Sites (Low Priority) - only if we still have space
+      if (companyJobs.length < limit) {
+        try {
+          console.log('[COMPANY_FOCUSED] Tier 3: Searching niche sites');
+          const nicheQueries = [
+            `site:stackoverflow.com/jobs "${company}"`,
+            `site:angel.co "${company}"`,
+            `site:dice.com "${company}"`
+          ];
+
+          for (const query of nicheQueries) {
+            if (companyJobs.length >= limit) break;
+
+            const nicheResults = await firecrawlSearch(firecrawlApiKey, query, 2);
+
+            for (const result of nicheResults) {
+              if (companyJobs.length >= limit) break;
+
+              const markdown = await firecrawlScrapeUrl(firecrawlApiKey, result.url);
+              if (!markdown) continue;
+
+              const normalized = await normalizeWithGemini(geminiApiKey, {
+                title: result.title,
+                url: result.url,
+                content: markdown,
+                source: 'niche_site'
+              });
+
+              if (normalized && normalized.valid) {
+                const jobHash = generateJobHash(normalized.company || company, normalized.title || '');
+
+                if (!duplicateHashes.has(jobHash)) {
+                  duplicateHashes.add(jobHash);
+                  normalized.source = 'niche_site';
+                  normalized.priority = 3;
+                  normalized.freshness_score = calculateFreshnessFromString(normalized.posted_at || '2 days ago');
+                  companyJobs.push(normalized);
+                }
+              }
+            }
+          }
+
+          console.log(`[COMPANY_FOCUSED] Tier 3 complete: ${companyJobs.length} total jobs`);
+        } catch (error) {
+          console.error('[COMPANY_FOCUSED] Tier 3 error:', error);
+        }
+      }
+
+      // Sort by priority and freshness
+      companyJobs.sort((a, b) => {
+        if (a.priority !== b.priority) {
+          return a.priority - b.priority; // Lower priority number = higher importance
+        }
+        return (b.freshness_score || 0) - (a.freshness_score || 0); // Higher freshness = more recent
+      });
+
+      // Insert jobs into database
+      let inserted = 0;
+      for (const job of companyJobs) {
+        try {
+          const { error } = await supabase
+            .from('job_listings')
+            .upsert({
+              title: sanitizeJobTitle(job.title || 'Untitled'),
+              company: job.company || company,
+              location: job.location || 'Not specified',
+              description: job.description || '',
+              application_url: job.application_url || job.url || '#',
+              salary_min: job.salary_min ? parseInt(String(job.salary_min)) : null,
+              salary_max: job.salary_max ? parseInt(String(job.salary_max)) : null,
+              salary_currency: job.salary_currency || 'USD',
+              experience_level: job.experience_level || 'not_specified',
+              job_type: job.job_type || 'full-time',
+              required_skills: job.required_skills || job.tech_stack?.join(', ') || '',
+              posted_date: job.posted_date || new Date().toISOString(),
+              freshness_score: job.freshness_score || 0.5,
+              remote_ok: Boolean(job.remote_ok)
+            }, {
+              onConflict: 'title,company,location',
+              ignoreDuplicates: true
+            });
+
+          if (!error) {
+            inserted++;
+          } else if (!error.message?.includes('duplicate')) {
+            console.error('[DB_INSERT] Error:', error.message);
+          }
+        } catch (insertError) {
+          console.error('[DB_INSERT] Exception:', insertError);
+        }
+      }
+
+      console.log(`[COMPANY_FOCUSED] Complete: ${inserted}/${companyJobs.length} jobs inserted for ${company}`);
+
+      return jsonWithCors({
+        success: true,
+        jobs: companyJobs,
+        total: companyJobs.length,
+        inserted,
+        company,
+        prioritization: {
+          tier1_career_pages: companyJobs.filter(j => j.source === 'career_page').length,
+          tier2_job_boards: companyJobs.filter(j => j.source === 'job_board').length,
+          tier3_niche_sites: companyJobs.filter(j => j.source === 'niche_site').length
+        }
+      });
+    }
+
     // ─── Cleanup Stale Jobs (older than 30 days) ──────────────────────────
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
