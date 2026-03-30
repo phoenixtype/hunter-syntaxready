@@ -381,73 +381,79 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
       )}
 
       {/* Job List */}
-      <div className="border border-border rounded-md overflow-hidden divide-y divide-border">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
         {filteredJobs.map((job) => {
           const isApplied = appliedJobIds.has(job.id);
           const jobSaved = isSaved(job.id);
 
           return (
-            <div key={job.id} className="bg-card">
-              {/* Row — click anywhere to open modal */}
-              <div
-                className="flex items-start gap-3 px-4 py-3.5 hover:bg-muted/30 transition-colors cursor-pointer"
-                data-tour="job-card-actions"
-                onClick={() => handleSelectJob(job)}
-              >
-                {/* Company initial */}
-                <div className="w-8 h-8 rounded-sm bg-muted flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-xs font-semibold text-foreground">{job.company[0]}</span>
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium leading-snug">{job.title}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {job.company}{job.location ? ` · ${job.location}` : ""}
-                  </p>
-                  <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                    {job.match && (
-                      <MatchScoreTooltip match={job.match}>
-                        <span className="text-xs text-muted-foreground cursor-help" data-tour="match-score">
-                          {job.match.overall_score}% match
-                        </span>
-                      </MatchScoreTooltip>
-                    )}
-                    {job.salary_range && job.salary_range !== "Not specified" && (
-                      <span className="text-xs text-muted-foreground">{job.salary_range}</span>
-                    )}
-                    {job.freshness_score > 0.9 && (
-                      <span className="text-[10px] font-medium text-primary">New</span>
-                    )}
-                    {isApplied && (
-                      <span className="text-[10px] font-medium text-muted-foreground">Applied</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Quick actions */}
-                <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+            <div
+              key={job.id}
+              className="group relative flex flex-col bg-card border border-border/50 hover:border-primary/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden cursor-pointer"
+              data-tour="job-card-actions"
+              onClick={() => handleSelectJob(job)}
+            >
+              {/* Quick Actions (Absolute) */}
+              <div className="absolute top-3 right-3 flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={() => { if (!requirePro("Save Jobs")) return; toggleSave(job.id); toast(jobSaved ? "Removed from saved" : "Saved"); }}
-                    className={`p-1.5 rounded-sm transition-colors ${jobSaved ? "text-foreground" : "text-muted-foreground/40 hover:text-muted-foreground"}`}
+                    className={`p-2 rounded-md transition-colors backdrop-blur-md ${jobSaved ? "text-primary bg-primary/10 opacity-100" : "text-muted-foreground bg-background/80 hover:bg-muted hover:text-foreground"}`}
                     title={jobSaved ? "Remove bookmark" : "Save job"}
                   >
-                    <Bookmark className={`w-3.5 h-3.5 ${jobSaved ? "fill-current" : ""}`} />
+                    <Bookmark className={`w-4 h-4 ${jobSaved ? "fill-current" : ""}`} />
                   </button>
                   <button
                     onClick={() => handleDismiss(job)}
-                    className="p-1.5 rounded-sm text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+                    className="p-2 rounded-md text-muted-foreground bg-background/80 backdrop-blur-md hover:bg-muted hover:text-foreground transition-colors hidden sm:flex"
                     title="Hide this job"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X className="w-4 h-4" />
                   </button>
+              </div>
+
+              {/* Card Body: Title, Company, Details */}
+              <div className="p-5 flex-1 flex flex-col">
+                <h3 className="text-base font-semibold leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors pr-10">{job.title}</h3>
+                <p className="text-sm text-muted-foreground mb-4 font-medium">{job.company}</p>
+                
+                <div className="flex flex-wrap items-center gap-2 mt-auto">
+                  {job.location && (
+                    <Badge variant="secondary" className="text-[10px] font-medium bg-muted/50 text-muted-foreground flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
+                      {job.location}
+                    </Badge>
+                  )}
+                  {job.salary_range && job.salary_range !== "Not specified" && (
+                    <Badge variant="secondary" className="text-[10px] font-medium bg-muted/50 text-muted-foreground">
+                      {job.salary_range}
+                    </Badge>
+                  )}
+                  {job.match && (
+                    <MatchScoreTooltip match={job.match}>
+                      <Badge className="text-[10px] font-semibold bg-primary/10 text-primary border-none cursor-help hover:bg-primary/20" data-tour="match-score">
+                        {job.match.overall_score}% match
+                      </Badge>
+                    </MatchScoreTooltip>
+                  )}
+                  {job.freshness_score > 0.9 && (
+                    <Badge className="text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 border-none">
+                      New
+                    </Badge>
+                  )}
+                  {isApplied && (
+                    <Badge variant="outline" className="text-[10px] font-medium border-primary/30 text-primary">
+                      Applied
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
           );
         })}
+      </div>
 
-        {/* Pagination */}
+      {/* Pagination & States (Moved outside grid) */}
+      <div className="mt-6">
         {totalPages > 1 && !loading && (
           <div className="pt-6 pb-2">
             <Pagination>

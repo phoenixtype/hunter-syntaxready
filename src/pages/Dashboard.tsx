@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import SEOHead from "@/components/SEOHead";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Briefcase, FileText, Search, User, Settings, Zap, Bot, GraduationCap, Bell, FolderOpen, TrendingUp, MoreHorizontal, LogOut } from "lucide-react";
+import { Briefcase, FileText, Search, User, Settings, Zap, Bot, GraduationCap, Bell, FolderOpen, TrendingUp, MoreHorizontal, LogOut, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,6 +14,7 @@ import DashboardWelcome from "@/components/DashboardWelcome";
 import ThemeToggle from "@/components/ThemeToggle";
 import MobileNav from "@/components/MobileNav";
 import SkipLink from "@/components/SkipLink";
+import ReferralPanel from "@/components/ReferralPanel";
 import { useResume } from "@/hooks/useResume";
 import { upgradeToPro } from "@/lib/subscription";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -131,7 +132,7 @@ const Dashboard = () => {
   }, [activeView]);
 
   // Settings sub-tab
-  const [settingsTab, setSettingsTab] = useState<"profile" | "preferences" | "alerts">("profile");
+  const [settingsTab, setSettingsTab] = useState<"profile" | "preferences" | "alerts" | "referrals">("profile");
   const visitedTabs = useVisitedTabs(activeView);
   const { isNigeria } = useGeo();
   const [showPaystack, setShowPaystack] = useState(false);
@@ -331,6 +332,12 @@ const Dashboard = () => {
                     <Bell className="w-4 h-4" /> Alerts
                   </button>
                   <button
+                    onClick={() => { setActiveView("settings"); setSettingsTab("referrals"); setMoreOpen(false); }}
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium text-foreground hover:bg-muted/70 active:bg-muted transition-colors"
+                  >
+                    <Gift className="w-4 h-4" /> Referrals
+                  </button>
+                  <button
                     onClick={() => { handleSignOut(); setMoreOpen(false); }}
                     className="w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium text-destructive hover:bg-destructive/5 active:bg-destructive/10 transition-colors"
                   >
@@ -433,12 +440,23 @@ const Dashboard = () => {
                     <Bell className="w-3.5 h-3.5 mr-1.5" />
                     Alerts
                   </Button>
+                  <Button
+                    variant={settingsTab === "referrals" ? "secondary" : "ghost"}
+                    size="sm"
+                    onClick={() => setSettingsTab("referrals")}
+                    className={`h-8 px-4 text-xs ${settingsTab === "referrals" ? "shadow-sm font-medium" : "text-muted-foreground"}`}
+                  >
+                    <Gift className="w-3.5 h-3.5 mr-1.5" />
+                    Referrals
+                  </Button>
                 </div>
 
                 {settingsTab === "profile" ? (
                   <ProfilePanel profile={profile} />
                 ) : settingsTab === "preferences" ? (
                   <PreferencesPanel preferences={preferences ?? null} />
+                ) : settingsTab === "referrals" ? (
+                  <ReferralPanel />
                 ) : (
                   <NotificationSettings />
                 )}

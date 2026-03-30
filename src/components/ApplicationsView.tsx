@@ -366,20 +366,19 @@ export const ApplicationsView = () => {
         </div>
       ) : viewMode === "board" ? (
         /* Kanban Board with DnD */
-        <div>
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex gap-4 overflow-x-auto pb-4 -mx-2 px-2 snap-x snap-mandatory md:grid md:grid-cols-2 xl:grid-cols-4 md:overflow-x-visible md:pb-0 md:mx-0 md:px-0">
+          <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-x-visible md:pb-0">
             {grouped.map((stage) => (
-              <div key={stage.id} className="space-y-3 min-w-[280px] md:min-w-0 snap-start">
-                <div className="flex items-center justify-between">
+              <div key={stage.id} className="space-y-3 min-w-[280px] md:min-w-0 snap-center bg-muted/20 p-3 rounded-lg border border-border/50">
+                <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-semibold">{stage.label}</h3>
-                    <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-md">
+                    <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                       {stage.apps.length}
                     </span>
                   </div>
@@ -393,8 +392,8 @@ export const ApplicationsView = () => {
                   ))}
 
                   {stage.apps.length === 0 && (
-                    <div className="p-6 rounded-md border border-dashed border-border text-center">
-                      <p className="text-xs text-muted-foreground">Drop here</p>
+                    <div className="p-6 rounded-md border-2 border-dashed border-border/60 text-center flex items-center justify-center min-h-[100px]">
+                      <p className="text-xs text-muted-foreground/60 font-medium">Drop here</p>
                     </div>
                   )}
                 </DroppableColumn>
@@ -410,7 +409,6 @@ export const ApplicationsView = () => {
             ) : null}
           </DragOverlay>
         </DndContext>
-        </div>
       ) : (
         /* List View */
         <div key="list" className="space-y-4">
@@ -461,13 +459,13 @@ export const ApplicationsView = () => {
                         </Select>
                         <button
                           onClick={() => { setEditingNoteId(app.id); setNoteInput(app.notes || ""); }}
-                          className={`p-1.5 rounded-md transition-colors ${app.notes ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+                          className={`p-1.5 rounded-md transition-colors ${app.notes ? "text-primary bg-primary/10" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
                           title={app.notes ? "View/edit note" : "Add note"}
                         >
                           <StickyNote className="w-4 h-4" />
                         </button>
                         {app.job_url ? (
-                          <a href={app.job_url} target="_blank" rel="noopener noreferrer" className="p-1.5 text-muted-foreground hover:text-primary transition-colors rounded-md">
+                          <a href={app.job_url} target="_blank" rel="noopener noreferrer" className="p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors rounded-md">
                             <ExternalLink className="w-4 h-4" />
                           </a>
                         ) : (
@@ -476,14 +474,16 @@ export const ApplicationsView = () => {
                           </span>
                         )}
                       </div>
+                      
+                      {/* Notes input inside list row */}
                       {editingNoteId === app.id && (
-                        <div className="space-y-1 w-full sm:w-[220px]">
+                        <div className="space-y-1.5 w-full sm:w-auto mt-2">
                           <textarea
                             autoFocus
                             value={noteInput}
                             onChange={e => setNoteInput(e.target.value)}
                             placeholder="Add a note..."
-                            className="w-full text-xs bg-muted border border-border rounded-md px-2 py-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-primary min-h-[56px]"
+                            className="w-full text-xs bg-muted border border-border rounded-md px-2 py-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-primary min-h-[60px]"
                           />
                           <div className="flex gap-2">
                             <button onClick={() => handleSaveNote(app.id)} className="text-[11px] text-primary font-medium hover:underline">Save</button>
@@ -491,8 +491,10 @@ export const ApplicationsView = () => {
                           </div>
                         </div>
                       )}
+                      
+                      {/* Display existing note */}
                       {app.notes && editingNoteId !== app.id && (
-                        <p className="text-[11px] text-muted-foreground italic line-clamp-1 w-full sm:w-[220px]">
+                        <p className="text-[11px] text-muted-foreground italic line-clamp-1 w-full sm:max-w-[200px] mt-1 cursor-pointer hover:text-foreground" onClick={() => { setEditingNoteId(app.id); setNoteInput(app.notes || ""); }}>
                           {app.notes}
                         </p>
                       )}

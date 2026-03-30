@@ -22,7 +22,6 @@ import { getPreferences, savePreferences, UserPreferences } from "@/lib/user_pre
 import { saveCandidateProfile } from "@/lib/resume_engine";
 import { supabase } from "@/integrations/supabase/client";
 import { useGeo } from "@/hooks/useGeo";
-import ProGate from "@/components/ProGate";
 
 const INTENSITY_LABELS: Record<number, string> = {
   1: "Very selective — few highly targeted roles",

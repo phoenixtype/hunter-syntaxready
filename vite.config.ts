@@ -24,6 +24,7 @@ export default defineConfig(({ mode }) => ({
   },
   esbuild: undefined,
   build: {
+    target: "es2020",
     sourcemap: mode !== "production",
     rollupOptions: {
       output: {

@@ -134,23 +134,31 @@ const ApplicationWizard = () => {
 
                 {/* INPUT STEP */}
                 {step === 'input' && (
-                    <Card className="border-border bg-card shadow-card">
-                        <CardContent className="p-5 sm:p-6">
-                            <form onSubmit={handleAnalyze} className="space-y-6">
-                                <div className="space-y-4">
-                                    <label className="text-base font-medium">Job URL (LinkedIn, Indeed, Company Site)</label>
-                                    <div className="flex flex-col gap-3">
+                    <Card className="border-border bg-card shadow-sm hover:shadow-md transition-shadow max-w-2xl mx-auto rounded-2xl overflow-hidden">
+                        <CardContent className="p-8 sm:p-10 text-center">
+                            <form onSubmit={handleAnalyze} className="space-y-8">
+                                <div className="space-y-3">
+                                    <div className="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-6">
+                                        <Briefcase className="w-8 h-8" />
+                                    </div>
+                                    <h2 className="text-2xl font-semibold tracking-tight">Paste a Job Link</h2>
+                                    <p className="text-base text-muted-foreground max-w-md mx-auto">
+                                        hunter.ai will extract the details, tailor your resume, and write a custom cover letter instantly.
+                                    </p>
+                                </div>
+                                <div className="space-y-4 max-w-lg mx-auto">
+                                    <div className="relative">
+                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                                         <Input
                                             value={url}
                                             onChange={(e) => setUrl(e.target.value)}
                                             placeholder="https://www.linkedin.com/jobs/view/..."
-                                            className="h-12 border-border focus:border-primary text-base"
+                                            className="h-14 pl-12 rounded-xl border-border focus:border-primary text-base shadow-sm transition-colors bg-background/50 hover:bg-background"
                                         />
-                                        <Button type="submit" disabled={!url} size="lg" className="w-full h-12 text-base font-semibold">
-                                            Analyze with AI
-                                        </Button>
                                     </div>
-                                    <p className="text-sm text-muted-foreground">hunter.ai scrapes the job page and uses AI to extract skills, keywords, and compensation data to tailor your application.</p>
+                                    <Button type="submit" disabled={!url} size="lg" className="w-full h-14 rounded-xl text-base font-semibold shadow-sm hover:shadow-md transition-all">
+                                        Analyze with AI
+                                    </Button>
                                 </div>
                             </form>
                         </CardContent>
@@ -174,30 +182,41 @@ const ApplicationWizard = () => {
 
                         {/* 1. Job Summary */}
                         <section className="space-y-4">
-                            <div className="flex items-center gap-2 px-2">
-                                <FileCheck className="w-5 h-5 text-primary" />
-                                <h2 className="text-sm font-semibold">Parsed Extracted Strategy</h2>
-                            </div>
-                            <Card className="border-border bg-card shadow-card overflow-hidden">
-                                <div className="p-4 sm:p-5 border-b border-border flex flex-col sm:flex-row justify-between items-start gap-2">
-                                    <div>
-                                        <h3 className="text-lg font-bold tracking-tight text-foreground">{job.title}</h3>
-                                        <p className="text-sm text-primary font-medium mt-1">{job.company}</p>
-                                    </div>
-                                    <Badge variant="outline" className="bg-background/80 backdrop-blur-sm border-border text-xs px-3 py-1 text-muted-foreground">{job.source}</Badge>
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="p-1.5 rounded-lg bg-primary/10">
+                                    <FileCheck className="w-5 h-5 text-primary" />
                                 </div>
-                                <CardContent className="p-4 sm:p-6">
-                                    <div className="flex flex-wrap gap-2 sm:gap-4 mb-6 text-sm text-muted-foreground font-medium">
-                                        <span className="flex items-center gap-1.5 bg-secondary/50 px-3 py-1.5 rounded-md"><Briefcase className="w-4 h-4" /> {job.location || 'Remote'}</span>
-                                        {job.salary_range && <span className="flex items-center gap-1.5 bg-secondary/50 px-3 py-1.5 rounded-md"><span className="text-foreground">$</span> {job.salary_range}</span>}
+                                <h2 className="text-lg font-bold tracking-tight">Extracted Job Requirements</h2>
+                            </div>
+                            <Card className="border-border bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow rounded-2xl overflow-hidden border">
+                                <div className="p-6 sm:p-8 border-b border-border/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-br from-card to-muted/20">
+                                    <div className="space-y-1.5">
+                                        <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">{job.title}</h3>
+                                        <p className="text-base text-primary font-medium flex items-center gap-2">
+                                            {job.company}
+                                            <span className="text-muted-foreground font-normal text-sm bg-muted px-2 py-0.5 rounded-full">{job.source}</span>
+                                        </p>
                                     </div>
-                                    <div className="space-y-3">
-                                        <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Required Skills Matching</h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            {job.tech_stack?.map((tech, i) => (
-                                                <Badge key={i} variant="secondary" className="">{tech}</Badge>
-                                            ))}
-                                        </div>
+                                    <div className="flex flex-col gap-2 items-end">
+                                        {job.location && (
+                                            <Badge variant="outline" className="bg-background font-medium py-1 px-3 text-sm">
+                                                <Briefcase className="w-3.5 h-3.5 mr-1.5" />
+                                                {job.location}
+                                            </Badge>
+                                        )}
+                                        {job.salary_range && (
+                                            <Badge variant="secondary" className="font-semibold text-primary py-1 px-3 text-sm bg-primary/10 border-none">
+                                                <span className="text-foreground/70 mr-1">$</span> {job.salary_range}
+                                            </Badge>
+                                        )}
+                                    </div>
+                                </div>
+                                <CardContent className="p-6 sm:p-8 space-y-5">
+                                    <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-3">Targeted Keywords</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {job.tech_stack?.length ? job.tech_stack.map((tech, i) => (
+                                            <Badge key={i} variant="secondary" className="px-3 py-1.5 font-medium bg-muted text-muted-foreground hover:bg-muted/80">{tech}</Badge>
+                                        )) : <span className="text-sm text-muted-foreground italic">No specific hard skills extracted.</span>}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -207,40 +226,50 @@ const ApplicationWizard = () => {
 
                             {/* 2. Tailored Assets */}
                             <section className="space-y-4">
-                                <div className="flex items-center gap-2 px-2">
-                                    <FileText className="w-5 h-5 text-primary" />
-                                    <h2 className="text-sm font-semibold">Application Assets</h2>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <div className="p-1.5 rounded-lg bg-primary/10">
+                                        <FileText className="w-5 h-5 text-primary" />
+                                    </div>
+                                    <h2 className="text-lg font-bold tracking-tight">Application Assets</h2>
                                 </div>
-                                <Card className="h-full border-border bg-card shadow-card">
-                                    <CardContent className="p-6 space-y-6">
-                                        <div className="space-y-3">
-                                            <div className="flex items-center gap-2 font-medium">
-                                                <div className="w-7 h-7 rounded-md bg-muted flex items-center justify-center">
-                                                  <FileCheck className="w-4 h-4" />
+                                <Card className="h-full border-border bg-card shadow-sm hover:shadow-md transition-shadow rounded-2xl overflow-hidden border">
+                                    <CardContent className="p-6 sm:p-8 space-y-8">
+                                        <div className="space-y-4">
+                                            <div className="flex items-center gap-3 font-semibold text-lg border-b border-border/50 pb-4">
+                                                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shadow-sm">
+                                                  <FileCheck className="w-5 h-5 text-primary" />
                                                 </div>
                                                 Tailored Resume
                                             </div>
-                                            <p className="text-sm text-muted-foreground">Auto-generated modifications optimized for {job.company} ATS.</p>
-                                            <div className="pl-2 space-y-2 border-l-2 border-primary/30 mt-4 py-1">
+                                            <p className="text-sm text-muted-foreground leading-relaxed">Auto-generated modifications optimized specifically for {job.company}'s ATS requirements.</p>
+                                            <div className="pl-4 space-y-3 border-l-2 border-primary/20 mt-4 py-1">
                                                 {tailoredAssets.changes_summary.map((change, i) => (
-                                                    <p key={i} className="text-sm text-muted-foreground pl-3">{change}</p>
+                                                    <p key={i} className="text-sm text-muted-foreground/80 leading-relaxed font-medium flex items-start gap-2">
+                                                      <span className="text-primary mt-1 text-[10px]">•</span>
+                                                      {change}
+                                                    </p>
                                                 ))}
                                             </div>
-                                            <div className="flex flex-col gap-2 mt-4">
-                                                <Button className="w-full" onClick={() => navigate('/resume-builder')}>Open Resume Builder</Button>
-                                                <Button variant="outline" className="w-full" onClick={() => navigate('/tailored-resumes')}>View All Saved Resumes</Button>
+                                            <div className="flex flex-col gap-3 mt-6">
+                                                <Button className="w-full rounded-xl h-11 shadow-sm" onClick={() => navigate('/resume-builder')}>Open Resume Builder</Button>
+                                                <Button variant="outline" className="w-full rounded-xl h-11 border-border/60 hover:bg-muted/50" onClick={() => navigate('/tailored-resumes')}>View All Saved Resumes</Button>
                                             </div>
                                         </div>
 
-                                        <div className="pt-6 border-t border-border space-y-3">
-                                            <div className="flex items-center gap-2 font-medium">
-                                                <div className="w-7 h-7 rounded-md bg-muted flex items-center justify-center">
-                                                  <FileText className="w-4 h-4" />
+                                        <div className="pt-8 border-t border-border/50 space-y-4">
+                                            <div className="flex items-center gap-3 font-semibold text-lg border-b border-border/50 pb-4">
+                                                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shadow-sm">
+                                                  <FileText className="w-5 h-5 text-primary" />
                                                 </div>
                                                 Cover Letter
                                             </div>
-                                            <p className="text-sm text-muted-foreground italic bg-muted/50 p-4 rounded-md border border-border line-clamp-4">"{tailoredAssets.coverLetter}"</p>
-                                            <Button variant="outline" className="w-full" onClick={() => {
+                                            <div className="relative">
+                                                <p className="text-sm text-foreground/80 leading-relaxed bg-muted/40 p-5 rounded-xl border border-border/50 line-clamp-4 shadow-inner">
+                                                    "{tailoredAssets.coverLetter}"
+                                                </p>
+                                                <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-muted/40 to-transparent rounded-b-xl"></div>
+                                            </div>
+                                            <Button variant="outline" className="w-full rounded-xl h-11 border-border/60 hover:bg-muted/50 shadow-sm" onClick={() => {
                                                 if (tailoredAssets?.coverLetter) {
                                                     navigator.clipboard.writeText(tailoredAssets.coverLetter);
                                                     toast.success("Cover letter copied to clipboard!");
@@ -253,39 +282,43 @@ const ApplicationWizard = () => {
 
                             {/* 3. Networking Strategy */}
                             <section className="space-y-4">
-                                <div className="flex items-center gap-2 px-2">
-                                    <UserPlus className="w-5 h-5 text-primary" />
-                                    <h2 className="text-sm font-semibold">Find the Team on LinkedIn</h2>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <div className="p-1.5 rounded-lg bg-primary/10">
+                                        <UserPlus className="w-5 h-5 text-primary" />
+                                    </div>
+                                    <h2 className="text-lg font-bold tracking-tight">Direct Outreach</h2>
                                 </div>
-                                <Card className="h-full border-border bg-card shadow-card">
-                                    <CardContent className="p-6 space-y-4">
-                                        <p className="text-sm text-muted-foreground">
-                                            Use these searches to find real people at <strong>{job?.company}</strong> and reach out directly. A personal connection often gets your application noticed.
+                                <Card className="h-full border-border bg-card shadow-sm hover:shadow-md transition-shadow rounded-2xl overflow-hidden border">
+                                    <CardContent className="p-6 sm:p-8 space-y-6">
+                                        <p className="text-sm text-muted-foreground leading-relaxed">
+                                            Find the hiring team at <strong className="text-foreground">{job?.company}</strong> and reach out directly. A personal connection often gets your application noticed before the ATS even scans it.
                                         </p>
-                                        <div className="space-y-2.5">
-                                            {recruiters.map((person, i) => (
+                                        <div className="space-y-3 pt-2">
+                                            {recruiters.length > 0 ? recruiters.map((person, i) => (
                                                 <a
                                                     key={i}
                                                     href={person.profile_url}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="group flex items-center justify-between gap-4 p-3.5 rounded-md hover:bg-muted transition-all border border-border hover:border-primary/20"
+                                                    className="group flex items-center justify-between gap-4 p-4 rounded-xl hover:bg-muted/50 transition-all border border-border/60 hover:border-primary/30 hover:shadow-sm bg-background/50"
                                                 >
-                                                    <div className="flex items-center gap-3">
-                                                      <div className="w-9 h-9 rounded-md bg-muted flex items-center justify-center shrink-0">
+                                                    <div className="flex items-center gap-4">
+                                                      <div className="w-10 h-10 rounded-full bg-primary/5 border border-primary/10 flex items-center justify-center shrink-0">
                                                           <Search className="w-4 h-4 text-primary" />
                                                       </div>
                                                       <div>
-                                                          <p className="font-medium text-sm group-hover:text-primary transition-colors">{person.name}</p>
-                                                          <p className="text-xs text-muted-foreground">{person.role}</p>
+                                                          <p className="font-semibold text-sm group-hover:text-primary transition-colors">{person.name}</p>
+                                                          <p className="text-xs text-muted-foreground/80 mt-0.5">{person.role}</p>
                                                       </div>
                                                     </div>
-                                                    <span className="text-xs text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity shrink-0">Search →</span>
+                                                    <span className="text-xs text-primary font-bold opacity-0 group-hover:opacity-100 transition-opacity shrink-0 bg-primary/10 px-2.5 py-1 rounded-md">Search →</span>
                                                 </a>
-                                            ))}
+                                            )) : (
+                                                <p className="text-sm text-muted-foreground italic py-4 text-center border border-dashed border-border rounded-xl">No immediate contacts found. Try searching LinkedIn manually.</p>
+                                            )}
                                         </div>
-                                        <p className="text-xs text-muted-foreground/70 pt-1">
-                                            These open LinkedIn people searches. You'll need to be signed into LinkedIn to see results.
+                                        <p className="text-xs text-muted-foreground/60 pt-2 text-center">
+                                            Opens a LinkedIn search. Ensure you are signed in.
                                         </p>
                                     </CardContent>
                                 </Card>
