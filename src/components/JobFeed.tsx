@@ -182,8 +182,6 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
     }
 
     try {
-      toast.info(`Recording application...`);
-      
       // Fire it in the background if we're not waiting for a specific simulation
       simulateApplication(job, (state) => {
         if (state.status === 'applied') {

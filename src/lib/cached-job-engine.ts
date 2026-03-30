@@ -124,7 +124,7 @@ class CachedJobEngine {
       };
 
       // Cache the result (shorter TTL for searches to keep results fresh)
-      cache.set(cacheKey, result, CacheTTL.MEDIUM);
+      cache.set(cacheKey, result, CacheTTL.SHORT);
 
       return result;
 

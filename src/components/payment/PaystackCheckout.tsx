@@ -75,12 +75,7 @@ export function PaystackCheckout({
       setScriptLoaded(true);
     }
 
-    return () => {
-      const script = document.querySelector('script[src="https://js.paystack.co/v1/inline.js"]');
-      if (script) {
-        document.head.removeChild(script);
-      }
-    };
+    // No cleanup needed - leave Paystack script loaded for the session
   }, [onError]);
 
   // Load plan details
@@ -167,7 +162,7 @@ export function PaystackCheckout({
         currency: 'NGN',
         reference: reference,
         metadata: metadata,
-        callback: async function(response: PaystackResponse) {
+        callback: function(response: PaystackResponse) {
           // Paystack inline popup only fires this callback after a successful charge.
           // Server-side verification happens in the paystack-webhook edge function.
 

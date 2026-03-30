@@ -228,9 +228,18 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
             if (user?.id) cache.invalidatePattern(`job_matches:${user.id}`);
             queryClient.invalidateQueries({ queryKey: ['jobs'] });
             queryClient.invalidateQueries({ queryKey: ['jobCount'] });
+            // Explicitly refetch jobs to ensure UI updates immediately
+            refreshJobs();
         },
         onError: (error) => {
-            toast.error("Crawl failed", { description: error.message });
+            // Show friendlier message for rate limit errors
+            if (error.message.includes('Too many requests') || error.message.includes('rate limit')) {
+                toast.error("Slow down!", {
+                    description: "Please wait a minute before searching again."
+                });
+            } else {
+                toast.error("Crawl failed", { description: error.message });
+            }
         }
     });
 

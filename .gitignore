@@ -45,3 +45,4 @@ Thumbs.db
 .cache
 .turbo
 .worktrees/
+deno.lock

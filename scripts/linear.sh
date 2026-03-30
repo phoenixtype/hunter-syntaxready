@@ -31,11 +31,37 @@ API="https://api.linear.app/graphql"
 
 gql() {
   local query="$1"
-  local variables="${2:-{}}"
-  curl -s -X POST "$API" \
-    -H "Content-Type: application/json" \
-    -H "Authorization: $LINEAR_API_KEY" \
-    -d "{\"query\": $(echo "$query" | python3 -c 'import sys,json; print(json.dumps(sys.stdin.read()))'), \"variables\": $variables}"
+  local variables="${2:-}"
+  
+  python3 - "$LINEAR_API_KEY" "$API" "$query" "$variables" <<'EOF'
+import os, json, subprocess, sys
+
+api_key = sys.argv[1]
+api_url = sys.argv[2]
+q = sys.argv[3]
+v_raw = sys.argv[4]
+
+try:
+    v = json.loads(v_raw) if v_raw else {}
+except Exception as e:
+    sys.stderr.write(f"VARS_PARSE_ERROR: {e}\n")
+    sys.stderr.write(f"RAW_VARS: {v_raw}\n")
+    v = {}
+
+payload = json.dumps({"query": q, "variables": v})
+res = subprocess.run(
+    ["curl", "-s", "-X", "POST", api_url,
+     "-H", "Content-Type: application/json",
+     "-H", "Authorization: " + api_key,
+     "-d", payload],
+    capture_output=True, text=True
+)
+if res.returncode == 0:
+    print(res.stdout, end="")
+else:
+    sys.stderr.write(res.stderr)
+    sys.exit(1)
+EOF
 }
 
 # Parse "HUN-28" into number 28
@@ -199,18 +225,19 @@ cmd_comment() {
   fi
 
   local variables
-  variables=$(python3 -c "import json,sys; print(json.dumps({'body': sys.argv[1]}))" "$body")
+  variables=$(python3 -c "import json,sys; print(json.dumps({'issueId': sys.argv[1], 'body': sys.argv[2]}))" "$issue_id" "$body")
 
-  gql 'mutation($body: String!) { commentCreate(input: { issueId: "'"$issue_id"'", body: $body }) { success } }' "$variables" \
-    | python3 -c '
+  gql 'mutation($issueId: String!, $body: String!) { commentCreate(input: { issueId: $issueId, body: $body }) { success } }' "$variables" \
+    | python3 -c "
 import sys, json
+identifier = '$identifier'
 data = json.load(sys.stdin)
-if data.get("data",{}).get("commentCreate",{}).get("success"):
-    print("Comment added to '"$identifier"'")
+if data.get('data',{}).get('commentCreate',{}).get('success'):
+    print(f'Comment added to {identifier}')
 else:
-    print("Failed to add comment.")
+    print('Failed to add comment.')
     print(json.dumps(data, indent=2))
-'
+"
 }
 
 cmd_create() {
@@ -218,9 +245,9 @@ cmd_create() {
   local description="${2:-}"
 
   local variables
-  variables=$(python3 -c "import json,sys; print(json.dumps({'title': sys.argv[1], 'desc': sys.argv[2] if len(sys.argv) > 2 else ''}))" "$title" "$description")
+  variables=$(python3 -c "import json,sys; print(json.dumps({'teamId': sys.argv[1], 'title': sys.argv[2], 'desc': sys.argv[3] if len(sys.argv) > 3 else ''}))" "$LINEAR_TEAM_ID" "$title" "$description")
 
-  gql 'mutation($title: String!, $desc: String) { issueCreate(input: { teamId: "'"$LINEAR_TEAM_ID"'", title: $title, description: $desc }) { success issue { identifier title state { name } } } }' "$variables" \
+  gql 'mutation($teamId: String!, $title: String!, $desc: String) { issueCreate(input: { teamId: $teamId, title: $title, description: $desc }) { success issue { identifier title state { name } } } }' "$variables" \
     | python3 -c '
 import sys, json
 data = json.load(sys.stdin)
