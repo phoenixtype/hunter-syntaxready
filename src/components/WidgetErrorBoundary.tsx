@@ -8,6 +8,7 @@ interface Props {
 
 interface State {
   hasError: boolean;
+  error?: Error;
 }
 
 class WidgetErrorBoundary extends Component<Props, State> {
@@ -15,16 +16,21 @@ class WidgetErrorBoundary extends Component<Props, State> {
     hasError: false
   };
 
-  public static getDerivedStateFromError(_: Error): State {
-    return { hasError: true };
+  public static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('WidgetErrorBoundary caught an error:', error, errorInfo);
+    console.error('Error stack:', error.stack);
+    console.error('Component stack:', errorInfo.componentStack);
+    // Also log to help debug
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
   }
 
   private handleRetry = () => {
-    this.setState({ hasError: false });
+    this.setState({ hasError: false, error: undefined });
   };
 
   public render() {
@@ -39,6 +45,15 @@ class WidgetErrorBoundary extends Component<Props, State> {
             <p className="text-xs text-muted-foreground max-w-[200px] mx-auto">
               This section is temporarily down. Your data is safe.
             </p>
+            {process.env.NODE_ENV === 'development' && this.state.error && (
+              <details className="mt-2 text-left">
+                <summary className="text-xs cursor-pointer text-muted-foreground">Debug Info</summary>
+                <div className="mt-1 p-2 bg-muted rounded text-xs font-mono text-left overflow-auto max-h-20">
+                  <p><strong>Error:</strong> {this.state.error.message}</p>
+                  <p><strong>Type:</strong> {this.state.error.name}</p>
+                </div>
+              </details>
+            )}
           </div>
           <Button 
             variant="outline" 

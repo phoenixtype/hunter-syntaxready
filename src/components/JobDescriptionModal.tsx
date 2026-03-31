@@ -53,15 +53,15 @@ export default function JobDescriptionModal({
   // Safe data extraction with fallbacks to prevent errors
   const safeJob = {
     ...job,
-    title: safeJob.title || 'Job Title Not Available',
-    company: safeJob.company || 'Company Not Available',
-    location: safeJob.location || '',
-    description: safeJob.description || '',
-    salary_range: safeJob.salary_range || '',
-    tech_stack: safeJob.tech_stack || [],
-    match: safeJob.match || null,
+    title: job.title || 'Job Title Not Available',
+    company: job.company || 'Company Not Available',
+    location: job.location || '',
+    description: job.description || '',
+    salary_range: job.salary_range || '',
+    tech_stack: job.tech_stack || [],
+    match: job.match || null,
     posted_at: job.posted_at,
-    freshness_score: safeJob.freshness_score || 0
+    freshness_score: job.freshness_score || 0
   };
 
   const postedDate = safeJob.posted_at

@@ -78,7 +78,19 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   };
 
   const filteredJobs = useMemo(() => {
-    let result = jobs.filter(job => !dismissedJobIds.has(job.id) && !appliedJobIds.has(job.id));
+    if (!Array.isArray(jobs)) {
+      console.warn('Jobs data is not an array:', jobs);
+      return [];
+    }
+
+    let result = jobs.filter(job => {
+      // Safety check - ensure job has required properties
+      if (!job || typeof job !== 'object' || !job.id) {
+        console.warn('Invalid job object found:', job);
+        return false;
+      }
+      return !dismissedJobIds.has(job.id) && !appliedJobIds.has(job.id);
+    });
 
     // Hide jobs older than 90 days client-side
     result = result.filter(job => {
@@ -170,18 +182,25 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   }, [user]);
 
   const handleApply = async (job: EnrichedJob) => {
-    if (appliedJobIds.has(job.id)) {
-      // Do nothing, let the <a> tag handle navigation to the job URL
-      return;
-    }
-
-    if (!canAccess('job_applications')) {
-      setGateFeature('Job Applications');
-      setGateOpen(true);
-      return;
-    }
-
     try {
+      // Safety checks
+      if (!job?.id) {
+        console.error('Invalid job object passed to handleApply:', job);
+        toast.error('Unable to apply. Invalid job data.');
+        return;
+      }
+
+      if (appliedJobIds.has(job.id)) {
+        // Do nothing, let the <a> tag handle navigation to the job URL
+        return;
+      }
+
+      if (!canAccess('job_applications')) {
+        setGateFeature('Job Applications');
+        setGateOpen(true);
+        return;
+      }
+
       // Fire it in the background if we're not waiting for a specific simulation
       simulateApplication(job, (state) => {
         if (state.status === 'applied') {
@@ -193,6 +212,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
       // Record usage after successful application
       await recordUsage({ featureName: 'job_applications' });
     } catch (error) {
+      console.error('Error in handleApply:', error);
       if (error instanceof ComplianceError) {
         toast.warning("Blocked by compliance", { description: error.message, duration: 5000 });
       } else {
@@ -203,38 +223,97 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   };
 
   const handleDismiss = async (job: EnrichedJob) => {
-    if (!requirePro("Job Actions")) return;
-    setDismissedJobIds(prev => {
-      const next = new Set(prev).add(job.id);
-      try { localStorage.setItem("hunter_dismissed_jobs", JSON.stringify([...next])); } catch { /* ignore quota */ }
-      return next;
-    });
-    toast("Job hidden", { description: "It won't show again on this device." });
-    recordFeedback({ jobId: job.id, action: 'DISMISS', timestamp: Date.now(), jobMetadata: { skills: [], company: job.company, source: job.source } });
+    try {
+      // Safety checks
+      if (!job?.id) {
+        console.error('Invalid job object passed to handleDismiss:', job);
+        toast.error('Unable to hide job. Invalid job data.');
+        return;
+      }
+
+      if (!requirePro("Job Actions")) return;
+
+      setDismissedJobIds(prev => {
+        const next = new Set(prev).add(job.id);
+        try { localStorage.setItem("hunter_dismissed_jobs", JSON.stringify([...next])); } catch { /* ignore quota */ }
+        return next;
+      });
+
+      toast("Job hidden", { description: "It won't show again on this device." });
+
+      recordFeedback({
+        jobId: job.id,
+        action: 'DISMISS',
+        timestamp: Date.now(),
+        jobMetadata: {
+          skills: [],
+          company: job.company || 'Unknown Company',
+          source: job.source || 'Unknown Source'
+        }
+      });
+    } catch (error) {
+      console.error('Error in handleDismiss:', error);
+      toast.error('Unable to hide job. Please try again.');
+    }
   };
 
   const handleSelectJob = async (job: EnrichedJob | null) => {
-    setSelectedJob(job);
-    if (job && !stakeholders[job.id]) {
-      const { findStakeholders } = await import("@/lib/recruiter_engine");
-      const network = await findStakeholders(job);
-      setStakeholders(prev => ({ ...prev, [job.id]: network }));
+    try {
+      // Safety check for job object
+      if (job && (!job.id || !job.title || !job.company)) {
+        console.error('Invalid job object passed to handleSelectJob:', job);
+        toast.error('Unable to open job details. Invalid job data.');
+        return;
+      }
+
+      setSelectedJob(job);
+
+      if (job && !stakeholders[job.id]) {
+        try {
+          const { findStakeholders } = await import("@/lib/recruiter_engine");
+          const network = await findStakeholders(job);
+          setStakeholders(prev => ({ ...prev, [job.id]: network }));
+        } catch (error) {
+          console.error('Error finding stakeholders for job:', error, job.id);
+          // Don't show error to user as this is optional functionality
+        }
+      }
+    } catch (error) {
+      console.error('Error in handleSelectJob:', error);
+      toast.error('Unable to open job details. Please try again.');
+      setSelectedJob(null);
     }
   };
 
   const handleTailor = async (job: EnrichedJob) => {
-    if (!requirePro("Resume Tailoring")) return;
-    if (!profile) { toast.error("Build your profile first."); return; }
-    setTailoringJobId(job.id);
-    const toastId = toast.loading("Tailoring resume…", { description: `Optimizing for ${job.title} at ${job.company}` });
     try {
-      const content = await generateTailoredContent(profile, job);
-      await saveTailoredResume(content, { title: job.title, company: job.company, url: job.url });
-      setTailorResult({ content, job: { title: job.title, company: job.company } });
-      toast.success("Resume tailored!", { id: toastId, description: "Your optimized resume is ready." });
-    } catch {
-      toast.error("Tailoring failed", { id: toastId, description: "Try again — this is usually a temporary issue.", action: { label: "Retry", onClick: () => handleTailor(job) } });
-    } finally {
+      // Safety checks
+      if (!job?.id || !job?.title || !job?.company) {
+        console.error('Invalid job object passed to handleTailor:', job);
+        toast.error('Unable to tailor resume. Invalid job data.');
+        return;
+      }
+
+      if (!requirePro("Resume Tailoring")) return;
+      if (!profile) { toast.error("Build your profile first."); return; }
+
+      setTailoringJobId(job.id);
+      const toastId = toast.loading("Tailoring resume…", { description: `Optimizing for ${job.title} at ${job.company}` });
+
+      try {
+        const content = await generateTailoredContent(profile, job);
+        await saveTailoredResume(content, { title: job.title, company: job.company, url: job.url || '' });
+        setTailorResult({ content, job: { title: job.title, company: job.company } });
+        toast.success("Resume tailored!", { id: toastId, description: "Your optimized resume is ready." });
+      } catch (tailorError) {
+        console.error('Error tailoring resume:', tailorError);
+        toast.error("Tailoring failed", { id: toastId, description: "Try again — this is usually a temporary issue.", action: { label: "Retry", onClick: () => handleTailor(job) } });
+      } finally {
+        setTailoringJobId(null);
+      }
+    } catch (error) {
+      console.error('Error in handleTailor:', error);
+      toast.error('Unable to tailor resume. Please try again.');
       setTailoringJobId(null);
     }
   };
@@ -262,11 +341,24 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   };
 
   const handleResearchCompany = async (job: EnrichedJob) => {
-    if (companyResearch[job.id] !== undefined) return; // already fetched or fetching
-    setResearchingJobId(job.id);
-    const research = await researchCompany(job.company, job.title);
-    setCompanyResearch(prev => ({ ...prev, [job.id]: research }));
-    setResearchingJobId(null);
+    try {
+      // Safety checks
+      if (!job?.id || !job?.company) {
+        console.error('Invalid job object passed to handleResearchCompany:', job);
+        return;
+      }
+
+      if (companyResearch[job.id] !== undefined) return; // already fetched or fetching
+
+      setResearchingJobId(job.id);
+      const research = await researchCompany(job.company, job.title || '');
+      setCompanyResearch(prev => ({ ...prev, [job.id]: research }));
+    } catch (error) {
+      console.error('Error researching company:', error);
+      setCompanyResearch(prev => ({ ...prev, [job.id]: null }));
+    } finally {
+      setResearchingJobId(null);
+    }
   };
 
   const handleCrawl = () => {
@@ -396,27 +488,67 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
       {/* Job List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
         {filteredJobs.map((job) => {
+          // Safety checks - ensure job has required properties
+          if (!job || !job.id) {
+            console.warn('Invalid job object in render:', job);
+            return null;
+          }
+
           const isApplied = appliedJobIds.has(job.id);
           const jobSaved = isSaved(job.id);
+
+          // Create safe job object with fallbacks
+          const safeJob = {
+            ...job,
+            title: job.title || 'Job Title Not Available',
+            company: job.company || 'Company Not Available',
+            location: job.location || null,
+            salary_range: job.salary_range || null,
+            match: job.match || null,
+            freshness_score: typeof job.freshness_score === 'number' ? job.freshness_score : 0
+          };
 
           return (
             <div
               key={job.id}
               className="group relative flex flex-col bg-card border border-border/50 hover:border-primary/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden cursor-pointer"
               data-tour="job-card-actions"
-              onClick={() => handleSelectJob(job)}
+              onClick={() => {
+                try {
+                  handleSelectJob(safeJob);
+                } catch (error) {
+                  console.error('Error selecting job:', error, job);
+                  toast.error('Unable to open job details. Please try again.');
+                }
+              }}
             >
               {/* Quick Actions (Absolute) */}
               <div className="absolute top-3 right-3 flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10" onClick={(e) => e.stopPropagation()}>
                   <button
-                    onClick={() => { if (!requirePro("Save Jobs")) return; toggleSave(job.id); toast(jobSaved ? "Removed from saved" : "Saved"); }}
+                    onClick={() => {
+                      try {
+                        if (!requirePro("Save Jobs")) return;
+                        toggleSave(job.id);
+                        toast(jobSaved ? "Removed from saved" : "Saved");
+                      } catch (error) {
+                        console.error('Error saving job:', error);
+                        toast.error('Unable to save job. Please try again.');
+                      }
+                    }}
                     className={`p-2 rounded-md transition-colors backdrop-blur-md ${jobSaved ? "text-primary bg-primary/10 opacity-100" : "text-muted-foreground bg-background/80 hover:bg-muted hover:text-foreground"}`}
                     title={jobSaved ? "Remove bookmark" : "Save job"}
                   >
                     <Bookmark className={`w-4 h-4 ${jobSaved ? "fill-current" : ""}`} />
                   </button>
                   <button
-                    onClick={() => handleDismiss(job)}
+                    onClick={() => {
+                      try {
+                        handleDismiss(safeJob);
+                      } catch (error) {
+                        console.error('Error dismissing job:', error);
+                        toast.error('Unable to hide job. Please try again.');
+                      }
+                    }}
                     className="p-2 rounded-md text-muted-foreground bg-background/80 backdrop-blur-md hover:bg-muted hover:text-foreground transition-colors hidden sm:flex"
                     title="Hide this job"
                   >
@@ -426,29 +558,29 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
 
               {/* Card Body: Title, Company, Details */}
               <div className="p-5 flex-1 flex flex-col">
-                <h3 className="text-base font-semibold leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors pr-10">{job.title}</h3>
-                <p className="text-sm text-muted-foreground mb-4 font-medium">{job.company}</p>
-                
+                <h3 className="text-base font-semibold leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors pr-10">{safeJob.title}</h3>
+                <p className="text-sm text-muted-foreground mb-4 font-medium">{safeJob.company}</p>
+
                 <div className="flex flex-wrap items-center gap-2 mt-auto">
-                  {job.location && (
+                  {safeJob.location && (
                     <Badge variant="secondary" className="text-[10px] font-medium bg-muted/50 text-muted-foreground flex items-center gap-1">
                       <MapPin className="w-3 h-3" />
-                      {job.location}
+                      {safeJob.location}
                     </Badge>
                   )}
-                  {job.salary_range && job.salary_range !== "Not specified" && (
+                  {safeJob.salary_range && safeJob.salary_range !== "Not specified" && (
                     <Badge variant="secondary" className="text-[10px] font-medium bg-muted/50 text-muted-foreground">
-                      {job.salary_range}
+                      {safeJob.salary_range}
                     </Badge>
                   )}
-                  {job.match && (
-                    <MatchScoreTooltip match={job.match}>
+                  {safeJob.match && safeJob.match.overall_score && (
+                    <MatchScoreTooltip match={safeJob.match}>
                       <Badge className="text-[10px] font-semibold bg-primary/10 text-primary border-none cursor-help hover:bg-primary/20" data-tour="match-score">
-                        {job.match.overall_score}% match
+                        {Math.round(safeJob.match.overall_score)}% match
                       </Badge>
                     </MatchScoreTooltip>
                   )}
-                  {job.freshness_score > 0.9 && (
+                  {safeJob.freshness_score > 0.9 && (
                     <Badge className="text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 border-none">
                       New
                     </Badge>
@@ -573,27 +705,51 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
 
       <JobDescriptionModal
         job={selectedJob}
-        stakeholders={selectedJob ? stakeholders[selectedJob.id] : undefined}
-        isLoadingStakeholders={selectedJob ? !stakeholders[selectedJob.id] : false}
-        companyResearch={selectedJob ? companyResearch[selectedJob.id] : undefined}
-        isApplied={selectedJob ? appliedJobIds.has(selectedJob.id) : false}
-        isApplying={selectedJob ? activeApplication?.jobId === selectedJob.id : false}
-        isTailoring={selectedJob ? tailoringJobId === selectedJob.id : false}
-        isSaved={selectedJob ? isSaved(selectedJob.id) : false}
+        stakeholders={selectedJob?.id ? stakeholders[selectedJob.id] : undefined}
+        isLoadingStakeholders={selectedJob?.id ? !stakeholders[selectedJob.id] : false}
+        companyResearch={selectedJob?.id ? companyResearch[selectedJob.id] : undefined}
+        isApplied={selectedJob?.id ? appliedJobIds.has(selectedJob.id) : false}
+        isApplying={selectedJob?.id ? activeApplication?.jobId === selectedJob.id : false}
+        isTailoring={selectedJob?.id ? tailoringJobId === selectedJob.id : false}
+        isSaved={selectedJob?.id ? isSaved(selectedJob.id) : false}
         isPro={isPro}
         onClose={() => setSelectedJob(null)}
-        onApply={() => selectedJob && handleApply(selectedJob)}
-        onTailor={() => selectedJob && handleTailor(selectedJob)}
+        onApply={() => {
+          try {
+            if (selectedJob) handleApply(selectedJob);
+          } catch (error) {
+            console.error('Error applying to job:', error);
+            toast.error('Unable to apply. Please try again.');
+          }
+        }}
+        onTailor={() => {
+          try {
+            if (selectedJob) handleTailor(selectedJob);
+          } catch (error) {
+            console.error('Error tailoring resume:', error);
+            toast.error('Unable to tailor resume. Please try again.');
+          }
+        }}
         onSave={() => {
-          if (!selectedJob) return;
-          if (!requirePro("Save Jobs")) return;
-          toggleSave(selectedJob.id);
-          toast(isSaved(selectedJob.id) ? "Removed from saved" : "Saved");
+          try {
+            if (!selectedJob?.id) return;
+            if (!requirePro("Save Jobs")) return;
+            toggleSave(selectedJob.id);
+            toast(isSaved(selectedJob.id) ? "Removed from saved" : "Saved");
+          } catch (error) {
+            console.error('Error saving job:', error);
+            toast.error('Unable to save job. Please try again.');
+          }
         }}
         onPrep={() => {
-          if (!selectedJob) return;
-          if (!requirePro("Interview Coach")) return;
-          navigate(`/interview-coach?title=${encodeURIComponent(selectedJob.title)}&company=${encodeURIComponent(selectedJob.company)}&desc=${encodeURIComponent(selectedJob.description?.substring(0, 500) || '')}`);
+          try {
+            if (!selectedJob?.title || !selectedJob?.company) return;
+            if (!requirePro("Interview Coach")) return;
+            navigate(`/interview-coach?title=${encodeURIComponent(selectedJob.title)}&company=${encodeURIComponent(selectedJob.company)}&desc=${encodeURIComponent(selectedJob.description?.substring(0, 500) || '')}`);
+          } catch (error) {
+            console.error('Error navigating to interview coach:', error);
+            toast.error('Unable to open interview coach. Please try again.');
+          }
         }}
       />
 
