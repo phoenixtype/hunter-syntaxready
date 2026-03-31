@@ -1,5 +1,4 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EnrichedJob } from "@/hooks/useJobs";
@@ -7,13 +6,13 @@ import type { Stakeholder } from "@/lib/recruiter_engine";
 import type { CompanyResearch } from "@/lib/crawler_engine";
 import {
   Send, PenTool, Bookmark, GraduationCap, Loader2, ExternalLink,
-  MapPin, DollarSign, Building2, Cpu, Users, Newspaper, Lightbulb,
-  FileText, Target, CheckCircle2, Sparkles
+  MapPin, DollarSign, Building2, Cpu, Users, ChevronDown, ChevronUp,
+  Target, CheckCircle2, Sparkles
 } from "lucide-react";
 import MatchScoreTooltip from "./MatchScoreTooltip";
 import SalaryInsights from "./SalaryInsights";
-import ReactMarkdown from "react-markdown";
 import { Progress } from "@/components/ui/progress";
+import { useState } from "react";
 
 // Helper function to check if salary should be displayed
 const shouldShowSalary = (salaryRange: string | null | undefined): boolean => {
@@ -67,6 +66,8 @@ export default function JobDescriptionModal({
   onSave,
   onPrep,
 }: Props) {
+  const [showAITools, setShowAITools] = useState(false);
+
   if (!job) return null;
 
   // Safe data extraction with fallbacks to prevent errors
@@ -96,269 +97,240 @@ export default function JobDescriptionModal({
   return (
     <Dialog open={!!job} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-w-3xl w-full p-0 gap-0 flex flex-col max-h-[90vh]">
-        {/* Header */}
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border shrink-0 bg-muted/20">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-lg bg-background border border-border flex items-center justify-center shrink-0 shadow-sm mt-0.5">
-              <span className="text-lg font-bold text-foreground">{safeJob.company[0]}</span>
+        {/* Compact Header with Primary CTA */}
+        <DialogHeader className="px-4 pt-4 pb-3 border-b border-border shrink-0 bg-muted/20">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-background border border-border flex items-center justify-center shrink-0 shadow-sm">
+              <span className="text-sm font-bold text-foreground">{safeJob.company[0]}</span>
             </div>
             <div className="flex-1 min-w-0">
-              <DialogTitle className="text-xl font-bold leading-snug text-foreground">
+              <DialogTitle className="text-lg font-bold leading-snug text-foreground pr-2">
                 {safeJob.title}
               </DialogTitle>
-              <p className="text-sm font-medium text-muted-foreground mt-1">
-                {safeJob.company}
+              <p className="text-sm text-muted-foreground flex items-center gap-3 mt-1">
+                <span>{safeJob.company}</span>
                 {safeJob.location && (
-                  <span className="inline-flex items-center gap-1 ml-3 text-muted-foreground/80">
-                    <MapPin className="w-3.5 h-3.5" />{safeJob.location}
+                  <span className="flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />{safeJob.location}
                   </span>
                 )}
               </p>
-              <div className="flex items-center gap-2 mt-3 flex-wrap">
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
                 {safeJob.match && (
                   <MatchScoreTooltip match={safeJob.match}>
-                    <Badge variant="secondary" className="text-xs cursor-help bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
-                      {safeJob.match.overall_score}% match
+                    <Badge variant="secondary" className="text-xs cursor-help bg-primary/10 text-primary border-primary/20">
+                      {Math.round(safeJob.match.overall_score)}% match
                     </Badge>
                   </MatchScoreTooltip>
                 )}
                 {shouldShowSalary(safeJob.salary_range) && (
-                  <Badge variant="outline" className="text-xs gap-1 border-border bg-background">
-                    <DollarSign className="w-3.5 h-3.5 text-muted-foreground" />{safeJob.salary_range}
+                  <Badge variant="outline" className="text-xs gap-1">
+                    <DollarSign className="w-3 h-3" />{safeJob.salary_range}
                   </Badge>
                 )}
                 {safeJob.freshness_score > 0.9 && (
                   <Badge variant="default" className="text-[10px] px-1.5 uppercase tracking-wider">New</Badge>
                 )}
                 {postedDate && (
-                  <span className="text-xs text-muted-foreground ml-1">Posted {postedDate}</span>
+                  <span className="text-xs text-muted-foreground">Posted {postedDate}</span>
                 )}
               </div>
+            </div>
+            {/* Primary Apply CTA in header */}
+            <div className="shrink-0 flex gap-2">
+              {job.url && (
+                <a
+                  href={job.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => { if (!isApplied) onApply(); }}
+                >
+                  <Button
+                    size="sm"
+                    variant={isApplied ? "secondary" : "default"}
+                    disabled={isApplying}
+                    className="gap-2 font-semibold"
+                  >
+                    {isApplied ? (
+                      <><Send className="w-4 h-4" />Applied</>
+                    ) : isApplying ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" />Applying…</>
+                    ) : (
+                      <><Send className="w-4 h-4" />Apply</>
+                    )}
+                  </Button>
+                </a>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onSave}
+                className="p-2"
+                title={isSaved ? "Remove bookmark" : "Save job"}
+              >
+                <Bookmark className={`w-4 h-4 ${isSaved ? "fill-primary text-primary" : "text-muted-foreground"}`} />
+              </Button>
             </div>
           </div>
         </DialogHeader>
 
-        {/* Scrollable body */}
-        <ScrollArea className="flex-1 min-h-0 bg-background">
-          <div className="px-6 py-6 space-y-8">
-            
-            {/* Match Breakdown Section */}
-            {safeJob.match && (
-               <div className="space-y-4">
-                 <h4 className="text-sm font-semibold flex items-center gap-2 border-b border-border pb-2 text-foreground">
-                   <Target className="w-4 h-4 text-primary" /> Match Breakdown
-                 </h4>
-                 <div className="bg-primary/5 border border-primary/20 rounded-lg p-5 space-y-4">
-                   <div>
-                     <div className="flex items-center justify-between mb-2">
-                       <span className="text-sm font-semibold text-foreground/90">Overall Fit</span>
-                       <span className="text-base font-bold text-primary">{Math.round(safeJob.match.overall_score)}%</span>
-                     </div>
-                     <Progress value={safeJob.match.overall_score} className="h-2.5 bg-primary/20 [&>div]:bg-primary" />
-                   </div>
-                   
-                   {safeJob.match.reasoning && (
-                     <div className="pt-3 border-t border-primary/10">
-                       <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Why it's a match</p>
-                       <div className="flex items-start gap-2.5 bg-background border border-primary/10 rounded-md p-3 shadow-sm">
-                         <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                         <p className="text-sm text-foreground/90 leading-relaxed">
-                           {safeJob.match.reasoning}
-                         </p>
-                       </div>
-                     </div>
-                   )}
-                 </div>
-               </div>
-            )}
+        {/* Compact Content - No scrolling */}
+        <div className="flex-1 px-4 py-3 space-y-3 overflow-hidden">
 
-            {/* Tech stack / Skills */}
-            {safeJob.tech_stack && safeJob.tech_stack.length > 0 && (
-              <div className="space-y-4">
-                <h4 className="text-sm font-semibold flex items-center gap-2 border-b border-border pb-2 text-foreground">
-                  <Cpu className="w-4 h-4 text-primary" /> Skills Needed
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {safeJob.tech_stack.map((t, i) => (
-                    <span key={i} className="px-3 py-1.5 rounded-md bg-muted text-xs font-semibold border border-border/60 text-foreground/80 shadow-sm">{t}</span>
-                  ))}
+          {/* Compact Match Breakdown */}
+          {safeJob.match && (
+            <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Target className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-semibold">Overall Fit</span>
                 </div>
+                <span className="text-lg font-bold text-primary">{Math.round(safeJob.match.overall_score)}%</span>
               </div>
-            )}
-
-            {/* Salary insights (Prominent) */}
-            <div className="space-y-4">
-              <h4 className="text-sm font-semibold flex items-center gap-2 border-b border-border pb-2 text-foreground">
-                <DollarSign className="w-4 h-4 text-primary" /> Salary Intelligence
-              </h4>
-              <div className="rounded-lg border border-primary/20 bg-primary/5 p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
-                <p className="text-sm text-muted-foreground leading-relaxed flex-1">
-                  Get AI-estimated compensation ranges, market positioning, and a personalized negotiation script for this role.
-                </p>
-                <div className="w-full sm:w-auto shrink-0">
-                  <SalaryInsights
-                    jobTitle={safeJob.title}
-                    company={safeJob.company}
-                    location={safeJob.location}
-                    salaryRange={safeJob.salary_range}
-                    description={safeJob.description}
-                    trigger={
-                      <Button variant="default" size="default" className="w-full gap-2 font-semibold shadow-sm">
-                        <Sparkles className="w-4 h-4" />
-                        Unlock Salary Insights
-                      </Button>
-                    }
-                  />
+              <Progress value={safeJob.match.overall_score} className="h-2 bg-primary/20 [&>div]:bg-primary mb-2" />
+              {safeJob.match.reasoning && (
+                <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                  <CheckCircle2 className="w-3 h-3 text-primary shrink-0 mt-0.5" />
+                  <p className="leading-relaxed">{safeJob.match.reasoning.slice(0, 150)}{safeJob.match.reasoning.length > 150 ? '...' : ''}</p>
                 </div>
+              )}
+            </div>
+          )}
+
+          {/* Compact Skills */}
+          {safeJob.tech_stack && safeJob.tech_stack.length > 0 && (
+            <div>
+              <h4 className="text-sm font-semibold flex items-center gap-2 mb-2 text-foreground">
+                <Cpu className="w-4 h-4 text-primary" /> Skills Needed
+              </h4>
+              <div className="flex flex-wrap gap-1">
+                {safeJob.tech_stack.slice(0, 8).map((skill, i) => (
+                  <span key={i} className="px-2 py-1 text-xs bg-muted rounded border border-border/60">{skill}</span>
+                ))}
+                {safeJob.tech_stack.length > 8 && (
+                  <span className="text-xs text-muted-foreground self-center">+{safeJob.tech_stack.length - 8} more</span>
+                )}
               </div>
             </div>
+          )}
 
-            {/* Hiring Team Intel (Prominent) */}
-            {((stakeholders && stakeholders.length > 0) || isLoadingStakeholders) && (
-              <div className="space-y-4">
-                <h4 className="text-sm font-semibold flex items-center justify-between gap-2 border-b border-border pb-2 text-foreground">
-                  <span className="flex items-center gap-2"><Users className="w-4 h-4 text-primary" /> Hiring Team Intelligence</span>
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  {isLoadingStakeholders ? (
-                    <div className="col-span-full flex items-center gap-2 text-sm text-muted-foreground p-4 border border-border rounded-md bg-muted/20">
-                      <Loader2 className="w-4 h-4 animate-spin" /> Finding hiring team…
-                    </div>
-                  ) : stakeholders?.slice(0, 3).map((person, i) => (
-                    <a
-                      key={i}
-                      href={person.profile_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 rounded-md border border-border bg-card hover:border-primary/40 transition-colors group shadow-sm"
-                    >
-                      <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-bold shrink-0">
-                        {person.name?.[0] || "?"}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <span className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors flex items-center gap-1.5 truncate">
-                          {person.name}
-                        </span>
-                        <span className="block text-xs text-muted-foreground truncate mt-0.5">{person.role}</span>
-                      </div>
-                    </a>
-                  ))}
-                </div>
+          {/* Compact Company Info */}
+          {companyResearch && (
+            <div className="border border-border bg-card rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Building2 className="w-4 h-4 text-primary" />
+                <span className="text-sm font-semibold">{safeJob.company}</span>
+                {companyResearch._scraped && (
+                  <Badge variant="outline" className="text-[10px] px-1 py-0 bg-emerald-50 text-emerald-600 border-emerald-200">Live</Badge>
+                )}
               </div>
-            )}
-
-            {/* Company research */}
-            {companyResearch && (
-              <div className="rounded-lg border border-border bg-card p-5 space-y-4 shadow-sm">
-                <div className="flex items-center justify-between border-b border-border pb-3">
-                  <span className="font-semibold text-foreground flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-primary" />{safeJob.company} Intelligence
-                  </span>
-                  {companyResearch._scraped && (
-                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded px-2 py-0.5 uppercase tracking-wider">
-                      Live data
-                    </span>
-                  )}
-                </div>
-                {companyResearch.mission && (
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    <span className="font-semibold text-foreground">Mission: </span>{companyResearch.mission}
-                  </p>
-                )}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-2">
-                  {companyResearch.industry && <div><span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Industry</span><p className="text-sm font-medium mt-1 text-foreground">{companyResearch.industry}</p></div>}
-                  {companyResearch.stage && <div><span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Stage</span><p className="text-sm font-medium mt-1 text-foreground">{companyResearch.stage}</p></div>}
-                  {companyResearch.headcount && <div><span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Headcount</span><p className="text-sm font-medium mt-1 text-foreground">{companyResearch.headcount}</p></div>}
-                </div>
-                {companyResearch.culture_signals && companyResearch.culture_signals.length > 0 && (
-                  <div className="pt-2">
-                    <p className="text-sm font-semibold text-foreground flex items-center gap-1.5 mb-2"><Users className="w-3.5 h-3.5 text-muted-foreground" />Culture</p>
-                    <ul className="space-y-1.5 pl-5">
-                      {companyResearch.culture_signals.slice(0, 3).map((s, i) => (
-                        <li key={i} className="text-sm text-muted-foreground list-disc">{s}</li>
-                      ))}
-                    </ul>
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                {companyResearch.industry && (
+                  <div>
+                    <p className="text-muted-foreground font-medium">Industry</p>
+                    <p className="font-semibold">{companyResearch.industry}</p>
                   </div>
                 )}
-                {companyResearch.recent_news && companyResearch.recent_news.length > 0 && (
-                  <div className="pt-2">
-                    <p className="text-sm font-semibold text-foreground flex items-center gap-1.5 mb-2"><Newspaper className="w-3.5 h-3.5 text-muted-foreground" />Recent News</p>
-                    <ul className="space-y-1.5 pl-5">
-                      {companyResearch.recent_news.slice(0, 2).map((n, i) => (
-                        <li key={i} className="text-sm text-muted-foreground list-disc">{n}</li>
-                      ))}
-                    </ul>
+                {companyResearch.stage && (
+                  <div>
+                    <p className="text-muted-foreground font-medium">Stage</p>
+                    <p className="font-semibold">{companyResearch.stage}</p>
                   </div>
                 )}
-                {companyResearch.interview_tip && (
-                  <div className="flex items-start gap-2.5 rounded-md bg-amber-500/10 border border-amber-500/20 p-3 mt-4">
-                    <Lightbulb className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                    <div className="space-y-1">
-                      <p className="text-xs font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider">Interview Tip</p>
-                      <p className="text-sm text-amber-800 dark:text-amber-200 leading-relaxed">{companyResearch.interview_tip}</p>
-                    </div>
+                {companyResearch.headcount && (
+                  <div>
+                    <p className="text-muted-foreground font-medium">Size</p>
+                    <p className="font-semibold">{companyResearch.headcount}</p>
                   </div>
                 )}
               </div>
-            )}
-          </div>
-        </ScrollArea>
+            </div>
+          )}
 
-        {/* Sticky footer actions */}
-        <div className="px-6 py-4 border-t border-border bg-card shrink-0 flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-2 flex-1 sm:flex-none">
-            {job.url && (
-              <a
-                href={job.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => { if (!isApplied) onApply(); }}
-                className="flex-1 sm:flex-none"
+          {/* Compact Hiring Team */}
+          {((stakeholders && stakeholders.length > 0) || isLoadingStakeholders) && (
+            <div>
+              <h4 className="text-sm font-semibold flex items-center gap-2 mb-2">
+                <Users className="w-4 h-4 text-primary" /> Hiring Team
+              </h4>
+              <div className="flex gap-2">
+                {isLoadingStakeholders ? (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground p-2 border rounded-md">
+                    <Loader2 className="w-3 h-3 animate-spin" /> Loading...
+                  </div>
+                ) : stakeholders?.slice(0, 2).map((person, i) => (
+                  <a
+                    key={i}
+                    href={person.profile_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 p-2 border rounded-md hover:border-primary/40 transition-colors text-xs"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">
+                      {person.name?.[0] || "?"}
+                    </div>
+                    <div>
+                      <p className="font-semibold">{person.name}</p>
+                      <p className="text-muted-foreground">{person.role}</p>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* AI Tools Toggle */}
+        <div className="px-4 py-2 border-t border-border bg-muted/30">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowAITools(!showAITools)}
+            className="w-full gap-2 text-sm text-muted-foreground hover:text-foreground"
+          >
+            <Sparkles className="w-4 h-4" />
+            AI-Powered Tools
+            {showAITools ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </Button>
+
+          {showAITools && (
+            <div className="flex gap-2 mt-2">
+              <SalaryInsights
+                jobTitle={safeJob.title}
+                company={safeJob.company}
+                location={safeJob.location}
+                salaryRange={safeJob.salary_range}
+                description={safeJob.description}
+                trigger={
+                  <Button variant="outline" size="sm" className="flex-1 gap-2 text-xs">
+                    <DollarSign className="w-3 h-3" />
+                    Salary Insights
+                  </Button>
+                }
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onTailor}
+                disabled={isTailoring}
+                className="flex-1 gap-2 text-xs"
               >
-                <Button
-                  size="default"
-                  variant={isApplied ? "secondary" : "default"}
-                  disabled={isApplying}
-                  className="w-full sm:w-auto gap-2 font-semibold shadow-sm"
-                >
-                  {isApplied ? (
-                    <><Send className="w-4 h-4" />Applied</>
-                  ) : isApplying ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" />Applying…</>
-                  ) : (
-                    <><Send className="w-4 h-4" />Apply on Company Site</>
-                  )}
-                </Button>
-              </a>
-            )}
-            <Button
-              variant="outline"
-              size="default"
-              onClick={onTailor}
-              disabled={isTailoring}
-              className="gap-2 font-medium"
-            >
-              {isTailoring
-                ? <><Loader2 className="w-4 h-4 animate-spin" />Tailoring…</>
-                : <><PenTool className="w-4 h-4 text-muted-foreground" />Tailor Resume</>
-              }
-            </Button>
-          </div>
-          
-          <div className="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-            <Button variant="outline" size="default" onClick={onPrep} className="gap-2 flex-1 sm:flex-none font-medium">
-              <GraduationCap className="w-4 h-4 text-muted-foreground" />Interview Prep
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={onSave}
-              className="h-10 w-10 shrink-0 border-border bg-card hover:bg-muted"
-              title={isSaved ? "Remove bookmark" : "Save job"}
-            >
-              <Bookmark className={`w-4 h-4 ${isSaved ? "fill-primary text-primary" : "text-muted-foreground"}`} />
-            </Button>
-          </div>
+                {isTailoring ? (
+                  <><Loader2 className="w-3 h-3 animate-spin" />Tailoring…</>
+                ) : (
+                  <><PenTool className="w-3 h-3" />Tailor Resume</>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onPrep}
+                className="flex-1 gap-2 text-xs"
+              >
+                <GraduationCap className="w-3 h-3" />Interview Prep
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
