@@ -488,67 +488,27 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
       {/* Job List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
         {filteredJobs.map((job) => {
-          // Safety checks - ensure job has required properties
-          if (!job || !job.id) {
-            console.warn('Invalid job object in render:', job);
-            return null;
-          }
-
           const isApplied = appliedJobIds.has(job.id);
           const jobSaved = isSaved(job.id);
-
-          // Create safe job object with fallbacks
-          const safeJob = {
-            ...job,
-            title: job.title || 'Job Title Not Available',
-            company: job.company || 'Company Not Available',
-            location: job.location || null,
-            salary_range: job.salary_range || null,
-            match: job.match || null,
-            freshness_score: typeof job.freshness_score === 'number' ? job.freshness_score : 0
-          };
 
           return (
             <div
               key={job.id}
               className="group relative flex flex-col bg-card border border-border/50 hover:border-primary/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden cursor-pointer"
               data-tour="job-card-actions"
-              onClick={() => {
-                try {
-                  handleSelectJob(safeJob);
-                } catch (error) {
-                  console.error('Error selecting job:', error, job);
-                  toast.error('Unable to open job details. Please try again.');
-                }
-              }}
+              onClick={() => handleSelectJob(job)}
             >
               {/* Quick Actions (Absolute) */}
               <div className="absolute top-3 right-3 flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10" onClick={(e) => e.stopPropagation()}>
                   <button
-                    onClick={() => {
-                      try {
-                        if (!requirePro("Save Jobs")) return;
-                        toggleSave(job.id);
-                        toast(jobSaved ? "Removed from saved" : "Saved");
-                      } catch (error) {
-                        console.error('Error saving job:', error);
-                        toast.error('Unable to save job. Please try again.');
-                      }
-                    }}
+                    onClick={() => { if (!requirePro("Save Jobs")) return; toggleSave(job.id); toast(jobSaved ? "Removed from saved" : "Saved"); }}
                     className={`p-2 rounded-md transition-colors backdrop-blur-md ${jobSaved ? "text-primary bg-primary/10 opacity-100" : "text-muted-foreground bg-background/80 hover:bg-muted hover:text-foreground"}`}
                     title={jobSaved ? "Remove bookmark" : "Save job"}
                   >
                     <Bookmark className={`w-4 h-4 ${jobSaved ? "fill-current" : ""}`} />
                   </button>
                   <button
-                    onClick={() => {
-                      try {
-                        handleDismiss(safeJob);
-                      } catch (error) {
-                        console.error('Error dismissing job:', error);
-                        toast.error('Unable to hide job. Please try again.');
-                      }
-                    }}
+                    onClick={() => handleDismiss(job)}
                     className="p-2 rounded-md text-muted-foreground bg-background/80 backdrop-blur-md hover:bg-muted hover:text-foreground transition-colors hidden sm:flex"
                     title="Hide this job"
                   >
@@ -558,29 +518,29 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
 
               {/* Card Body: Title, Company, Details */}
               <div className="p-5 flex-1 flex flex-col">
-                <h3 className="text-base font-semibold leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors pr-10">{safeJob.title}</h3>
-                <p className="text-sm text-muted-foreground mb-4 font-medium">{safeJob.company}</p>
+                <h3 className="text-base font-semibold leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors pr-10">{job.title || 'Job Title Not Available'}</h3>
+                <p className="text-sm text-muted-foreground mb-4 font-medium">{job.company || 'Company Not Available'}</p>
 
                 <div className="flex flex-wrap items-center gap-2 mt-auto">
-                  {safeJob.location && (
+                  {job.location && (
                     <Badge variant="secondary" className="text-[10px] font-medium bg-muted/50 text-muted-foreground flex items-center gap-1">
                       <MapPin className="w-3 h-3" />
-                      {safeJob.location}
+                      {job.location}
                     </Badge>
                   )}
-                  {safeJob.salary_range && safeJob.salary_range !== "Not specified" && (
+                  {job.salary_range && job.salary_range !== "Not specified" && (
                     <Badge variant="secondary" className="text-[10px] font-medium bg-muted/50 text-muted-foreground">
-                      {safeJob.salary_range}
+                      {job.salary_range}
                     </Badge>
                   )}
-                  {safeJob.match && safeJob.match.overall_score && (
-                    <MatchScoreTooltip match={safeJob.match}>
+                  {job.match && (
+                    <MatchScoreTooltip match={job.match}>
                       <Badge className="text-[10px] font-semibold bg-primary/10 text-primary border-none cursor-help hover:bg-primary/20" data-tour="match-score">
-                        {Math.round(safeJob.match.overall_score)}% match
+                        {Math.round(job.match.overall_score)}% match
                       </Badge>
                     </MatchScoreTooltip>
                   )}
-                  {safeJob.freshness_score > 0.9 && (
+                  {job.freshness_score > 0.9 && (
                     <Badge className="text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 border-none">
                       New
                     </Badge>
@@ -705,51 +665,27 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
 
       <JobDescriptionModal
         job={selectedJob}
-        stakeholders={selectedJob?.id ? stakeholders[selectedJob.id] : undefined}
-        isLoadingStakeholders={selectedJob?.id ? !stakeholders[selectedJob.id] : false}
-        companyResearch={selectedJob?.id ? companyResearch[selectedJob.id] : undefined}
-        isApplied={selectedJob?.id ? appliedJobIds.has(selectedJob.id) : false}
-        isApplying={selectedJob?.id ? activeApplication?.jobId === selectedJob.id : false}
-        isTailoring={selectedJob?.id ? tailoringJobId === selectedJob.id : false}
-        isSaved={selectedJob?.id ? isSaved(selectedJob.id) : false}
+        stakeholders={selectedJob ? stakeholders[selectedJob.id] : undefined}
+        isLoadingStakeholders={selectedJob ? !stakeholders[selectedJob.id] : false}
+        companyResearch={selectedJob ? companyResearch[selectedJob.id] : undefined}
+        isApplied={selectedJob ? appliedJobIds.has(selectedJob.id) : false}
+        isApplying={selectedJob ? activeApplication?.jobId === selectedJob.id : false}
+        isTailoring={selectedJob ? tailoringJobId === selectedJob.id : false}
+        isSaved={selectedJob ? isSaved(selectedJob.id) : false}
         isPro={isPro}
         onClose={() => setSelectedJob(null)}
-        onApply={() => {
-          try {
-            if (selectedJob) handleApply(selectedJob);
-          } catch (error) {
-            console.error('Error applying to job:', error);
-            toast.error('Unable to apply. Please try again.');
-          }
-        }}
-        onTailor={() => {
-          try {
-            if (selectedJob) handleTailor(selectedJob);
-          } catch (error) {
-            console.error('Error tailoring resume:', error);
-            toast.error('Unable to tailor resume. Please try again.');
-          }
-        }}
+        onApply={() => selectedJob && handleApply(selectedJob)}
+        onTailor={() => selectedJob && handleTailor(selectedJob)}
         onSave={() => {
-          try {
-            if (!selectedJob?.id) return;
-            if (!requirePro("Save Jobs")) return;
-            toggleSave(selectedJob.id);
-            toast(isSaved(selectedJob.id) ? "Removed from saved" : "Saved");
-          } catch (error) {
-            console.error('Error saving job:', error);
-            toast.error('Unable to save job. Please try again.');
-          }
+          if (!selectedJob) return;
+          if (!requirePro("Save Jobs")) return;
+          toggleSave(selectedJob.id);
+          toast(isSaved(selectedJob.id) ? "Removed from saved" : "Saved");
         }}
         onPrep={() => {
-          try {
-            if (!selectedJob?.title || !selectedJob?.company) return;
-            if (!requirePro("Interview Coach")) return;
-            navigate(`/interview-coach?title=${encodeURIComponent(selectedJob.title)}&company=${encodeURIComponent(selectedJob.company)}&desc=${encodeURIComponent(selectedJob.description?.substring(0, 500) || '')}`);
-          } catch (error) {
-            console.error('Error navigating to interview coach:', error);
-            toast.error('Unable to open interview coach. Please try again.');
-          }
+          if (!selectedJob) return;
+          if (!requirePro("Interview Coach")) return;
+          navigate(`/interview-coach?title=${encodeURIComponent(selectedJob.title)}&company=${encodeURIComponent(selectedJob.company)}&desc=${encodeURIComponent(selectedJob.description?.substring(0, 500) || '')}`);
         }}
       />
 
