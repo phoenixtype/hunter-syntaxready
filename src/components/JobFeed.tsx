@@ -319,35 +319,48 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
         </div>
       </div>
 
-      {/* Careers page import */}
-      <div className="rounded-md border border-border bg-muted/20 overflow-hidden">
+      {/* Careers page import - Enhanced visibility */}
+      <div className="rounded-lg border-2 border-primary/20 bg-primary/5 overflow-hidden ring-1 ring-primary/10">
         <button
           onClick={() => setShowCareersImport(v => !v)}
-          className="w-full flex items-center justify-between px-3 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          className="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
         >
-          <span className="flex items-center gap-1.5"><Link className="w-3.5 h-3.5" />Import from careers page</span>
-          {showCareersImport ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          <span className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
+              <Link className="w-4 h-4" />
+            </div>
+            <span>Import from career page</span>
+            <Badge variant="secondary" className="text-[10px] px-1.5 bg-primary/10 text-primary border-primary/20">
+              Fast & Fresh
+            </Badge>
+          </span>
+          {showCareersImport ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
         {showCareersImport && (
-          <div className="px-3 pb-3 flex flex-col sm:flex-row gap-2">
-            <div className="relative flex-1">
-              <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-              <Input
-                placeholder="https://company.com/careers"
-                value={careersUrl}
-                onChange={e => setCareersUrl(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && handleCareersImport()}
-                className="pl-9 h-9 text-sm"
-              />
+          <div className="px-3 pb-3 pt-1 border-t border-primary/10 bg-background/50">
+            <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
+              Get the latest jobs directly from company career pages - often 24-48h before they appear on job boards.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="relative flex-1">
+                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/60" />
+                <Input
+                  placeholder="https://company.com/careers"
+                  value={careersUrl}
+                  onChange={e => setCareersUrl(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && handleCareersImport()}
+                  className="pl-10 h-10 text-sm border-primary/20 focus:border-primary focus:ring-primary/20"
+                />
+              </div>
+              <Button
+                size="sm"
+                onClick={handleCareersImport}
+                disabled={importingCareers || !careersUrl.trim()}
+                className="h-10 gap-2 shrink-0 bg-primary hover:bg-primary/90"
+              >
+                {importingCareers ? <><Loader2 className="w-4 h-4 animate-spin" />Scanning…</> : <><Sparkles className="w-4 h-4" />Import Jobs</>}
+              </Button>
             </div>
-            <Button
-              size="sm"
-              onClick={handleCareersImport}
-              disabled={importingCareers || !careersUrl.trim()}
-              className="h-9 gap-1.5 shrink-0"
-            >
-              {importingCareers ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Scanning…</> : <><Sparkles className="w-3.5 h-3.5" />Import Jobs</>}
-            </Button>
           </div>
         )}
       </div>

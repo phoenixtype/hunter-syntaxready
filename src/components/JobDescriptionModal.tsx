@@ -50,8 +50,28 @@ export default function JobDescriptionModal({
 }: Props) {
   if (!job) return null;
 
-  const postedDate = job.posted_at
-    ? new Date(job.posted_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+  // Safe data extraction with fallbacks to prevent errors
+  const safeJob = {
+    ...job,
+    title: safeJob.title || 'Job Title Not Available',
+    company: safeJob.company || 'Company Not Available',
+    location: safeJob.location || '',
+    description: safeJob.description || '',
+    salary_range: safeJob.salary_range || '',
+    tech_stack: safeJob.tech_stack || [],
+    match: safeJob.match || null,
+    posted_at: job.posted_at,
+    freshness_score: safeJob.freshness_score || 0
+  };
+
+  const postedDate = safeJob.posted_at
+    ? (() => {
+        try {
+          return new Date(safeJob.posted_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+        } catch {
+          return null;
+        }
+      })()
     : null;
 
   return (
@@ -61,34 +81,34 @@ export default function JobDescriptionModal({
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-border shrink-0 bg-muted/20">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-lg bg-background border border-border flex items-center justify-center shrink-0 shadow-sm mt-0.5">
-              <span className="text-lg font-bold text-foreground">{job.company[0]}</span>
+              <span className="text-lg font-bold text-foreground">{safeJob.company[0]}</span>
             </div>
             <div className="flex-1 min-w-0">
               <DialogTitle className="text-xl font-bold leading-snug text-foreground">
-                {job.title}
+                {safeJob.title}
               </DialogTitle>
               <p className="text-sm font-medium text-muted-foreground mt-1">
-                {job.company}
-                {job.location && (
+                {safeJob.company}
+                {safeJob.location && (
                   <span className="inline-flex items-center gap-1 ml-3 text-muted-foreground/80">
-                    <MapPin className="w-3.5 h-3.5" />{job.location}
+                    <MapPin className="w-3.5 h-3.5" />{safeJob.location}
                   </span>
                 )}
               </p>
               <div className="flex items-center gap-2 mt-3 flex-wrap">
-                {job.match && (
-                  <MatchScoreTooltip match={job.match}>
+                {safeJob.match && (
+                  <MatchScoreTooltip match={safeJob.match}>
                     <Badge variant="secondary" className="text-xs cursor-help bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
-                      {job.match.overall_score}% match
+                      {safeJob.match.overall_score}% match
                     </Badge>
                   </MatchScoreTooltip>
                 )}
-                {job.salary_range && job.salary_range !== "Not specified" && (
+                {safeJob.salary_range && safeJob.salary_range !== "Not specified" && (
                   <Badge variant="outline" className="text-xs gap-1 border-border bg-background">
-                    <DollarSign className="w-3.5 h-3.5 text-muted-foreground" />{job.salary_range}
+                    <DollarSign className="w-3.5 h-3.5 text-muted-foreground" />{safeJob.salary_range}
                   </Badge>
                 )}
-                {job.freshness_score > 0.9 && (
+                {safeJob.freshness_score > 0.9 && (
                   <Badge variant="default" className="text-[10px] px-1.5 uppercase tracking-wider">New</Badge>
                 )}
                 {postedDate && (
@@ -104,7 +124,7 @@ export default function JobDescriptionModal({
           <div className="px-6 py-6 space-y-8">
             
             {/* Match Breakdown Section */}
-            {job.match && (
+            {safeJob.match && (
                <div className="space-y-4">
                  <h4 className="text-sm font-semibold flex items-center gap-2 border-b border-border pb-2 text-foreground">
                    <Target className="w-4 h-4 text-primary" /> Match Breakdown
@@ -113,18 +133,18 @@ export default function JobDescriptionModal({
                    <div>
                      <div className="flex items-center justify-between mb-2">
                        <span className="text-sm font-semibold text-foreground/90">Overall Fit</span>
-                       <span className="text-base font-bold text-primary">{Math.round(job.match.overall_score)}%</span>
+                       <span className="text-base font-bold text-primary">{Math.round(safeJob.match.overall_score)}%</span>
                      </div>
-                     <Progress value={job.match.overall_score} className="h-2.5 bg-primary/20 [&>div]:bg-primary" />
+                     <Progress value={safeJob.match.overall_score} className="h-2.5 bg-primary/20 [&>div]:bg-primary" />
                    </div>
                    
-                   {job.match.reasoning && (
+                   {safeJob.match.reasoning && (
                      <div className="pt-3 border-t border-primary/10">
                        <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Why it's a match</p>
                        <div className="flex items-start gap-2.5 bg-background border border-primary/10 rounded-md p-3 shadow-sm">
                          <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                          <p className="text-sm text-foreground/90 leading-relaxed">
-                           {job.match.reasoning}
+                           {safeJob.match.reasoning}
                          </p>
                        </div>
                      </div>
@@ -134,13 +154,13 @@ export default function JobDescriptionModal({
             )}
 
             {/* Tech stack / Skills */}
-            {job.tech_stack && job.tech_stack.length > 0 && (
+            {safeJob.tech_stack && safeJob.tech_stack.length > 0 && (
               <div className="space-y-4">
                 <h4 className="text-sm font-semibold flex items-center gap-2 border-b border-border pb-2 text-foreground">
                   <Cpu className="w-4 h-4 text-primary" /> Skills Needed
                 </h4>
                 <div className="flex flex-wrap gap-2">
-                  {job.tech_stack.map((t, i) => (
+                  {safeJob.tech_stack.map((t, i) => (
                     <span key={i} className="px-3 py-1.5 rounded-md bg-muted text-xs font-semibold border border-border/60 text-foreground/80 shadow-sm">{t}</span>
                   ))}
                 </div>
@@ -158,11 +178,11 @@ export default function JobDescriptionModal({
                 </p>
                 <div className="w-full sm:w-auto shrink-0">
                   <SalaryInsights
-                    jobTitle={job.title}
-                    company={job.company}
-                    location={job.location}
-                    salaryRange={job.salary_range}
-                    description={job.description}
+                    jobTitle={safeJob.title}
+                    company={safeJob.company}
+                    location={safeJob.location}
+                    salaryRange={safeJob.salary_range}
+                    description={safeJob.description}
                     trigger={
                       <Button variant="default" size="default" className="w-full gap-2 font-semibold shadow-sm">
                         <Sparkles className="w-4 h-4" />
@@ -213,7 +233,7 @@ export default function JobDescriptionModal({
               <div className="rounded-lg border border-border bg-card p-5 space-y-4 shadow-sm">
                 <div className="flex items-center justify-between border-b border-border pb-3">
                   <span className="font-semibold text-foreground flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-primary" />{job.company} Intelligence
+                    <Building2 className="w-4 h-4 text-primary" />{safeJob.company} Intelligence
                   </span>
                   {companyResearch._scraped && (
                     <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded px-2 py-0.5 uppercase tracking-wider">

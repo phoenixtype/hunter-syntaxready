@@ -33,21 +33,21 @@ const SIDEBAR_SECTIONS = [
   {
     label: "Apply",
     tools: [
-      { icon: FileText,      title: "Resume Builder",      route: "/resume-builder" },
-      { icon: FolderOpen,    title: "Tailored Resumes",    route: "/tailored-resumes" },
+      { icon: FileText,      title: "Resume",      route: "/resume-builder", compact: "Resume" },
+      { icon: FolderOpen,    title: "Tailored",    route: "/tailored-resumes", compact: "Tailored" },
     ],
   },
   {
     label: "Prepare",
     tools: [
-      { icon: GraduationCap, title: "Interview Coach",     route: "/interview-coach" },
-      { icon: MessageSquare, title: "Post-Interview",      route: "/post-interview" },
+      { icon: GraduationCap, title: "Interview",     route: "/interview-coach", compact: "Interview" },
+      { icon: MessageSquare, title: "Follow-up",      route: "/post-interview", compact: "Follow-up" },
     ],
   },
   {
     label: "Optimize",
     tools: [
-      { icon: Bot,           title: "Hunt Planner",        route: "/auto-applier-settings" },
+      { icon: Bot,           title: "Auto Apply",        route: "/auto-applier-settings", compact: "Auto" },
     ],
   },
 ] as const;
@@ -100,13 +100,13 @@ const AppSidebar = () => {
   return (
     <aside
       className={`hidden sm:flex flex-col border-r border-border bg-card h-screen sticky top-0 z-30 shrink-0 transition-all duration-300 ${
-        collapsed ? "w-[60px]" : "w-[240px]"
+        collapsed ? "w-[56px]" : "w-[220px]"
       }`}
     >
       {/* ── Logo / collapse ─────────────────────────── */}
       <div
-        className={`h-14 flex items-center border-b border-border shrink-0 ${
-          collapsed ? "justify-center px-2" : "justify-between px-4"
+        className={`h-12 flex items-center border-b border-border shrink-0 ${
+          collapsed ? "justify-center px-2" : "justify-between px-3"
         }`}
       >
         {collapsed ? (
@@ -136,7 +136,7 @@ const AppSidebar = () => {
 
       {/* ── User info ───────────────────────────────── */}
       {!collapsed ? (
-        <div className="px-3 py-3 border-b border-border shrink-0">
+        <div className="px-3 py-2 border-b border-border shrink-0">
           <div className="flex items-center gap-2.5">
             <Avatar className="h-8 w-8 ring-2 ring-border shrink-0">
               <AvatarImage src={user?.user_metadata?.avatar_url} />
