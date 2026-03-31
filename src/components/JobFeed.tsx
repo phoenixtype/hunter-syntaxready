@@ -34,6 +34,26 @@ import JobCardActions from "./JobCardActions";
 import { useSubscription } from "@/hooks/useSubscription";
 import ProGate from "@/components/ProGate";
 
+// Helper function to check if salary should be displayed
+const shouldShowSalary = (salaryRange: string | null | undefined): boolean => {
+  if (!salaryRange || salaryRange === "Not specified") return false;
+  try {
+    // Check for various forms of "0-0" patterns
+    const normalizedSalary = salaryRange.toLowerCase().trim();
+    if (normalizedSalary === "0-0" ||
+        normalizedSalary === "0-0k" ||
+        normalizedSalary === "0 - 0" ||
+        normalizedSalary === "0 - 0k" ||
+        normalizedSalary.match(/^0\s*[-–—]\s*0[k]?\s*$/)) {
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.warn('Error checking salary pattern:', error, salaryRange);
+    return true; // Show it if we can't determine
+  }
+};
+
 interface JobFeedProps {
   profile: CandidateProfile | null;
   preferences?: UserPreferences | null;
@@ -528,7 +548,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
                       {job.location}
                     </Badge>
                   )}
-                  {job.salary_range && job.salary_range !== "Not specified" && (
+                  {shouldShowSalary(job.salary_range) && (
                     <Badge variant="secondary" className="text-[10px] font-medium bg-muted/50 text-muted-foreground">
                       {job.salary_range}
                     </Badge>

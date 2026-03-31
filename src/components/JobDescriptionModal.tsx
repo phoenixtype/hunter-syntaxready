@@ -8,12 +8,31 @@ import type { CompanyResearch } from "@/lib/crawler_engine";
 import {
   Send, PenTool, Bookmark, GraduationCap, Loader2, ExternalLink,
   MapPin, DollarSign, Building2, Cpu, Users, Newspaper, Lightbulb,
-  FileText, Target, CheckCircle2
+  FileText, Target, CheckCircle2, Sparkles
 } from "lucide-react";
 import MatchScoreTooltip from "./MatchScoreTooltip";
 import SalaryInsights from "./SalaryInsights";
 import ReactMarkdown from "react-markdown";
 import { Progress } from "@/components/ui/progress";
+
+// Helper function to check if salary should be displayed
+const shouldShowSalary = (salaryRange: string | null | undefined): boolean => {
+  if (!salaryRange || salaryRange === "Not specified") return false;
+  try {
+    const normalizedSalary = salaryRange.toLowerCase().trim();
+    if (normalizedSalary === "0-0" ||
+        normalizedSalary === "0-0k" ||
+        normalizedSalary === "0 - 0" ||
+        normalizedSalary === "0 - 0k" ||
+        normalizedSalary.match(/^0\s*[-–—]\s*0[k]?\s*$/)) {
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.warn('Error checking salary pattern:', error, salaryRange);
+    return true;
+  }
+};
 
 interface Props {
   job: EnrichedJob | null;
@@ -103,7 +122,7 @@ export default function JobDescriptionModal({
                     </Badge>
                   </MatchScoreTooltip>
                 )}
-                {safeJob.salary_range && safeJob.salary_range !== "Not specified" && (
+                {shouldShowSalary(safeJob.salary_range) && (
                   <Badge variant="outline" className="text-xs gap-1 border-border bg-background">
                     <DollarSign className="w-3.5 h-3.5 text-muted-foreground" />{safeJob.salary_range}
                   </Badge>

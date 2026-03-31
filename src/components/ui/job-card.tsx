@@ -11,6 +11,25 @@ import { cn } from "@/lib/utils";
 import { EnrichedJob } from "@/hooks/useJobs";
 import MatchScoreTooltip from "@/components/MatchScoreTooltip";
 
+// Helper function to check if salary should be displayed
+const shouldShowSalary = (salaryRange: string | null | undefined): boolean => {
+  if (!salaryRange || salaryRange === "Not specified") return false;
+  try {
+    const normalizedSalary = salaryRange.toLowerCase().trim();
+    if (normalizedSalary === "0-0" ||
+        normalizedSalary === "0-0k" ||
+        normalizedSalary === "0 - 0" ||
+        normalizedSalary === "0 - 0k" ||
+        normalizedSalary.match(/^0\s*[-–—]\s*0[k]?\s*$/)) {
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.warn('Error checking salary pattern:', error, salaryRange);
+    return true;
+  }
+};
+
 interface JobCardProps {
   job: EnrichedJob;
   onClick?: () => void;
@@ -121,7 +140,7 @@ export function JobCard({
             </MatchScoreTooltip>
           )}
 
-          {job.salary_range && job.salary_range !== "Not specified" && (
+          {shouldShowSalary(job.salary_range) && (
             <Badge variant="outline" className="text-xs gap-1 border-border bg-background">
               <DollarSign className="w-3 h-3 text-muted-foreground" />
               {job.salary_range}
