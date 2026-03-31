@@ -31,6 +31,25 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { RecruiterPaywall } from "@/components/recruiter/RecruiterPaywall";
 
+// Helper function to check if salary should be displayed (matches standard job card)
+const shouldShowSalary = (salaryRange: string | null | undefined): boolean => {
+  if (!salaryRange || salaryRange === "Not specified") return false;
+  try {
+    const normalizedSalary = salaryRange.toLowerCase().trim();
+    if (normalizedSalary === "0-0" ||
+        normalizedSalary === "0-0k" ||
+        normalizedSalary === "0 - 0" ||
+        normalizedSalary === "0 - 0k" ||
+        normalizedSalary.match(/^0\s*[-–—]\s*0[k]?\s*$/)) {
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.warn('Error checking salary pattern:', error, salaryRange);
+    return true;
+  }
+};
+
 const STATUS_COLORS: Record<JobStatus, string> = {
   active:  "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
   draft:   "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
@@ -150,43 +169,80 @@ const MyJobs = () => {
           ) : (
             <div className="space-y-3">
               {filtered.map((job) => (
-                <div key={job.id} className="bg-card border border-border rounded-2xl p-5 hover:border-primary/20 transition-all">
+                <div key={job.id} className="bg-card border border-border/50 hover:border-primary/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      {/* Title row */}
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <button
-                          onClick={() => navigate(`/recruiter/jobs/${job.id}`)}
-                          className="font-semibold text-sm hover:text-primary transition-colors text-left"
-                        >
-                          {job.title}
-                        </button>
-                        <Badge className={`text-xs rounded-full font-normal ${STATUS_COLORS[job.status]}`}>
+                      {/* Header */}
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1 min-w-0 mr-2">
+                          <button
+                            onClick={() => navigate(`/recruiter/jobs/${job.id}`)}
+                            className="text-base font-semibold leading-tight text-foreground truncate hover:text-primary transition-colors block text-left"
+                          >
+                            {job.title || 'Job Title Not Available'}
+                          </button>
+                          <p className="text-sm text-muted-foreground mt-0.5 truncate">
+                            {job.company || 'Company Not Available'}
+                          </p>
+                        </div>
+                        <Badge className={`text-xs font-normal ${STATUS_COLORS[job.status]}`}>
                           {JOB_STATUS_LABELS[job.status]}
                         </Badge>
                       </div>
 
-                      {/* Meta */}
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {job.company} · {job.location || "No location"} · {LOCATION_TYPE_LABELS[job.location_type]} · {EMPLOYMENT_TYPE_LABELS[job.employment_type]}
-                      </p>
+                      {/* Location and details */}
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                        {job.location && (
+                          <span className="flex items-center gap-1 truncate">
+                            <MapPin className="h-3.5 w-3.5 shrink-0" />
+                            {job.location}
+                          </span>
+                        )}
+                        <span className="flex items-center gap-1 whitespace-nowrap">
+                          <Clock className="h-3.5 w-3.5" />
+                          {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
+                        </span>
+                      </div>
 
-                      {/* Salary + tech */}
-                      <div className="flex items-center gap-3 mt-2 flex-wrap">
-                        <span className="text-xs font-medium text-foreground">{formatSalary(job)}</span>
-                        {(job.tech_stack ?? []).slice(0, 4).map((t) => (
-                          <Badge key={t} variant="outline" className="text-xs rounded-full py-0">{t}</Badge>
-                        ))}
-                        {(job.tech_stack ?? []).length > 4 && (
-                          <span className="text-xs text-muted-foreground">+{(job.tech_stack ?? []).length - 4} more</span>
+                      {/* Badges row */}
+                      <div className="flex items-center gap-2 mt-2 flex-wrap">
+                        {shouldShowSalary(formatSalary(job)) && (
+                          <Badge variant="outline" className="text-xs gap-1 border-border bg-background">
+                            <DollarSign className="w-3 h-3 text-muted-foreground" />
+                            {formatSalary(job)}
+                          </Badge>
                         )}
                       </div>
 
+                      {/* Skills preview */}
+                      {job.tech_stack && job.tech_stack.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {job.tech_stack.slice(0, 3).map((skill, index) => (
+                            <span
+                              key={index}
+                              className="px-2 py-0.5 text-[10px] bg-muted rounded-md text-muted-foreground border border-border/50"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                          {job.tech_stack.length > 3 && (
+                            <span className="text-[10px] text-muted-foreground self-center">
+                              +{job.tech_stack.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      )}
+
                       {/* Stats */}
-                      <div className="flex items-center gap-4 mt-3 text-[11px] text-muted-foreground">
-                        <span className="flex items-center gap-1"><Users className="w-3 h-3" />{job.application_count} applicants</span>
-                        <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{job.view_count} views</span>
-                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}</span>
+                      <div className="flex items-center gap-3 mt-3 text-[11px] text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Users className="w-3 h-3" />
+                          {job.application_count} applicants
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Eye className="w-3 h-3" />
+                          {job.view_count} views
+                        </span>
                       </div>
                     </div>
 

@@ -7,6 +7,26 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useSwipeable } from "react-swipeable";
 import { toast } from "sonner";
+import MatchScoreTooltip from "@/components/MatchScoreTooltip";
+
+// Helper function to check if salary should be displayed (matches standard job card)
+const shouldShowSalary = (salaryRange: string | null | undefined): boolean => {
+  if (!salaryRange || salaryRange === "Not specified") return false;
+  try {
+    const normalizedSalary = salaryRange.toLowerCase().trim();
+    if (normalizedSalary === "0-0" ||
+        normalizedSalary === "0-0k" ||
+        normalizedSalary === "0 - 0" ||
+        normalizedSalary === "0 - 0k" ||
+        normalizedSalary.match(/^0\s*[-–—]\s*0[k]?\s*$/)) {
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.warn('Error checking salary pattern:', error, salaryRange);
+    return true;
+  }
+};
 
 interface MobileJobCardProps {
   job: JobOpportunity;
@@ -101,64 +121,70 @@ export const MobileJobCard = ({
         {/* Header with match score */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-lg leading-tight truncate">
-              {job.title}
+            <h3 className="font-semibold text-lg leading-tight truncate text-foreground">
+              {job.title || 'Job Title Not Available'}
             </h3>
-            <p className="text-gray-600 text-base font-medium">
-              {job.company}
+            <p className="text-muted-foreground text-base font-medium">
+              {job.company || 'Company Not Available'}
             </p>
           </div>
           {matchScore && (
-            <Badge
-              variant={matchScore >= 80 ? "default" : matchScore >= 60 ? "secondary" : "outline"}
-              className="ml-2 text-xs"
-            >
-              {matchScore}% match
-            </Badge>
+            <MatchScoreTooltip match={{ overall_score: matchScore, reasoning: "" }}>
+              <Badge variant="secondary" className="ml-2 text-xs cursor-help bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
+                {Math.round(matchScore)}% match
+              </Badge>
+            </MatchScoreTooltip>
           )}
         </div>
 
         {/* Job details */}
-        <div className="space-y-2 mb-4">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground mb-4">
           {job.location && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <MapPin className="w-4 h-4 flex-shrink-0" />
-              <span className="truncate">{job.location}</span>
-            </div>
+            <span className="flex items-center gap-1 truncate">
+              <MapPin className="h-3.5 w-3.5 shrink-0" />
+              {job.location}
+            </span>
           )}
-          {job.salary_range && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <DollarSign className="w-4 h-4 flex-shrink-0" />
-              <span>{job.salary_range}</span>
-            </div>
+          {job.posted_at && (
+            <span className="flex items-center gap-1 whitespace-nowrap">
+              <Clock className="h-3.5 w-3.5" />
+              {job.posted_at}
+            </span>
           )}
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Clock className="w-4 h-4 flex-shrink-0" />
-            <span>{job.posted_at || 'Recently posted'}</span>
-          </div>
         </div>
 
-        {/* Tech stack */}
+        {/* Badges row */}
+        <div className="flex items-center gap-2 mb-4 flex-wrap">
+          {shouldShowSalary(job.salary_range) && (
+            <Badge variant="outline" className="text-xs gap-1 border-border bg-background">
+              <DollarSign className="w-3 h-3 text-muted-foreground" />
+              {job.salary_range}
+            </Badge>
+          )}
+        </div>
+
+        {/* Skills preview */}
         {job.tech_stack && job.tech_stack.length > 0 && (
-          <div className="mb-4">
-            <div className="flex flex-wrap gap-1">
-              {job.tech_stack.slice(0, 4).map((tech) => (
-                <Badge key={tech} variant="outline" className="text-xs">
-                  {tech}
-                </Badge>
-              ))}
-              {job.tech_stack.length > 4 && (
-                <Badge variant="outline" className="text-xs">
-                  +{job.tech_stack.length - 4} more
-                </Badge>
-              )}
-            </div>
+          <div className="flex flex-wrap gap-1 mb-4">
+            {job.tech_stack.slice(0, 3).map((skill, index) => (
+              <span
+                key={index}
+                className="px-2 py-0.5 text-[10px] bg-muted rounded-md text-muted-foreground border border-border/50"
+              >
+                {skill}
+              </span>
+            ))}
+            {job.tech_stack.length > 3 && (
+              <span className="text-[10px] text-muted-foreground self-center">
+                +{job.tech_stack.length - 3} more
+              </span>
+            )}
           </div>
         )}
 
         {/* Description preview */}
         {job.description && (
-          <p className="text-sm text-gray-600 line-clamp-3 mb-4">
+          <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
             {job.description}
           </p>
         )}
@@ -195,7 +221,7 @@ export const MobileJobCard = ({
         </div>
 
         {/* Swipe instructions */}
-        <p className="text-xs text-center text-gray-400 mt-3">
+        <p className="text-xs text-center text-muted-foreground/60 mt-3">
           Swipe left to skip • Swipe right to save
         </p>
       </CardContent>
