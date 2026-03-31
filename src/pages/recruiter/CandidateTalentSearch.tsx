@@ -15,6 +15,13 @@ import CandidateProfileDrawer from "@/components/recruiter/CandidateProfileDrawe
 import OutreachModal from "@/components/recruiter/OutreachModal";
 import { RecruiterPaywall } from "@/components/recruiter/RecruiterPaywall";
 
+const REMOTE_OPTIONS = [
+  { value: "__all__", label: "All work styles" },
+  { value: "remote", label: "Remote only" },
+  { value: "hybrid", label: "Hybrid" },
+  { value: "onsite", label: "On-site" },
+];
+
 const MatchBadge = ({ score }: { score?: number }) => {
   if (score === undefined) return null;
   const color =

@@ -29,8 +29,13 @@ const TailorResultSheet = ({ open, onClose, content, job }: TailorResultSheetPro
     const safeName = `${job.title}_${job.company}`.replace(/[^a-z0-9_]/gi, "_");
 
     const handlePdf = async () => {
-        await exportResumeToPdf(content.resume, `${safeName}_resume.pdf`, { onePage: onePagePdf });
-        toast.success("PDF downloaded");
+        try {
+            await exportResumeToPdf(content.resume, `${safeName}_resume.pdf`, { onePage: onePagePdf });
+            toast.success("PDF downloaded");
+        } catch (err) {
+            console.error("PDF export failed:", err);
+            toast.error("Failed to generate PDF. Please try again.");
+        }
     };
 
     const handleDocx = async () => {
@@ -38,16 +43,23 @@ const TailorResultSheet = ({ open, onClose, content, job }: TailorResultSheetPro
         try {
             await exportResumeToDocx(content.resume, `${safeName}_resume.docx`);
             toast.success("Word document downloaded");
+        } catch (err) {
+            console.error("DOCX export failed:", err);
+            toast.error("Failed to generate document. Please try again.");
         } finally {
             setDownloadingDocx(false);
         }
     };
 
     const handleCopyCoverLetter = async () => {
-        await navigator.clipboard.writeText(content.coverLetter);
-        setCopied(true);
-        toast.success("Cover letter copied!");
-        setTimeout(() => setCopied(false), 2000);
+        try {
+            await navigator.clipboard.writeText(content.coverLetter);
+            setCopied(true);
+            toast.success("Cover letter copied!");
+            setTimeout(() => setCopied(false), 2000);
+        } catch {
+            toast.error("Failed to copy to clipboard");
+        }
     };
 
     return (

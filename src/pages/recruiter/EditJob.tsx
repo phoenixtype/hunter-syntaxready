@@ -99,8 +99,25 @@ const EditJob = () => {
   const removeTech = (tag: string) =>
     set("tech_stack", (form.tech_stack ?? []).filter((t) => t !== tag));
 
+  const validate = (isPublish?: boolean): string | null => {
+    if (!form.title?.trim()) return "Job title is required";
+    if (!form.company?.trim()) return "Company name is required";
+    if (isPublish) {
+      if (!form.description?.trim() || form.description.trim().length < 50)
+        return "Description must be at least 50 characters to publish";
+    }
+    return null;
+  };
+
   const handleSave = async (publish?: boolean) => {
     if (!jobId) return;
+
+    const validationError = validate(publish);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+
     const setter = publish ? setPublishing : setSaving;
     setter(true);
     try {

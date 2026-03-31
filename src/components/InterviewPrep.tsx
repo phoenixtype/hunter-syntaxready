@@ -35,24 +35,29 @@ const InterviewPrepModal = ({ isOpen, onClose, job }: InterviewPrepModalProps) =
     }, [job, lastJobId]);
 
     useEffect(() => {
-        if (isOpen && job && !material && !loading) {
-            let isMounted = true;
-            setLoading(true);
-            generateInterviewPrep(job)
-                .then(data => {
-                    if (isMounted) setMaterial(data);
-                })
-                .catch(() => {
-                    if (isMounted) toast.error("Failed to generate prep material");
-                })
-                .finally(() => {
-                    if (isMounted) setLoading(false);
-                });
-            return () => {
-                isMounted = false;
-            };
-        }
-    }, [isOpen, job, material, loading]);
+        if (!isOpen || !job || material || loading) return;
+
+        let isMounted = true;
+        setLoading(true);
+        generateInterviewPrep(job)
+            .then(data => {
+                if (isMounted) setMaterial(data);
+            })
+            .catch(() => {
+                if (isMounted) {
+                    toast.error("Failed to generate prep material");
+                    // Set a sentinel so the effect doesn't retry infinitely on failure
+                    setMaterial({ error: true } as any);
+                }
+            })
+            .finally(() => {
+                if (isMounted) setLoading(false);
+            });
+        return () => {
+            isMounted = false;
+        };
+    // Only re-run when dialog opens or job changes — NOT on material/loading changes
+    }, [isOpen, job?.id]);
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>

@@ -54,13 +54,18 @@ const RecruiterDashboard = () => {
       let attempts = 0;
       const interval = setInterval(async () => {
         attempts++;
-        const { data } = await refetchSubscription();
-        if (data?.tier !== 'free' || attempts > 10) {
-          clearInterval(interval);
-          if (data?.tier !== 'free') {
-            toast.success("Your recruiter plan is now active! 🚀");
-            setSearchParams({});
+        try {
+          const { data } = await refetchSubscription();
+          if (data?.tier !== 'free' || attempts > 10) {
+            clearInterval(interval);
+            if (data?.tier !== 'free') {
+              toast.success("Your recruiter plan is now active! 🚀");
+              setSearchParams({});
+            }
           }
+        } catch {
+          // Stop polling on error to prevent infinite retries
+          if (attempts > 3) clearInterval(interval);
         }
       }, 2000);
 

@@ -52,9 +52,9 @@ export class RateLimiter {
 
       if (error) {
         console.error(`[RATE_LIMIT] RPC Error for ${functionName}:`, error);
-        // Fail-open: let the request through if rate-limit DB check fails.
-        // A DB hiccup should not block legitimate users.
-        return { allowed: true };
+        // Fail-closed: block the request if rate-limit DB check fails.
+        // Prevents abuse during DB outages.
+        return { allowed: false, error: "Service temporarily unavailable. Please try again in a moment." };
       }
 
       const allowed = data === true;
@@ -73,8 +73,8 @@ export class RateLimiter {
 
     } catch (err) {
       console.error(`[RATE_LIMIT] Unexpected error for ${functionName}:`, err);
-      // Fail-open on unexpected errors too
-      return { allowed: true };
+      // Fail-closed on unexpected errors — prevent abuse during outages
+      return { allowed: false, error: "Service temporarily unavailable. Please try again in a moment." };
     }
   }
 }

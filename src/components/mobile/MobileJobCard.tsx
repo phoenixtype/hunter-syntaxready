@@ -8,25 +8,7 @@ import { cn } from "@/lib/utils";
 import { useSwipeable } from "react-swipeable";
 import { toast } from "sonner";
 import MatchScoreTooltip from "@/components/MatchScoreTooltip";
-
-// Helper function to check if salary should be displayed (matches standard job card)
-const shouldShowSalary = (salaryRange: string | null | undefined): boolean => {
-  if (!salaryRange || salaryRange === "Not specified") return false;
-  try {
-    const normalizedSalary = salaryRange.toLowerCase().trim();
-    if (normalizedSalary === "0-0" ||
-        normalizedSalary === "0-0k" ||
-        normalizedSalary === "0 - 0" ||
-        normalizedSalary === "0 - 0k" ||
-        normalizedSalary.match(/^0\s*[-–—]\s*0[k]?\s*$/)) {
-      return false;
-    }
-    return true;
-  } catch (error) {
-    console.warn('Error checking salary pattern:', error, salaryRange);
-    return true;
-  }
-};
+import { shouldShowSalary } from "@/lib/job-card-utils";
 
 interface MobileJobCardProps {
   job: JobOpportunity;

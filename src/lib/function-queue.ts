@@ -60,10 +60,9 @@ export const queuedFunctionCall = async <T = any>(
 
     // Retry logic with exponential backoff
     for (let attempt = 0; attempt <= retries; attempt++) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), timeout);
-
         const { data, error } = await supabaseWithLimits.functions.invoke(
           functionName,
           {
@@ -74,8 +73,6 @@ export const queuedFunctionCall = async <T = any>(
             }
           }
         );
-
-        clearTimeout(timeoutId);
 
         if (error) {
           const msg = await getInvokeErrorMessage(error);
@@ -100,6 +97,8 @@ export const queuedFunctionCall = async <T = any>(
         if (attempt < retries) {
           await new Promise(resolve => setTimeout(resolve, Math.min(1000 * (2 ** attempt), 5000)));
         }
+      } finally {
+        clearTimeout(timeoutId);
       }
     }
 

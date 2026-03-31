@@ -36,6 +36,7 @@ type TTL = number; // seconds
 
 class InMemoryCache {
   private cache = new Map<CacheKey, CacheEntry<any>>();
+  private pendingComputes = new Map<CacheKey, Promise<any>>();
   private stats: CacheStats = {
     hits: 0,
     misses: 0,
@@ -153,9 +154,21 @@ class InMemoryCache {
       return cached;
     }
 
-    const computed = await computeFn();
-    this.set(key, computed, ttlSeconds);
-    return computed;
+    // Deduplicate concurrent calls for the same key
+    const pending = this.pendingComputes.get(key);
+    if (pending) {
+      return pending as Promise<T>;
+    }
+
+    const promise = computeFn().then(result => {
+      this.set(key, result, ttlSeconds);
+      return result;
+    }).finally(() => {
+      this.pendingComputes.delete(key);
+    });
+
+    this.pendingComputes.set(key, promise);
+    return promise;
   }
 
   /**

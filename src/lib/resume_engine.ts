@@ -135,44 +135,12 @@ export const parseResume = async (file: File, userId?: string): Promise<Candidat
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       // Use queued function call to prevent overwhelming edge functions
+      // queueParseResume throws on error (auth, rate-limit, network) —
+      // those are caught in the catch block below.
       const data = await queueParseResume({
         resumeText: text,
         userId,
       } as any);
-
-      const error: any = null; // Queue system handles errors internally
-
-      if (error) {
-        lastError = error;
-
-        // Don't retry on auth errors
-        if (error.message?.includes('401') || 
-            error.message?.includes('Invalid User Token') ||
-            error.message?.includes('Invalid JWT')) {
-          throw new ResumeParseError(
-            'AUTH_FAILED',
-            'Authentication failed. Please sign out and sign in again.',
-            error.message
-          );
-        }
-
-        // Don't retry on rate limit errors
-        if (error.message?.includes('429') || error.message?.includes('rate limit')) {
-          throw new ResumeParseError(
-            'RATE_LIMITED',
-            'Too many requests. Please wait a minute and try again.',
-            error.message
-          );
-        }
-
-        // Retry on other errors
-        if (attempt < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, attempt * 1000));
-          continue;
-        }
-        
-        throw error;
-      }
 
       if (!data?.success || !data?.profile) {
         const errorMsg = data?.error || 'Failed to extract profile from resume';

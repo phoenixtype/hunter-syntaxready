@@ -12,12 +12,13 @@
 export const shouldShowSalary = (salaryRange: string | null | undefined): boolean => {
   if (!salaryRange || salaryRange === "Not specified") return false;
   try {
-    const normalizedSalary = salaryRange.toLowerCase().trim();
-    if (normalizedSalary === "0-0" ||
-        normalizedSalary === "0-0k" ||
-        normalizedSalary === "0 - 0" ||
-        normalizedSalary === "0 - 0k" ||
-        normalizedSalary.match(/^0\s*[-–—]\s*0[k]?\s*$/)) {
+    const s = salaryRange.toLowerCase().replace(/[,$]/g, '').trim();
+    // Match any variation of 0-0, $0K-$0K, $0K–$0K USD, etc.
+    if (/^\$?\s*0\s*k?\s*[-–—]\s*\$?\s*0\s*k?\s*(usd|cad|eur|gbp|ngn)?\s*$/i.test(salaryRange.trim())) {
+      return false;
+    }
+    // Also catch plain "0-0" variants after stripping currency symbols
+    if (/^0\s*k?\s*[-–—]\s*0\s*k?\s*$/.test(s)) {
       return false;
     }
     return true;

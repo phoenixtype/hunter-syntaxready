@@ -14,24 +14,7 @@ import SalaryInsights from "./SalaryInsights";
 import { Progress } from "@/components/ui/progress";
 import { useState } from "react";
 
-// Helper function to check if salary should be displayed
-const shouldShowSalary = (salaryRange: string | null | undefined): boolean => {
-  if (!salaryRange || salaryRange === "Not specified") return false;
-  try {
-    const normalizedSalary = salaryRange.toLowerCase().trim();
-    if (normalizedSalary === "0-0" ||
-        normalizedSalary === "0-0k" ||
-        normalizedSalary === "0 - 0" ||
-        normalizedSalary === "0 - 0k" ||
-        normalizedSalary.match(/^0\s*[-–—]\s*0[k]?\s*$/)) {
-      return false;
-    }
-    return true;
-  } catch (error) {
-    console.warn('Error checking salary pattern:', error, salaryRange);
-    return true;
-  }
-};
+import { shouldShowSalary } from "@/lib/job-card-utils";
 
 interface Props {
   job: EnrichedJob | null;
@@ -134,10 +117,18 @@ export default function JobDescriptionModal({
                 {postedDate && (
                   <span className="text-xs text-muted-foreground">Posted {postedDate}</span>
                 )}
+                <button
+                  onClick={(e) => { e.stopPropagation(); onSave(); }}
+                  className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+                  title={isSaved ? "Remove bookmark" : "Save job"}
+                >
+                  <Bookmark className={`w-3.5 h-3.5 ${isSaved ? "fill-primary text-primary" : ""}`} />
+                  {isSaved ? "Saved" : "Save"}
+                </button>
               </div>
             </div>
-            {/* Primary Apply CTA in header */}
-            <div className="shrink-0 flex gap-2">
+            {/* Primary Apply CTA in header — keep clear of dialog X button */}
+            <div className="shrink-0 mr-6">
               {job.url && (
                 <a
                   href={job.url}
@@ -161,15 +152,6 @@ export default function JobDescriptionModal({
                   </Button>
                 </a>
               )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onSave}
-                className="p-2"
-                title={isSaved ? "Remove bookmark" : "Save job"}
-              >
-                <Bookmark className={`w-4 h-4 ${isSaved ? "fill-primary text-primary" : "text-muted-foreground"}`} />
-              </Button>
             </div>
           </div>
         </DialogHeader>
