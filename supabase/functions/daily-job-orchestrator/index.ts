@@ -425,7 +425,9 @@ function isUserInterestedInCompany(user: UserProfile, company: string): boolean 
 }
 
 /**
- * Process profile matching for a user against crawled jobs
+ * Process profile matching for a user against crawled jobs and persist
+ * fresh matches into both job_matches (for the dashboard feed) and
+ * daily_job_queue (for email digest delivery).
  */
 async function processProfileMatching(
   supabase: any,
@@ -436,30 +438,64 @@ async function processProfileMatching(
   let matches = 0;
   let queued = 0;
 
+  const now = new Date().toISOString();
+  const today = now.split('T')[0];
+
   for (const job of jobs) {
     try {
-      // Simple matching logic (would use profile-matching.ts in full implementation)
       const score = calculateSimpleMatchScore(user, job);
 
-      if (score >= 70) { // 70% threshold
+      if (score >= 70) {
         matches++;
 
-        // Queue job for daily digest
-        const { error } = await supabase
+        // Skip jobs that don't have a real UUID (may have been inserted
+        // with a temp ID by the in-process crawl).
+        const jobId: string | null = job.id || null;
+        if (!jobId) continue;
+
+        // ── 1. Upsert into job_matches so the dashboard feed stays fresh ──
+        // On conflict (same user + job) we update matched_at and scores so
+        // the 12-hour freshness gate in cached-job-engine lets these through.
+        const skillMatch = score >= 90 ? 85 : score >= 70 ? 70 : 50;
+        const locationMatch =
+          (user.preferred_locations || []).some(loc =>
+            (job.location || '').toLowerCase().includes(loc.toLowerCase()) ||
+            loc.toLowerCase() === 'remote'
+          ) ? 90 : 60;
+
+        await supabase
+          .from('job_matches')
+          .upsert(
+            {
+              user_id:        user.id,
+              job_id:         jobId,
+              match_score:    score,
+              skill_match:    skillMatch,
+              culture_fit:    70,
+              location_match: locationMatch,
+              reasoning:      [`Wave match: ${score}%`, `Wave: ${waveId}`],
+              matched_at:     now,
+              status:         'pending',
+            },
+            { onConflict: 'user_id,job_id', ignoreDuplicates: false }
+          );
+
+        // ── 2. Queue for daily digest email (existing behaviour) ──────────
+        const { error: queueError } = await supabase
           .from('daily_job_queue')
           .upsert({
-            user_id: user.id,
-            job_id: job.id || `temp_${Date.now()}_${Math.random()}`,
-            match_score: score,
+            user_id:       user.id,
+            job_id:        jobId,
+            match_score:   score,
             match_reasons: [`Simple match: ${score}%`],
-            wave_id: waveId,
-            queued_at: new Date().toISOString(),
-            digest_date: new Date().toISOString().split('T')[0]
+            wave_id:       waveId,
+            queued_at:     now,
+            digest_date:   today,
           }, {
             onConflict: 'user_id,job_id,digest_date'
           });
 
-        if (!error) {
+        if (!queueError) {
           queued++;
         }
       }

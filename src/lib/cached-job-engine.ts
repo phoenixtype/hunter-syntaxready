@@ -196,7 +196,11 @@ class CachedJobEngine {
   }
 
   /**
-   * Get job matches for user with caching
+   * Get job matches for user with caching.
+   *
+   * Only returns rows whose `matched_at` timestamp is within the last 12 hours.
+   * Stale rows return [] so the caller (useJobs) falls through to a live
+   * getMatchedJobsServerSide query instead of showing signup-era jobs forever.
    */
   async getJobMatches(
     userId: string,
@@ -207,10 +211,14 @@ class CachedJobEngine {
     if (cached) return cached;
 
     try {
+      // Only consider matches refreshed within the last 12 hours
+      const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
+
       const { data, error } = await supabase
         .from('job_matches')
         .select('*, job_listings(*)')
         .eq('user_id', userId)
+        .gte('matched_at', twelveHoursAgo)   // ← freshness gate
         .order('match_score', { ascending: false })
         .limit(limit);
 
@@ -220,6 +228,12 @@ class CachedJobEngine {
       }
 
       const matches = data || [];
+      // If no fresh matches, return empty array so useJobs falls through to live DB search
+      if (matches.length === 0) {
+        console.log('[JOBS_CACHE] No fresh job_matches within 12 h — falling through to live query');
+        return [];
+      }
+
       cache.set(cacheKey, matches, CacheTTL.SHORT);
       return matches;
     } catch (err) {

@@ -225,7 +225,14 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
             toast.success(`Crawl complete! Found ${data.inserted || 0} new jobs`);
             // Clear in-memory caches so the refetch hits the DB fresh
             invalidateJobsCache();
-            if (user?.id) cache.invalidatePattern(`job_matches:${user.id}`);
+            // Invalidate the user's cached job_matches so the 12-hour freshness
+            // gate re-evaluates on the very next render and returns new results.
+            if (user?.id) {
+                cache.invalidatePattern(`job_matches:${user.id}`);
+                // Also delete the exact keys used by getJobMatches
+                cache.delete(`job_matches:${user.id}:${PAGE_SIZE}`);
+                cache.delete(`job_matches:${user.id}:${PAGE_SIZE * 3}`);
+            }
             queryClient.invalidateQueries({ queryKey: ['jobs'] });
             queryClient.invalidateQueries({ queryKey: ['jobCount'] });
             // Explicitly refetch jobs to ensure UI updates immediately
@@ -243,14 +250,25 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
         }
     });
 
-    // Auto-crawl once per session when the user has a profile + preferences but no jobs yet
+    // Auto-crawl once per browser session when the user has a profile +
+    // preferences but no fresh jobs yet.  Using sessionStorage (rather than a
+    // plain ref) means the flag resets on each page load / tab open, so the
+    // user always sees up-to-date jobs after navigating away and back.
     const autoCrawledRef = useRef(false);
     useEffect(() => {
+        if (!user?.id) return;
+        // Initialise from sessionStorage on first mount
+        const sessionKey = `hunter_auto_crawled:${user.id}`;
+        if (!autoCrawledRef.current) {
+            autoCrawledRef.current = sessionStorage.getItem(sessionKey) === 'true';
+        }
+
         if (autoCrawledRef.current || isCrawling || jobsLoading) return;
-        if (!user?.id || !profile || !preferences?.target_roles?.length) return;
+        if (!profile || !preferences?.target_roles?.length) return;
         if (data === undefined || (data.jobs?.length ?? 0) > 0) return;
 
         autoCrawledRef.current = true;
+        sessionStorage.setItem(sessionKey, 'true');
         crawl(undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data?.jobs?.length, jobsLoading, isCrawling, user?.id, !!profile, preferences?.target_roles?.join(',')]);
