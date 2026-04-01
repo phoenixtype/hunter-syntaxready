@@ -15,7 +15,7 @@ const COMPANY_SIZES = ["1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"
 const BENEFITS = [
   { icon: Target, title: "AI-matched candidates", desc: "hunter.ai scores every candidate against your role automatically — you only see strong matches." },
   { icon: Users, title: "Active job seekers", desc: "Our candidates are actively job hunting and opted-in — far higher response rates than passive sourcing." },
-  { icon: Zap, title: "Auto-apply pipeline", desc: "Qualified candidates can auto-apply to your roles, filling your pipeline 24/7 without manual outreach." },
+  { icon: Zap, title: "Smart-apply pipeline", desc: "Qualified candidates can apply to your roles automatically, filling your pipeline 24/7 without manual outreach." },
   { icon: BrainCircuit, title: "Vetted profiles", desc: "Every candidate profile is AI-parsed and structured — skills, experience, and match score surfaced instantly." },
 ];
 

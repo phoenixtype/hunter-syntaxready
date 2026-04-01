@@ -63,9 +63,9 @@ export const MobileDrawer = ({ open, onClose }: MobileDrawerProps) => {
     },
     {
       icon: Zap,
-      label: "Auto Applier",
+      label: "Hunt Planner",
       path: "/auto-applier-settings",
-      description: "Automated job applications"
+      description: "Plan your job hunt strategy"
     },
     {
       icon: User,

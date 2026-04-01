@@ -223,8 +223,8 @@ const JobHuntPlanner = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <ProGate.Dialog open={showProGate} onOpenChange={setShowProGate} featureLabel="Auto-Apply" />
-      <SEOHead title="Auto-Applier Settings" description="Configure your automated job application preferences." path="/auto-applier-settings" noIndex />
+      <ProGate.Dialog open={showProGate} onOpenChange={setShowProGate} featureLabel="Hunt Planner" />
+      <SEOHead title="Hunt Planner" description="Configure your job hunt plan and preferences." path="/auto-applier-settings" noIndex />
       <PageHeader
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },
@@ -442,7 +442,7 @@ const JobHuntPlanner = () => {
                           <div>
                             <Label className="text-sm font-medium flex items-center gap-1.5">
                               <span className="inline-block w-2 h-2 rounded-full bg-green-500" />
-                              Auto-Apply (Autopilot)
+                              Autopilot
                             </Label>
                             <p className="text-xs text-muted-foreground mt-0.5">
                               When a recruiter posts a job that matches your profile above the score threshold, hunter.ai automatically submits your application.

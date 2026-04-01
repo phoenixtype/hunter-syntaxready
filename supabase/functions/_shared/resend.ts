@@ -331,7 +331,7 @@ export function welcomeEmail(opts: { fullName: string }): string {
         ${[
           ['📄', 'Upload your resume', 'Hunter parses it instantly and builds your candidate profile'],
           ['🎯', 'Set your preferences', 'Role, location, salary — Hunter targets exactly what you want'],
-          ['🤖', 'Enable auto-apply', 'Let Hunter apply to matched jobs on autopilot'],
+          ['🤖', 'Set up Hunt Planner', 'Let Hunter find and apply to matched jobs for you'],
           ['🎤', 'Practice with Dexter', 'Your AI coach for interview and negotiation prep'],
         ].map(([icon, title, desc]) => `
         <tr>

@@ -9,7 +9,7 @@ interface PlanPricing {
 
 const PLANS: Record<PlanName, Record<Currency, PlanPricing>> = {
   pro: {
-    USD: { monthly: 19.99, label: '$19.99/mo', displayCurrency: 'USD' },
+    USD: { monthly: 19.99, label: '$19.99/wk', displayCurrency: 'USD' },
     NGN: { monthly: 4999, label: '₦4,999/wk', displayCurrency: 'NGN' },
   },
   starter: {

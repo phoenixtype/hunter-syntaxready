@@ -38,7 +38,7 @@ const MobileNav = ({ isAuthenticated = false, onSignOut }: MobileNavProps) => {
     { label: "Resume Builder", href: "/resume-builder", icon: FileText },
     { label: "Interview Coach", href: "/interview-coach", icon: GraduationCap },
     { label: "Application Wizard", href: "/application-wizard", icon: Search },
-    { label: "Auto-Applier", href: "/auto-applier-settings", icon: Bot },
+    { label: "Hunt Planner", href: "/auto-applier-settings", icon: Bot },
   ];
 
   const navItems = isAuthenticated ? authNavItems : publicNavItems;

@@ -24,7 +24,7 @@ const QUICK_PROMPTS: Record<string, string[]> = {
   "/application-wizard": ["How do I tailor my cover letter?", "What should I include in my application?", "How to stand out for this role?"],
   "/interview-coach":    ["How do I nail the STAR method?", "Tips for salary negotiation", "How to handle a tough interviewer"],
   "/tailored-resumes":   ["How does resume tailoring work?", "What keywords matter most?", "How to improve my ATS score?"],
-  "/auto-applier-settings": ["How does auto-apply work?", "What jobs should I target?", "How to optimise my preferences?"],
+  "/auto-applier-settings": ["How does Hunt Planner work?", "What jobs should I target?", "How to optimise my preferences?"],
   "/settings":           ["How do I upgrade to Pro?", "What's included in Pro?"],
 };
 

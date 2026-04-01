@@ -75,7 +75,7 @@ const CommandPalette = () => {
         { id: "resume-builder", label: "Resume Builder", description: "Build & optimize your resume", icon: FileText, action: () => go("/resume-builder"), keywords: ["cv", "build", "create"], group: "tools" },
         { id: "interview-coach", label: "Interview Coach", description: "Practice with AI mock interviews", icon: GraduationCap, action: () => go("/interview-coach"), keywords: ["practice", "mock", "prep"], group: "tools" },
         { id: "application-wizard", label: "Application Wizard", description: "Search & apply to jobs", icon: Search, action: () => go("/application-wizard"), keywords: ["search", "find", "apply"], group: "tools" },
-        { id: "auto-applier", label: "Auto-Applier Settings", description: "Configure automated applications", icon: Zap, action: () => go("/auto-applier-settings"), keywords: ["automation", "preferences"], group: "settings" },
+        { id: "auto-applier", label: "Hunt Planner", description: "Configure your job hunt plan", icon: Zap, action: () => go("/auto-applier-settings"), keywords: ["automation", "preferences", "planner"], group: "settings" },
       );
     }
 

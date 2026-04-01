@@ -480,7 +480,7 @@ const Onboarding = () => {
                   </div>
                   <h1 className="text-2xl font-bold tracking-tight">Let's build your profile</h1>
                   <p className="text-muted-foreground max-w-xs mx-auto text-sm leading-relaxed">
-                    7 quick steps — hunter.ai uses your profile to find, match, and auto-apply to jobs for you.
+                    7 quick steps — hunter.ai uses your profile to find, match, and apply to jobs for you.
                   </p>
                 </div>
 

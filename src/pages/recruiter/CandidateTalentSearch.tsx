@@ -305,7 +305,7 @@ const CandidateTalentSearch = () => {
                 <p className="text-sm text-muted-foreground max-w-xs mt-1">
                   {hasFilters
                     ? "Try broadening your filters — fewer skill keywords or a different work style."
-                    : "Candidates appear here once they enable auto-apply in their hunter.ai account. Share hunter.ai with your network to grow the talent pool."}
+                    : "Candidates appear here once they enable Hunt Planner in their hunter.ai account. Share hunter.ai with your network to grow the talent pool."}
                 </p>
               </div>
               {hasFilters && (

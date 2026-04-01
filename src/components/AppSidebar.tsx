@@ -47,7 +47,7 @@ const SIDEBAR_SECTIONS = [
   {
     label: "Optimize",
     tools: [
-      { icon: Bot,           title: "Auto Apply",        route: "/auto-applier-settings", compact: "Auto" },
+      { icon: Bot,           title: "Hunt Planner",      route: "/auto-applier-settings", compact: "Planner" },
     ],
   },
 ] as const;
@@ -61,7 +61,7 @@ const AppSidebar = () => {
   const { isPro } = useSubscription();
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {
-    try { return localStorage.getItem("hunter_sidebar_collapsed") === "true"; } catch { return false; }
+    try { const v = localStorage.getItem("hunter_sidebar_collapsed"); return v === null ? true : v === "true"; } catch { return true; }
   });
 
   const toggleCollapsed = () => {

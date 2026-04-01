@@ -22,7 +22,7 @@ const PRO_HIGHLIGHTS = [
   { icon: Send,          text: "Apply to unlimited jobs with one click" },
   { icon: FileText,      text: "AI-tailored resumes & cover letters" },
   { icon: GraduationCap, text: "Full interview coaching suite" },
-  { icon: Bot,           text: "Autopilot — auto-match & auto-apply" },
+  { icon: Bot,           text: "Hunt Planner — smart matching & applications" },
 ] as const;
 
 function UpgradeCard({
@@ -143,7 +143,7 @@ function UpgradeCard({
         </button>
 
         <p className="text-center text-[11px] text-muted-foreground/60 font-medium uppercase tracking-widest">
-          Billed monthly · Cancel anytime · {paymentBadge}
+          Billed weekly · Cancel anytime · {paymentBadge}
         </p>
       </div>
     </div>
