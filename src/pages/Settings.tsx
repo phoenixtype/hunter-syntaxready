@@ -24,7 +24,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Download, Trash2, Shield, Bell, Moon, Loader2, CreditCard, ExternalLink, User, Settings as SettingsIcon, HelpCircle, Zap } from "lucide-react";
+import { Download, Trash2, Shield, Bell, Moon, Loader2, CreditCard, ExternalLink, User, Settings as SettingsIcon, HelpCircle, Zap, Gift } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import NotificationSettings from "@/components/NotificationSettings";
 import ProfilePanel from "@/components/ProfilePanel";
@@ -61,7 +61,7 @@ const SETTINGS_TOUR_STEPS: Step[] = [
   },
 ];
 
-type SettingsTab = "profile" | "preferences" | "account" | "notifications";
+type SettingsTab = "profile" | "preferences" | "account" | "notifications" | "referrals";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -170,7 +170,7 @@ const Settings = () => {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
       if (deleteFnError || !deleteData?.success) {
-        throw new Error(deleteFnError?.message || deleteData?.error || "Failed to delete account. Please contact support@syntaxready.com.");
+        throw new Error(deleteFnError?.message || deleteData?.error || "Failed to delete account. Please contact support@usehunter.app.");
       }
 
       // Sign out locally and redirect
@@ -179,7 +179,7 @@ const Settings = () => {
       navigate('/');
     } catch (error) {
       console.error("Delete failed:", error);
-      toast.error("Account deletion failed. Please contact support@syntaxready.com.");
+      toast.error("Account deletion failed. Please contact support@usehunter.app.");
     } finally {
       setIsDeleting(false);
     }
@@ -189,6 +189,7 @@ const Settings = () => {
     { id: "profile",       label: "Profile",       icon: User },
     { id: "preferences",   label: "Preferences",   icon: SettingsIcon },
     { id: "notifications", label: "Notifications", icon: Bell },
+    { id: "referrals",     label: "Referrals",     icon: Gift },
     { id: "account",       label: "Account",       icon: Shield },
   ];
 
@@ -247,10 +248,11 @@ const Settings = () => {
           </Card>
         )}
 
+        {/* Referrals */}
+        {activeTab === "referrals" && <ReferralPanel />}
+
         {/* Account */}
         {activeTab === "account" && <div className="space-y-8">
-
-        {/* Subscription */}
         <Card className="border-border" data-tour="settings-subscription">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -379,9 +381,6 @@ const Settings = () => {
             )}
           </CardContent>
         </Card>
-
-        {/* Referrals */}
-        <ReferralPanel />
 
         {/* Privacy & Data */}
         <Card className="border-border" data-tour="settings-privacy">

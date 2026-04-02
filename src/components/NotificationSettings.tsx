@@ -85,7 +85,7 @@ const NotificationSettings = () => {
         .from('user_preferences')
         .select('notification_settings')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         throw error;
@@ -110,8 +110,10 @@ const NotificationSettings = () => {
 
       const { error } = await supabase
         .from('user_preferences')
-        .update({ notification_settings: newPreferences as unknown as import('@/integrations/supabase/types').Json })
-        .eq('user_id', user.id);
+        .upsert(
+          { user_id: user.id, notification_settings: newPreferences as unknown as import('@/integrations/supabase/types').Json },
+          { onConflict: 'user_id' }
+        );
 
       if (error) throw error;
 
@@ -383,7 +385,14 @@ const NotificationSettings = () => {
               <div className="space-y-2">
                 <Slider
                   value={[preferences.usage_warnings.threshold]}
-                  onValueChange={(value) => updatePreference('usage_warnings', 'threshold', value[0])}
+                  onValueChange={(value) => {
+                    // Update local state only — commit on pointer up to avoid per-tick DB writes
+                    setPreferences(prev => ({
+                      ...prev,
+                      usage_warnings: { ...prev.usage_warnings, threshold: value[0] }
+                    }));
+                  }}
+                  onValueCommit={(value) => updatePreference('usage_warnings', 'threshold', value[0])}
                   min={50}
                   max={100}
                   step={5}
@@ -400,8 +409,15 @@ const NotificationSettings = () => {
                 max="100"
                 step="5"
                 value={preferences.usage_warnings.threshold}
-                onChange={(e) => updatePreference('usage_warnings', 'threshold', parseInt(e.target.value))}
-                className="w-20 px-2 py-1 border border-input rounded text-sm"
+                onChange={(e) => {
+                  const val = Math.max(50, Math.min(100, parseInt(e.target.value) || 50));
+                  setPreferences(prev => ({
+                    ...prev,
+                    usage_warnings: { ...prev.usage_warnings, threshold: val }
+                  }));
+                }}
+                onBlur={(e) => updatePreference('usage_warnings', 'threshold', Math.max(50, Math.min(100, parseInt(e.target.value) || 50)))}
+                className="w-20 px-2 py-1 border border-input rounded text-sm mt-2"
               />
             </div>
           </div>

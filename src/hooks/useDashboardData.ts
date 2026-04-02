@@ -160,8 +160,7 @@ export const useDashboardData = () => {
         countLoading ||
         metricsLoading ||
         visibilityLoading ||
-        jobCountLoading ||
-        skillLoading;
+        jobCountLoading;
 
     const errors = {
         preferences: prefsError ?? null,

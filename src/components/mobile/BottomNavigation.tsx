@@ -38,8 +38,9 @@ export const BottomNavigation = () => {
 
   if (!user) return null;
 
-  // Hide on certain pages
-  const hiddenPaths = ["/login", "/signup", "/onboarding"];
+  // Hide on certain pages — /dashboard has its own bottom nav bar so suppress
+  // the global one to avoid two stacked navbars on mobile.
+  const hiddenPaths = ["/login", "/signup", "/onboarding", "/dashboard"];
   if (hiddenPaths.some(path => location.pathname.startsWith(path))) {
     return null;
   }

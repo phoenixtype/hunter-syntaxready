@@ -128,6 +128,8 @@ export function useSubscription() {
 
   // Check if user can access a feature
   const canAccess = (featureName: string): boolean => {
+    // Optimistic while subscription is still loading — avoid premature Pro gates
+    if (subscriptionLoading) return true;
     if (!currentSubscription) return false;
 
     const limit = currentSubscription.feature_limits?.[featureName];

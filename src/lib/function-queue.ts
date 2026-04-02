@@ -118,20 +118,20 @@ export const queueJobCrawl = async (payload: any) => {
   return queuedFunctionCall('crawl-jobs', payload, { priority: 'normal', timeout: 60000 });
 };
 
-export const queueApplyToJob = async (payload: any) => {
-  return queuedFunctionCall('apply-to-job', payload, { priority: 'high', timeout: 30000 });
+export const queueApplyToJob = async (_payload: any): Promise<never> => {
+  throw new Error('[FunctionQueue] apply-to-job edge function is not deployed. Direct application is handled client-side.');
+};
+
+export const queueComplianceCheck = async (_payload: any): Promise<never> => {
+  throw new Error('[FunctionQueue] compliance-check edge function is not deployed. Compliance is checked locally via compliance_engine.');
+};
+
+export const queueEmailNotification = async (_payload: any): Promise<never> => {
+  throw new Error('[FunctionQueue] send-email edge function is not deployed. Notifications are handled via send-notification or process-notifications.');
 };
 
 export const queueGenerateResume = async (payload: any) => {
   return queuedFunctionCall('generate-resume', payload, { priority: 'normal', timeout: 30000 });
-};
-
-export const queueComplianceCheck = async (payload: any) => {
-  return queuedFunctionCall('compliance-check', payload, { priority: 'high', timeout: 5000, retries: 1 });
-};
-
-export const queueEmailNotification = async (payload: any) => {
-  return queuedFunctionCall('send-email', payload, { priority: 'low', timeout: 15000 });
 };
 
 /**

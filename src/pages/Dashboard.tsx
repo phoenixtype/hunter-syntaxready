@@ -102,7 +102,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { profile, loading: resumeLoading } = useResume();
-  const { currentSubscription: subscription, isLoading: subLoading, canAccess: _canAccess, isPro } = useSubscription();
+  const { currentSubscription: subscription, subscriptionLoading, canAccess: _canAccess, isPro } = useSubscription();
   const queryClient = useQueryClient();
   const { preferences, appCount, jobCount, visibility, skillRecommendations, metrics, isLoading: dataLoading } = useDashboardData();
   const jobsTourRef = useRef<PageTourHandle>(null);
@@ -150,7 +150,7 @@ const Dashboard = () => {
       let attempts = 0;
       const interval = setInterval(async () => {
         attempts++;
-        const results = await queryClient.refetchQueries({
+        await queryClient.refetchQueries({
           queryKey: ['enhanced-subscription', user?.id]
         });
 
@@ -188,7 +188,7 @@ const Dashboard = () => {
     navigate("/");
   };
 
-  if (authLoading || resumeLoading || subLoading || dataLoading) {
+  if (authLoading || resumeLoading || subscriptionLoading || dataLoading) {
     return <DashboardSkeleton />;
   }
 

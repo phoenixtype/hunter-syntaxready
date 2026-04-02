@@ -45,7 +45,7 @@ const SubscriptionGate = ({ onClose }: SubscriptionGateProps) => {
         onClose?.();
       } else {
         toast.info("Still on Free tier.", {
-          description: "If you completed payment, it can take up to 60 seconds to activate. Wait a moment and try again, or contact support@syntaxready.com.",
+          description: "If you completed payment, it can take up to 60 seconds to activate. Wait a moment and try again, or contact support@usehunter.app.",
           duration: 8000,
         });
       }

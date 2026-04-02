@@ -33,21 +33,22 @@ const SIDEBAR_SECTIONS = [
   {
     label: "Apply",
     tools: [
-      { icon: FileText,      title: "Resume",      route: "/resume-builder", compact: "Resume" },
-      { icon: FolderOpen,    title: "Tailored",    route: "/tailored-resumes", compact: "Tailored" },
+      { icon: FileText,   title: "Resume",        route: "/resume-builder",       compact: "Resume",   proGated: false },
+      { icon: FolderOpen, title: "Tailored",       route: "/tailored-resumes",    compact: "Tailored", proGated: true  },
+      { icon: Building2,  title: "Apply Wizard",   route: "/application-wizard",  compact: "Wizard",   proGated: false },
     ],
   },
   {
     label: "Prepare",
     tools: [
-      { icon: GraduationCap, title: "Interview",     route: "/interview-coach", compact: "Interview" },
-      { icon: MessageSquare, title: "Follow-up",      route: "/post-interview", compact: "Follow-up" },
+      { icon: GraduationCap, title: "Interview",  route: "/interview-coach", compact: "Interview", proGated: true },
+      { icon: MessageSquare, title: "Follow-up",  route: "/post-interview",  compact: "Follow-up", proGated: true },
     ],
   },
   {
     label: "Optimize",
     tools: [
-      { icon: Bot,           title: "Hunt Planner",      route: "/auto-applier-settings", compact: "Planner" },
+      { icon: Bot, title: "Hunt Planner", route: "/auto-applier-settings", compact: "Planner", proGated: true },
     ],
   },
 ] as const;
@@ -225,17 +226,17 @@ const AppSidebar = () => {
                     {!collapsed && (
                       <span className="truncate">{tool.title}</span>
                     )}
-                    {!collapsed && !isPro && (
-                      <ProLockBadge className="ml-auto shrink-0" />
-                    )}
+                  {!collapsed && tool.proGated && !isPro && (
+                    <ProLockBadge className="ml-auto shrink-0" />
+                  )}
                   </button>
                 );
-                return collapsed ? (
-                  <Tooltip key={tool.title} delayDuration={200}>
-                    <TooltipTrigger asChild>{btn}</TooltipTrigger>
-                    <TooltipContent side="right">{tool.title}{!isPro ? " (Pro)" : ""}</TooltipContent>
-                  </Tooltip>
-                ) : btn;
+                  return collapsed ? (
+                    <Tooltip key={tool.title} delayDuration={200}>
+                      <TooltipTrigger asChild>{btn}</TooltipTrigger>
+                      <TooltipContent side="right">{tool.title}{tool.proGated && !isPro ? " (Pro)" : ""}</TooltipContent>
+                    </Tooltip>
+                  ) : btn;
               })}
             </div>
           </div>

@@ -54,7 +54,10 @@ const getStage = (status: string): Stage => {
   const s = status.toLowerCase();
   if (s.includes("interview") || s.includes("screening")) return "interview";
   if (s.includes("offer") || s.includes("accepted")) return "offer";
-  if (s.includes("reject") || s.includes("failed") || s.includes("declined")) return "rejected";
+  if (
+    s.includes("reject") || s.includes("failed") ||
+    s.includes("declined") || s.includes("withdrawn")
+  ) return "rejected";
   return "applied";
 };
 
@@ -153,7 +156,7 @@ export const ApplicationsView = () => {
 
   useEffect(() => {
     fetchHistory();
-  }, [session?.user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetchHistory]);
 
   const handleStatusChange = async (appId: string, newStatus: string) => {
     try {

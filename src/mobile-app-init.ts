@@ -1,199 +1,133 @@
-import { MobileFeatures } from './utils/mobile-features';
-import { App } from '@capacitor/app';
-import { PushNotifications, Token } from '@capacitor/push-notifications';
-import { Capacitor } from '@capacitor/core';
-
 /**
  * Mobile App Initialization for Hunter AI
- * Sets up all mobile-specific features and optimizations
+ *
+ * ⚠️ IMPORTANT: ALL Capacitor plugin imports MUST be dynamic (inside
+ * isNativePlatform checks). Static top-level imports of @capacitor/* will
+ * throw on mobile browsers (Safari / Chrome mobile) because the native
+ * bridge is absent, crashing the entire React app before it renders.
  */
+
+// Only import Capacitor/core which is safe — it detects the platform without
+// requiring the native bridge.  Everything else is lazy-loaded.
+import { Capacitor } from '@capacitor/core';
 
 export class HunterAIMobile {
   private static initialized = false;
 
   static async initialize() {
+    // On mobile web browsers: bail out immediately — no native bridge available.
     if (this.initialized || !Capacitor.isNativePlatform()) return;
 
     console.log('🚀 Initializing Hunter AI Mobile App...');
 
     try {
-      // Initialize core mobile features
+      const { MobileFeatures } = await import('./utils/mobile-features');
       await MobileFeatures.initialize();
 
-      // Set up app lifecycle handlers
       this.setupAppLifecycle();
-
-      // Configure push notifications
       await this.setupPushNotifications();
-
-      // Optimize performance for mobile
       await MobileFeatures.optimizePerformance();
-
-      // Add mobile-specific CSS classes
       this.addMobileCSS();
 
       this.initialized = true;
       console.log('✅ Hunter AI Mobile App initialized successfully!');
-
     } catch (error) {
       console.error('❌ Failed to initialize mobile app:', error);
     }
   }
 
   private static setupAppLifecycle() {
-    // Handle app state changes
-    MobileFeatures.onAppStateChange((isActive) => {
-      if (isActive) {
-        console.log('📱 App became active');
-        // Refresh data when app becomes active
-        this.refreshAppData();
-      } else {
-        console.log('📱 App went to background');
-        // Cleanup or pause operations
-        this.pauseBackgroundOperations();
-      }
-    });
+    if (!Capacitor.isNativePlatform()) return;
 
-    // Handle app URL opens (deep links)
-    App.addListener('appUrlOpen', (event) => {
-      console.log('🔗 App opened via URL:', event.url);
-      this.handleDeepLink(event.url);
-    });
+    // Dynamic import — only runs in native context
+    import('@capacitor/app').then(({ App }) => {
+      App.addListener('appUrlOpen', (event) => {
+        console.log('🔗 App opened via URL:', event.url);
+        this.handleDeepLink(event.url);
+      });
 
-    // Handle back button on Android
-    App.addListener('backButton', ({ canGoBack }) => {
-      if (canGoBack) {
-        window.history.back();
-      } else {
-        // Show exit confirmation or minimize app
-        App.exitApp();
-      }
-    });
+      App.addListener('backButton', ({ canGoBack }) => {
+        if (canGoBack) {
+          window.history.back();
+        } else {
+          App.exitApp();
+        }
+      });
+    }).catch(() => { /* silent — native only */ });
+
+    import('./utils/mobile-features').then(({ MobileFeatures }) => {
+      MobileFeatures.onAppStateChange((isActive) => {
+        if (isActive) {
+          window.dispatchEvent(new CustomEvent('app:refresh'));
+        } else {
+          window.dispatchEvent(new CustomEvent('app:pause'));
+        }
+      });
+    }).catch(() => { /* silent */ });
   }
 
   private static async setupPushNotifications() {
-    try {
-      // Request permission
-      const permission = await PushNotifications.requestPermissions();
+    if (!Capacitor.isNativePlatform()) return;
 
+    try {
+      const { PushNotifications } = await import('@capacitor/push-notifications');
+
+      const permission = await PushNotifications.requestPermissions();
       if (permission.receive === 'granted') {
         await PushNotifications.register();
         console.log('✅ Push notifications registered');
       }
 
-      // Handle registration
-      PushNotifications.addListener('registration', (token: Token) => {
+      PushNotifications.addListener('registration', (token) => {
         console.log('📱 Push registration token:', token.value);
-        // Send token to your server
         this.sendTokenToServer(token.value);
       });
 
-      // Handle registration errors
       PushNotifications.addListener('registrationError', (error) => {
         console.error('❌ Push registration failed:', error);
       });
 
-      // Handle incoming notifications
       PushNotifications.addListener('pushNotificationReceived', (notification) => {
         console.log('📨 Push notification received:', notification);
         this.handlePushNotification(notification);
       });
 
-      // Handle notification actions
       PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
-        console.log('👆 Push notification action performed:', action);
+        console.log('👆 Push action:', action);
         this.handleNotificationAction(action);
       });
-
     } catch (error) {
       console.warn('⚠️ Push notifications setup failed:', error);
     }
   }
 
   private static addMobileCSS() {
-    const platform = MobileFeatures.getPlatform();
-    const body = document.body;
+    if (!Capacitor.isNativePlatform()) return;
 
-    // Add platform-specific classes
-    body.classList.add('mobile-app');
-    body.classList.add(`platform-${platform}`);
+    import('./utils/mobile-features').then(({ MobileFeatures }) => {
+      const platform = MobileFeatures.getPlatform();
+      const body = document.body;
 
-    if (MobileFeatures.isIOS()) {
-      body.classList.add('ios');
-    } else if (MobileFeatures.isAndroid()) {
-      body.classList.add('android');
-    }
+      body.classList.add('mobile-app');
+      body.classList.add(`platform-${platform}`);
 
-    // Add safe area CSS variables
-    const safeArea = MobileFeatures.getSafeAreaInsets();
-    const root = document.documentElement;
+      if (MobileFeatures.isIOS()) body.classList.add('ios');
+      else if (MobileFeatures.isAndroid()) body.classList.add('android');
 
-    root.style.setProperty('--safe-area-inset-top', safeArea.top);
-    root.style.setProperty('--safe-area-inset-bottom', safeArea.bottom);
-    root.style.setProperty('--safe-area-inset-left', safeArea.left);
-    root.style.setProperty('--safe-area-inset-right', safeArea.right);
-
-    // Add mobile-specific styles
-    const mobileStyles = `
-      .mobile-app {
-        -webkit-user-select: none;
-        -webkit-tap-highlight-color: transparent;
-        -webkit-touch-callout: none;
-      }
-
-      .mobile-app .safe-area-top {
-        padding-top: var(--safe-area-inset-top);
-      }
-
-      .mobile-app .safe-area-bottom {
-        padding-bottom: var(--safe-area-inset-bottom);
-      }
-
-      .mobile-app input, .mobile-app textarea {
-        -webkit-user-select: text;
-      }
-
-      /* Smooth scrolling on iOS */
-      .ios .scrollable {
-        -webkit-overflow-scrolling: touch;
-      }
-
-      /* Hide scrollbars on mobile */
-      .mobile-app ::-webkit-scrollbar {
-        display: none;
-      }
-
-      .mobile-app {
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-      }
-    `;
-
-    const styleSheet = document.createElement('style');
-    styleSheet.textContent = mobileStyles;
-    document.head.appendChild(styleSheet);
-  }
-
-  private static refreshAppData() {
-    // Trigger React Query refetch for critical data
-    window.dispatchEvent(new CustomEvent('app:refresh'));
-  }
-
-  private static pauseBackgroundOperations() {
-    // Pause non-essential operations when app is backgrounded
-    window.dispatchEvent(new CustomEvent('app:pause'));
+      const safeArea = MobileFeatures.getSafeAreaInsets();
+      const root = document.documentElement;
+      root.style.setProperty('--safe-area-inset-top', safeArea.top);
+      root.style.setProperty('--safe-area-inset-bottom', safeArea.bottom);
+      root.style.setProperty('--safe-area-inset-left', safeArea.left);
+      root.style.setProperty('--safe-area-inset-right', safeArea.right);
+    }).catch(() => { /* silent */ });
   }
 
   private static handleDeepLink(url: string) {
-    // Parse and handle deep links
     try {
       const urlObj = new URL(url);
-      const path = urlObj.pathname;
-
-      // Navigate to the appropriate route
-      window.history.pushState({}, '', path);
+      window.history.pushState({}, '', urlObj.pathname);
       window.dispatchEvent(new PopStateEvent('popstate'));
-
     } catch (error) {
       console.error('Failed to handle deep link:', error);
     }
@@ -201,87 +135,56 @@ export class HunterAIMobile {
 
   private static async sendTokenToServer(token: string) {
     try {
-      // Send push token to your backend
-      const response = await fetch('/api/push-tokens', {
+      await fetch('/api/push-tokens', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          token,
-          platform: MobileFeatures.getPlatform()
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, platform: Capacitor.getPlatform() })
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to register push token');
-      }
-
-      console.log('✅ Push token registered with server');
     } catch (error) {
       console.error('❌ Failed to register push token:', error);
     }
   }
 
   private static handlePushNotification(notification: any) {
-    // Handle foreground notifications
     const { title, body, data } = notification;
-
-    // Show in-app notification or toast
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.ready.then(registration => {
-        registration.showNotification(title, {
-          body,
-          icon: '/icons/icon-192x192.png',
-          badge: '/icons/badge-72x72.png',
-          data,
-        } as NotificationOptions);
+      navigator.serviceWorker.ready.then(reg => {
+        reg.showNotification(title, { body, data } as NotificationOptions);
       });
     }
   }
 
   private static handleNotificationAction(action: any) {
     const { actionId, notification } = action;
-
-    switch (actionId) {
-      case 'view':
-        // Navigate to relevant screen
-        this.handleDeepLink(notification.data?.url || '/dashboard');
-        break;
-      case 'dismiss':
-        // Just dismiss, no action needed
-        break;
-      default:
-        // Default action (tap notification)
-        this.handleDeepLink(notification.data?.url || '/dashboard');
-    }
+    const url = notification.data?.url || '/dashboard';
+    if (actionId === 'dismiss') return;
+    this.handleDeepLink(url);
   }
 
-  // Utility methods for the app to use
+  // Public utilities
   static async hapticFeedback(style: 'light' | 'medium' | 'heavy' = 'light') {
+    if (!Capacitor.isNativePlatform()) return;
+    const { MobileFeatures } = await import('./utils/mobile-features');
     await MobileFeatures.hapticFeedback(style);
   }
 
   static async vibrate(duration = 100) {
+    if (!Capacitor.isNativePlatform()) return;
+    const { MobileFeatures } = await import('./utils/mobile-features');
     await MobileFeatures.vibrate(duration);
   }
 
   static isNative() {
-    return MobileFeatures.isNative();
+    return Capacitor.isNativePlatform();
   }
 
   static getPlatform() {
-    return MobileFeatures.getPlatform();
+    return Capacitor.getPlatform();
   }
 
   static async setStatusBarColor(color: string) {
+    if (!Capacitor.isNativePlatform()) return;
+    const { MobileFeatures } = await import('./utils/mobile-features');
     await MobileFeatures.setStatusBarColor(color);
   }
-}
-
-// Auto-initialize when the module is loaded
-if (typeof window !== 'undefined') {
-  document.addEventListener('DOMContentLoaded', () => {
-    HunterAIMobile.initialize();
-  });
 }
