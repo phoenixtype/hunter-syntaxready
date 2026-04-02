@@ -97,9 +97,10 @@ const PostInterview = () => {
         if (!profile) { toast.error("Build your profile first."); return; }
         setLoading(true);
         try {
+            const parsedSalary = parseInt(baseSalary.replace(/,/g, "")) || 0;
             const offer: OfferDetails = {
                 company: negCompany,
-                baseSalary: parseInt(baseSalary) || 0,
+                baseSalary: parsedSalary,
                 equity: equity.trim() || "Not disclosed",
                 bonus: bonus.trim() || "Not disclosed",
                 benefits: [],
@@ -127,9 +128,10 @@ const PostInterview = () => {
         if (!strategy) return;
         setScriptLoading(true);
         try {
+            const parsedSalary = parseInt(baseSalary.replace(/,/g, "")) || 0;
             const offer: OfferDetails = {
                 company: negCompany,
-                baseSalary: parseInt(baseSalary) || 0,
+                baseSalary: parsedSalary,
                 equity: equity.trim() || "Not disclosed",
                 bonus: bonus.trim() || "Not disclosed",
                 benefits: [],
