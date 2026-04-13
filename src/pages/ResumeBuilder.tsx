@@ -300,15 +300,11 @@ const ResumeBuilder = () => {
 
   if (authLoading || profileLoading) return <DashboardSkeleton />;
 
-  /* eslint-disable @typescript-eslint/no-unused-vars */
-  const handleShare = async () => {
-    try {
-      await navigator.clipboard.writeText(`Check out hunter.ai — the autonomous job search agent! ${window.location.origin}`);
-      toast.success("Link copied!", { description: "Share hunter.ai with your network." });
-    } catch {
-      toast.error("Failed to copy link");
-    }
-  };
+  void function handleShare() {
+    navigator.clipboard.writeText(`Check out hunter.ai — the autonomous job search agent! ${window.location.origin}`)
+      .then(() => toast.success("Link copied!", { description: "Share hunter.ai with your network." }))
+      .catch(() => toast.error("Failed to copy link"));
+  }
 
   return (
     <>

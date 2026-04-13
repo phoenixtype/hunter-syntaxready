@@ -11,7 +11,6 @@ import {
   type ExtendedProfile,
   type MatchResult
 } from '../profile-matching'
-import type { Database } from '@/integrations/supabase/types'
 
 // Using `any` for mock data to avoid strict DB type constraints
 

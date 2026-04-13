@@ -365,9 +365,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
     }
   };
 
-  /* eslint-disable @typescript-eslint/no-unused-vars */
-  const handleResearchCompany = async (job: EnrichedJob) => {
-  /* eslint-enable @typescript-eslint/no-unused-vars */
+  void function handleResearchCompany(job: EnrichedJob) {
     try {
       // Safety checks
       if (!job?.id || !job?.company) {
@@ -386,7 +384,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
     } finally {
       setResearchingJobId(null);
     }
-  };
+  }
 
   const handleCrawl = () => {
     toast.info(profile ? "Searching for matching roles..." : "Starting job search...");

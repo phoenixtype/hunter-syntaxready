@@ -196,17 +196,15 @@ export function PaystackCheckout({
     }
   };
 
-  /* eslint-disable @typescript-eslint/no-unused-vars */
-  const getNextPeriodEnd = (interval: string): Date => {
+  void function getNextPeriodEnd(interval: string): Date {
     const now = new Date();
     if (interval === 'yearly') {
       now.setFullYear(now.getFullYear() + 1);
     } else {
-      // Per user request, non-yearly subscriptions are weekly
       now.setDate(now.getDate() + 7);
     }
     return now;
-  };
+  }
 
   if (!planDetails || amount === 0) {
     return (
