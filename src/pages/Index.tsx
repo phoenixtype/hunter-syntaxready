@@ -22,7 +22,8 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { useRef, useEffect } from "react";
-import { motion, useInView, useScroll, useTransform } from "framer-motion";
+// Temporarily disable framer-motion entirely to debug mobile stack overflow
+// import { motion, useInView, useScroll, useTransform } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { shouldDisableAnimations, logMobileBrowserInfo } from "@/lib/mobile-safety";
 import MobileNav from "@/components/MobileNav";
@@ -61,35 +62,17 @@ const scaleIn = {
   }),
 };
 
-// Mobile-safe motion component that falls back to regular div on problematic browsers
+// Simplified div for mobile debugging
 function MotionDiv({
-  disableAnimations,
   children,
-  variants,
-  custom,
   className,
   ...props
 }: {
-  disableAnimations: boolean;
   children: React.ReactNode;
-  variants?: any;
-  custom?: number;
   className?: string;
   [key: string]: any;
 }) {
-  if (disableAnimations) {
-    return <div className={className} {...props}>{children}</div>;
-  }
-  return (
-    <motion.div
-      variants={variants}
-      custom={custom}
-      className={className}
-      {...props}
-    >
-      {children}
-    </motion.div>
-  );
+  return <div className={className} {...props}>{children}</div>;
 }
 
 function Section({
@@ -101,65 +84,19 @@ function Section({
   className?: string;
   id?: string;
 }) {
-  const isMobile = useIsMobile();
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
-
-  // On mobile or problematic browsers, use a simple div to avoid animation overhead
-  if (shouldDisableAnimations()) {
-    return (
-      <section ref={ref} id={id} className={className}>
-        {children}
-      </section>
-    );
-  }
-
+  // Temporarily use simple section for mobile debugging
   return (
-    <motion.section
-      ref={ref}
-      id={id}
-      initial="hidden"
-      animate={inView ? "visible" : "hidden"}
-      className={className}
-    >
+    <section id={id} className={className}>
       {children}
-    </motion.section>
+    </section>
   );
 }
 
 function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: string }) {
-  const isMobile = useIsMobile();
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true });
-
-  // On mobile or problematic browsers, show the value directly without complex scroll animations
-  if (shouldDisableAnimations()) {
-    return (
-      <span ref={ref} className="tabular-nums">
-        {inView ? `${Math.round(value).toLocaleString()}${suffix}` : "0"}
-      </span>
-    );
-  }
-
-  const count = useTransform(
-    useScroll({ target: ref, offset: ["start end", "end start"] }).scrollYProgress,
-    [0, 0.3],
-    [0, value]
-  );
-
+  // Simplified version for mobile debugging
   return (
-    <span ref={ref} className="tabular-nums">
-      {inView ? (
-        <motion.span
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          {Math.round(value).toLocaleString()}{suffix}
-        </motion.span>
-      ) : (
-        "0"
-      )}
+    <span className="tabular-nums">
+      {Math.round(value).toLocaleString()}{suffix}
     </span>
   );
 }
@@ -349,21 +286,8 @@ const Index = () => {
   const { currency } = useGeo();
   const proPrice = getPrice("pro", currency).label;
   const isMobile = useIsMobile();
-  const disableAnimations = shouldDisableAnimations();
-
-  // Log mobile browser info on mount for debugging
+  // Temporarily disable all animations for mobile debugging
   useEffect(() => logMobileBrowserInfo(), []);
-
-  const heroRef = useRef(null);
-
-  // Only use complex scroll animations on desktop to prevent mobile stack overflows
-  const { scrollYProgress } = !disableAnimations ? useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"],
-  }) : { scrollYProgress: { get: () => 0 } };
-
-  const heroY = !disableAnimations ? useTransform(scrollYProgress, [0, 1], [0, 150]) : { get: () => 0 };
-  const heroOpacity = !disableAnimations ? useTransform(scrollYProgress, [0, 0.8], [1, 0]) : { get: () => 1 };
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
@@ -428,55 +352,32 @@ const Index = () => {
             <div className="absolute -bottom-[10%] left-[20%] w-[30%] h-[30%] rounded-full bg-primary/5 blur-[100px] animate-blob animation-delay-4000" />
           </div>
 
-          <motion.div
-            style={!disableAnimations ? { y: heroY, opacity: heroOpacity } : {}}
-            className="container max-w-5xl mx-auto px-4 sm:px-6 text-center relative z-10"
-          >
+          <div className="container max-w-5xl mx-auto px-4 sm:px-6 text-center relative z-10">
             {/* Badge */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary text-secondary-foreground text-xs font-medium border border-primary/20 mb-8"
-            >
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary text-secondary-foreground text-xs font-medium border border-primary/20 mb-8">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
               </span>
               Your AI-powered career platform
-            </motion.div>
+            </div>
 
             {/* Headline */}
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-              className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight leading-[1.06] mb-6"
-            >
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight leading-[1.06] mb-6">
               Stop searching.{" "}
               <span className="font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                 Start landing.
               </span>
-            </motion.h1>
+            </h1>
 
             {/* Sub */}
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.25 }}
-              className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-10"
-            >
+            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-10">
               hunter.ai discovers jobs matched to your skills, tailors your resume in seconds,
               and coaches you through interviews — so you can focus on what matters.
-            </motion.p>
+            </p>
 
             {/* CTAs */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10"
-            >
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10">
               {isAuthenticated ? (
                 <Link to="/dashboard" className="w-full sm:w-auto">
                   <Button size="lg" className="w-full sm:w-auto px-8 h-12 text-[0.9375rem] font-medium rounded-full gap-2 shadow-md-1">
@@ -497,31 +398,21 @@ const Index = () => {
                   </Link>
                 </>
               )}
-            </motion.div>
+            </div>
 
             {/* Trust badges */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.6 }}
-              className="flex flex-wrap items-center justify-center gap-6 text-xs text-muted-foreground"
-            >
+            <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-muted-foreground">
               {["No credit card required", "Cancel anytime", "Built for serious job seekers"].map((badge) => (
                 <span key={badge} className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
                   {badge}
                 </span>
               ))}
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
 
           {/* Floating UI mockup — right side (desktop) */}
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="hidden xl:block absolute right-8 2xl:right-24 top-44 w-72"
-          >
+          <div className="hidden xl:block absolute right-8 2xl:right-24 top-44 w-72">
             <div className="p-5 rounded-2xl bg-card border border-border shadow-xl animate-float">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-9 h-9 rounded-xl bg-green-500/15 flex items-center justify-center">
@@ -542,15 +433,10 @@ const Index = () => {
                 ))}
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Floating mockup — left side */}
-          <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.9, ease: [0.22, 1, 0.36, 1] }}
-            className="hidden xl:block absolute left-8 2xl:left-24 top-72 w-64"
-          >
+          <div className="hidden xl:block absolute left-8 2xl:left-24 top-72 w-64">
             <div className="p-4 rounded-2xl bg-card border border-border shadow-xl animate-float animation-delay-2000">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-7 h-7 rounded-lg bg-purple-500/15 flex items-center justify-center">
@@ -566,7 +452,7 @@ const Index = () => {
               </div>
               <div className="mt-2 text-[10px] text-muted-foreground">5 bullets optimized for this role</div>
             </div>
-          </motion.div>
+          </div>
         </section>
 
         {/* ── Stats ────────────────────────────────────────────────────── */}
@@ -574,10 +460,9 @@ const Index = () => {
           <div className="container max-w-4xl mx-auto px-4 sm:px-6">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-border rounded-2xl overflow-hidden shadow-md-1">
               {STATS.map((stat, i) => (
-                <motion.div
+                <div
                   key={stat.label}
-                  variants={fadeUp}
-                  custom={i}
+                                    custom={i}
                   className="bg-card px-6 py-8 text-center group hover:bg-secondary/20 transition-colors duration-300"
                 >
                   <div className="text-2xl sm:text-3xl font-semibold text-primary group-hover:scale-110 transition-transform duration-300">
@@ -590,7 +475,7 @@ const Index = () => {
                     )}
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
@@ -600,23 +485,22 @@ const Index = () => {
         <Section id="features" className="py-24 md:py-32 bg-card border-t border-border">
           <div className="container max-w-6xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-16">
-              <motion.p variants={fadeUp} custom={0} className="text-xs font-semibold text-primary uppercase tracking-widest mb-3">
+              <p variants={fadeUp} custom={0} className="text-xs font-semibold text-primary uppercase tracking-widest mb-3">
                 Features
-              </motion.p>
-              <motion.h2 variants={fadeUp} custom={1} className="text-3xl sm:text-4xl font-semibold tracking-tight mb-4">
+              </p>
+              <h2 variants={fadeUp} custom={1} className="text-3xl sm:text-4xl font-semibold tracking-tight mb-4">
                 Everything you need to land your next role
-              </motion.h2>
-              <motion.p variants={fadeUp} custom={2} className="text-base text-muted-foreground max-w-2xl mx-auto">
+              </h2>
+              <p variants={fadeUp} custom={2} className="text-base text-muted-foreground max-w-2xl mx-auto">
                 hunter.ai handles the tedious parts of job searching so you can focus on what matters — your career.
-              </motion.p>
+              </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {FEATURES.map((feature, i) => (
-                <motion.article
+                <article
                   key={feature.title}
-                  variants={scaleIn}
-                  custom={i}
+                                    custom={i}
                   className="group p-6 rounded-2xl border border-border bg-background hover:shadow-lg hover:border-primary/25 transition-all duration-300"
                 >
                   <div className={`w-11 h-11 rounded-xl ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
@@ -624,7 +508,7 @@ const Index = () => {
                   </div>
                   <h3 className="text-[0.9375rem] font-semibold mb-2">{feature.title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{feature.desc}</p>
-                </motion.article>
+                </article>
               ))}
             </div>
           </div>
@@ -640,29 +524,28 @@ const Index = () => {
               <div className={`grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center ${idx % 2 === 1 ? "lg:flex-row-reverse" : ""}`}>
                 {/* Text */}
                 <div className={idx % 2 === 1 ? "lg:order-2" : ""}>
-                  <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4">
+                  <div variants={fadeUp} custom={0} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4">
                     {section.badge}
-                  </motion.div>
+                  </div>
                   <motion.h3 variants={fadeUp} custom={1} className="text-2xl sm:text-3xl font-semibold tracking-tight mb-4">
                     {section.title}
                   </motion.h3>
-                  <motion.p variants={fadeUp} custom={2} className="text-muted-foreground leading-relaxed mb-6">
+                  <p variants={fadeUp} custom={2} className="text-muted-foreground leading-relaxed mb-6">
                     {section.desc}
-                  </motion.p>
+                  </p>
                   <div className="space-y-3">
                     {section.points.map((point, pi) => (
-                      <motion.div key={point} variants={fadeUp} custom={3 + pi} className="flex items-start gap-3">
+                      <div key={point} variants={fadeUp} custom={3 + pi} className="flex items-start gap-3">
                         <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                         <span className="text-sm">{point}</span>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 </div>
 
                 {/* Visual */}
-                <motion.div
-                  variants={scaleIn}
-                  custom={1}
+                <div
+                                    custom={1}
                   className={`${idx % 2 === 1 ? "lg:order-1" : ""}`}
                 >
                   <div className={`relative rounded-2xl bg-gradient-to-br ${section.gradient} p-8 sm:p-12`}>
@@ -692,7 +575,7 @@ const Index = () => {
                       <section.icon className="w-6 h-6 text-primary" />
                     </div>
                   </div>
-                </motion.div>
+                </div>
               </div>
             </div>
           </Section>
@@ -702,15 +585,15 @@ const Index = () => {
         <Section id="how-it-works" className="py-24 md:py-32 bg-card border-t border-border">
           <div className="container max-w-6xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-16">
-              <motion.p variants={fadeUp} custom={0} className="text-xs font-semibold text-primary uppercase tracking-widest mb-3">
+              <p variants={fadeUp} custom={0} className="text-xs font-semibold text-primary uppercase tracking-widest mb-3">
                 How it works
-              </motion.p>
-              <motion.h2 variants={fadeUp} custom={1} className="text-3xl sm:text-4xl font-semibold tracking-tight mb-4">
+              </p>
+              <h2 variants={fadeUp} custom={1} className="text-3xl sm:text-4xl font-semibold tracking-tight mb-4">
                 From upload to offer in 4 steps
-              </motion.h2>
-              <motion.p variants={fadeUp} custom={2} className="text-base text-muted-foreground max-w-xl mx-auto">
+              </h2>
+              <p variants={fadeUp} custom={2} className="text-base text-muted-foreground max-w-xl mx-auto">
                 Set up once. hunter.ai works for you continuously.
-              </motion.p>
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative">
@@ -718,10 +601,9 @@ const Index = () => {
               <div className="hidden lg:block absolute top-8 left-[12.5%] right-[12.5%] h-px bg-border" aria-hidden="true" />
 
               {HOW_IT_WORKS.map((item, i) => (
-                <motion.div
+                <div
                   key={item.step}
-                  variants={fadeUp}
-                  custom={i}
+                                    custom={i}
                   className="relative flex flex-col items-center text-center"
                 >
                   <div className="w-16 h-16 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center mb-5 shadow-lg relative z-10">
@@ -732,7 +614,7 @@ const Index = () => {
                   </div>
                   <h3 className="text-sm font-semibold mb-2">{item.title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
@@ -742,15 +624,15 @@ const Index = () => {
         <Section className="py-24 md:py-32 bg-background border-t border-border">
           <div className="container max-w-4xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-14">
-              <motion.p variants={fadeUp} custom={0} className="text-xs font-semibold text-primary uppercase tracking-widest mb-3">
+              <p variants={fadeUp} custom={0} className="text-xs font-semibold text-primary uppercase tracking-widest mb-3">
                 Why hunter.ai
-              </motion.p>
-              <motion.h2 variants={fadeUp} custom={1} className="text-2xl sm:text-3xl font-semibold tracking-tight mb-4">
+              </p>
+              <h2 variants={fadeUp} custom={1} className="text-2xl sm:text-3xl font-semibold tracking-tight mb-4">
                 How we compare
-              </motion.h2>
+              </h2>
             </div>
 
-            <motion.div variants={fadeUp} custom={2} className="rounded-2xl border border-border bg-card overflow-hidden shadow-md-1">
+            <div variants={fadeUp} custom={2} className="rounded-2xl border border-border bg-card overflow-hidden shadow-md-1">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
@@ -783,7 +665,7 @@ const Index = () => {
                   </tbody>
                 </table>
               </div>
-            </motion.div>
+            </div>
           </div>
         </Section>
 
@@ -791,20 +673,19 @@ const Index = () => {
         <Section className="py-24 md:py-32 bg-card border-t border-border">
           <div className="container max-w-6xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-14">
-              <motion.p variants={fadeUp} custom={0} className="text-xs font-semibold text-primary uppercase tracking-widest mb-3">
+              <p variants={fadeUp} custom={0} className="text-xs font-semibold text-primary uppercase tracking-widest mb-3">
                 Testimonials
-              </motion.p>
-              <motion.h2 variants={fadeUp} custom={1} className="text-3xl sm:text-4xl font-semibold tracking-tight mb-4">
+              </p>
+              <h2 variants={fadeUp} custom={1} className="text-3xl sm:text-4xl font-semibold tracking-tight mb-4">
                 Trusted by job seekers worldwide
-              </motion.h2>
+              </h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {TESTIMONIALS.map((t, i) => (
-                <motion.div
+                <div
                   key={t.name}
-                  variants={scaleIn}
-                  custom={i}
+                                    custom={i}
                   className="p-6 rounded-2xl border border-border bg-background hover:shadow-lg hover:border-primary/20 transition-all duration-300 flex flex-col"
                 >
                   <div className="flex gap-0.5 mb-4">
@@ -822,7 +703,7 @@ const Index = () => {
                       <div className="text-xs text-muted-foreground">{t.role}</div>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
@@ -832,20 +713,20 @@ const Index = () => {
         <Section id="pricing" className="py-24 md:py-32 bg-background border-t border-border">
           <div className="container max-w-5xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-14">
-              <motion.p variants={fadeUp} custom={0} className="text-xs font-semibold text-primary uppercase tracking-widest mb-3">
+              <p variants={fadeUp} custom={0} className="text-xs font-semibold text-primary uppercase tracking-widest mb-3">
                 Pricing
-              </motion.p>
-              <motion.h2 variants={fadeUp} custom={1} className="text-3xl sm:text-4xl font-semibold tracking-tight mb-4">
+              </p>
+              <h2 variants={fadeUp} custom={1} className="text-3xl sm:text-4xl font-semibold tracking-tight mb-4">
                 Simple, transparent pricing
-              </motion.h2>
-              <motion.p variants={fadeUp} custom={2} className="text-base text-muted-foreground max-w-xl mx-auto">
+              </h2>
+              <p variants={fadeUp} custom={2} className="text-base text-muted-foreground max-w-xl mx-auto">
                 Start free. Upgrade when you're ready for the full power.
-              </motion.p>
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
               {/* Free */}
-              <motion.div variants={fadeUp} custom={0} className="rounded-2xl border border-border bg-card p-8">
+              <div variants={fadeUp} custom={0} className="rounded-2xl border border-border bg-card p-8">
                 <h3 className="text-lg font-semibold mb-1">Free</h3>
                 <p className="text-muted-foreground text-sm mb-6">Get started with the essentials</p>
                 <div className="text-3xl font-bold mb-6">
@@ -866,10 +747,10 @@ const Index = () => {
                     </Button>
                   </Link>
                 )}
-              </motion.div>
+              </div>
 
               {/* Pro */}
-              <motion.div variants={fadeUp} custom={1} className="rounded-2xl border-2 border-primary bg-card p-8 relative shadow-lg">
+              <div variants={fadeUp} custom={1} className="rounded-2xl border-2 border-primary bg-card p-8 relative shadow-lg">
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-primary text-primary-foreground text-xs font-semibold rounded-full">
                   Most Popular
                 </div>
@@ -906,7 +787,7 @@ const Index = () => {
                     </Button>
                   </Link>
                 )}
-              </motion.div>
+              </div>
             </div>
           </div>
         </Section>
@@ -916,16 +797,16 @@ const Index = () => {
           <div className="container max-w-6xl mx-auto px-4 sm:px-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
-                <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4">
+                <div variants={fadeUp} custom={0} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4">
                   <Building2 className="w-3.5 h-3.5" /> For Recruiters
-                </motion.div>
-                <motion.h2 variants={fadeUp} custom={1} className="text-2xl sm:text-3xl font-semibold tracking-tight mb-4">
+                </div>
+                <h2 variants={fadeUp} custom={1} className="text-2xl sm:text-3xl font-semibold tracking-tight mb-4">
                   Hire smarter with AI-matched talent
-                </motion.h2>
-                <motion.p variants={fadeUp} custom={2} className="text-muted-foreground leading-relaxed mb-6">
+                </h2>
+                <p variants={fadeUp} custom={2} className="text-muted-foreground leading-relaxed mb-6">
                   Post roles and let hunter.ai's AI match you with the best-fit candidates automatically.
                   No resume sifting, no cold outreach — just matched, motivated candidates.
-                </motion.p>
+                </p>
                 <div className="space-y-3 mb-8">
                   {[
                     { icon: Target, text: "AI-scored candidates for every role" },
@@ -933,24 +814,24 @@ const Index = () => {
                     { icon: Zap, text: "Smart-apply fills your pipeline 24/7" },
                     { icon: BarChart3, text: "Analytics on views, applications, and engagement" },
                   ].map((item, i) => (
-                    <motion.div key={item.text} variants={fadeUp} custom={3 + i} className="flex items-center gap-3">
+                    <div key={item.text} variants={fadeUp} custom={3 + i} className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                         <item.icon className="w-4 h-4 text-primary" />
                       </div>
                       <span className="text-sm font-medium">{item.text}</span>
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
-                <motion.div variants={fadeUp} custom={7}>
+                <div variants={fadeUp} custom={7}>
                   <Link to="/recruiter-portal">
                     <Button variant="outline" className="rounded-full h-11 px-8 font-medium gap-2">
                       Apply as Recruiter <ArrowRight className="w-4 h-4" />
                     </Button>
                   </Link>
-                </motion.div>
+                </div>
               </div>
 
-              <motion.div variants={scaleIn} custom={2}>
+              <div variants={scaleIn} custom={2}>
                 <div className="rounded-2xl bg-gradient-to-br from-blue-500/15 to-purple-500/15 p-8 sm:p-12">
                   <div className="bg-card rounded-xl border border-border shadow-xl p-6 space-y-4">
                     <div className="flex items-center gap-3">
@@ -976,7 +857,7 @@ const Index = () => {
                     ))}
                   </div>
                 </div>
-              </motion.div>
+              </div>
             </div>
           </div>
         </Section>
@@ -984,9 +865,8 @@ const Index = () => {
         {/* ── Final CTA ────────────────────────────────────────────────── */}
         <Section className="py-24 md:py-32 bg-background border-t border-border">
           <div className="container max-w-3xl mx-auto px-4 sm:px-6 text-center">
-            <motion.div
-              variants={scaleIn}
-              custom={0}
+            <div
+                            custom={0}
               className="bg-gradient-to-br from-primary/5 to-secondary rounded-3xl px-8 py-14 sm:px-14 sm:py-20 border border-primary/15"
             >
               <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight mb-4">
@@ -1011,7 +891,7 @@ const Index = () => {
               <p className="mt-6 text-xs text-muted-foreground">
                 No credit card required. Free plan available.
               </p>
-            </motion.div>
+            </div>
           </div>
         </Section>
 
