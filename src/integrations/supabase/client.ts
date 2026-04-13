@@ -8,7 +8,17 @@ const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-// Safely handle storage for environments where localStorage might throw (e.g. Safari private mode)
+// Full In-Memory Storage polyfill for environments where localStorage throws (Safari Private mode/restricted cookies)
+class InMemoryStorage {
+  private data: Record<string, string> = {};
+  get length() { return Object.keys(this.data).length; }
+  getItem(key: string) { return this.data[key] || null; }
+  setItem(key: string, value: string) { this.data[key] = value; }
+  removeItem(key: string) { delete this.data[key]; }
+  clear() { this.data = {}; }
+  key(index: number) { return Object.keys(this.data)[index] || null; }
+}
+
 const getSafeStorage = () => {
   try {
     const testKey = '__storage_test__';
@@ -16,18 +26,14 @@ const getSafeStorage = () => {
     window.localStorage.removeItem(testKey);
     return window.localStorage;
   } catch (e) {
-    console.warn('LocalStorage is inaccessible, falling back to in-memory storage');
-    return {
-      getItem: () => null,
-      setItem: () => {},
-      removeItem: () => {},
-    } as any;
+    console.warn('[STORAGE] LocalStorage is inaccessible, using InMemoryStorage');
+    return new InMemoryStorage();
   }
 };
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
-    storage: getSafeStorage(),
+    storage: getSafeStorage() as any,
     persistSession: true,
     autoRefreshToken: true,
   },

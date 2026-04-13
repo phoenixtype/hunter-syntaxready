@@ -24,22 +24,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Set up listener FIRST so we never miss an event
+    let currentSession: Session | null = null;
+
+    // 1. Set up listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+        // Prevent infinite loops: only update if session actually changed
+        if (session?.access_token !== currentSession?.access_token) {
+          currentSession = session;
+          setSession(session);
+          setUser(session?.user ?? null);
+        }
         setLoading(false);
       }
     );
 
-    // 2. Seed initial state — only if the listener hasn't already fired
+    // 2. Initial seed
     supabase.auth.getSession().then(({ data: { session } }) => {
-      // The listener fires for INITIAL_SESSION in newer Supabase versions,
-      // so this acts as a fallback for older versions. The second setLoading(false)
-      // is a no-op if the listener already ran.
-      setSession((prev) => prev ?? session);
-      setUser((prev) => prev ?? session?.user ?? null);
+      if (session?.access_token !== currentSession?.access_token) {
+        currentSession = session;
+        setSession(session);
+        setUser(session?.user ?? null);
+      }
       setLoading(false);
     });
 
