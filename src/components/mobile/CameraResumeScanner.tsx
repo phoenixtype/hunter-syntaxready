@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Camera, Upload, FileText, X } from "lucide-react";
 import { toast } from "sonner";
-import { Camera as CapacitorCamera, CameraResultType, CameraSource } from "@capacitor/camera";
 
 interface CameraResumeScannerProps {
   onImageCaptured?: (imageData: string) => void;
@@ -23,6 +22,7 @@ export const CameraResumeScanner = ({
     try {
       setIsCapturing(true);
 
+      const { Camera: CapacitorCamera, CameraResultType, CameraSource } = await import("@capacitor/camera");
       const photo = await CapacitorCamera.getPhoto({
         resultType: CameraResultType.DataUrl,
         source: CameraSource.Camera,
@@ -47,6 +47,7 @@ export const CameraResumeScanner = ({
 
   const selectFromGallery = async () => {
     try {
+      const { Camera: CapacitorCamera, CameraResultType, CameraSource } = await import("@capacitor/camera");
       const photo = await CapacitorCamera.getPhoto({
         resultType: CameraResultType.DataUrl,
         source: CameraSource.Photos,

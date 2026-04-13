@@ -58,6 +58,10 @@
   </head>
 
   <body>
+    <script>
+      // Global process shim for mobile browser compatibility
+      window.process = { env: { NODE_ENV: 'production' } };
+    </script>
     <div id="root"></div>
     <!-- No-flicker theme: run before React paint -->
     <script>

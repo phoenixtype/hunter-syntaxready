@@ -45,7 +45,7 @@ class WidgetErrorBoundary extends Component<Props, State> {
             <p className="text-xs text-muted-foreground max-w-[200px] mx-auto">
               This section is temporarily down. Your data is safe.
             </p>
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <details className="mt-2 text-left">
                 <summary className="text-xs cursor-pointer text-muted-foreground">Debug Info</summary>
                 <div className="mt-1 p-2 bg-muted rounded text-xs font-mono text-left overflow-auto max-h-20">
