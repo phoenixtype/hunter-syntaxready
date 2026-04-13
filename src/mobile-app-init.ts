@@ -5,18 +5,42 @@
  * isNativePlatform checks). Static top-level imports of @capacitor/* will
  * throw on mobile browsers (Safari / Chrome mobile) because the native
  * bridge is absent, crashing the entire React app before it renders.
+ *
+ * Even `@capacitor/core` can fail on some mobile browsers where the
+ * Capacitor global is partially injected but the bridge is absent.
+ * We lazy-import it and fall back gracefully.
  */
 
-// Only import Capacitor/core which is safe — it detects the platform without
-// requiring the native bridge.  Everything else is lazy-loaded.
-import { Capacitor } from '@capacitor/core';
+/** Safely check if Capacitor native platform is available */
+async function isNativePlatform(): Promise<boolean> {
+  try {
+    const { Capacitor } = await import('@capacitor/core');
+    return Capacitor.isNativePlatform();
+  } catch {
+    // @capacitor/core failed to load — we're on a plain web browser
+    return false;
+  }
+}
+
+/** Returns the platform string, or 'web' if Capacitor is unavailable */
+async function getPlatformSafe(): Promise<string> {
+  try {
+    const { Capacitor } = await import('@capacitor/core');
+    return Capacitor.getPlatform();
+  } catch {
+    return 'web';
+  }
+}
 
 export class HunterAIMobile {
   private static initialized = false;
 
   static async initialize() {
+    if (this.initialized) return;
+
     // On mobile web browsers: bail out immediately — no native bridge available.
-    if (this.initialized || !Capacitor.isNativePlatform()) return;
+    const isNative = await isNativePlatform();
+    if (!isNative) return;
 
     console.log('🚀 Initializing Hunter AI Mobile App...');
 
@@ -37,8 +61,6 @@ export class HunterAIMobile {
   }
 
   private static setupAppLifecycle() {
-    if (!Capacitor.isNativePlatform()) return;
-
     // Dynamic import — only runs in native context
     import('@capacitor/app').then(({ App }) => {
       App.addListener('appUrlOpen', (event) => {
@@ -67,7 +89,8 @@ export class HunterAIMobile {
   }
 
   private static async setupPushNotifications() {
-    if (!Capacitor.isNativePlatform()) return;
+    const isNative = await isNativePlatform();
+    if (!isNative) return;
 
     try {
       const { PushNotifications } = await import('@capacitor/push-notifications');
@@ -102,8 +125,6 @@ export class HunterAIMobile {
   }
 
   private static addMobileCSS() {
-    if (!Capacitor.isNativePlatform()) return;
-
     import('./utils/mobile-features').then(({ MobileFeatures }) => {
       const platform = MobileFeatures.getPlatform();
       const body = document.body;
@@ -135,10 +156,11 @@ export class HunterAIMobile {
 
   private static async sendTokenToServer(token: string) {
     try {
+      const platform = await getPlatformSafe();
       await fetch('/api/push-tokens', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, platform: Capacitor.getPlatform() })
+        body: JSON.stringify({ token, platform })
       });
     } catch (error) {
       console.error('❌ Failed to register push token:', error);
@@ -163,27 +185,43 @@ export class HunterAIMobile {
 
   // Public utilities
   static async hapticFeedback(style: 'light' | 'medium' | 'heavy' = 'light') {
-    if (!Capacitor.isNativePlatform()) return;
+    const isNative = await isNativePlatform();
+    if (!isNative) return;
     const { MobileFeatures } = await import('./utils/mobile-features');
     await MobileFeatures.hapticFeedback(style);
   }
 
   static async vibrate(duration = 100) {
-    if (!Capacitor.isNativePlatform()) return;
+    const isNative = await isNativePlatform();
+    if (!isNative) return;
     const { MobileFeatures } = await import('./utils/mobile-features');
     await MobileFeatures.vibrate(duration);
   }
 
   static isNative() {
-    return Capacitor.isNativePlatform();
+    // Synchronous check — use the global if available, otherwise false
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cap = (window as any).Capacitor;
+      return cap?.isNativePlatform?.() ?? false;
+    } catch {
+      return false;
+    }
   }
 
   static getPlatform() {
-    return Capacitor.getPlatform();
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cap = (window as any).Capacitor;
+      return cap?.getPlatform?.() ?? 'web';
+    } catch {
+      return 'web';
+    }
   }
 
   static async setStatusBarColor(color: string) {
-    if (!Capacitor.isNativePlatform()) return;
+    const isNative = await isNativePlatform();
+    if (!isNative) return;
     const { MobileFeatures } = await import('./utils/mobile-features');
     await MobileFeatures.setStatusBarColor(color);
   }

@@ -94,8 +94,14 @@ const AppInitializer = () => {
     const runChecks = async () => {
       runStartupValidation();
 
-      // Initialize mobile app features
-      await HunterAIMobile.initialize();
+      // Initialize mobile app features — wrapped in try/catch because
+      // @capacitor/core can throw on certain mobile browsers (Safari/Chrome)
+      // where the native bridge is absent.
+      try {
+        await HunterAIMobile.initialize();
+      } catch (err) {
+        console.warn('Mobile init skipped (not a native app):', err);
+      }
 
       try {
         const healthStatus = await checkDatabaseHealth();

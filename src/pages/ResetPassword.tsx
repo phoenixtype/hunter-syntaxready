@@ -7,6 +7,7 @@ import { ArrowLeft, Loader2, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { passwordSchema, validateWithSchema } from "@/lib/validation";
+import { getUserRole } from "@/lib/recruiter_engine";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -61,7 +62,11 @@ const ResetPassword = () => {
       } else {
         setIsSuccess(true);
         toast.success("Password updated successfully!");
-        setTimeout(() => navigate("/dashboard", { replace: true }), 2000);
+        // Route to correct dashboard based on role
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        const role = authUser ? await getUserRole(authUser.id) : 'candidate';
+        const dest = role === 'recruiter' ? '/recruiter' : '/dashboard';
+        setTimeout(() => navigate(dest, { replace: true }), 2000);
       }
     } catch {
       toast.error("An unexpected error occurred.");

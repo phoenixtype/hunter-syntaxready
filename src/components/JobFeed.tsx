@@ -51,11 +51,34 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   const [activeApplication, setActiveApplication] = useState<ApplicationState | null>(null);
   const [stakeholders, setStakeholders] = useState<Record<string, Stakeholder[]>>({});
   const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set());
-  const [dismissedJobIds, setDismissedJobIds] = useState<Set<string>>(() => {
+  const [dismissedJobs, setDismissedJobs] = useState<Map<string, number>>(() => {
     try {
-      const saved = localStorage.getItem("hunter_dismissed_jobs");
-      return saved ? new Set<string>(JSON.parse(saved)) : new Set<string>();
-    } catch { return new Set<string>(); }
+      const saved = localStorage.getItem("hunter_dismissed_jobs_v2");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Clean out jobs dismissed > 30 days ago on load
+        const valid = new Map<string, number>();
+        const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+        for (const [id, timestamp] of parsed) {
+          if (timestamp > thirtyDaysAgo) valid.set(id, timestamp);
+        }
+        return valid;
+      }
+      
+      // Fallback migration for older dismissed_jobs (without timestamps)
+      const oldSaved = localStorage.getItem("hunter_dismissed_jobs");
+      if (oldSaved) {
+        const oldParsed = JSON.parse(oldSaved);
+        const valid = new Map<string, number>();
+        const now = Date.now();
+        for (const id of oldParsed) {
+          valid.set(id, now);
+        }
+        return valid;
+      }
+      
+      return new Map<string, number>();
+    } catch { return new Map<string, number>(); }
   });
   const [selectedJob, setSelectedJob] = useState<EnrichedJob | null>(null);
   const [tailoringJobId, setTailoringJobId] = useState<string | null>(null);
@@ -91,7 +114,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
         console.warn('Invalid job object found:', job);
         return false;
       }
-      return !dismissedJobIds.has(job.id) && !appliedJobIds.has(job.id);
+      return !dismissedJobs.has(job.id) && !appliedJobIds.has(job.id);
     });
 
     // Hide jobs older than 90 days client-side
@@ -174,7 +197,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
     }
 
     return result;
-  }, [jobs, dismissedJobIds, appliedJobIds, filters, showSavedOnly, isSaved]);
+  }, [jobs, dismissedJobs, appliedJobIds, filters, showSavedOnly, isSaved]);
 
   useEffect(() => {
     if (!user) return;
@@ -235,13 +258,13 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
 
       if (!requirePro("Job Actions")) return;
 
-      setDismissedJobIds(prev => {
-        const next = new Set(prev).add(job.id);
-        try { localStorage.setItem("hunter_dismissed_jobs", JSON.stringify([...next])); } catch { /* ignore quota */ }
+      setDismissedJobs(prev => {
+        const next = new Map(prev).set(job.id, Date.now());
+        try { localStorage.setItem("hunter_dismissed_jobs_v2", JSON.stringify([...next.entries()])); } catch { /* ignore quota */ }
         return next;
       });
 
-      toast("Job hidden", { description: "It won't show again on this device." });
+      toast("Job hidden", { description: "It won't show again for 30 days." });
 
       recordFeedback({
         jobId: job.id,

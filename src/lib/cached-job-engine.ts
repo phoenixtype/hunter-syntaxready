@@ -318,8 +318,23 @@ class CachedJobEngine {
 
     // Clear trending jobs
     cache.delete(CacheKeys.JOBS_TRENDING());
+    
+    // Clear all job matches so the freshness gate is bypassed
+    cache.invalidatePattern('job_matches:.*');
 
     console.log('[JOBS_CACHE] Cache invalidation complete');
+  }
+
+  /**
+   * Completely clear all caches (used when user explicitly requests fresh jobs)
+   */
+  clearAllCaches(): void {
+    console.log('[JOBS_CACHE] Force clearing all job caches completely');
+    cache.invalidatePattern('jobs:.*');
+    cache.invalidatePattern('job_matches:.*');
+    cache.invalidatePattern('crawl:.*');
+    // We could use cache.clear() but that might destroy user metadata caches.
+    // Targeting jobs explicitly is safer.
   }
 
   /**

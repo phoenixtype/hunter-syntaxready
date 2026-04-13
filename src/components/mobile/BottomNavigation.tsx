@@ -53,7 +53,7 @@ export const BottomNavigation = () => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 safe-area-bottom md:hidden">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border safe-area-bottom md:hidden">
       <div className="flex items-center justify-around py-2 px-4">
         {navItems.map((item) => {
           const active = isActive(item.path);
@@ -64,8 +64,8 @@ export const BottomNavigation = () => {
               className={cn(
                 "flex flex-col items-center justify-center min-w-0 flex-1 py-2 px-1 transition-colors",
                 active
-                  ? "text-blue-600"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
               <item.icon
@@ -77,20 +77,20 @@ export const BottomNavigation = () => {
               <span
                 className={cn(
                   "text-xs font-medium truncate",
-                  active ? "text-blue-600" : "text-gray-500"
+                  active ? "text-primary" : "text-muted-foreground"
                 )}
               >
                 {item.label}
               </span>
               {active && (
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-blue-600 rounded-b-full" />
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-primary rounded-b-full" />
               )}
             </button>
           );
         })}
       </div>
       {/* Safe area for iPhone bottom */}
-      <div className="h-safe-area-inset-bottom" />
+      <div className="h-[env(safe-area-inset-bottom)]" />
     </div>
   );
 };

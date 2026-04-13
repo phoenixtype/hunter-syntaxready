@@ -9,7 +9,7 @@ import { savePreferences, getPreferences, UserPreferences } from "@/lib/user_pre
 import { CandidateProfile, saveCandidateProfile, getCandidateProfile, ExperienceAtom, Education, Skill } from "@/lib/resume_engine";
 import { useQueryClient } from "@tanstack/react-query";
 import { triggerJobCrawl } from "@/lib/crawler_engine";
-import { setUserRole } from "@/lib/recruiter_engine";
+import { setUserRole, getUserRole } from "@/lib/recruiter_engine";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -362,7 +362,9 @@ const Onboarding = () => {
       queryClient.invalidateQueries({ queryKey: ['preferences'] });
       queryClient.invalidateQueries({ queryKey: ['candidate_profile'] });
       toast.success("You're all set!");
-      navigate("/dashboard");
+      // Check role before navigating
+      const role = await getUserRole(user.id);
+      navigate(role === 'recruiter' ? "/recruiter" : "/dashboard");
     } catch (err) {
       console.error("Onboarding save failed:", err);
       toast.error("Something went wrong. Please try again.");

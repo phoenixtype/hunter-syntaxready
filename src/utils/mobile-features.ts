@@ -4,12 +4,36 @@
  * ⚠️ ALL @capacitor/* plugin imports are dynamic (inside isNativePlatform()
  * guards) so this file is safe to import from web browsers. Static imports of
  * Capacitor native plugins break mobile web (Safari/Chrome) with a blank screen.
+ *
+ * Even the @capacitor/core import is wrapped in a try/catch so this module
+ * never throws at import-time on mobile web browsers.
  */
-import { Capacitor } from '@capacitor/core';
+
+/** Safely check if Capacitor native platform is available */
+function isNative(): boolean {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cap = (window as any).Capacitor;
+    return cap?.isNativePlatform?.() ?? false;
+  } catch {
+    return false;
+  }
+}
+
+/** Get platform string safely */
+function getPlatformString(): string {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cap = (window as any).Capacitor;
+    return cap?.getPlatform?.() ?? 'web';
+  } catch {
+    return 'web';
+  }
+}
 
 export class MobileFeatures {
   static async initialize() {
-    if (!Capacitor.isNativePlatform()) return;
+    if (!isNative()) return;
 
     try {
       const [
@@ -37,7 +61,7 @@ export class MobileFeatures {
   }
 
   static async setStatusBarColor(color: string) {
-    if (!Capacitor.isNativePlatform()) return;
+    if (!isNative()) return;
     try {
       const { StatusBar } = await import('@capacitor/status-bar');
       await StatusBar.setBackgroundColor({ color });
@@ -47,7 +71,7 @@ export class MobileFeatures {
   }
 
   static async hapticFeedback(style: 'light' | 'medium' | 'heavy' = 'light') {
-    if (!Capacitor.isNativePlatform()) return;
+    if (!isNative()) return;
     try {
       const { Haptics, ImpactStyle } = await import('@capacitor/haptics');
       const impactStyle = {
@@ -62,7 +86,7 @@ export class MobileFeatures {
   }
 
   static async vibrate(duration = 100) {
-    if (!Capacitor.isNativePlatform()) return;
+    if (!isNative()) return;
     try {
       const { Haptics } = await import('@capacitor/haptics');
       await Haptics.vibrate({ duration });
@@ -72,19 +96,19 @@ export class MobileFeatures {
   }
 
   static isNative() {
-    return Capacitor.isNativePlatform();
+    return isNative();
   }
 
   static getPlatform() {
-    return Capacitor.getPlatform();
+    return getPlatformString();
   }
 
   static isIOS() {
-    return Capacitor.getPlatform() === 'ios';
+    return getPlatformString() === 'ios';
   }
 
   static isAndroid() {
-    return Capacitor.getPlatform() === 'android';
+    return getPlatformString() === 'android';
   }
 
   // Safe area utilities — CSS-only, no Capacitor dependency
@@ -105,7 +129,7 @@ export class MobileFeatures {
   }
 
   static async optimizePerformance() {
-    if (!Capacitor.isNativePlatform()) return;
+    if (!isNative()) return;
 
     const isLowEnd = await this.isLowEndDevice();
     if (isLowEnd) {
@@ -134,7 +158,7 @@ export class MobileFeatures {
   }
 
   static onAppStateChange(callback: (isActive: boolean) => void) {
-    if (!Capacitor.isNativePlatform()) return;
+    if (!isNative()) return;
 
     document.addEventListener('visibilitychange', () => {
       callback(!document.hidden);

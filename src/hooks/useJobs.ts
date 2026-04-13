@@ -6,7 +6,7 @@ import { getOptimizedWeights } from "@/lib/learning_engine";
 import { UserPreferences } from "@/lib/user_preferences";
 import { toast } from "sonner";
 import { useState, useEffect, useRef } from "react";
-import { searchJobsCached, getJobMatchesCached } from "@/lib/cached-job-engine";
+import { searchJobsCached, getJobMatchesCached, cachedJobEngine } from "@/lib/cached-job-engine";
 import { checkFeatureLimit, recordUsage } from "@/lib/redis-rate-limiter";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -223,18 +223,15 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
         },
         onSuccess: (data) => {
             toast.success(`Crawl complete! Found ${data.inserted || 0} new jobs`);
-            // Clear in-memory caches so the refetch hits the DB fresh
-            invalidateJobsCache();
-            // Invalidate the user's cached job_matches so the 12-hour freshness
-            // gate re-evaluates on the very next render and returns new results.
-            if (user?.id) {
-                cache.invalidatePattern(`job_matches:${user.id}`);
-                // Also delete the exact keys used by getJobMatches
-                cache.delete(`job_matches:${user.id}:${PAGE_SIZE}`);
-                cache.delete(`job_matches:${user.id}:${PAGE_SIZE * 3}`);
-            }
+            // Complete nuke of all caches so the refetch hits the DB fresh
+            cachedJobEngine.clearAllCaches();
+            
+            // Allow auto-crawling again if needed
+            sessionStorage.removeItem('hunter_crawled_this_session');
+            
             queryClient.invalidateQueries({ queryKey: ['jobs'] });
             queryClient.invalidateQueries({ queryKey: ['jobCount'] });
+            
             // Explicitly refetch jobs to ensure UI updates immediately
             refreshJobs();
         },
