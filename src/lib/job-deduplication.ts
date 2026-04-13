@@ -94,7 +94,7 @@ class JobDeduplicationEngine {
           isDuplicate: true,
           fingerprintHash,
           existingFingerprint,
-          sources: existingFingerprint.sources
+          sources: existingFingerprint.sources || []
         }
       } else {
         // New job - create fingerprint
@@ -150,9 +150,10 @@ class JobDeduplicationEngine {
     existing: JobFingerprintData
   ): Promise<void> {
     try {
-      const updatedSources = existing.sources.includes(source)
-        ? existing.sources
-        : [...existing.sources, source]
+      const existingSources = existing.sources || []
+      const updatedSources = existingSources.includes(source)
+        ? existingSources
+        : [...existingSources, source]
 
       const { error } = await supabase
         .from('job_fingerprints')

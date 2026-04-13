@@ -11,7 +11,7 @@
 
 import type { Database } from '@/integrations/supabase/types'
 
-type Profile = Database['public']['Tables']['profiles']['Row']
+// type Profile = Database['public']['Tables']['profiles']['Row']
 
 export interface SourceConfig {
   name: string
@@ -203,7 +203,7 @@ class SourcePrioritizationEngine {
    */
   generateCrawlTargets(
     profiles: UserProfile[],
-    waveType: 'morning' | 'midday' | 'evening' | 'midnight'
+    _waveType: 'morning' | 'midday' | 'evening' | 'midnight'
   ): CrawlTarget[] {
     const targets: CrawlTarget[] = []
 
@@ -335,7 +335,7 @@ class SourcePrioritizationEngine {
   /**
    * Check if user needs niche site coverage (gaps in mainstream sources)
    */
-  private needsNicheCoverage(profile: UserProfile, existingTargets: CrawlTarget[]): boolean {
+  private needsNicheCoverage(_profile: UserProfile, _existingTargets: CrawlTarget[]): boolean {
     // Always provide some niche coverage for comprehensive job discovery
     // This ensures we capture jobs that might not be on mainstream sources
     return true
@@ -462,4 +462,4 @@ export const generateCrawlTargets = sourcePrioritizationEngine.generateCrawlTarg
 export const getSourceConfig = sourcePrioritizationEngine.getSourceConfig.bind(sourcePrioritizationEngine)
 export const calculateRateLimit = sourcePrioritizationEngine.calculateRateLimit.bind(sourcePrioritizationEngine)
 
-export type { UserProfile, CrawlTarget, WaveAllocation }
+export type { WaveAllocation }

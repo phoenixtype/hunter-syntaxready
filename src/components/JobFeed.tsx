@@ -365,7 +365,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
     }
   };
 
-  const _handleResearchCompany = async (job: EnrichedJob) => {
+  const _unused_handleResearchCompany = async (job: EnrichedJob) => { void job;
     try {
       // Safety checks
       if (!job?.id || !job?.company) {

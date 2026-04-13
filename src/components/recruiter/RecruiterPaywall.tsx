@@ -1,6 +1,5 @@
 import React from 'react';
 import { useRecruiterSubscription } from '@/hooks/useRecruiterSubscription';
-import { useRole } from '@/hooks/useRole';
 import RecruiterPricing from '@/pages/recruiter/RecruiterPricing';
 import { Loader2, Lock } from 'lucide-react';
 

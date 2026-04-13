@@ -372,7 +372,7 @@ class ProfileMatchingEngine {
 
     if (overlapMax >= overlapMin) {
       const userRange = userMax - userMin
-      const jobRange = jobMax - jobMin
+      const _jobRange = jobMax - jobMin
       const overlapRange = overlapMax - overlapMin
 
       // Calculate percentage of overlap
@@ -402,7 +402,7 @@ class ProfileMatchingEngine {
   /**
    * Match company preferences
    */
-  private matchCompany(context: MatchingContext): { score: number; reasons: string[] } {
+  private matchCompany(_context: MatchingContext): { score: number; reasons: string[] } {
     // Placeholder for company preference matching
     // Could be enhanced with company size, industry, culture preferences
     return { score: 0.7, reasons: ['Company matching not implemented'] }
@@ -571,4 +571,4 @@ export const calculateProfileMatch = profileMatchingEngine.calculateMatch.bind(p
 export const batchMatchJobs = profileMatchingEngine.batchMatchJobs.bind(profileMatchingEngine)
 export const getMatchingStats = profileMatchingEngine.getMatchingStats.bind(profileMatchingEngine)
 
-export type { ExtendedProfile, MatchingContext }
+export type { MatchingContext }
