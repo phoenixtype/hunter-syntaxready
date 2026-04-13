@@ -4,7 +4,8 @@
  * with proper Hunter branding for both Stripe and Paystack
  */
 
-const SITE_URL = Deno.env.get('SITE_URL') || 'https://usehunter.app';
+declare const Deno: any;
+const SITE_URL = (typeof Deno !== 'undefined' ? Deno.env.get('SITE_URL') : undefined) || 'https://usehunter.app';
 
 // ─── Hunter Brand Colors ──────────────────────────────────────────────────────
 const PRIMARY = '#0d9488';         // Hunter primary (teal-600)

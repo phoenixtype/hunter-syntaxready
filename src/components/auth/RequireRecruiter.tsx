@@ -6,7 +6,7 @@ import PageLoader from '@/components/PageLoader';
 export const RequireRecruiter = ({ children }: { children: React.ReactNode }) => {
   const { user, loading: authLoading } = useAuth();
   const { isRecruiter, loading: roleLoading } = useRole(user?.id);
-  const location = useLocation();
+  useLocation();
 
   if (authLoading || roleLoading) return <PageLoader />;
   if (!isRecruiter) return <Navigate to="/dashboard" replace />;

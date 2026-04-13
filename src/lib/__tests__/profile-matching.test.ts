@@ -5,17 +5,14 @@
 
 import { describe, it, expect } from 'vitest'
 import {
-  profileMatchingEngine,
   calculateProfileMatch,
   batchMatchJobs,
   getMatchingStats,
   type ExtendedProfile,
   type MatchResult
 } from '../profile-matching'
-import type { Database } from '@/integrations/supabase/types'
 
-type JobListing = Database['public']['Tables']['job_listings']['Row']
-type UserPreferences = Database['public']['Tables']['user_preferences']['Row']
+// Using `any` for mock data to avoid strict DB type constraints
 
 describe('ProfileMatchingEngine', () => {
 
@@ -35,7 +32,7 @@ describe('ProfileMatchingEngine', () => {
     jobTypes: ['full-time']
   }
 
-  const mockPreferences: UserPreferences = {
+  const mockPreferences = {
     user_id: 'user1',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -48,9 +45,9 @@ describe('ProfileMatchingEngine', () => {
     fresh_job_digest_time: '08:00:00',
     fresh_job_digest_enabled: true,
     fresh_job_digest_timezone: 'UTC'
-  }
+  } as any
 
-  const createMockJob = (overrides: Partial<JobListing> = {}): JobListing => ({
+  const createMockJob = (overrides: any = {}): any => ({
     id: 'job1',
     title: 'Software Engineer',
     company: 'Tech Corp',

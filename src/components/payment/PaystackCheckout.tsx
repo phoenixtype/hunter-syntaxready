@@ -189,22 +189,22 @@ export function PaystackCheckout({
 
     } catch (error: unknown) {
       console.error('Payment initialization failed:', error);
-      toast.error(error.message || 'Failed to initialize payment window. Ensure popups are allowed.');
-      onError?.(error.message || 'Failed to initialize payment');
+      const msg = error instanceof Error ? error.message : 'Failed to initialize payment';
+      toast.error(msg || 'Failed to initialize payment window. Ensure popups are allowed.');
+      onError?.(msg);
       setLoading(false);
     }
   };
 
-  const getNextPeriodEnd = (interval: string): Date => {
+  void function getNextPeriodEnd(interval: string): Date {
     const now = new Date();
     if (interval === 'yearly') {
       now.setFullYear(now.getFullYear() + 1);
     } else {
-      // Per user request, non-yearly subscriptions are weekly
       now.setDate(now.getDate() + 7);
     }
     return now;
-  };
+  }
 
   if (!planDetails || amount === 0) {
     return (

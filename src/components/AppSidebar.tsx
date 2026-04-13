@@ -58,7 +58,7 @@ const AppSidebar = () => {
   const { pathname, search } = useLocation();
   const { user, signOut } = useAuth();
   const { profile } = useResume();
-  const { role, isRecruiter, isAdmin } = useRole(user?.id);
+  useRole(user?.id);
   const { isPro } = useSubscription();
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {

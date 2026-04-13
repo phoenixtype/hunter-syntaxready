@@ -102,7 +102,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { profile, loading: resumeLoading } = useResume();
-  const { currentSubscription: subscription, subscriptionLoading, canAccess: _canAccess, isPro } = useSubscription();
+  const { subscriptionLoading, canAccess: _canAccess, isPro } = useSubscription();
   const queryClient = useQueryClient();
   const { preferences, appCount, jobCount, visibility, skillRecommendations, metrics, isLoading: dataLoading } = useDashboardData();
   const jobsTourRef = useRef<PageTourHandle>(null);

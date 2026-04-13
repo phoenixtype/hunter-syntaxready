@@ -10,14 +10,12 @@ import { supabase } from '@/integrations/supabase/client'
 import type { Database } from '@/integrations/supabase/types'
 
 type JobListing = Database['public']['Tables']['job_listings']['Row']
-type JobFingerprint = Database['public']['Tables']['job_fingerprints']['Row']
-
 interface JobFingerprintData {
   fingerprint_hash: string
-  first_seen_at: string
-  last_seen_at: string
-  source_count: number
-  sources: string[]
+  first_seen_at: string | null
+  last_seen_at: string | null
+  source_count: number | null
+  sources: string[] | null
 }
 
 interface DeduplicationResult {
@@ -96,7 +94,7 @@ class JobDeduplicationEngine {
           isDuplicate: true,
           fingerprintHash,
           existingFingerprint,
-          sources: existingFingerprint.sources
+          sources: existingFingerprint.sources || []
         }
       } else {
         // New job - create fingerprint
@@ -152,9 +150,10 @@ class JobDeduplicationEngine {
     existing: JobFingerprintData
   ): Promise<void> {
     try {
-      const updatedSources = existing.sources.includes(source)
-        ? existing.sources
-        : [...existing.sources, source]
+      const existingSources = existing.sources || []
+      const updatedSources = existingSources.includes(source)
+        ? existingSources
+        : [...existingSources, source]
 
       const { error } = await supabase
         .from('job_fingerprints')

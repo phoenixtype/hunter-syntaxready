@@ -22,8 +22,7 @@ import {
   updateJob,
   deleteJob,
   JOB_STATUS_LABELS,
-  LOCATION_TYPE_LABELS,
-  EMPLOYMENT_TYPE_LABELS,
+  // LOCATION_TYPE_LABELS, EMPLOYMENT_TYPE_LABELS unused
   formatSalary,
   type RecruiterJob,
   type JobStatus,

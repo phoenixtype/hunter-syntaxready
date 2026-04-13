@@ -48,7 +48,7 @@ const ApplicationWizard = () => {
   const tourRef = useRef<PageTourHandle>(null);
 
   const [url, setUrl] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [_loading, setLoading] = useState(false);
   const [showProGate, setShowProGate] = useState(false);
   const [step, setStep] = useState<Step_>("input");
 
@@ -257,13 +257,13 @@ const ApplicationWizard = () => {
                       </Badge>
                     )}
                   </div>
-                  {job.tech_stack?.length > 0 && (
+                  {(job.tech_stack?.length ?? 0) > 0 && (
                     <div>
                       <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-2">
                         Targeted Keywords
                       </p>
                       <div className="flex flex-wrap gap-1.5">
-                        {job.tech_stack.map((tech, i) => (
+                        {job.tech_stack!.map((tech, i) => (
                           <Badge key={i} variant="secondary" className="text-xs font-medium">
                             {tech}
                           </Badge>

@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import {
   ArrowLeft, ArrowRight, X, Plus, User, Briefcase,
   Sparkles, GraduationCap, FileText, Download, Loader2, Check, Layout,
-  Eye, ShieldCheck, Copy, Share, HelpCircle
+  Eye, ShieldCheck, HelpCircle
 } from "lucide-react";
 import { exportResumeToDocx } from "@/lib/pdf_export";
 import { analyzeResumeForJob, ATSResult } from "@/lib/ats_engine";
@@ -97,7 +97,7 @@ const ResumeBuilder = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { profile: existingProfile, loading: profileLoading, setProfile: setGlobalProfile } = useResume();
-  const { isPro, isLoading: subLoading, canAccess, recordUsage } = useSubscription();
+  const { isPro, canAccess, recordUsage } = useSubscription();
   const tourRef = useRef<PageTourHandle>(null);
 
   const [currentStep, setCurrentStep] = useState<StepId>("personal");
@@ -300,14 +300,11 @@ const ResumeBuilder = () => {
 
   if (authLoading || profileLoading) return <DashboardSkeleton />;
 
-  const handleShare = async () => {
-    try {
-      await navigator.clipboard.writeText(`Check out hunter.ai — the autonomous job search agent! ${window.location.origin}`);
-      toast.success("Link copied!", { description: "Share hunter.ai with your network." });
-    } catch {
-      toast.error("Failed to copy link");
-    }
-  };
+  void function handleShare() {
+    navigator.clipboard.writeText(`Check out hunter.ai — the autonomous job search agent! ${window.location.origin}`)
+      .then(() => toast.success("Link copied!", { description: "Share hunter.ai with your network." }))
+      .catch(() => toast.error("Failed to copy link"));
+  }
 
   return (
     <>

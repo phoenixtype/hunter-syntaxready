@@ -31,7 +31,7 @@ export function OverageModal({ featureName, open, onClose }: OverageModalProps) 
   const [quote, setQuote] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  const { getOverageQuote, purchaseOverage, usageOverview } = useSubscription();
+  const { getOverageQuote, usageOverview } = useSubscription();
   const { isNigeria, currency } = useGeo();
 
   // Get current feature usage info

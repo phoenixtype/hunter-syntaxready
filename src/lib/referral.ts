@@ -61,12 +61,12 @@ export async function getUserReferralStats(userId: string): Promise<UserReferral
     supabase
       .from("referral_events" as never)
       .select("id")
-      .eq("referrer_id", userId) as Promise<{ data: { id: string }[] | null; error: unknown }>,
+      .eq("referrer_id", userId) as unknown as Promise<{ data: { id: string }[] | null; error: unknown }>,
     supabase
       .from("referral_rewards" as never)
       .select("reward_type, amount, granted_at, expires_at")
       .eq("user_id", userId)
-      .order("granted_at", { ascending: false }) as Promise<{
+      .order("granted_at", { ascending: false }) as unknown as Promise<{
         data: { reward_type: string; amount: number; granted_at: string; expires_at: string | null }[] | null;
         error: unknown;
       }>,

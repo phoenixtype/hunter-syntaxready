@@ -9,7 +9,7 @@ import { savePreferences, getPreferences, UserPreferences } from "@/lib/user_pre
 import { CandidateProfile, saveCandidateProfile, getCandidateProfile, ExperienceAtom, Education, Skill } from "@/lib/resume_engine";
 import { useQueryClient } from "@tanstack/react-query";
 import { triggerJobCrawl } from "@/lib/crawler_engine";
-import { setUserRole, getUserRole } from "@/lib/recruiter_engine";
+import { getUserRole } from "@/lib/recruiter_engine";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

@@ -34,12 +34,12 @@ const RecruiterAnalytics = () => {
       setLoading(true);
       try {
         const { data: apps, error } = await supabase
-          .from("applications")
+          .from("recruiter_job_applications")
           .select("id, status")
-          .in("job_id", jobs.map(j => j.id));
+          .in("recruiter_job_id", jobs.map(j => j.id));
 
         if (!error && apps) {
-          const counts = apps.reduce((acc, a) => {
+          const counts = (apps as any[]).reduce((acc: Record<string, number>, a: any) => {
             acc[a.status] = (acc[a.status] || 0) + 1;
             return acc;
           }, {} as Record<string, number>);
