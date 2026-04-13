@@ -21,8 +21,8 @@ import {
   BarChart3,
   MessageSquare,
 } from "lucide-react";
-import { useRef } from "react";
-import { motion, useInView, useScroll, useTransform } from "framer-motion";
+import { useRef, useEffect, useState } from "react";
+import { shouldDisableAnimations } from "@/lib/mobile-safety";
 import MobileNav from "@/components/MobileNav";
 import SkipLink from "@/components/SkipLink";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -31,8 +31,15 @@ import SEOHead from "@/components/SEOHead";
 import { useGeo } from "@/hooks/useGeo";
 import { getPrice } from "@/lib/pricing";
 
-// ── Animation helpers ────────────────────────────────────────────────────────
+// ── Animation helpers (conditionally loaded) ─────────────────────────────────
 
+// Dynamic framer-motion loading to avoid stack overflow on mobile
+let motion: any = null;
+let useInView: any = null;
+let useScroll: any = null;
+let useTransform: any = null;
+
+// Animation variants - only used if framer-motion loads successfully
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
   visible: (i: number = 0) => ({
@@ -69,43 +76,114 @@ function Section({
   id?: string;
 }) {
   const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
+
+  // Only use animations if framer-motion loaded successfully
+  if (motion && useInView) {
+    const inView = useInView(ref, { once: true, margin: "-80px" });
+    const MotionSection = motion.section;
+    return (
+      <MotionSection
+        ref={ref}
+        id={id}
+        initial="hidden"
+        animate={inView ? "visible" : "hidden"}
+        className={className}
+      >
+        {children}
+      </MotionSection>
+    );
+  }
+
+  // Fallback to regular section for mobile browsers
   return (
-    <motion.section
-      ref={ref}
-      id={id}
-      initial="hidden"
-      animate={inView ? "visible" : "hidden"}
-      className={className}
-    >
+    <section ref={ref} id={id} className={className}>
       {children}
-    </motion.section>
+    </section>
   );
 }
 
 function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: string }) {
   const ref = useRef(null);
-  const inView = useInView(ref, { once: true });
-  const count = useTransform(
-    useScroll({ target: ref, offset: ["start end", "end start"] }).scrollYProgress,
-    [0, 0.3],
-    [0, value]
-  );
 
+  // Only use complex animations if framer-motion loaded successfully
+  if (motion && useInView && useScroll && useTransform) {
+    const inView = useInView(ref, { once: true });
+    const count = useTransform(
+      useScroll({ target: ref, offset: ["start end", "end start"] }).scrollYProgress,
+      [0, 0.3],
+      [0, value]
+    );
+
+    const MotionSpan = motion.span;
+    return (
+      <span ref={ref} className="tabular-nums">
+        {inView ? (
+          <MotionSpan
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            {Math.round(value).toLocaleString()}{suffix}
+          </MotionSpan>
+        ) : (
+          "0"
+        )}
+      </span>
+    );
+  }
+
+  // Fallback to simple display for mobile browsers
   return (
     <span ref={ref} className="tabular-nums">
-      {inView ? (
-        <motion.span
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          {Math.round(value).toLocaleString()}{suffix}
-        </motion.span>
-      ) : (
-        "0"
-      )}
+      {Math.round(value).toLocaleString()}{suffix}
     </span>
+  );
+}
+
+// Helper component for conditional motion elements
+function MotionElement({
+  as: Component = 'div',
+  style = {},
+  initial,
+  animate,
+  transition,
+  className,
+  children,
+  ...props
+}: {
+  as?: keyof JSX.IntrinsicElements;
+  style?: React.CSSProperties;
+  initial?: any;
+  animate?: any;
+  transition?: any;
+  className?: string;
+  children?: React.ReactNode;
+  [key: string]: any;
+}) {
+  // Only use motion if framer-motion loaded successfully
+  if (motion) {
+    const MotionComponent = motion[Component as keyof typeof motion];
+    if (MotionComponent) {
+      return (
+        <MotionComponent
+          style={style}
+          initial={initial}
+          animate={animate}
+          transition={transition}
+          className={className}
+          {...props}
+        >
+          {children}
+        </MotionComponent>
+      );
+    }
+  }
+
+  // Fallback to regular HTML element for mobile browsers
+  return (
+    <Component style={style} className={className} {...props}>
+      {children}
+    </Component>
   );
 }
 
@@ -294,13 +372,37 @@ const Index = () => {
   const { currency } = useGeo();
   const proPrice = getPrice("pro", currency).label;
 
+  // Load framer-motion conditionally to avoid stack overflow on mobile
+  useEffect(() => {
+    if (!shouldDisableAnimations()) {
+      import('framer-motion')
+        .then((framerMotion) => {
+          motion = framerMotion.motion;
+          useInView = framerMotion.useInView;
+          useScroll = framerMotion.useScroll;
+          useTransform = framerMotion.useTransform;
+        })
+        .catch((error) => {
+          console.warn('Failed to load framer-motion, using static fallbacks:', error);
+        });
+    }
+  }, []);
+
   const heroRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"],
-  });
-  const heroY = useTransform(scrollYProgress, [0, 1], [0, 150]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+
+  // Only use scroll-based animations if framer-motion loaded successfully
+  let scrollYProgress = null;
+  let heroY = null;
+  let heroOpacity = null;
+
+  if (useScroll && useTransform) {
+    scrollYProgress = useScroll({
+      target: heroRef,
+      offset: ["start start", "end start"],
+    }).scrollYProgress;
+    heroY = useTransform(scrollYProgress, [0, 1], [0, 150]);
+    heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+  }
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
@@ -365,12 +467,12 @@ const Index = () => {
             <div className="absolute -bottom-[10%] left-[20%] w-[30%] h-[30%] rounded-full bg-primary/5 blur-[100px] animate-blob animation-delay-4000" />
           </div>
 
-          <motion.div
-            style={{ y: heroY, opacity: heroOpacity }}
+          <MotionElement
+            style={heroY && heroOpacity ? { y: heroY, opacity: heroOpacity } : {}}
             className="container max-w-5xl mx-auto px-4 sm:px-6 text-center relative z-10"
           >
             {/* Badge */}
-            <motion.div
+            <MotionElement
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
@@ -381,10 +483,11 @@ const Index = () => {
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
               </span>
               Your AI-powered career platform
-            </motion.div>
+            </MotionElement>
 
             {/* Headline */}
-            <motion.h1
+            <MotionElement
+              as="h1"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
@@ -394,10 +497,11 @@ const Index = () => {
               <span className="font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                 Start landing.
               </span>
-            </motion.h1>
+            </MotionElement>
 
             {/* Sub */}
-            <motion.p
+            <MotionElement
+              as="p"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.25 }}
@@ -405,10 +509,10 @@ const Index = () => {
             >
               hunter.ai discovers jobs matched to your skills, tailors your resume in seconds,
               and coaches you through interviews — so you can focus on what matters.
-            </motion.p>
+            </MotionElement>
 
             {/* CTAs */}
-            <motion.div
+            <MotionElement
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
@@ -434,10 +538,10 @@ const Index = () => {
                   </Link>
                 </>
               )}
-            </motion.div>
+            </MotionElement>
 
             {/* Trust badges */}
-            <motion.div
+            <MotionElement
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.6 }}
@@ -449,11 +553,11 @@ const Index = () => {
                   {badge}
                 </span>
               ))}
-            </motion.div>
-          </motion.div>
+            </MotionElement>
+          </MotionElement>
 
           {/* Floating UI mockup — right side (desktop) */}
-          <motion.div
+          <MotionElement
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.7, ease: [0.22, 1, 0.36, 1] }}
@@ -479,10 +583,10 @@ const Index = () => {
                 ))}
               </div>
             </div>
-          </motion.div>
+          </MotionElement>
 
           {/* Floating mockup — left side */}
-          <motion.div
+          <MotionElement
             initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.9, ease: [0.22, 1, 0.36, 1] }}
@@ -503,7 +607,7 @@ const Index = () => {
               </div>
               <div className="mt-2 text-[10px] text-muted-foreground">5 bullets optimized for this role</div>
             </div>
-          </motion.div>
+          </MotionElement>
         </section>
 
         {/* ── Stats ────────────────────────────────────────────────────── */}
