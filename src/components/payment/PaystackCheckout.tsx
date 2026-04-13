@@ -189,13 +189,14 @@ export function PaystackCheckout({
 
     } catch (error: unknown) {
       console.error('Payment initialization failed:', error);
-      toast.error(error.message || 'Failed to initialize payment window. Ensure popups are allowed.');
-      onError?.(error.message || 'Failed to initialize payment');
+      const msg = error instanceof Error ? error.message : 'Failed to initialize payment';
+      toast.error(msg || 'Failed to initialize payment window. Ensure popups are allowed.');
+      onError?.(msg);
       setLoading(false);
     }
   };
 
-  const getNextPeriodEnd = (interval: string): Date => {
+  const _getNextPeriodEnd = (interval: string): Date => {
     const now = new Date();
     if (interval === 'yearly') {
       now.setFullYear(now.getFullYear() + 1);

@@ -119,7 +119,7 @@ const AppInitializer = () => {
 
 import { useRole } from "./hooks/useRole";
 import { useAuth } from "./hooks/useAuth";
-import { useLocation, useNavigate, Navigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 /**
  * Unified "Gatekeeper" component that handles all top-level redirects.
@@ -142,7 +142,7 @@ const AppGatekeeper = ({ children }: { children: React.ReactNode }) => {
       const destination = isRecruiter ? "/recruiter" : "/dashboard";
 
       // Prevent navigation loops - only navigate if we're not already going there
-      if (pathname !== destination) {
+      if (pathname !== (destination as string)) {
         navigate(destination, { replace: true });
       }
     }

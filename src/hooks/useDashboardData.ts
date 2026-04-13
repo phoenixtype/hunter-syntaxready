@@ -99,7 +99,7 @@ export const useDashboardData = () => {
     // - Errors from getApplicationHistory surface as query errors, not silent empty arrays.
     const {
         data: skillRecommendations,
-        isLoading: skillLoading,
+        isLoading: _skillLoading,
         error: skillError,
     } = useQuery<SkillRecommendation[]>({
         queryKey: ["skillRecommendations", userId],

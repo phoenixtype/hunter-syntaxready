@@ -111,10 +111,11 @@ export const MobileJobCard = ({
             </p>
           </div>
           {matchScore && (
-            <MatchScoreTooltip match={{ overall_score: matchScore, reasoning: "" }}>
+            <MatchScoreTooltip match={{ overall_score: matchScore, reasoning: [] }}>
               <Badge variant="secondary" className="ml-2 text-xs cursor-help bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
                 {Math.round(matchScore)}% match
               </Badge>
+
             </MatchScoreTooltip>
           )}
         </div>

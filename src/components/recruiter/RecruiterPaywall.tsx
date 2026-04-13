@@ -10,10 +10,8 @@ interface RecruiterPaywallProps {
 
 export const RecruiterPaywall: React.FC<RecruiterPaywallProps> = ({ children }) => {
   const { isSubscribed, loading: subLoading } = useRecruiterSubscription();
-  const { user } = useAuth();
-  const { isRecruiter, loading: roleLoading } = useRole(user?.id);
 
-  const loading = subLoading || roleLoading;
+  const loading = subLoading;
 
   if (loading) {
     return (
@@ -24,7 +22,7 @@ export const RecruiterPaywall: React.FC<RecruiterPaywallProps> = ({ children }) 
     );
   }
 
-  if (!isSubscribed && !isAdmin) {
+  if (!isSubscribed) {
     return (
       <div className="relative">
         <div className="absolute inset-0 z-10 bg-background/50 backdrop-blur-[2px] pointer-events-none" />

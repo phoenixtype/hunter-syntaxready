@@ -10,7 +10,7 @@ import { searchJobsCached, getJobMatchesCached, cachedJobEngine } from "@/lib/ca
 import { checkFeatureLimit, recordUsage } from "@/lib/redis-rate-limiter";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
-import { invalidateJobsCache, cache } from "@/lib/cache-manager";
+import { invalidateJobsCache } from "@/lib/cache-manager";
 
 export interface EnrichedJob extends JobOpportunity {
     match?: MatchResult;

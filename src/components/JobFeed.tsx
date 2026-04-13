@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/pagination";
 import { useSavedJobs } from "@/hooks/useSavedJobs";
 import MatchScoreTooltip from "./MatchScoreTooltip";
-import JobCardActions from "./JobCardActions";
+// import JobCardActions from "./JobCardActions";
 import { useSubscription } from "@/hooks/useSubscription";
 import ProGate from "@/components/ProGate";
 
@@ -88,7 +88,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   const [showCareersImport, setShowCareersImport] = useState(false);
   const [importingCareers, setImportingCareers] = useState(false);
   const [companyResearch, setCompanyResearch] = useState<Record<string, CompanyResearch | null>>({});
-  const [researchingJobId, setResearchingJobId] = useState<string | null>(null);
+  const [, setResearchingJobId] = useState<string | null>(null);
 
   const { toggleSave, isSaved, savedCount } = useSavedJobs();
   const { isPro, canAccess, recordUsage } = useSubscription();
@@ -365,7 +365,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
     }
   };
 
-  const handleResearchCompany = async (job: EnrichedJob) => {
+  const _handleResearchCompany = async (job: EnrichedJob) => {
     try {
       // Safety checks
       if (!job?.id || !job?.company) {

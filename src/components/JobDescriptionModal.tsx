@@ -5,7 +5,7 @@ import { EnrichedJob } from "@/hooks/useJobs";
 import type { Stakeholder } from "@/lib/recruiter_engine";
 import type { CompanyResearch } from "@/lib/crawler_engine";
 import {
-  Send, PenTool, Bookmark, GraduationCap, Loader2, ExternalLink,
+  Send, PenTool, Bookmark, GraduationCap, Loader2,
   MapPin, DollarSign, Building2, Cpu, Users, ChevronDown, ChevronUp,
   Target, CheckCircle2, Sparkles
 } from "lucide-react";
@@ -42,7 +42,7 @@ export default function JobDescriptionModal({
   isApplying,
   isTailoring,
   isSaved,
-  isPro,
+  isPro: _isPro,
   onClose,
   onApply,
   onTailor,

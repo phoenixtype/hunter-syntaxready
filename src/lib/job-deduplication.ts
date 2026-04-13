@@ -10,14 +10,12 @@ import { supabase } from '@/integrations/supabase/client'
 import type { Database } from '@/integrations/supabase/types'
 
 type JobListing = Database['public']['Tables']['job_listings']['Row']
-type JobFingerprint = Database['public']['Tables']['job_fingerprints']['Row']
-
 interface JobFingerprintData {
   fingerprint_hash: string
-  first_seen_at: string
-  last_seen_at: string
-  source_count: number
-  sources: string[]
+  first_seen_at: string | null
+  last_seen_at: string | null
+  source_count: number | null
+  sources: string[] | null
 }
 
 interface DeduplicationResult {

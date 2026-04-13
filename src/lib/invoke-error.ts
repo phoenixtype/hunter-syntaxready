@@ -3,7 +3,7 @@ export type InvokeErrorKind = "pro_gate" | "rate_limit" | "connection" | "timeou
 export async function classifyInvokeError(err: unknown): Promise<InvokeErrorKind> {
   if (!(err instanceof Error)) return "generic";
 
-  const context = (err as Record<string, unknown>).context as
+  const context = (err as unknown as Record<string, unknown>).context as
     | { status: number; clone?: () => any; json: () => Promise<unknown> }
     | undefined;
 
@@ -35,7 +35,7 @@ export async function classifyInvokeError(err: unknown): Promise<InvokeErrorKind
 
 export async function getInvokeErrorMessage(err: unknown): Promise<string | null> {
   if (!(err instanceof Error)) return null;
-  const context = (err as Record<string, unknown>).context as
+  const context = (err as unknown as Record<string, unknown>).context as
     | { clone?: () => any; json: () => Promise<unknown> }
     | undefined;
   if (!context) return err.message;

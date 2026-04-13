@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { useRole } from "@/hooks/useRole";
 import { Loader2 } from "lucide-react";
 
 export const PublicRoute = ({ children }: { children: React.ReactNode }) => {

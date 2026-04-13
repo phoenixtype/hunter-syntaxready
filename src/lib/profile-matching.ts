@@ -9,7 +9,7 @@
 import type { Database } from '@/integrations/supabase/types'
 
 type JobListing = Database['public']['Tables']['job_listings']['Row']
-type UserProfile = Database['public']['Tables']['profiles']['Row']
+// type UserProfile = Database['public']['Tables']['profiles']['Row']
 type UserPreferences = Database['public']['Tables']['user_preferences']['Row']
 
 export interface MatchResult {
@@ -153,12 +153,12 @@ class ProfileMatchingEngine {
       return { score: 0.5, reasons: ['No skills data available'] }
     }
 
-    if (!jobListing.required_skills && !jobListing.description) {
+    if (!(jobListing as any).required_skills && !jobListing.description) {
       return { score: 0.5, reasons: ['No job skills data available'] }
     }
 
     const userSkills = userProfile.skills.map(s => s.toLowerCase().trim())
-    const jobSkillsText = `${jobListing.required_skills || ''} ${jobListing.description || ''}`.toLowerCase()
+    const jobSkillsText = `${(jobListing as any).required_skills || ''} ${jobListing.description || ''}`.toLowerCase()
 
     let matchedSkills = 0
     let totalRelevantSkills = 0
