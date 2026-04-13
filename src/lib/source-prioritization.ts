@@ -462,4 +462,4 @@ export const generateCrawlTargets = sourcePrioritizationEngine.generateCrawlTarg
 export const getSourceConfig = sourcePrioritizationEngine.getSourceConfig.bind(sourcePrioritizationEngine)
 export const calculateRateLimit = sourcePrioritizationEngine.calculateRateLimit.bind(sourcePrioritizationEngine)
 
-export type { UserProfile, CrawlTarget }
+export type { UserProfile }

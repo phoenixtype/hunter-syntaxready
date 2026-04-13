@@ -365,8 +365,9 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   const handleResearchCompany = async (job: EnrichedJob) => {
+  /* eslint-enable @typescript-eslint/no-unused-vars */
     try {
       // Safety checks
       if (!job?.id || !job?.company) {

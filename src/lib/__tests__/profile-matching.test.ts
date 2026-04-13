@@ -13,8 +13,7 @@ import {
 } from '../profile-matching'
 import type { Database } from '@/integrations/supabase/types'
 
-type JobListing = Database['public']['Tables']['job_listings']['Row']
-type UserPreferences = Database['public']['Tables']['user_preferences']['Row']
+// Using `any` for mock data to avoid strict DB type constraints
 
 describe('ProfileMatchingEngine', () => {
 

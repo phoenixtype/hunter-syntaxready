@@ -300,7 +300,7 @@ const ResumeBuilder = () => {
 
   if (authLoading || profileLoading) return <DashboardSkeleton />;
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   const handleShare = async () => {
     try {
       await navigator.clipboard.writeText(`Check out hunter.ai — the autonomous job search agent! ${window.location.origin}`);
