@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       accessibility_requests: {
@@ -296,6 +271,106 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_crawl_waves: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          errors: string[] | null
+          id: string
+          jobs_discovered: number | null
+          started_at: string | null
+          status: string
+          users_processed: number | null
+          wave_time: string
+          wave_type: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          errors?: string[] | null
+          id?: string
+          jobs_discovered?: number | null
+          started_at?: string | null
+          status?: string
+          users_processed?: number | null
+          wave_time: string
+          wave_type: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          errors?: string[] | null
+          id?: string
+          jobs_discovered?: number | null
+          started_at?: string | null
+          status?: string
+          users_processed?: number | null
+          wave_time?: string
+          wave_type?: string
+        }
+        Relationships: []
+      }
+      daily_job_queue: {
+        Row: {
+          created_at: string | null
+          digest_date: string | null
+          id: string
+          job_id: string
+          match_reasons: string[] | null
+          match_score: number
+          queued_at: string | null
+          sent_at: string | null
+          user_id: string
+          wave_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          digest_date?: string | null
+          id?: string
+          job_id: string
+          match_reasons?: string[] | null
+          match_score: number
+          queued_at?: string | null
+          sent_at?: string | null
+          user_id: string
+          wave_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          digest_date?: string | null
+          id?: string
+          job_id?: string
+          match_reasons?: string[] | null
+          match_score?: number
+          queued_at?: string | null
+          sent_at?: string | null
+          user_id?: string
+          wave_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_job_queue_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_job_queue_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_job_queue_wave_id_fkey"
+            columns: ["wave_id"]
+            isOneToOne: false
+            referencedRelation: "daily_crawl_waves"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       diversity_metrics: {
         Row: {
           company_id: string | null
@@ -418,6 +493,33 @@ export type Database = {
         }
         Relationships: []
       }
+      job_fingerprints: {
+        Row: {
+          created_at: string | null
+          fingerprint_hash: string
+          first_seen_at: string | null
+          last_seen_at: string | null
+          source_count: number | null
+          sources: string[] | null
+        }
+        Insert: {
+          created_at?: string | null
+          fingerprint_hash: string
+          first_seen_at?: string | null
+          last_seen_at?: string | null
+          source_count?: number | null
+          sources?: string[] | null
+        }
+        Update: {
+          created_at?: string | null
+          fingerprint_hash?: string
+          first_seen_at?: string | null
+          last_seen_at?: string | null
+          source_count?: number | null
+          sources?: string[] | null
+        }
+        Relationships: []
+      }
       job_listings: {
         Row: {
           accessibility_support: string[] | null
@@ -435,6 +537,7 @@ export type Database = {
           inclusive_benefits: string[] | null
           job_hash: string
           job_type: string | null
+          last_verified_at: string | null
           location: string | null
           mentorship_programs: boolean | null
           pay_equity_certified: boolean | null
@@ -468,6 +571,7 @@ export type Database = {
           inclusive_benefits?: string[] | null
           job_hash: string
           job_type?: string | null
+          last_verified_at?: string | null
           location?: string | null
           mentorship_programs?: boolean | null
           pay_equity_certified?: boolean | null
@@ -501,6 +605,7 @@ export type Database = {
           inclusive_benefits?: string[] | null
           job_hash?: string
           job_type?: string | null
+          last_verified_at?: string | null
           location?: string | null
           mentorship_programs?: boolean | null
           pay_equity_certified?: boolean | null
@@ -523,28 +628,40 @@ export type Database = {
       job_matches: {
         Row: {
           created_at: string
+          culture_fit: number | null
           id: string
           job_id: string
+          location_match: number | null
           match_score: number
           matched_at: string
+          reasoning: string[] | null
+          skill_match: number | null
           status: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          culture_fit?: number | null
           id?: string
           job_id: string
+          location_match?: number | null
           match_score?: number
           matched_at?: string
+          reasoning?: string[] | null
+          skill_match?: number | null
           status?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          culture_fit?: number | null
           id?: string
           job_id?: string
+          location_match?: number | null
           match_score?: number
           matched_at?: string
+          reasoning?: string[] | null
+          skill_match?: number | null
           status?: string
           user_id?: string
         }
@@ -855,28 +972,37 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          crawl_priority: number | null
           created_at: string
           email: string | null
           full_name: string | null
           id: string
+          last_crawl_wave: string | null
+          pro_user: boolean | null
           role: string
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
+          crawl_priority?: number | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id: string
+          last_crawl_wave?: string | null
+          pro_user?: boolean | null
           role?: string
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
+          crawl_priority?: number | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          last_crawl_wave?: string | null
+          pro_user?: boolean | null
           role?: string
           updated_at?: string
         }
@@ -1365,6 +1491,51 @@ export type Database = {
         }
         Relationships: []
       }
+      sentry_bugs: {
+        Row: {
+          created_at: string | null
+          culprit: string | null
+          event_count: number | null
+          id: string
+          issue_title: string
+          level: string | null
+          metadata: Json | null
+          project_slug: string | null
+          sentry_id: string
+          status: string | null
+          updated_at: string | null
+          url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          culprit?: string | null
+          event_count?: number | null
+          id?: string
+          issue_title: string
+          level?: string | null
+          metadata?: Json | null
+          project_slug?: string | null
+          sentry_id: string
+          status?: string | null
+          updated_at?: string | null
+          url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          culprit?: string | null
+          event_count?: number | null
+          id?: string
+          issue_title?: string
+          level?: string | null
+          metadata?: Json | null
+          project_slug?: string | null
+          sentry_id?: string
+          status?: string | null
+          updated_at?: string | null
+          url?: string | null
+        }
+        Relationships: []
+      }
       subscription_plans: {
         Row: {
           created_at: string | null
@@ -1692,6 +1863,9 @@ export type Database = {
           created_at: string
           email_alerts_enabled: boolean | null
           experience_level: string | null
+          fresh_job_digest_enabled: boolean | null
+          fresh_job_digest_time: string | null
+          fresh_job_digest_timezone: string | null
           has_clearance: boolean | null
           id: string
           locations: string[] | null
@@ -1716,6 +1890,9 @@ export type Database = {
           created_at?: string
           email_alerts_enabled?: boolean | null
           experience_level?: string | null
+          fresh_job_digest_enabled?: boolean | null
+          fresh_job_digest_time?: string | null
+          fresh_job_digest_timezone?: string | null
           has_clearance?: boolean | null
           id?: string
           locations?: string[] | null
@@ -1740,6 +1917,9 @@ export type Database = {
           created_at?: string
           email_alerts_enabled?: boolean | null
           experience_level?: string | null
+          fresh_job_digest_enabled?: boolean | null
+          fresh_job_digest_time?: string | null
+          fresh_job_digest_timezone?: string | null
           has_clearance?: boolean | null
           id?: string
           locations?: string[] | null
@@ -1894,9 +2074,13 @@ export type Database = {
         }
         Returns: {
           can_use: boolean
+          currency: string
           current_usage: number
           limit_amount: number
+          overage_cost: number
+          overage_needed: number
           remaining_amount: number
+          subscription_plan: string
         }[]
       }
       check_rate_limit: {
@@ -1959,6 +2143,10 @@ export type Database = {
       }
       is_platform_admin: { Args: never; Returns: boolean }
       is_root_admin: { Args: never; Returns: boolean }
+      manual_grant_subscription: {
+        Args: { p_months: number; p_tier: string; p_user_id: string }
+        Returns: boolean
+      }
       match_dei_preferences: {
         Args: { candidate_profile_id: string; job_listing_id: string }
         Returns: number
@@ -2132,9 +2320,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },
