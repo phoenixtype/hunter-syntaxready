@@ -8,9 +8,26 @@ const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
+// Safely handle storage for environments where localStorage might throw (e.g. Safari private mode)
+const getSafeStorage = () => {
+  try {
+    const testKey = '__storage_test__';
+    window.localStorage.setItem(testKey, testKey);
+    window.localStorage.removeItem(testKey);
+    return window.localStorage;
+  } catch (e) {
+    console.warn('LocalStorage is inaccessible, falling back to in-memory storage');
+    return {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+    } as any;
+  }
+};
+
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
-    storage: localStorage,
+    storage: getSafeStorage(),
     persistSession: true,
     autoRefreshToken: true,
   },
@@ -19,7 +36,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   },
   global: {
     headers: {
-      // Configure connection pooling for scalability
       'x-connection-pool-size': '20'
     }
   }
