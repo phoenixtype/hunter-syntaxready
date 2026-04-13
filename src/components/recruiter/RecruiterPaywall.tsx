@@ -10,7 +10,8 @@ interface RecruiterPaywallProps {
 
 export const RecruiterPaywall: React.FC<RecruiterPaywallProps> = ({ children }) => {
   const { isSubscribed, loading: subLoading } = useRecruiterSubscription();
-  const { isAdmin, loading: roleLoading } = useRole();
+  const { user } = useAuth();
+  const { isRecruiter, loading: roleLoading } = useRole(user?.id);
 
   const loading = subLoading || roleLoading;
 

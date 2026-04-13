@@ -1,11 +1,14 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useRole } from '@/hooks/useRole';
+import { useAuth } from '@/hooks/useAuth';
 import PageLoader from '@/components/PageLoader';
 
-const RequireRecruiter = ({ children }: { children: React.ReactNode }) => {
-  const { isRecruiter, loading } = useRole();
+export const RequireRecruiter = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading: authLoading } = useAuth();
+  const { isRecruiter, loading: roleLoading } = useRole(user?.id);
+  const location = useLocation();
 
-  if (loading) return <PageLoader />;
+  if (authLoading || roleLoading) return <PageLoader />;
   if (!isRecruiter) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 };

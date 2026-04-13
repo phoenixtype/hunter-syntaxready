@@ -59,32 +59,50 @@
 
   <body>
     <script>
-      // Global process shim for mobile browser compatibility
-      window.process = { env: { NODE_ENV: 'production' } };
+      // Global process shim for mobile browser compatibility - Idempotent
+      if (!window.process) window.process = { env: { NODE_ENV: 'production' } };
 
       // Global Panic Overlay: display boot errors on screen for mobile debugging
       (function() {
-        var root = document.getElementById('root');
+        var isReporting = false; 
         function showError(msg, err) {
-          console.error('[PANIC]', msg, err);
-          var overlay = document.createElement('div');
-          overlay.style = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#fee2e2;color:#991b1b;padding:24px;font-family:monospace;z-index:99999;overflow:auto;';
-          overlay.innerHTML = '<h1 style="font-size:20px;margin-bottom:12px;">🚨 Hunter AI Boot Error</h1>' +
-            '<p style="font-size:14px;margin-bottom:16px;">The app failed to start. This is usually caused by an incompatible mobile browser or a missing API.</p>' +
-            '<div style="background:#fff;padding:12px;border-radius:8px;border:1px solid #f87171;">' +
-            '<p><strong>Message:</strong> ' + msg + '</p>' +
-            (err && err.stack ? '<pre style="font-size:10px;margin-top:8px;white-space:pre-wrap;">' + err.stack + '</pre>' : '') +
-            '</div>' +
-            '<button onclick="location.reload()" style="margin-top:16px;background:#991b1b;color:#fff;border:none;padding:8px 16px;border-radius:4px;">Retry Loading</button>';
-          document.body.appendChild(overlay);
+          if (isReporting) return; // Prevent recursion
+          isReporting = true;
+
+          try {
+            console.error('[PANIC]', msg, err);
+            if (msg.includes('ResizeObserver')) { isReporting = false; return; }
+            
+            var overlay = document.createElement('div');
+            overlay.id = 'panic-overlay';
+            overlay.style = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#fee2e2;color:#991b1b;padding:24px;font-family:monospace;z-index:999999;overflow:auto;';
+            overlay.innerHTML = '<h1 style="font-size:20px;margin-bottom:12px;">🚨 Hunter AI Boot Error</h1>' +
+              '<p style="font-size:14px;margin-bottom:16px;">The app failed to start. This is usually caused by an incompatible mobile browser or a missing API.</p>' +
+              '<div style="background:#fff;padding:12px;border-radius:8px;border:1px solid #f87171;">' +
+              '<p><strong>Message:</strong> ' + (msg || 'Unknown error') + '</p>' +
+              (err && err.stack ? '<pre style="font-size:10px;margin-top:8px;white-space:pre-wrap;">' + err.stack + '</pre>' : '') +
+              '</div>' +
+              '<button onclick="location.reload()" style="margin-top:24px;background:#991b1b;color:#fff;border:none;padding:12px 24px;border-radius:6px;font-weight:bold;cursor:pointer;">Retry Loading</button>';
+            
+            if (document.body) {
+              document.body.appendChild(overlay);
+            } else {
+              // Final fallback if body isn't ready
+              document.documentElement.appendChild(overlay);
+            }
+          } catch (panicErr) {
+            console.error('Fatal overlay error:', panicErr);
+          } finally {
+            isReporting = false;
+          }
         }
 
         window.onerror = function(msg, url, line, col, error) {
-          showError(msg + '\n' + url + ':' + line, error);
+          showError((msg || 'Uncaught error') + '\n' + (url || '') + ':' + (line || 0), error);
           return false;
         };
         window.onunhandledrejection = function(event) {
-          showError('Promise Rejection: ' + event.reason, event.reason);
+          showError('Promise Rejection: ' + (event.reason || 'No reason'), event.reason);
         };
       })();
     </script>

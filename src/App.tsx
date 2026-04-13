@@ -115,6 +115,38 @@ const AppInitializer = () => {
   return null;
 };
 
+import { useRole } from "./hooks/useRole";
+import { useAuth } from "./hooks/useAuth";
+import { useLocation, useNavigate, Navigate } from "react-router-dom";
+
+/**
+ * Unified "Gatekeeper" component that handles all top-level redirects.
+ * Centralizing this logic prevents "Ping-Pong" redirect loops on mobile.
+ */
+const AppGatekeeper = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading: authLoading } = useAuth();
+  const { role, loading: roleLoading } = useRole(user?.id);
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (authLoading) return;
+
+    // ── Public -> Private ──
+    // If logged in and on a public-only page (login/signup), move to dashboard
+    if (user && (pathname === "/login" || pathname === "/signup" || pathname === "/forgot-password")) {
+      const isRecruiter = role === "recruiter" || role === "admin";
+      navigate(isRecruiter ? "/recruiter" : "/dashboard", { replace: true });
+    }
+
+    // ── Private -> Public ──
+    // If logged out and on a protected page, move to login (handled by ProtectedRoute guards,
+    // but Gatekeeper can provide an extra layer of sanity if needed).
+  }, [user, role, authLoading, pathname, navigate]);
+
+  return <>{children}</>;
+};
+
 /** Wraps a page in ProtectedRoute + the persistent AppLayout shell */
 const AppPage = ({ children }: { children: React.ReactNode }) => (
   <ProtectedRoute>
@@ -149,19 +181,20 @@ const App = () => (
           <BrowserRouter>
             <AuthProvider>
               <GeoProvider>
-                <AppInitializer />
-                <ScrollToTop />
-                <FloatingThemeToggle />
-                <CommandPalette />
-                <CookieConsent />
-                <div className="flex flex-col min-h-screen min-h-[100dvh]">
-                  <div className="flex-1">
-                    <Suspense fallback={<PageLoader />}>
-                      <Routes>
-                        {/* ── Public ─────────────────────────────── */}
-                        <Route path="/" element={<Index />} />
-                        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-                        <Route path="/signup" element={<PublicRoute><SignUp /></PublicRoute>} />
+                <AppGatekeeper>
+                  <AppInitializer />
+                  <ScrollToTop />
+                  <FloatingThemeToggle />
+                  <CommandPalette />
+                  <CookieConsent />
+                  <div className="flex flex-col min-h-screen min-h-[100dvh]">
+                    <div className="flex-1">
+                      <Suspense fallback={<PageLoader />}>
+                        <Routes>
+                          {/* ── Public ─────────────────────────────── */}
+                          <Route path="/" element={<Index />} />
+                          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+                          <Route path="/signup" element={<PublicRoute><SignUp /></PublicRoute>} />
                         <Route path="/privacy" element={<Privacy />} />
                         <Route path="/terms" element={<Terms />} />
                         <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
@@ -205,11 +238,12 @@ const App = () => (
 
                         <Route path="*" element={<NotFound />} />
                       </Routes>
-                    </Suspense>
+                      </Suspense>
+                    </div>
+                    <Footer />
                   </div>
-                  <Footer />
-                </div>
-                <BottomNavigation />
+                  <BottomNavigation />
+                </AppGatekeeper>
               </GeoProvider>
             </AuthProvider>
           </BrowserRouter>

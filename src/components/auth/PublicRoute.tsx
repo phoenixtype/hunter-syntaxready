@@ -5,28 +5,23 @@ import { useRole } from "@/hooks/useRole";
 import { Loader2 } from "lucide-react";
 
 export const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
-  const { isRecruiter, loading: roleLoading } = useRole();
+  const { loading: authLoading } = useAuth();
   const [hasHydrated, setHasHydrated] = useState(false);
 
   useEffect(() => {
-    // Small delay to let initial Auth settle
-    const timer = setTimeout(() => setHasHydrated(true), 10);
+    const timer = setTimeout(() => setHasHydrated(true), 20);
     return () => clearTimeout(timer);
   }, []);
 
-  if (loading || !hasHydrated || (user && roleLoading)) {
+  if (authLoading || !hasHydrated) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-background">
+      <div className="h-screen w-full flex items-center justify-center bg-background text-foreground">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
-  if (user) {
-    // Route recruiters to their dashboard, candidates to the applicant dashboard
-    return <Navigate to={isRecruiter ? "/recruiter" : "/dashboard"} replace />;
-  }
-
+  // NOTE: Logic to redirect away from public pages if user is logged in
+  // has been moved to AppGatekeeper in App.tsx for stability.
   return <>{children}</>;
 };
