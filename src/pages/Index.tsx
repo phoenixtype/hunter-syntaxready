@@ -21,8 +21,10 @@ import {
   BarChart3,
   MessageSquare,
 } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { motion, useInView, useScroll, useTransform } from "framer-motion";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { shouldDisableAnimations, logMobileBrowserInfo } from "@/lib/mobile-safety";
 import MobileNav from "@/components/MobileNav";
 import SkipLink from "@/components/SkipLink";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -59,6 +61,37 @@ const scaleIn = {
   }),
 };
 
+// Mobile-safe motion component that falls back to regular div on problematic browsers
+function MotionDiv({
+  disableAnimations,
+  children,
+  variants,
+  custom,
+  className,
+  ...props
+}: {
+  disableAnimations: boolean;
+  children: React.ReactNode;
+  variants?: any;
+  custom?: number;
+  className?: string;
+  [key: string]: any;
+}) {
+  if (disableAnimations) {
+    return <div className={className} {...props}>{children}</div>;
+  }
+  return (
+    <motion.div
+      variants={variants}
+      custom={custom}
+      className={className}
+      {...props}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 function Section({
   children,
   className = "",
@@ -68,8 +101,19 @@ function Section({
   className?: string;
   id?: string;
 }) {
+  const isMobile = useIsMobile();
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
+
+  // On mobile or problematic browsers, use a simple div to avoid animation overhead
+  if (shouldDisableAnimations()) {
+    return (
+      <section ref={ref} id={id} className={className}>
+        {children}
+      </section>
+    );
+  }
+
   return (
     <motion.section
       ref={ref}
@@ -84,8 +128,19 @@ function Section({
 }
 
 function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: string }) {
+  const isMobile = useIsMobile();
   const ref = useRef(null);
   const inView = useInView(ref, { once: true });
+
+  // On mobile or problematic browsers, show the value directly without complex scroll animations
+  if (shouldDisableAnimations()) {
+    return (
+      <span ref={ref} className="tabular-nums">
+        {inView ? `${Math.round(value).toLocaleString()}${suffix}` : "0"}
+      </span>
+    );
+  }
+
   const count = useTransform(
     useScroll({ target: ref, offset: ["start end", "end start"] }).scrollYProgress,
     [0, 0.3],
@@ -293,14 +348,22 @@ const Index = () => {
   const isAuthenticated = !loading && !!user;
   const { currency } = useGeo();
   const proPrice = getPrice("pro", currency).label;
+  const isMobile = useIsMobile();
+  const disableAnimations = shouldDisableAnimations();
+
+  // Log mobile browser info on mount for debugging
+  useEffect(() => logMobileBrowserInfo(), []);
 
   const heroRef = useRef(null);
-  const { scrollYProgress } = useScroll({
+
+  // Only use complex scroll animations on desktop to prevent mobile stack overflows
+  const { scrollYProgress } = !disableAnimations ? useScroll({
     target: heroRef,
     offset: ["start start", "end start"],
-  });
-  const heroY = useTransform(scrollYProgress, [0, 1], [0, 150]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+  }) : { scrollYProgress: { get: () => 0 } };
+
+  const heroY = !disableAnimations ? useTransform(scrollYProgress, [0, 1], [0, 150]) : { get: () => 0 };
+  const heroOpacity = !disableAnimations ? useTransform(scrollYProgress, [0, 0.8], [1, 0]) : { get: () => 1 };
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
@@ -366,7 +429,7 @@ const Index = () => {
           </div>
 
           <motion.div
-            style={{ y: heroY, opacity: heroOpacity }}
+            style={!disableAnimations ? { y: heroY, opacity: heroOpacity } : {}}
             className="container max-w-5xl mx-auto px-4 sm:px-6 text-center relative z-10"
           >
             {/* Badge */}

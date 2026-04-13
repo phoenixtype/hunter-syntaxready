@@ -35,6 +35,7 @@ import CommandPalette from "./components/CommandPalette";
 import Footer from "./components/Footer";
 import { runStartupValidation } from "./lib/env_validator";
 import { checkDatabaseHealth, logHealthStatus } from "./lib/database_health";
+import { logMobileBrowserInfo } from "./lib/mobile-safety";
 import PageLoader from "./components/PageLoader";
 import { HunterAIMobile } from "./mobile-app-init";
 import { BottomNavigation } from "./components/mobile/BottomNavigation";
@@ -93,6 +94,7 @@ const AppInitializer = () => {
   useEffect(() => {
     const runChecks = async () => {
       runStartupValidation();
+      logMobileBrowserInfo();
 
       // Initialize mobile app features — wrapped in try/catch because
       // @capacitor/core can throw on certain mobile browsers (Safari/Chrome)
@@ -130,19 +132,25 @@ const AppGatekeeper = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (authLoading) return;
+    // Wait for both auth and role to finish loading before making navigation decisions
+    if (authLoading || roleLoading) return;
 
     // ── Public -> Private ──
     // If logged in and on a public-only page (login/signup), move to dashboard
     if (user && (pathname === "/login" || pathname === "/signup" || pathname === "/forgot-password")) {
       const isRecruiter = role === "recruiter" || role === "admin";
-      navigate(isRecruiter ? "/recruiter" : "/dashboard", { replace: true });
+      const destination = isRecruiter ? "/recruiter" : "/dashboard";
+
+      // Prevent navigation loops - only navigate if we're not already going there
+      if (pathname !== destination) {
+        navigate(destination, { replace: true });
+      }
     }
 
     // ── Private -> Public ──
     // If logged out and on a protected page, move to login (handled by ProtectedRoute guards,
     // but Gatekeeper can provide an extra layer of sanity if needed).
-  }, [user, role, authLoading, pathname, navigate]);
+  }, [user, role, authLoading, roleLoading, pathname]);
 
   return <>{children}</>;
 };
