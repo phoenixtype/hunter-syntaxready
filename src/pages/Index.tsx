@@ -21,8 +21,7 @@ import {
   BarChart3,
   MessageSquare,
 } from "lucide-react";
-import { useRef, useEffect, useState } from "react";
-import { shouldDisableAnimations } from "@/lib/mobile-safety";
+import { createElement, useRef } from "react";
 import MobileNav from "@/components/MobileNav";
 import SkipLink from "@/components/SkipLink";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -31,13 +30,35 @@ import SEOHead from "@/components/SEOHead";
 import { useGeo } from "@/hooks/useGeo";
 import { getPrice } from "@/lib/pricing";
 
-// ── Animation helpers (conditionally loaded) ─────────────────────────────────
+// ── Animation helpers (mobile-safe static fallback) ──────────────────────────
 
-// Dynamic framer-motion loading to avoid stack overflow on mobile
-let motion: any = null;
-let useInView: any = null;
-let useScroll: any = null;
-let useTransform: any = null;
+const STATIC_MOTION_PROPS = new Set([
+  "animate",
+  "custom",
+  "exit",
+  "initial",
+  "transition",
+  "variants",
+  "viewport",
+  "whileHover",
+  "whileInView",
+  "whileTap",
+]);
+
+const motion = new Proxy(
+  {},
+  {
+    get: (_, tagName: string) => {
+      return ({ children, ...props }: Record<string, any>) => {
+        const safeProps = Object.fromEntries(
+          Object.entries(props).filter(([key]) => !STATIC_MOTION_PROPS.has(key))
+        );
+
+        return createElement(tagName, safeProps, children);
+      };
+    },
+  }
+) as Record<string, (props: Record<string, any>) => JSX.Element>;
 
 // Animation variants - only used if framer-motion loads successfully
 const fadeUp = {
@@ -75,66 +96,16 @@ function Section({
   className?: string;
   id?: string;
 }) {
-  const ref = useRef(null);
-
-  // Only use animations if framer-motion loaded successfully
-  if (motion && useInView) {
-    const inView = useInView(ref, { once: true, margin: "-80px" });
-    const MotionSection = motion.section;
-    return (
-      <MotionSection
-        ref={ref}
-        id={id}
-        initial="hidden"
-        animate={inView ? "visible" : "hidden"}
-        className={className}
-      >
-        {children}
-      </MotionSection>
-    );
-  }
-
-  // Fallback to regular section for mobile browsers
   return (
-    <section ref={ref} id={id} className={className}>
+    <section id={id} className={className}>
       {children}
     </section>
   );
 }
 
 function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: string }) {
-  const ref = useRef(null);
-
-  // Only use complex animations if framer-motion loaded successfully
-  if (motion && useInView && useScroll && useTransform) {
-    const inView = useInView(ref, { once: true });
-    const count = useTransform(
-      useScroll({ target: ref, offset: ["start end", "end start"] }).scrollYProgress,
-      [0, 0.3],
-      [0, value]
-    );
-
-    const MotionSpan = motion.span;
-    return (
-      <span ref={ref} className="tabular-nums">
-        {inView ? (
-          <MotionSpan
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            {Math.round(value).toLocaleString()}{suffix}
-          </MotionSpan>
-        ) : (
-          "0"
-        )}
-      </span>
-    );
-  }
-
-  // Fallback to simple display for mobile browsers
   return (
-    <span ref={ref} className="tabular-nums">
+    <span className="tabular-nums">
       {Math.round(value).toLocaleString()}{suffix}
     </span>
   );
@@ -160,30 +131,19 @@ function MotionElement({
   children?: React.ReactNode;
   [key: string]: any;
 }) {
-  // Only use motion if framer-motion loaded successfully
-  if (motion) {
-    const MotionComponent = motion[Component as keyof typeof motion];
-    if (MotionComponent) {
-      return (
-        <MotionComponent
-          style={style}
-          initial={initial}
-          animate={animate}
-          transition={transition}
-          className={className}
-          {...props}
-        >
-          {children}
-        </MotionComponent>
-      );
-    }
-  }
+  const MotionComponent = motion[Component as keyof typeof motion] ?? Component;
 
-  // Fallback to regular HTML element for mobile browsers
   return (
-    <Component style={style} className={className} {...props}>
+    <MotionComponent
+      style={style}
+      initial={initial}
+      animate={animate}
+      transition={transition}
+      className={className}
+      {...props}
+    >
       {children}
-    </Component>
+    </MotionComponent>
   );
 }
 
@@ -372,37 +332,7 @@ const Index = () => {
   const { currency } = useGeo();
   const proPrice = getPrice("pro", currency).label;
 
-  // Load framer-motion conditionally to avoid stack overflow on mobile
-  useEffect(() => {
-    if (!shouldDisableAnimations()) {
-      import('framer-motion')
-        .then((framerMotion) => {
-          motion = framerMotion.motion;
-          useInView = framerMotion.useInView;
-          useScroll = framerMotion.useScroll;
-          useTransform = framerMotion.useTransform;
-        })
-        .catch((error) => {
-          console.warn('Failed to load framer-motion, using static fallbacks:', error);
-        });
-    }
-  }, []);
-
   const heroRef = useRef(null);
-
-  // Only use scroll-based animations if framer-motion loaded successfully
-  let scrollYProgress = null;
-  let heroY = null;
-  let heroOpacity = null;
-
-  if (useScroll && useTransform) {
-    scrollYProgress = useScroll({
-      target: heroRef,
-      offset: ["start start", "end start"],
-    }).scrollYProgress;
-    heroY = useTransform(scrollYProgress, [0, 1], [0, 150]);
-    heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
-  }
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
@@ -468,7 +398,6 @@ const Index = () => {
           </div>
 
           <MotionElement
-            style={heroY && heroOpacity ? { y: heroY, opacity: heroOpacity } : {}}
             className="container max-w-5xl mx-auto px-4 sm:px-6 text-center relative z-10"
           >
             {/* Badge */}
