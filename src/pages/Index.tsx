@@ -42,17 +42,34 @@ const STATIC_MOTION_PROPS = new Set([
   "whileTap",
 ]);
 
+// Create stable component references to prevent infinite re-rendering on mobile
+// Cache limited to common HTML elements to prevent memory leaks
+const motionComponentCache = new Map<string, React.ComponentType<any>>();
+const MAX_CACHE_SIZE = 20; // Reasonable limit for HTML element types
+
 const motion = new Proxy(
   {},
   {
     get: (_, tagName: string) => {
-      return ({ children, ...props }: Record<string, any>) => {
+      // Return cached component if available to prevent new function creation
+      if (motionComponentCache.has(tagName)) {
+        return motionComponentCache.get(tagName);
+      }
+
+      // Create stable component function
+      const Component = ({ children, ...props }: Record<string, any>) => {
         const safeProps = Object.fromEntries(
           Object.entries(props).filter(([key]) => !STATIC_MOTION_PROPS.has(key))
         );
 
         return createElement(tagName, safeProps, children);
       };
+
+      // Cache the component to prevent recreation (with size limit)
+      if (motionComponentCache.size < MAX_CACHE_SIZE) {
+        motionComponentCache.set(tagName, Component);
+      }
+      return Component;
     },
   }
 ) as Record<string, (props: Record<string, any>) => JSX.Element>;
