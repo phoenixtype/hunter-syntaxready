@@ -263,7 +263,7 @@ const ApplicationWizard = () => {
                         Targeted Keywords
                       </p>
                       <div className="flex flex-wrap gap-1.5">
-                        {job.tech_stack.map((tech, i) => (
+                        {job.tech_stack!.map((tech, i) => (
                           <Badge key={i} variant="secondary" className="text-xs font-medium">
                             {tech}
                           </Badge>

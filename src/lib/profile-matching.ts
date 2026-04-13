@@ -372,7 +372,7 @@ class ProfileMatchingEngine {
 
     if (overlapMax >= overlapMin) {
       const userRange = userMax - userMin
-      const _jobRange = jobMax - jobMin
+      // const jobRange = jobMax - jobMin
       const overlapRange = overlapMax - overlapMin
 
       // Calculate percentage of overlap

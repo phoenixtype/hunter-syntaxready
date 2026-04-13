@@ -365,7 +365,8 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
     }
   };
 
-  const _unused_handleResearchCompany = async (job: EnrichedJob) => { void job;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleResearchCompany = async (job: EnrichedJob) => {
     try {
       // Safety checks
       if (!job?.id || !job?.company) {

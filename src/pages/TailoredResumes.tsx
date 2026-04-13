@@ -75,7 +75,7 @@ interface TailoredResume {
 
 const TailoredResumes = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  useNavigate();
   const { isPro, isLoading: subLoading } = useSubscription();
   const tourRef = useRef<PageTourHandle>(null);
   const [resumes, setResumes] = useState<TailoredResume[]>([]);

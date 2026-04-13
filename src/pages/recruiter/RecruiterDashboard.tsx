@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Briefcase, Users, TrendingUp, Award, Plus, ChevronRight, Clock, Eye, Sparkles, Building2, Zap } from "lucide-react";
+import { Briefcase, Users, TrendingUp, Award, Plus, ChevronRight, Clock, Eye, Sparkles, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useRecruiterStats, useMyJobs, useRecruiterProfile } from "@/hooks/useRecruiter";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useGeo } from '@/hooks/useGeo';
-import { getStartingPrice } from '@/lib/pricing';
+// import { getStartingPrice } from '@/lib/pricing';
 import { LOCATION_TYPE_LABELS, EMPLOYMENT_TYPE_LABELS } from "@/lib/recruiter_engine";
 import type { RecruiterJob } from "@/lib/recruiter_engine";
 import { formatDistanceToNow } from "date-fns";
@@ -42,8 +42,8 @@ const RecruiterDashboard = () => {
   const { stats, loading: statsLoading } = useRecruiterStats();
   const { jobs, loading: jobsLoading } = useMyJobs();
   const { profile, loading: profileLoading } = useRecruiterProfile();
-  const { currentSubscription: subscription, refetch: refetchSubscription } = useSubscription();
-  const { currency } = useGeo();
+  const { refetch: refetchSubscription } = useSubscription();
+  useGeo();
  
   // Checkout success feedback
   useEffect(() => {

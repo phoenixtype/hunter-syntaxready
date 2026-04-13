@@ -9,7 +9,7 @@
  * Prioritizes Pro users in first 2 hours of each crawl wave.
  */
 
-import type { Database } from '@/integrations/supabase/types'
+// import type { Database } from '@/integrations/supabase/types'
 
 // type Profile = Database['public']['Tables']['profiles']['Row']
 
@@ -462,4 +462,4 @@ export const generateCrawlTargets = sourcePrioritizationEngine.generateCrawlTarg
 export const getSourceConfig = sourcePrioritizationEngine.getSourceConfig.bind(sourcePrioritizationEngine)
 export const calculateRateLimit = sourcePrioritizationEngine.calculateRateLimit.bind(sourcePrioritizationEngine)
 
-export type { WaveAllocation }
+export type { UserProfile, CrawlTarget }

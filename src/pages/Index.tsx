@@ -16,10 +16,7 @@ import {
   Target,
   Sparkles,
   Building2,
-  Globe,
-  Clock,
   BarChart3,
-  MessageSquare,
 } from "lucide-react";
 import { createElement, useRef } from "react";
 import MobileNav from "@/components/MobileNav";
@@ -70,12 +67,7 @@ const fadeUp = {
   }),
 };
 
-const fadeIn = {
-  hidden: { opacity: 0 },
-  visible: (i: number = 0) => ({
-    opacity: 1,
-    transition: { duration: 0.5, delay: i * 0.1 },
-  }),
+// fadeIn variant removed (unused)
 };
 
 const scaleIn = {

@@ -37,7 +37,7 @@ const JobHuntPlanner = () => {
   const navigate = useNavigate();
   const { profile } = useResume();
   const { user } = useAuth();
-  const { isPro, isLoading: subLoading } = useSubscription();
+  const { isPro } = useSubscription();
   const { isNigeria } = useGeo();
   const [activeStep, setActiveStep] = useState(1);
   const [loading, setLoading] = useState(true);

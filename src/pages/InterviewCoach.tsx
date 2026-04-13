@@ -60,7 +60,7 @@ const MODES: { id: Mode; label: string; icon: React.ElementType; desc: string }[
 ];
 
 const InterviewCoach = () => {
-  const navigate = useNavigate();
+  useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { profile } = useResume();

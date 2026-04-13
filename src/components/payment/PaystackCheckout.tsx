@@ -196,6 +196,7 @@ export function PaystackCheckout({
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _getNextPeriodEnd = (interval: string): Date => {
     const now = new Date();
     if (interval === 'yearly') {
