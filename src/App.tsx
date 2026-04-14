@@ -11,9 +11,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
-import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
-import Profile from "./pages/Profile";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -50,6 +48,11 @@ const AdminLogs = lazy(() => import("./pages/admin/AdminLogs"));
 const AdminReferrals = lazy(() => import("./pages/admin/AdminReferrals"));
 
 // Lazy-load heavy tool pages — reduces initial bundle by ~40%
+// Onboarding + Profile are lazy because they pull `country-state-city`
+// (7.7MB of city data) which blows iOS Safari's parser stack if eagerly
+// bundled into the main chunk.
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const Profile = lazy(() => import("./pages/Profile"));
 const ApplicationWizard = lazy(() => import("./pages/ApplicationWizard"));
 const AutoApplierSettings = lazy(() => import("./pages/AutoApplierSettings"));
 const InterviewCoach = lazy(() => import("./pages/InterviewCoach"));
