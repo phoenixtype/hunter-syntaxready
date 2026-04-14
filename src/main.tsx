@@ -1,25 +1,17 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import * as Sentry from "@sentry/react";
 import App from "./App.tsx";
 import "./index.css";
 
-// Sentry initialization - TEMPORARILY DISABLED for production mobile debugging
-// to rule out error-wrapping recursion loops.
-Sentry.init({
-  dsn: import.meta.env.VITE_SENTRY_DSN || "",
-  integrations: [
-    Sentry.browserTracingIntegration(),
-    Sentry.replayIntegration(),
-  ],
-  // Tracing
-  tracesSampleRate: 1.0, 
-  tracePropagationTargets: ["localhost", /^https:\/\/usehunter\.app/],
-  replaysSessionSampleRate: 0.1, 
-  replaysOnErrorSampleRate: 1.0, 
-  // Force disable in production to rule out recursion conflict
-  enabled: false, 
-});
+// Sentry.init() intentionally NOT called here.
+//
+// Why: Sentry v8's `enabled: false` only short-circuits event sending — it
+// does NOT prevent integrations from running. `browserTracingIntegration()`
+// and `replayIntegration()` still install their monkey-patches on fetch,
+// XHR, history, and DOM mutation observers, which triggered
+// "RangeError: Maximum call stack size exceeded" at boot on iOS Safari /
+// mobile Chrome. Without an explicit init, any `Sentry.captureException`
+// calls elsewhere in the app become no-ops (safe).
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
