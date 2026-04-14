@@ -62,48 +62,117 @@
       // Global process shim for mobile browser compatibility - Idempotent
       if (!window.process) window.process = { env: { NODE_ENV: 'production' } };
 
-      // Global Panic Overlay: display boot errors on screen for mobile debugging
-      (function() {
-        var isReporting = false; 
-        function showError(msg, err) {
-          if (isReporting) return; // Prevent recursion
-          isReporting = true;
+      // Boot diagnostic system v3 - captures full error info via addEventListener
+      // (more reliable than window.onerror on iOS Safari which strips location).
+      window.__HUNTER_BOOT__ = {
+        version: 'diag-v3',
+        startedAt: Date.now(),
+        steps: ['index.html:script-top'],
+      };
+      window.__HUNTER_STEP__ = function(name) {
+        try { window.__HUNTER_BOOT__.steps.push(name); } catch (_) {}
+      };
 
+      (function() {
+        var isReporting = false;
+        function escapeHtml(s) {
+          return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+        function renderPanic(info) {
+          if (isReporting) return;
+          isReporting = true;
           try {
-            console.error('[PANIC]', msg, err);
-            if (msg.includes('ResizeObserver')) { isReporting = false; return; }
-            
+            // Ignore the harmless ResizeObserver loop warning
+            if (info.message && /ResizeObserver/.test(info.message)) { isReporting = false; return; }
+
+            var boot = window.__HUNTER_BOOT__ || { version: '?', steps: [] };
+            var elapsed = Date.now() - (boot.startedAt || Date.now());
+            var stepsHtml = boot.steps.map(function(s, i) { return (i + 1) + '. ' + escapeHtml(s); }).join('\n');
+
             var overlay = document.createElement('div');
             overlay.id = 'panic-overlay';
-            overlay.style = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#fee2e2;color:#991b1b;padding:24px;font-family:monospace;z-index:999999;overflow:auto;';
-            overlay.innerHTML = '<h1 style="font-size:20px;margin-bottom:12px;">🚨 Hunter AI Boot Error</h1>' +
-              '<p style="font-size:14px;margin-bottom:16px;">The app failed to start. This is usually caused by an incompatible mobile browser or a missing API.</p>' +
-              '<div style="background:#fff;padding:12px;border-radius:8px;border:1px solid #f87171;">' +
-              '<p><strong>Message:</strong> ' + (msg || 'Unknown error') + '</p>' +
-              (err && err.stack ? '<pre style="font-size:10px;margin-top:8px;white-space:pre-wrap;">' + err.stack + '</pre>' : '') +
+            overlay.style.cssText = 'position:fixed;inset:0;background:#fee2e2;color:#991b1b;padding:16px;font-family:monospace;z-index:999999;overflow:auto;font-size:12px;line-height:1.4;';
+            overlay.innerHTML =
+              '<h1 style="font-size:18px;margin:0 0 8px;">🚨 Hunter AI Boot Error</h1>' +
+              '<p style="font-size:12px;margin:0 0 12px;">Build: <b>' + escapeHtml(boot.version) + '</b> · Elapsed: ' + elapsed + 'ms · UA: ' + escapeHtml(navigator.userAgent).slice(0, 80) + '</p>' +
+              '<div style="background:#fff;padding:10px;border-radius:6px;border:1px solid #f87171;margin-bottom:10px;">' +
+                '<p style="margin:0 0 6px;"><b>Source:</b> ' + escapeHtml(info.source || '(unknown)') + '</p>' +
+                '<p style="margin:0 0 6px;"><b>Message:</b> ' + escapeHtml(info.message || '(none)') + '</p>' +
+                '<p style="margin:0 0 6px;"><b>Location:</b> ' + escapeHtml(info.filename || '(empty)') + ':' + (info.lineno || 0) + ':' + (info.colno || 0) + '</p>' +
+                (info.stack ? '<p style="margin:8px 0 4px;"><b>Stack:</b></p><pre style="font-size:10px;white-space:pre-wrap;margin:0;max-height:200px;overflow:auto;">' + escapeHtml(info.stack) + '</pre>' : '') +
               '</div>' +
-              '<button onclick="location.reload()" style="margin-top:24px;background:#991b1b;color:#fff;border:none;padding:12px 24px;border-radius:6px;font-weight:bold;cursor:pointer;">Retry Loading</button>';
-            
-            if (document.body) {
-              document.body.appendChild(overlay);
-            } else {
-              // Final fallback if body isn't ready
-              document.documentElement.appendChild(overlay);
-            }
+              '<div style="background:#fff;padding:10px;border-radius:6px;border:1px solid #f87171;">' +
+                '<p style="margin:0 0 6px;"><b>Boot steps reached:</b></p>' +
+                '<pre style="font-size:10px;white-space:pre-wrap;margin:0;">' + stepsHtml + '</pre>' +
+              '</div>' +
+              '<button id="panic-reload" style="margin:16px 0 8px;background:#991b1b;color:#fff;border:none;padding:12px 24px;border-radius:6px;font-weight:bold;">Retry Loading</button> ' +
+              '<button id="panic-copy" style="margin:16px 0 8px;background:#1e40af;color:#fff;border:none;padding:12px 24px;border-radius:6px;font-weight:bold;">Copy Report</button>';
+
+            (document.body || document.documentElement).appendChild(overlay);
+
+            var reportText =
+              'Hunter AI Boot Error\n' +
+              'Build: ' + boot.version + '\n' +
+              'UA: ' + navigator.userAgent + '\n' +
+              'Elapsed: ' + elapsed + 'ms\n' +
+              'Source: ' + (info.source || '') + '\n' +
+              'Message: ' + (info.message || '') + '\n' +
+              'Location: ' + (info.filename || '') + ':' + (info.lineno || 0) + ':' + (info.colno || 0) + '\n' +
+              'Stack:\n' + (info.stack || '(no stack)') + '\n' +
+              'Steps:\n' + boot.steps.join('\n');
+
+            document.getElementById('panic-reload').onclick = function() { location.reload(); };
+            document.getElementById('panic-copy').onclick = function() {
+              try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                  navigator.clipboard.writeText(reportText);
+                } else {
+                  var ta = document.createElement('textarea');
+                  ta.value = reportText; document.body.appendChild(ta); ta.select();
+                  document.execCommand('copy'); document.body.removeChild(ta);
+                }
+                this.textContent = 'Copied!';
+              } catch (e) { this.textContent = 'Copy failed'; }
+            };
           } catch (panicErr) {
-            console.error('Fatal overlay error:', panicErr);
+            try { console.error('Fatal overlay error:', panicErr); } catch (_) {}
           } finally {
             isReporting = false;
           }
         }
 
-        window.onerror = function(msg, url, line, col, error) {
-          showError((msg || 'Uncaught error') + '\n' + (url || '') + ':' + (line || 0), error);
-          return false;
-        };
-        window.onunhandledrejection = function(event) {
-          showError('Promise Rejection: ' + (event.reason || 'No reason'), event.reason);
-        };
+        // addEventListener('error') gives us the full ErrorEvent (filename, lineno,
+        // colno, error.stack) on iOS Safari, unlike window.onerror which strips them.
+        window.addEventListener('error', function(event) {
+          var err = event.error;
+          renderPanic({
+            source: 'error-event',
+            message: (err && err.message) || event.message || 'Uncaught error',
+            filename: event.filename || (err && err.fileName) || '',
+            lineno: event.lineno || (err && err.lineNumber) || 0,
+            colno: event.colno || (err && err.columnNumber) || 0,
+            stack: (err && err.stack) || '',
+          });
+        }, true);
+
+        window.addEventListener('unhandledrejection', function(event) {
+          var reason = event.reason;
+          var msg = (reason && reason.message) || (typeof reason === 'string' ? reason : 'Unhandled promise rejection');
+          renderPanic({
+            source: 'unhandled-rejection',
+            message: msg,
+            filename: (reason && reason.fileName) || '',
+            lineno: (reason && reason.lineNumber) || 0,
+            colno: (reason && reason.columnNumber) || 0,
+            stack: (reason && reason.stack) || '',
+          });
+        });
+
+        // Expose for main.tsx try/catch reporting
+        window.__HUNTER_PANIC__ = renderPanic;
+
+        window.__HUNTER_STEP__('panic-handler:installed');
       })();
     </script>
     <div id="root"></div>
