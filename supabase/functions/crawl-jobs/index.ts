@@ -8,8 +8,8 @@ const GENERIC_AUTH_ERROR = 'Authentication required';
 const GENERIC_SESSION_ERROR = 'Session expired or invalid';
 const GENERIC_RATE_LIMIT_ERROR = 'Too many requests. Please try again later.';
 
-// Max jobs to process per search pass
-const MAX_JOBS_PER_PASS = 30;
+// Max jobs to process per search pass - reduced for better memory usage
+const MAX_JOBS_PER_PASS = 20;
 
 // ─── Utility helpers ──────────────────────────────────────────────────────────
 
@@ -211,7 +211,17 @@ async function jsearchFetch(apiKey: string, query: string, remoteOnly: boolean):
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      console.error(`[JSEARCH] Request failed: ${response.status}`);
+      const errorText = await response.text().catch(() => 'Unknown error');
+      console.error(`[JSEARCH] Request failed: ${response.status} ${response.statusText}`, errorText);
+
+      if (response.status === 429) {
+        throw new Error('Rate limit reached for job search API');
+      } else if (response.status === 401) {
+        throw new Error('Invalid API key for job search service');
+      } else if (response.status >= 500) {
+        throw new Error('Job search service temporarily unavailable');
+      }
+
       return [];
     }
 
@@ -222,6 +232,12 @@ async function jsearchFetch(apiKey: string, query: string, remoteOnly: boolean):
   } catch (err) {
     clearTimeout(timeoutId);
     console.error(`[JSEARCH] Error for "${query}":`, err);
+
+    // Re-throw specific errors for better error handling upstream
+    if (err instanceof Error && (err.message.includes('Rate limit') || err.message.includes('Invalid API key') || err.message.includes('temporarily unavailable'))) {
+      throw err;
+    }
+
     return [];
   }
 }
@@ -964,7 +980,8 @@ serve(async (req) => {
     } else {
       // ── SEARCH MODE (JSearch) ─────────────────────────────────────────────
       if (!jsearchApiKey) {
-        return jsonWithCors({ success: false, error: GENERIC_SERVICE_ERROR });
+        console.error('[CRAWL-JOBS] Missing JSEARCH_API_KEY environment variable');
+        return jsonWithCors({ success: false, error: 'Job search service is temporarily unavailable. Please try again in a few minutes.' });
       }
 
       const searchRoles  = Array.isArray(targetRoles) ? targetRoles.filter(Boolean).map(String) : [];
@@ -1026,20 +1043,36 @@ serve(async (req) => {
     let inserted = 0;
     let duplicates = 0;
 
-    for (const job of allJobs.slice(0, MAX_JOBS_PER_PASS)) {
-      try {
-        const { error } = await supabase
-          .from('job_listings')
-          .upsert(job, { onConflict: 'job_hash', ignoreDuplicates: true });
+    // Process jobs in smaller batches for better memory usage
+    const batchSize = 10;
+    const jobsToProcess = allJobs.slice(0, MAX_JOBS_PER_PASS);
 
-        if (error) {
-          if (error.code === '23505') duplicates++;
-          else console.error('[DB] Upsert error:', error.code);
-        } else {
-          inserted++;
+    for (let i = 0; i < jobsToProcess.length; i += batchSize) {
+      const batch = jobsToProcess.slice(i, i + batchSize);
+
+      for (const job of batch) {
+        try {
+          const { error } = await supabase
+            .from('job_listings')
+            .upsert(job, { onConflict: 'job_hash', ignoreDuplicates: true });
+
+          if (error) {
+            if (error.code === '23505') {
+              duplicates++;
+            } else {
+              console.error('[DB] Upsert error:', error.code, error.message);
+            }
+          } else {
+            inserted++;
+          }
+        } catch (err) {
+          console.error('[DB] Exception during upsert:', err instanceof Error ? err.message : String(err));
         }
-      } catch (err) {
-        console.error('[DB] Exception during upsert');
+      }
+
+      // Small delay between batches to prevent overwhelming the database
+      if (i + batchSize < jobsToProcess.length) {
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
     }
 
@@ -1051,9 +1084,22 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('[ERROR] Unhandled exception in crawl-jobs');
+    console.error('[CRAWL-JOBS] Unhandled exception:', error);
+
+    // Provide more specific error messages based on the error type
+    let userMessage = GENERIC_SERVICE_ERROR;
+    if (error instanceof Error) {
+      if (error.message.includes('timeout') || error.message.includes('AbortError')) {
+        userMessage = 'Job search timed out. Please try again with fewer keywords.';
+      } else if (error.message.includes('rate limit') || error.message.includes('429')) {
+        userMessage = 'Rate limit reached. Please wait a moment before searching again.';
+      } else if (error.message.includes('API key') || error.message.includes('401')) {
+        userMessage = 'Job search service configuration error. Please contact support.';
+      }
+    }
+
     return new Response(
-      JSON.stringify({ success: false, error: GENERIC_SERVICE_ERROR }),
+      JSON.stringify({ success: false, error: userMessage, debug: error instanceof Error ? error.message : String(error) }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

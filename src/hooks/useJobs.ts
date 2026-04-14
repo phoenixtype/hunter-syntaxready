@@ -10,13 +10,16 @@ import { searchJobsCached, getJobMatchesCached, cachedJobEngine } from "@/lib/ca
 import { checkFeatureLimit, recordUsage } from "@/lib/redis-rate-limiter";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
-// cache-manager import removed (unused)
+import { backgroundJobService } from "@/lib/background-job-service";
+import { realtimeJobStream } from "@/lib/realtime-job-stream";
+import { shouldUseReducedMode } from "@/lib/mobile-safety";
 
 export interface EnrichedJob extends JobOpportunity {
     match?: MatchResult;
 }
 
-const PAGE_SIZE = 20;
+// Reduce page size on mobile for better memory usage
+const PAGE_SIZE = shouldUseReducedMode() ? 10 : 20;
 
 export const useJobs = (profile: CandidateProfile | null, preferences?: UserPreferences | null, searchQuery?: string, locationQuery?: string) => {
     const queryClient = useQueryClient();
@@ -247,6 +250,74 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
         }
     });
 
+    // Initialize background job service when profile and preferences are available
+    useEffect(() => {
+        if (!user?.id || !profile || !preferences?.target_roles?.length) {
+            backgroundJobService.stop();
+            realtimeJobStream.stop();
+            return;
+        }
+
+        // Start background service with user profile and preferences
+        backgroundJobService.start(profile, preferences);
+
+        // Start real-time job streaming
+        const userFilters = {
+            target_roles: preferences.target_roles || [],
+            locations: preferences.locations || [],
+            remote_policy: preferences.remote_policy || 'hybrid',
+            skills: profile.skills?.slice(0, 10)?.map((s: any) => s.name) || [],
+            excluded_companies: preferences.excluded_companies || []
+        };
+        realtimeJobStream.start(userFilters);
+
+        return () => {
+            backgroundJobService.stop();
+            realtimeJobStream.stop();
+        };
+    }, [user?.id, profile, preferences?.target_roles?.join(','), preferences?.locations?.join(','), preferences?.remote_policy]);
+
+    // Listen for job events (background refresh and real-time matches)
+    useEffect(() => {
+        const handleJobsRefreshed = (event: CustomEvent) => {
+            console.log('[JOBS] Background refresh completed:', event.detail);
+
+            // Invalidate and refetch jobs to show fresh data
+            queryClient.invalidateQueries({ queryKey: ['jobs'] });
+            queryClient.invalidateQueries({ queryKey: ['jobCount'] });
+            refreshJobs();
+
+            // Show notification for manual refreshes
+            if (event.detail.isManual && event.detail.inserted > 0) {
+                toast.success(`Found ${event.detail.inserted} new jobs!`);
+            }
+        };
+
+        const handleNewJobMatch = (event: CustomEvent) => {
+            console.log('[JOBS] New real-time job match:', event.detail);
+
+            // Invalidate job queries to include the new job
+            queryClient.invalidateQueries({ queryKey: ['jobs'] });
+            queryClient.invalidateQueries({ queryKey: ['jobCount'] });
+        };
+
+        const handleViewJobMatch = (event: CustomEvent) => {
+            console.log('[JOBS] User wants to view job match:', event.detail);
+            // This could navigate to job details or open a modal
+            // Implementation depends on your routing/modal system
+        };
+
+        window.addEventListener('jobs:refreshed', handleJobsRefreshed as EventListener);
+        window.addEventListener('jobs:new-match', handleNewJobMatch as EventListener);
+        window.addEventListener('jobs:view-match', handleViewJobMatch as EventListener);
+
+        return () => {
+            window.removeEventListener('jobs:refreshed', handleJobsRefreshed as EventListener);
+            window.removeEventListener('jobs:new-match', handleNewJobMatch as EventListener);
+            window.removeEventListener('jobs:view-match', handleViewJobMatch as EventListener);
+        };
+    }, [queryClient, refreshJobs]);
+
     // Auto-crawl once per browser session when the user has a profile +
     // preferences but no fresh jobs yet.  Using sessionStorage (rather than a
     // plain ref) means the flag resets on each page load / tab open, so the
@@ -278,6 +349,9 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
         crawling: isCrawling,
         refreshJobs,
         crawl: (extra?: string[]) => crawl(extra),
+        manualRefresh: () => backgroundJobService.manualRefresh(profile, preferences),
+        backgroundStatus: backgroundJobService.getStatus(),
+        realtimeStatus: realtimeJobStream.getStatus(),
         page,
         setPage,
         totalPages

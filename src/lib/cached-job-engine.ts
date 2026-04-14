@@ -17,6 +17,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { cache, CacheKeys, CacheTTL, invalidateJobsCache } from './cache-manager';
+import { shouldUseReducedMode, hasLimitedMemory } from './mobile-safety';
 import type { Database } from '@/integrations/supabase/types';
 
 type JobListing = Database['public']['Tables']['job_listings']['Row'];
@@ -50,6 +51,21 @@ interface CompanyCrawlResult {
 class CachedJobEngine {
 
   /**
+   * Get memory-aware limits for mobile devices
+   */
+  private getMemoryLimits() {
+    const isLowMemory = hasLimitedMemory();
+    const isReduced = shouldUseReducedMode();
+
+    return {
+      maxCacheEntries: isLowMemory ? 20 : isReduced ? 50 : 100,
+      maxJobsPerResult: isLowMemory ? 10 : isReduced ? 15 : 20,
+      cacheTTL: isLowMemory ? 10 * 60 * 1000 : 30 * 60 * 1000, // 10min vs 30min
+      maxDescriptionLength: isLowMemory ? 500 : 2000
+    };
+  }
+
+  /**
    * Search jobs with intelligent caching
    */
   async searchJobs(
@@ -58,25 +74,36 @@ class CachedJobEngine {
     page: number = 1,
     limit: number = 20
   ): Promise<CachedSearchResult> {
+    const memoryLimits = this.getMemoryLimits();
+    const effectiveLimit = Math.min(limit, memoryLimits.maxJobsPerResult);
+
     // Create cache key from search parameters
-    const searchKey = this.createSearchKey(query, filters, page, limit);
+    const searchKey = this.createSearchKey(query, filters, page, effectiveLimit);
     const cacheKey = CacheKeys.JOBS_SEARCH(searchKey, page);
 
-    // Try cache first
-    const cached = cache.get<CachedSearchResult>(cacheKey);
-    if (cached) {
-      console.log(`[JOBS_CACHE] Cache hit for search: ${query}`);
-      return cached;
+    // Try cache first (but skip cache on very low memory devices to save RAM)
+    if (!hasLimitedMemory()) {
+      const cached = cache.get<CachedSearchResult>(cacheKey);
+      if (cached) {
+        console.log(`[JOBS_CACHE] Cache hit for search: ${query}`);
+        return cached;
+      }
     }
 
     console.log(`[JOBS_CACHE] Cache miss for search: ${query}, fetching from DB`);
 
     try {
-      // Build database query
+      const memoryLimits = this.getMemoryLimits();
+
+      // Build database query with memory-conscious field selection
+      const fieldsToSelect = hasLimitedMemory()
+        ? 'id,title,company,location,salary_range,created_at,freshness_score,url,posted_at'
+        : '*';
+
       let dbQuery = supabase
         .from('job_listings')
-        .select('*', { count: 'exact' })
-        .range((page - 1) * limit, page * limit - 1)
+        .select(fieldsToSelect, { count: 'exact' })
+        .range((page - 1) * effectiveLimit, page * effectiveLimit - 1)
         .order('created_at', { ascending: false });
 
       // Apply filters
@@ -115,16 +142,30 @@ class CachedJobEngine {
         throw error;
       }
 
+      // Process jobs for memory efficiency
+      const processedJobs = (jobs || []).map(job => {
+        // Truncate description on low memory devices
+        if (hasLimitedMemory() && job.description && job.description.length > memoryLimits.maxDescriptionLength) {
+          return {
+            ...job,
+            description: job.description.substring(0, memoryLimits.maxDescriptionLength) + '...'
+          };
+        }
+        return job;
+      });
+
       const result: CachedSearchResult = {
-        jobs: jobs || [],
+        jobs: processedJobs,
         totalCount: count || 0,
         page,
-        hasMore: (count || 0) > page * limit,
+        hasMore: (count || 0) > page * effectiveLimit,
         cachedAt: Date.now()
       };
 
-      // Cache the result (shorter TTL for searches to keep results fresh)
-      cache.set(cacheKey, result, CacheTTL.SHORT);
+      // Cache the result only if not on very limited memory devices
+      if (!hasLimitedMemory()) {
+        cache.set(cacheKey, result, memoryLimits.cacheTTL);
+      }
 
       return result;
 
