@@ -1,13 +1,19 @@
-import { useState, useMemo } from "react";
-import { Country, State, City } from "country-state-city";
+import { useState, useMemo, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { X, Plus } from "lucide-react";
 import { CountryCombobox } from "@/components/CountryCombobox";
-
-const ALL_COUNTRIES = Country.getAllCountries();
+import {
+  loadCountries,
+  getStatesOfCountry,
+  getCitiesOfCountry,
+  getCitiesOfState,
+  type CSCCountry,
+  type CSCState,
+  type CSCCity,
+} from "@/lib/csc_runtime";
 
 interface LocationPickerProps {
   locations: string[];
@@ -15,24 +21,53 @@ interface LocationPickerProps {
 }
 
 const LocationPicker = ({ locations, onChange }: LocationPickerProps) => {
+  const [allCountries, setAllCountries] = useState<CSCCountry[]>([]);
+  const [states, setStates] = useState<CSCState[]>([]);
+  const [cityPool, setCityPool] = useState<CSCCity[]>([]);
+
   const [countryCode, setCountryCode] = useState("US");
   const [stateCode, setStateCode] = useState("");
   const [city, setCity] = useState("");
   const [cityQuery, setCityQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
 
-  const states = useMemo(() => State.getStatesOfCountry(countryCode), [countryCode]);
+  useEffect(() => {
+    let cancelled = false;
+    loadCountries().then((list) => {
+      if (!cancelled) setAllCountries(list);
+    }).catch((err) => console.error("[LocationPicker] countries load failed:", err));
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!countryCode) { setStates([]); return; }
+    let cancelled = false;
+    getStatesOfCountry(countryCode).then((s) => {
+      if (!cancelled) setStates(s);
+    }).catch((err) => console.error("[LocationPicker] states load failed:", err));
+    return () => { cancelled = true; };
+  }, [countryCode]);
+
+  useEffect(() => {
+    if (!countryCode) { setCityPool([]); return; }
+    let cancelled = false;
+    const loader = stateCode
+      ? getCitiesOfState(countryCode, stateCode)
+      : getCitiesOfCountry(countryCode);
+    loader.then((c) => {
+      if (!cancelled) setCityPool(c);
+    }).catch((err) => console.error("[LocationPicker] cities load failed:", err));
+    return () => { cancelled = true; };
+  }, [countryCode, stateCode]);
+
   const hasStates = states.length > 0;
 
   const citySuggestions = useMemo(() => {
     if (!cityQuery || cityQuery.length < 2) return [];
-    const source = stateCode
-      ? City.getCitiesOfState(countryCode, stateCode)
-      : City.getCitiesOfCountry(countryCode) || [];
-    return source
+    return cityPool
       .filter(c => c.name.toLowerCase().startsWith(cityQuery.toLowerCase()))
       .slice(0, 10);
-  }, [cityQuery, countryCode, stateCode]);
+  }, [cityQuery, cityPool]);
 
   const handleCountryChange = (iso: string) => {
     setCountryCode(iso);
@@ -42,7 +77,7 @@ const LocationPicker = ({ locations, onChange }: LocationPickerProps) => {
   };
 
   const addLocation = () => {
-    const countryName = ALL_COUNTRIES.find(c => c.isoCode === countryCode)?.name || countryCode;
+    const countryName = allCountries.find(c => c.isoCode === countryCode)?.name || countryCode;
     const stateName = states.find(s => s.isoCode === stateCode)?.name || stateCode;
     const parts = [city.trim(), stateName, countryName].filter(Boolean);
     const formatted = parts.join(", ");

@@ -66,7 +66,6 @@ step("main.tsx:loaded");
     await probe("page-index",      () => import("./pages/Index"));
     await probe("page-login",      () => import("./pages/Login"));
     await probe("page-signup",     () => import("./pages/SignUp"));
-    await probe("page-dashboard",  () => import("./pages/Dashboard"));
     await probe("page-privacy",    () => import("./pages/Privacy"));
     await probe("page-terms",      () => import("./pages/Terms"));
     await probe("page-forgot",     () => import("./pages/ForgotPassword"));

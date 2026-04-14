@@ -1,9 +1,7 @@
-import { useState, useMemo } from "react";
-import { Country } from "country-state-city";
+import { useState, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Check } from "lucide-react";
-
-const ALL_COUNTRIES = Country.getAllCountries();
+import { loadCountries, type CSCCountry } from "@/lib/csc_runtime";
 
 interface CountryComboboxProps {
   value: string; // ISO code e.g. "US"
@@ -13,18 +11,30 @@ interface CountryComboboxProps {
 }
 
 export function CountryCombobox({ value, onChange, className, inputClassName }: CountryComboboxProps) {
-  const selected = useMemo(() => ALL_COUNTRIES.find(c => c.isoCode === value), [value]);
+  const [countries, setCountries] = useState<CSCCountry[]>([]);
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
 
+  useEffect(() => {
+    let cancelled = false;
+    loadCountries().then((list) => {
+      if (!cancelled) setCountries(list);
+    }).catch((err) => {
+      console.error("[CountryCombobox] Failed to load countries:", err);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  const selected = useMemo(() => countries.find(c => c.isoCode === value), [countries, value]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return ALL_COUNTRIES.slice(0, 25);
-    return ALL_COUNTRIES.filter(c =>
+    if (!q) return countries.slice(0, 25);
+    return countries.filter(c =>
       c.name.toLowerCase().startsWith(q) ||
       c.isoCode.toLowerCase() === q
     ).slice(0, 15);
-  }, [query]);
+  }, [query, countries]);
 
   const handleFocus = () => {
     setQuery(selected?.name ?? "");
@@ -42,9 +52,10 @@ export function CountryCombobox({ value, onChange, className, inputClassName }: 
         onChange={e => { setQuery(e.target.value); setOpen(true); }}
         onFocus={handleFocus}
         onBlur={handleBlur}
-        placeholder="Search country…"
+        placeholder={countries.length === 0 ? "Loading…" : "Search country…"}
         className={inputClassName}
         autoComplete="off"
+        disabled={countries.length === 0}
       />
       {open && filtered.length > 0 && (
         <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-modal max-h-52 overflow-y-auto">

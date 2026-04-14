@@ -11,7 +11,6 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
-import Dashboard from "./pages/Dashboard";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -53,6 +52,7 @@ const AdminReferrals = lazy(() => import("./pages/admin/AdminReferrals"));
 // bundled into the main chunk.
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Profile = lazy(() => import("./pages/Profile"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
 const ApplicationWizard = lazy(() => import("./pages/ApplicationWizard"));
 const AutoApplierSettings = lazy(() => import("./pages/AutoApplierSettings"));
 const InterviewCoach = lazy(() => import("./pages/InterviewCoach"));
