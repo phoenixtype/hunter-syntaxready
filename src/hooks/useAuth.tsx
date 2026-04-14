@@ -2,6 +2,8 @@ import { useState, useEffect, createContext, useContext, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+try { (globalThis as { __HUNTER_STEP__?: (n: string) => void }).__HUNTER_STEP__?.('useAuth:body-start'); } catch { /* ignore */ }
+
 interface SignUpResult {
   error: Error | null;
   data: { user: User | null; session: Session | null } | null;

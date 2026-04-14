@@ -11,6 +11,8 @@
  * We lazy-import it and fall back gracefully.
  */
 
+try { (globalThis as { __HUNTER_STEP__?: (n: string) => void }).__HUNTER_STEP__?.('mobile-app-init:body-start'); } catch { /* ignore */ }
+
 /** Safely check if Capacitor native platform is available */
 async function isNativePlatform(): Promise<boolean> {
   try {

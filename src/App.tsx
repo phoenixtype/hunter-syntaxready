@@ -40,6 +40,8 @@ import PageLoader from "./components/PageLoader";
 import { HunterAIMobile } from "./mobile-app-init";
 import { BottomNavigation } from "./components/mobile/BottomNavigation";
 
+try { (globalThis as { __HUNTER_STEP__?: (n: string) => void }).__HUNTER_STEP__?.('App:body-start'); } catch { /* ignore */ }
+
 // Admin pages (lazy)
 const AdminOverview = lazy(() => import("./pages/admin/AdminOverview"));
 const RecruiterApplicationsPage = lazy(() => import("./pages/admin/RecruiterApplications"));
@@ -179,6 +181,8 @@ const AdminPage = ({ children }: { children: React.ReactNode }) => (
     </RequireAdmin>
   </ProtectedRoute>
 );
+
+try { (globalThis as { __HUNTER_STEP__?: (n: string) => void }).__HUNTER_STEP__?.('App:pre-component-def'); } catch { /* ignore */ }
 
 const App = () => (
   <ErrorBoundary>

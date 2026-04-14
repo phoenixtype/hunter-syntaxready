@@ -27,6 +27,8 @@ import SEOHead from "@/components/SEOHead";
 import { useGeo } from "@/hooks/useGeo";
 import { getPrice } from "@/lib/pricing";
 
+try { (globalThis as { __HUNTER_STEP__?: (n: string) => void }).__HUNTER_STEP__?.('Index:body-start'); } catch { /* ignore */ }
+
 // ── Animation helpers (mobile-safe static fallback) ──────────────────────────
 
 const STATIC_MOTION_PROPS = new Set([

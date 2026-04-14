@@ -1,5 +1,7 @@
 import * as Sentry from '@sentry/react';
 
+try { (globalThis as { __HUNTER_STEP__?: (n: string) => void }).__HUNTER_STEP__?.('logger:body-start'); } catch { /* ignore */ }
+
 /**
  * Unified logger that automatically pipes warnings and exceptions to Sentry 
  * while maintaining console output for local development.
