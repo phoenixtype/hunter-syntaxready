@@ -143,7 +143,7 @@ class CachedJobEngine {
       }
 
       // Process jobs for memory efficiency
-      const processedJobs = (jobs || []).map(job => {
+      const processedJobs = ((jobs as any[]) || []).map((job: any) => {
         // Truncate description on low memory devices
         if (hasLimitedMemory() && job.description && job.description.length > memoryLimits.maxDescriptionLength) {
           return {
