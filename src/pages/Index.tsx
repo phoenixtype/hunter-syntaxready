@@ -507,11 +507,11 @@ const Index = () => {
           >
             <div className="p-4 rounded-2xl bg-card border border-border shadow-xl animate-float animation-delay-2000">
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-7 h-7 rounded-lg bg-purple-500/15 flex items-center justify-center">
-                  <FileText className="w-3.5 h-3.5 text-purple-600" />
+                <div className="w-7 h-7 rounded-lg bg-secondary flex items-center justify-center">
+                  <FileText className="w-3.5 h-3.5 text-primary" />
                 </div>
                 <span className="text-xs font-medium">Resume Tailored</span>
-                <CheckCircle2 className="w-3.5 h-3.5 text-green-500 ml-auto" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-success ml-auto" />
               </div>
               <div className="space-y-1.5">
                 <div className="h-1.5 w-full bg-muted rounded-full" />
@@ -763,7 +763,7 @@ const Index = () => {
                 >
                   <div className="flex gap-0.5 mb-4">
                     {Array.from({ length: 5 }).map((_, j) => (
-                      <Star key={j} className="w-4 h-4 fill-[#fbbc05] text-[#fbbc05]" />
+                      <Star key={j} className="w-4 h-4 fill-warning text-warning" />
                     ))}
                   </div>
                   <p className="text-sm leading-relaxed mb-6 flex-1">"{t.quote}"</p>
@@ -905,7 +905,7 @@ const Index = () => {
               </div>
 
               <motion.div variants={scaleIn} custom={2}>
-                <div className="rounded-2xl bg-gradient-to-br from-blue-500/15 to-purple-500/15 p-8 sm:p-12">
+                <div className="rounded-2xl bg-secondary/60 p-8 sm:p-12">
                   <div className="bg-card rounded-xl border border-border shadow-xl p-6 space-y-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
