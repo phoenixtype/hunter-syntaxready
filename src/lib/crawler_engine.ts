@@ -144,8 +144,8 @@ export const searchJobs = async (
       .from('job_listings')
       .select('*', { count: 'exact' })
       .gte('created_at', thirtyDaysAgo.toISOString())
-      .order('freshness_score', { ascending: false })
       .order('created_at', { ascending: false })
+      .order('freshness_score', { ascending: false })
       .range(from, to - 1);
 
     // ── Role / keyword filter ─────────────────────────────────────────────

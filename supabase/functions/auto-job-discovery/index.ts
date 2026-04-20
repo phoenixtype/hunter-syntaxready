@@ -39,29 +39,58 @@ serve(async (req) => {
     // Get users who need fresh job matches (haven't been updated in last 6 hours)
     const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
 
-    const { data: profiles, error: profilesError } = await supabase
+    // Pull users from profiles (for last_job_sync) and join with user_preferences/candidate_profiles
+    const { data: profileRows, error: profilesError } = await supabase
       .from('profiles')
-      .select(`
-        id,
-        user_id,
-        target_roles,
-        locations,
-        remote_policy,
-        skills,
-        last_job_sync
-      `)
+      .select('id, last_job_sync')
       .or(`last_job_sync.is.null,last_job_sync.lt.${sixHoursAgo}`)
-      .not('target_roles', 'is', null)
-      .limit(BATCH_SIZE);
+      .limit(BATCH_SIZE * 4); // over-select; we filter by target_roles below
 
     if (profilesError) {
       console.error('[AUTO_DISCOVERY] Error fetching profiles:', profilesError);
       return jsonWithCors({ success: false, error: 'Failed to fetch user profiles' });
     }
 
-    if (!profiles || profiles.length === 0) {
+    if (!profileRows || profileRows.length === 0) {
       console.log('[AUTO_DISCOVERY] No profiles need job updates');
       return jsonWithCors({ success: true, message: 'No profiles need updates', processed: 0 });
+    }
+
+    const userIds = profileRows.map((p: { id: string }) => p.id);
+
+    const [{ data: prefs }, { data: candidateProfiles }] = await Promise.all([
+      supabase
+        .from('user_preferences')
+        .select('user_id, target_roles, locations, remote_policy')
+        .in('user_id', userIds)
+        .not('target_roles', 'is', null),
+      supabase
+        .from('candidate_profiles')
+        .select('user_id, skills')
+        .in('user_id', userIds),
+    ]);
+
+    const skillsByUser = new Map<string, Array<{ name: string }>>(
+      (candidateProfiles || []).map((c: { user_id: string; skills: unknown }) => [
+        c.user_id,
+        Array.isArray(c.skills) ? (c.skills as Array<{ name: string }>) : [],
+      ])
+    );
+
+    const profiles = (prefs || [])
+      .filter((p: { target_roles: string[] | null }) => Array.isArray(p.target_roles) && p.target_roles.length > 0)
+      .slice(0, BATCH_SIZE)
+      .map((p: { user_id: string; target_roles: string[] | null; locations: string[] | null; remote_policy: string | null }) => ({
+        user_id: p.user_id,
+        target_roles: p.target_roles || [],
+        locations: p.locations || [],
+        remote_policy: p.remote_policy || 'flexible',
+        skills: skillsByUser.get(p.user_id) || [],
+      }));
+
+    if (profiles.length === 0) {
+      console.log('[AUTO_DISCOVERY] No profiles with target_roles need updates');
+      return jsonWithCors({ success: true, message: 'No eligible profiles', processed: 0 });
     }
 
     console.log(`[AUTO_DISCOVERY] Processing ${profiles.length} profiles`);
@@ -93,6 +122,8 @@ serve(async (req) => {
           continue;
         }
 
+        console.log(`[AUTO_DISCOVERY] crawl result for ${profile.user_id}:`, JSON.stringify(crawlResult).slice(0, 300));
+
         if (crawlResult?.success) {
           totalJobsFound += crawlResult.inserted || 0;
           console.log(`[AUTO_DISCOVERY] Found ${crawlResult.inserted} new jobs for user ${profile.user_id}`);
@@ -101,7 +132,7 @@ serve(async (req) => {
           await supabase
             .from('profiles')
             .update({ last_job_sync: new Date().toISOString() })
-            .eq('user_id', profile.user_id);
+            .eq('id', profile.user_id);
 
           processedUsers++;
         }

@@ -58,10 +58,13 @@ function sanitizeJobTitle(title: string): string {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 
 function isHealthCheckRequest(req: Request): boolean {
+  // Real health probes never send an Authorization header.
+  // Treating any unauthenticated GET/HEAD as a probe avoids misclassifying
+  // authenticated internal calls (e.g. cron / auto-job-discovery) as probes.
+  if (req.headers.get('Authorization')) return false;
+  if (req.method === 'HEAD' || req.method === 'GET') return true;
   const ua = req.headers.get('user-agent')?.toLowerCase() || '';
-  const isProbe = ua.includes('supabase') || ua.includes('healthcheck') || ua.includes('uptime') || ua.includes('monitoring') || ua.includes('crawler') || ua.includes('bot') || ua === '';
-  const isHealthMethod = req.method === 'HEAD' || (req.method === 'GET' && !req.headers.get('Authorization'));
-  return isProbe || isHealthMethod;
+  return ua.includes('healthcheck') || ua.includes('uptime') || ua.includes('monitoring');
 }
 
 // ─── Tech stack extractor ─────────────────────────────────────────────────────
@@ -671,29 +674,42 @@ serve(async (req) => {
       return jsonWithCors({ success: false, error: GENERIC_AUTH_ERROR }, { status: 401 });
     }
 
-    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-      auth: { persistSession: false }
-    });
-
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    if (authError || !user) {
-      return jsonWithCors({ success: false, error: GENERIC_SESSION_ERROR }, { status: 401 });
-    }
+    // Detect service-role calls (e.g. from cron / auto-job-discovery).
+    // The service-role JWT is sent verbatim by edge functions invoking this one
+    // via a service-role supabase client. Service-role calls bypass user auth
+    // and rate limiting because they're trusted internal system traffic.
+    const bearerToken = authHeader.replace(/^Bearer\s+/i, '');
+    const isServiceRole = bearerToken === supabaseServiceKey;
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    let user: { id: string } | null = null;
 
-    const { RateLimiter } = await import('../_shared/rate-limiter.ts');
-    const limiter = new RateLimiter(supabase, user.id);
-    const { allowed, error: limitError } = await limiter.isAllowed('crawl-jobs', {
-      free: { max: 10,  window: 60 },
-      pro:  { max: 30, window: 60 },
-    });
-    if (!allowed) {
-      return new Response(JSON.stringify({ success: false, error: limitError || GENERIC_RATE_LIMIT_ERROR }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': '60' } });
+    if (isServiceRole) {
+      console.log('[AUTH] Service-role call (system/cron) — bypassing user auth');
+    } else {
+      const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } },
+        auth: { persistSession: false }
+      });
+
+      const { data: { user: authedUser }, error: authError } = await supabaseClient.auth.getUser();
+      if (authError || !authedUser) {
+        return jsonWithCors({ success: false, error: GENERIC_SESSION_ERROR }, { status: 401 });
+      }
+      user = authedUser;
+
+      const { RateLimiter } = await import('../_shared/rate-limiter.ts');
+      const limiter = new RateLimiter(supabase, user.id);
+      const { allowed, error: limitError } = await limiter.isAllowed('crawl-jobs', {
+        free: { max: 10,  window: 60 },
+        pro:  { max: 30, window: 60 },
+      });
+      if (!allowed) {
+        return new Response(JSON.stringify({ success: false, error: limitError || GENERIC_RATE_LIMIT_ERROR }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': '60' } });
+      }
+
+      console.log('[AUTH] User:', user.id);
     }
-
-    console.log('[AUTH] User:', user.id);
 
     const body = await req.json();
     const { mode, keywords, url, location, locations, remotePolicy, targetRoles } = body;
