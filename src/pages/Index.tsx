@@ -147,37 +147,31 @@ const FEATURES = [
     icon: Briefcase,
     title: "Smart Job Discovery",
     desc: "AI searches real job boards in real time, ranks matches by fit, and delivers a personalized feed — no more endless scrolling.",
-    color: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
   },
   {
     icon: FileText,
     title: "AI Resume Builder",
     desc: "Build an ATS-optimized resume through a guided flow. Our AI generates professional bullets from your raw experience.",
-    color: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
   },
   {
     icon: Zap,
     title: "One-Click Tailoring",
     desc: "Rewrite your resume and generate a custom cover letter for any specific job — in seconds, not hours.",
-    color: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
   },
   {
     icon: Shield,
     title: "ATS Compatibility",
     desc: "Score your resume against applicant tracking systems before applying. Know your resume will actually be read by a human.",
-    color: "bg-green-500/10 text-green-600 dark:text-green-400",
   },
   {
     icon: GraduationCap,
     title: "Interview Coach",
     desc: "Practice behavioral, technical, and salary negotiation scenarios with an AI coach tailored to your target role.",
-    color: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
   },
   {
     icon: Bot,
     title: "Hunt Planner",
     desc: "Set your preferences once — target titles, locations, salary. hunter.ai surfaces the most relevant jobs and can apply on your behalf.",
-    color: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400",
   },
 ];
 
@@ -192,7 +186,6 @@ const SHOWCASE_SECTIONS = [
       "Personalized feed that improves with feedback",
     ],
     icon: Target,
-    gradient: "from-blue-500/20 to-purple-500/20",
   },
   {
     badge: "Apply",
@@ -204,7 +197,6 @@ const SHOWCASE_SECTIONS = [
       "Export as ATS-friendly PDF or DOCX",
     ],
     icon: Sparkles,
-    gradient: "from-amber-500/20 to-rose-500/20",
   },
   {
     badge: "Prepare",
@@ -216,7 +208,6 @@ const SHOWCASE_SECTIONS = [
       "Salary negotiation practice",
     ],
     icon: GraduationCap,
-    gradient: "from-green-500/20 to-cyan-500/20",
   },
 ];
 
