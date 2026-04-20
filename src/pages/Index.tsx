@@ -847,13 +847,13 @@ const Index = () => {
                 </div>
                 {!isAuthenticated ? (
                   <Link to="/signup">
-                    <Button className="w-full rounded-full h-11 font-semibold shadow-md-1">
+                    <Button className="w-full rounded-full h-11 font-semibold shadow-md-1 bg-primary text-primary-foreground hover:bg-primary/90">
                       Start Free Trial <ArrowRight className="w-4 h-4 ml-1" />
                     </Button>
                   </Link>
                 ) : (
                   <Link to="/settings">
-                    <Button className="w-full rounded-full h-11 font-semibold shadow-md-1">
+                    <Button className="w-full rounded-full h-11 font-semibold shadow-md-1 bg-primary text-primary-foreground hover:bg-primary/90">
                       Upgrade to Pro <ArrowRight className="w-4 h-4 ml-1" />
                     </Button>
                   </Link>
@@ -949,13 +949,13 @@ const Index = () => {
               </p>
               {isAuthenticated ? (
                 <Link to="/dashboard">
-                  <Button size="lg" className="px-10 h-13 text-[0.9375rem] font-semibold rounded-full gap-2 shadow-lg">
+                  <Button size="lg" className="px-10 h-13 text-[0.9375rem] font-semibold rounded-full gap-2 shadow-lg bg-primary text-primary-foreground hover:bg-primary/90">
                     Go to Dashboard <ChevronRight className="w-4 h-4" />
                   </Button>
                 </Link>
               ) : (
                 <Link to="/signup">
-                  <Button size="lg" className="px-10 h-13 text-[0.9375rem] font-semibold rounded-full gap-2 shadow-lg">
+                  <Button size="lg" className="px-10 h-13 text-[0.9375rem] font-semibold rounded-full gap-2 shadow-lg bg-primary text-primary-foreground hover:bg-primary/90">
                     Get Started Free <ChevronRight className="w-4 h-4" />
                   </Button>
                 </Link>
