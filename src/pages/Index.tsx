@@ -431,14 +431,14 @@ const Index = () => {
             >
               {isAuthenticated ? (
                 <Link to="/dashboard" className="w-full sm:w-auto">
-                  <Button size="lg" className="w-full sm:w-auto px-8 h-12 text-[0.9375rem] font-medium rounded-full gap-2 shadow-md-1">
+                  <Button size="lg" className="w-full sm:w-auto px-8 h-12 text-[0.9375rem] font-medium rounded-full gap-2 shadow-md-1 bg-primary text-primary-foreground hover:bg-primary/90">
                     Go to Dashboard <ArrowRight className="w-4 h-4" />
                   </Button>
                 </Link>
               ) : (
                 <>
                   <Link to="/signup" className="w-full sm:w-auto">
-                    <Button size="lg" className="w-full sm:w-auto px-10 h-13 text-[0.9375rem] font-semibold rounded-full gap-2 shadow-lg">
+                    <Button size="lg" className="w-full sm:w-auto px-10 h-13 text-[0.9375rem] font-semibold rounded-full gap-2 shadow-lg bg-primary text-primary-foreground hover:bg-primary/90">
                       Start For Free <ArrowRight className="w-4 h-4" />
                     </Button>
                   </Link>
