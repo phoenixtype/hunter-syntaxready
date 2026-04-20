@@ -147,37 +147,31 @@ const FEATURES = [
     icon: Briefcase,
     title: "Smart Job Discovery",
     desc: "AI searches real job boards in real time, ranks matches by fit, and delivers a personalized feed — no more endless scrolling.",
-    color: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
   },
   {
     icon: FileText,
     title: "AI Resume Builder",
     desc: "Build an ATS-optimized resume through a guided flow. Our AI generates professional bullets from your raw experience.",
-    color: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
   },
   {
     icon: Zap,
     title: "One-Click Tailoring",
     desc: "Rewrite your resume and generate a custom cover letter for any specific job — in seconds, not hours.",
-    color: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
   },
   {
     icon: Shield,
     title: "ATS Compatibility",
     desc: "Score your resume against applicant tracking systems before applying. Know your resume will actually be read by a human.",
-    color: "bg-green-500/10 text-green-600 dark:text-green-400",
   },
   {
     icon: GraduationCap,
     title: "Interview Coach",
     desc: "Practice behavioral, technical, and salary negotiation scenarios with an AI coach tailored to your target role.",
-    color: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
   },
   {
     icon: Bot,
     title: "Hunt Planner",
     desc: "Set your preferences once — target titles, locations, salary. hunter.ai surfaces the most relevant jobs and can apply on your behalf.",
-    color: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400",
   },
 ];
 
@@ -192,7 +186,6 @@ const SHOWCASE_SECTIONS = [
       "Personalized feed that improves with feedback",
     ],
     icon: Target,
-    gradient: "from-blue-500/20 to-purple-500/20",
   },
   {
     badge: "Apply",
@@ -204,7 +197,6 @@ const SHOWCASE_SECTIONS = [
       "Export as ATS-friendly PDF or DOCX",
     ],
     icon: Sparkles,
-    gradient: "from-amber-500/20 to-rose-500/20",
   },
   {
     badge: "Prepare",
@@ -216,7 +208,6 @@ const SHOWCASE_SECTIONS = [
       "Salary negotiation practice",
     ],
     icon: GraduationCap,
-    gradient: "from-green-500/20 to-cyan-500/20",
   },
 ];
 
@@ -355,7 +346,7 @@ const Index = () => {
             <ThemeToggle />
             {isAuthenticated ? (
               <Link to="/dashboard" className="ml-2">
-                <Button size="sm" className="px-6 h-9 font-medium rounded-full shadow-md-1">
+                <Button size="sm" className="px-6 h-9 font-medium rounded-full shadow-md-1 bg-primary text-primary-foreground hover:bg-primary/90">
                   Dashboard
                 </Button>
               </Link>
@@ -365,7 +356,7 @@ const Index = () => {
                   Log in
                 </Link>
                 <Link to="/signup" className="ml-1">
-                  <Button size="sm" className="px-6 h-9 font-medium rounded-full shadow-md-1">
+                  <Button size="sm" className="px-6 h-9 font-medium rounded-full shadow-md-1 bg-primary text-primary-foreground hover:bg-primary/90">
                     Get Started Free
                   </Button>
                 </Link>
@@ -413,12 +404,10 @@ const Index = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-              className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight leading-[1.06] mb-6"
+              className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-6 text-foreground"
             >
               Stop searching.{" "}
-              <span className="font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                Start landing.
-              </span>
+              <span className="text-primary">Start landing.</span>
             </MotionElement>
 
             {/* Sub */}
@@ -442,14 +431,14 @@ const Index = () => {
             >
               {isAuthenticated ? (
                 <Link to="/dashboard" className="w-full sm:w-auto">
-                  <Button size="lg" className="w-full sm:w-auto px-8 h-12 text-[0.9375rem] font-medium rounded-full gap-2 shadow-md-1">
+                  <Button size="lg" className="w-full sm:w-auto px-8 h-12 text-[0.9375rem] font-medium rounded-full gap-2 shadow-md-1 bg-primary text-primary-foreground hover:bg-primary/90">
                     Go to Dashboard <ArrowRight className="w-4 h-4" />
                   </Button>
                 </Link>
               ) : (
                 <>
                   <Link to="/signup" className="w-full sm:w-auto">
-                    <Button size="lg" className="w-full sm:w-auto px-10 h-13 text-[0.9375rem] font-semibold rounded-full gap-2 shadow-lg">
+                    <Button size="lg" className="w-full sm:w-auto px-10 h-13 text-[0.9375rem] font-semibold rounded-full gap-2 shadow-lg bg-primary text-primary-foreground hover:bg-primary/90">
                       Start For Free <ArrowRight className="w-4 h-4" />
                     </Button>
                   </Link>
@@ -487,8 +476,8 @@ const Index = () => {
           >
             <div className="p-5 rounded-2xl bg-card border border-border shadow-xl animate-float">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-9 h-9 rounded-xl bg-green-500/15 flex items-center justify-center">
-                  <Zap className="w-4 h-4 text-green-600" />
+                <div className="w-9 h-9 rounded-xl bg-success/15 flex items-center justify-center">
+                  <Zap className="w-4 h-4 text-success" />
                 </div>
                 <div className="flex-1">
                   <div className="text-sm font-medium">Senior Frontend Engineer</div>
@@ -496,7 +485,7 @@ const Index = () => {
                 </div>
               </div>
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-semibold text-green-600 bg-green-500/10 px-2 py-0.5 rounded-full">98% Match</span>
+                <span className="text-xs font-semibold text-success bg-success/10 px-2 py-0.5 rounded-full">98% Match</span>
                 <span className="text-xs text-muted-foreground">$180k-$220k</span>
               </div>
               <div className="flex gap-1.5 flex-wrap">
@@ -516,11 +505,11 @@ const Index = () => {
           >
             <div className="p-4 rounded-2xl bg-card border border-border shadow-xl animate-float animation-delay-2000">
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-7 h-7 rounded-lg bg-purple-500/15 flex items-center justify-center">
-                  <FileText className="w-3.5 h-3.5 text-purple-600" />
+                <div className="w-7 h-7 rounded-lg bg-secondary flex items-center justify-center">
+                  <FileText className="w-3.5 h-3.5 text-primary" />
                 </div>
                 <span className="text-xs font-medium">Resume Tailored</span>
-                <CheckCircle2 className="w-3.5 h-3.5 text-green-500 ml-auto" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-success ml-auto" />
               </div>
               <div className="space-y-1.5">
                 <div className="h-1.5 w-full bg-muted rounded-full" />
@@ -580,9 +569,9 @@ const Index = () => {
                   key={feature.title}
                   variants={scaleIn}
                   custom={i}
-                  className="group p-6 rounded-2xl border border-border bg-background hover:shadow-lg hover:border-primary/25 transition-all duration-300"
+                  className="group p-6 rounded-2xl border border-border bg-background hover:shadow-elevated hover:border-primary/25 transition-all duration-300"
                 >
-                  <div className={`w-11 h-11 rounded-xl ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                  <div className="w-11 h-11 rounded-xl bg-secondary text-primary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                     <feature.icon className="w-5 h-5" />
                   </div>
                   <h3 className="text-[0.9375rem] font-semibold mb-2">{feature.title}</h3>
@@ -628,7 +617,7 @@ const Index = () => {
                   custom={1}
                   className={`${idx % 2 === 1 ? "lg:order-1" : ""}`}
                 >
-                  <div className={`relative rounded-2xl bg-gradient-to-br ${section.gradient} p-8 sm:p-12`}>
+                  <div className="relative rounded-2xl bg-secondary/60 p-8 sm:p-12">
                     <div className="bg-card rounded-xl border border-border shadow-xl p-6">
                       <div className="flex items-center gap-3 mb-4">
                         <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -772,7 +761,7 @@ const Index = () => {
                 >
                   <div className="flex gap-0.5 mb-4">
                     {Array.from({ length: 5 }).map((_, j) => (
-                      <Star key={j} className="w-4 h-4 fill-[#fbbc05] text-[#fbbc05]" />
+                      <Star key={j} className="w-4 h-4 fill-warning text-warning" />
                     ))}
                   </div>
                   <p className="text-sm leading-relaxed mb-6 flex-1">"{t.quote}"</p>
@@ -858,13 +847,13 @@ const Index = () => {
                 </div>
                 {!isAuthenticated ? (
                   <Link to="/signup">
-                    <Button className="w-full rounded-full h-11 font-semibold shadow-md-1">
+                    <Button className="w-full rounded-full h-11 font-semibold shadow-md-1 bg-primary text-primary-foreground hover:bg-primary/90">
                       Start Free Trial <ArrowRight className="w-4 h-4 ml-1" />
                     </Button>
                   </Link>
                 ) : (
                   <Link to="/settings">
-                    <Button className="w-full rounded-full h-11 font-semibold shadow-md-1">
+                    <Button className="w-full rounded-full h-11 font-semibold shadow-md-1 bg-primary text-primary-foreground hover:bg-primary/90">
                       Upgrade to Pro <ArrowRight className="w-4 h-4 ml-1" />
                     </Button>
                   </Link>
@@ -914,7 +903,7 @@ const Index = () => {
               </div>
 
               <motion.div variants={scaleIn} custom={2}>
-                <div className="rounded-2xl bg-gradient-to-br from-blue-500/15 to-purple-500/15 p-8 sm:p-12">
+                <div className="rounded-2xl bg-secondary/60 p-8 sm:p-12">
                   <div className="bg-card rounded-xl border border-border shadow-xl p-6 space-y-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -950,7 +939,7 @@ const Index = () => {
             <motion.div
               variants={scaleIn}
               custom={0}
-              className="bg-gradient-to-br from-primary/5 to-secondary rounded-3xl px-8 py-14 sm:px-14 sm:py-20 border border-primary/15"
+              className="bg-card rounded-3xl px-8 py-14 sm:px-14 sm:py-20 border border-border shadow-elevated"
             >
               <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight mb-4">
                 Ready to land your next role?
@@ -960,13 +949,13 @@ const Index = () => {
               </p>
               {isAuthenticated ? (
                 <Link to="/dashboard">
-                  <Button size="lg" className="px-10 h-13 text-[0.9375rem] font-semibold rounded-full gap-2 shadow-lg">
+                  <Button size="lg" className="px-10 h-13 text-[0.9375rem] font-semibold rounded-full gap-2 shadow-lg bg-primary text-primary-foreground hover:bg-primary/90">
                     Go to Dashboard <ChevronRight className="w-4 h-4" />
                   </Button>
                 </Link>
               ) : (
                 <Link to="/signup">
-                  <Button size="lg" className="px-10 h-13 text-[0.9375rem] font-semibold rounded-full gap-2 shadow-lg">
+                  <Button size="lg" className="px-10 h-13 text-[0.9375rem] font-semibold rounded-full gap-2 shadow-lg bg-primary text-primary-foreground hover:bg-primary/90">
                     Get Started Free <ChevronRight className="w-4 h-4" />
                   </Button>
                 </Link>
