@@ -130,7 +130,7 @@ serve(async (req) => {
           await supabase
             .from('profiles')
             .update({ last_job_sync: new Date().toISOString() })
-            .eq('user_id', profile.user_id);
+            .eq('id', profile.user_id);
 
           processedUsers++;
         }
