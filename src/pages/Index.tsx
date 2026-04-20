@@ -478,8 +478,8 @@ const Index = () => {
           >
             <div className="p-5 rounded-2xl bg-card border border-border shadow-xl animate-float">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-9 h-9 rounded-xl bg-green-500/15 flex items-center justify-center">
-                  <Zap className="w-4 h-4 text-green-600" />
+                <div className="w-9 h-9 rounded-xl bg-success/15 flex items-center justify-center">
+                  <Zap className="w-4 h-4 text-success" />
                 </div>
                 <div className="flex-1">
                   <div className="text-sm font-medium">Senior Frontend Engineer</div>
@@ -487,7 +487,7 @@ const Index = () => {
                 </div>
               </div>
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-semibold text-green-600 bg-green-500/10 px-2 py-0.5 rounded-full">98% Match</span>
+                <span className="text-xs font-semibold text-success bg-success/10 px-2 py-0.5 rounded-full">98% Match</span>
                 <span className="text-xs text-muted-foreground">$180k-$220k</span>
               </div>
               <div className="flex gap-1.5 flex-wrap">
