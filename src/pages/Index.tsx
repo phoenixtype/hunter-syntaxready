@@ -404,12 +404,10 @@ const Index = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-              className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight leading-[1.06] mb-6"
+              className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-6 text-foreground"
             >
               Stop searching.{" "}
-              <span className="font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                Start landing.
-              </span>
+              <span className="text-primary">Start landing.</span>
             </MotionElement>
 
             {/* Sub */}
