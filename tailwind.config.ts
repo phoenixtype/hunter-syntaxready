@@ -20,8 +20,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Roboto", "system-ui", "-apple-system", "sans-serif"],
-        display: ["Roboto", "system-ui", "sans-serif"],
+        sans: ["Space Grotesk", "system-ui", "-apple-system", "sans-serif"],
+        display: ["Space Grotesk", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "monospace"],
+        serif: ["Instrument Serif", "ui-serif", "Georgia", "serif"],
       },
       colors: {
         border: "hsl(var(--border))",
