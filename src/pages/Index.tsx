@@ -939,7 +939,7 @@ const Index = () => {
             <motion.div
               variants={scaleIn}
               custom={0}
-              className="bg-gradient-to-br from-primary/5 to-secondary rounded-3xl px-8 py-14 sm:px-14 sm:py-20 border border-primary/15"
+              className="bg-card rounded-3xl px-8 py-14 sm:px-14 sm:py-20 border border-border shadow-elevated"
             >
               <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight mb-4">
                 Ready to land your next role?
