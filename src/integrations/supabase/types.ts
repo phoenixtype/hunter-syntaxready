@@ -493,6 +493,36 @@ export type Database = {
         }
         Relationships: []
       }
+      job_discovery_stats: {
+        Row: {
+          average_jobs_per_user: number | null
+          created_at: string | null
+          execution_time_ms: number | null
+          id: string
+          success_rate: number | null
+          total_jobs_found: number | null
+          total_users_processed: number | null
+        }
+        Insert: {
+          average_jobs_per_user?: number | null
+          created_at?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          success_rate?: number | null
+          total_jobs_found?: number | null
+          total_users_processed?: number | null
+        }
+        Update: {
+          average_jobs_per_user?: number | null
+          created_at?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          success_rate?: number | null
+          total_jobs_found?: number | null
+          total_users_processed?: number | null
+        }
+        Relationships: []
+      }
       job_fingerprints: {
         Row: {
           created_at: string | null
@@ -978,6 +1008,7 @@ export type Database = {
           full_name: string | null
           id: string
           last_crawl_wave: string | null
+          last_job_sync: string | null
           pro_user: boolean | null
           role: string
           updated_at: string
@@ -990,6 +1021,7 @@ export type Database = {
           full_name?: string | null
           id: string
           last_crawl_wave?: string | null
+          last_job_sync?: string | null
           pro_user?: boolean | null
           role?: string
           updated_at?: string
@@ -1002,6 +1034,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           last_crawl_wave?: string | null
+          last_job_sync?: string | null
           pro_user?: boolean | null
           role?: string
           updated_at?: string

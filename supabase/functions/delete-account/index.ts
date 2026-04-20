@@ -45,7 +45,7 @@ serve(async (req) => {
 
     if (isAdminDeletion) {
       // Validate UUID format
-      if (!UUID_RE.test(targetUserId)) {
+      if (!UUID_RE.test(targetUserId as string)) {
         return errorWithCors('Invalid target_user_id format', 400);
       }
     }
@@ -81,7 +81,7 @@ serve(async (req) => {
       }
 
       // 3. Verify target user exists
-      const { data: targetUser, error: targetError } = await admin.auth.admin.getUserById(targetUserId);
+      const { data: targetUser, error: targetError } = await admin.auth.admin.getUserById(targetUserId as string);
       if (targetError || !targetUser?.user) {
         return errorWithCors('User not found', 404);
       }
@@ -116,7 +116,7 @@ serve(async (req) => {
         entity_id: targetUserId,
       });
 
-      uid = targetUserId;
+      uid = targetUserId as string;
       console.log(`[DELETE-ACCOUNT] Root admin ${user.id} deleting user ${uid}`);
     }
 

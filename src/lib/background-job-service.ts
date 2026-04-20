@@ -152,8 +152,8 @@ class BackgroundJobService {
         if (userProfile.user_id) {
           await supabase
             .from('profiles')
-            .update({ last_job_sync: new Date().toISOString() })
-            .eq('user_id', userProfile.user_id);
+            .update({ last_job_sync: new Date().toISOString() } as any)
+            .eq('id', userProfile.user_id);
         }
 
         console.log(`[BG_JOBS] Successfully found ${result.inserted || 0} new jobs`);

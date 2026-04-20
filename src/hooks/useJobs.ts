@@ -267,7 +267,7 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
             locations: preferences.locations || [],
             remote_policy: preferences.remote_policy || 'hybrid',
             skills: profile.skills?.slice(0, 10)?.map((s: any) => s.name) || [],
-            excluded_companies: preferences.excluded_companies || []
+            excluded_companies: (preferences as any).excluded_companies || []
         };
         realtimeJobStream.start(userFilters);
 
