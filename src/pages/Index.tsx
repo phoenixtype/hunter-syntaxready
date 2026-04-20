@@ -346,7 +346,7 @@ const Index = () => {
             <ThemeToggle />
             {isAuthenticated ? (
               <Link to="/dashboard" className="ml-2">
-                <Button size="sm" className="px-6 h-9 font-medium rounded-full shadow-md-1">
+                <Button size="sm" className="px-6 h-9 font-medium rounded-full shadow-md-1 bg-primary text-primary-foreground hover:bg-primary/90">
                   Dashboard
                 </Button>
               </Link>
@@ -356,7 +356,7 @@ const Index = () => {
                   Log in
                 </Link>
                 <Link to="/signup" className="ml-1">
-                  <Button size="sm" className="px-6 h-9 font-medium rounded-full shadow-md-1">
+                  <Button size="sm" className="px-6 h-9 font-medium rounded-full shadow-md-1 bg-primary text-primary-foreground hover:bg-primary/90">
                     Get Started Free
                   </Button>
                 </Link>
