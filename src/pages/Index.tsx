@@ -619,7 +619,7 @@ const Index = () => {
                   custom={1}
                   className={`${idx % 2 === 1 ? "lg:order-1" : ""}`}
                 >
-                  <div className={`relative rounded-2xl bg-gradient-to-br ${section.gradient} p-8 sm:p-12`}>
+                  <div className="relative rounded-2xl bg-secondary/60 p-8 sm:p-12">
                     <div className="bg-card rounded-xl border border-border shadow-xl p-6">
                       <div className="flex items-center gap-3 mb-4">
                         <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
