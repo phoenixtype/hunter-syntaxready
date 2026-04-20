@@ -122,6 +122,8 @@ serve(async (req) => {
           continue;
         }
 
+        console.log(`[AUTO_DISCOVERY] crawl result for ${profile.user_id}:`, JSON.stringify(crawlResult).slice(0, 300));
+
         if (crawlResult?.success) {
           totalJobsFound += crawlResult.inserted || 0;
           console.log(`[AUTO_DISCOVERY] Found ${crawlResult.inserted} new jobs for user ${profile.user_id}`);
