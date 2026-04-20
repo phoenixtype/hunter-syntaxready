@@ -58,10 +58,13 @@ function sanitizeJobTitle(title: string): string {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 
 function isHealthCheckRequest(req: Request): boolean {
+  // Real health probes never send an Authorization header.
+  // Treating any unauthenticated GET/HEAD as a probe avoids misclassifying
+  // authenticated internal calls (e.g. cron / auto-job-discovery) as probes.
+  if (req.headers.get('Authorization')) return false;
+  if (req.method === 'HEAD' || req.method === 'GET') return true;
   const ua = req.headers.get('user-agent')?.toLowerCase() || '';
-  const isProbe = ua.includes('supabase') || ua.includes('healthcheck') || ua.includes('uptime') || ua.includes('monitoring') || ua.includes('crawler') || ua.includes('bot') || ua === '';
-  const isHealthMethod = req.method === 'HEAD' || (req.method === 'GET' && !req.headers.get('Authorization'));
-  return isProbe || isHealthMethod;
+  return ua.includes('healthcheck') || ua.includes('uptime') || ua.includes('monitoring');
 }
 
 // ─── Tech stack extractor ─────────────────────────────────────────────────────
