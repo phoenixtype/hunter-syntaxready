@@ -428,7 +428,7 @@ const JobFeed = React.memo(({ profile, preferences }: JobFeedProps) => {
               <h3 className="font-semibold text-blue-900">Daily Job Discovery</h3>
               <p className="text-sm text-blue-700">
                 {jobCount > 0
-                  ? `${jobCount} fresh jobs found today from our automated crawl`
+                  ? `${jobCount} fresh jobs found today`
                   : 'Searching for fresh jobs across the web...'
                 }
               </p>
