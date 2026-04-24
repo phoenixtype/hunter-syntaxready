@@ -58,17 +58,20 @@ export function PaystackCheckout({
   const { user } = useAuth();
 
 
-  // Load Paystack script
+  // Load Paystack script with security
   useEffect(() => {
     if (!window.PaystackPop) {
       const script = document.createElement('script');
       script.src = 'https://js.paystack.co/v1/inline.js';
       script.async = true;
+      script.crossOrigin = 'anonymous';
+      // Add CSP and security attributes
+      script.referrerPolicy = 'no-referrer';
       script.onload = () => setScriptLoaded(true);
       script.onerror = () => {
-        console.error('Failed to load Paystack script');
-        toast.error('Failed to load payment system. Please disable adblockers or check connection.');
-        onError?.('Failed to load payment system');
+        // Avoid logging sensitive information
+        toast.error('Payment system unavailable. Please try again later or contact support.');
+        onError?.('Payment system unavailable');
       };
       document.head.appendChild(script);
     } else {
@@ -100,9 +103,13 @@ export function PaystackCheckout({
           setAmount(price ?? 0);
         }
       } catch (error: unknown) {
-        console.error('Failed to load plan details:', error);
+        // Log error securely without exposing sensitive data
+        const errorId = `ERR_PLAN_${Date.now()}`;
+        if (import.meta.env.DEV) {
+          console.error(`Plan loading error [${errorId}]:`, error);
+        }
         toast.error('Failed to load plan pricing details.');
-        onError?.('Failed to load plan details');
+        onError?.(`Failed to load plan details [${errorId}]`);
       }
     }
 
@@ -177,7 +184,11 @@ export function PaystackCheckout({
           onClose?.();
         },
         onerror: function(error: { message?: string }) {
-          console.error('Payment error:', error);
+          // Log payment error securely
+          const errorId = `ERR_PAY_${Date.now()}`;
+          if (import.meta.env.DEV) {
+            console.error(`Payment error [${errorId}]:`, error);
+          }
           toast.error(error.message || 'Payment window closed or failed');
           onError?.(error.message || 'Payment failed');
           setLoading(false);
@@ -188,9 +199,13 @@ export function PaystackCheckout({
       popup.openIframe();
 
     } catch (error: unknown) {
-      console.error('Payment initialization failed:', error);
+      // Log initialization error securely
+      const errorId = `ERR_INIT_${Date.now()}`;
+      if (import.meta.env.DEV) {
+        console.error(`Payment initialization error [${errorId}]:`, error);
+      }
       const msg = error instanceof Error ? error.message : 'Failed to initialize payment';
-      toast.error(msg || 'Failed to initialize payment window. Ensure popups are allowed.');
+      toast.error('Failed to initialize payment window. Ensure popups are allowed.');
       onError?.(msg);
       setLoading(false);
     }

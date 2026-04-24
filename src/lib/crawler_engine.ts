@@ -23,9 +23,11 @@ export interface CrawlParams {
   locations?: string[];
   remotePolicy?: string;
   url?: string;
+  searchType?: 'automated' | 'manual';
+  userTier?: 'free' | 'pro' | 'enterprise';
 }
 
-// Trigger a crawl to fetch fresh jobs
+// Trigger a crawl to fetch fresh jobs with intelligent optimization
 export const triggerJobCrawl = async (
   params: CrawlParams = {}
 ): Promise<{ success: boolean; inserted?: number; error?: string }> => {
@@ -37,15 +39,27 @@ export const triggerJobCrawl = async (
       return { success: false, error: 'Please sign in to crawl jobs' };
     }
 
-    // Use queued function call to manage edge function concurrency
-    const data = await queueJobCrawl({
-      keywords: params.keywords,
-      targetRoles: params.targetRoles,
+    // Optimize parameters to reduce API calls while maintaining quality
+    const optimizedParams = {
+      keywords: params.keywords?.slice(0, 3), // Limit to top 3 keywords
+      targetRoles: params.targetRoles?.slice(0, 2), // Limit to top 2 roles
       location: params.location,
-      locations: params.locations,
+      locations: params.locations?.slice(0, 2), // Limit to top 2 locations
       remotePolicy: params.remotePolicy,
       url: params.url,
+      searchType: params.searchType || 'manual', // Default to manual for backward compatibility
+      userTier: params.userTier || 'free', // Default to free tier
+    };
+
+    console.log('[CRAWLER_ENGINE] Optimized crawl params:', {
+      keywords: optimizedParams.keywords?.slice(0, 2),
+      roles: optimizedParams.targetRoles,
+      locations: optimizedParams.locations,
+      remote: optimizedParams.remotePolicy
     });
+
+    // Use queued function call to manage edge function concurrency
+    const data = await queueJobCrawl(optimizedParams);
 
     const error = null; // Queue system handles errors internally
 

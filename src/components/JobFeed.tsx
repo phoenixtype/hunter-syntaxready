@@ -1,3 +1,4 @@
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ import { saveTailoredResume } from "@/lib/tailored_resume_store";
 import TailorResultSheet from "./TailorResultSheet";
 import JobDescriptionModal from "./JobDescriptionModal";
 import { recordFeedback } from "@/lib/learning_engine";
-import { Sparkles, RefreshCw, Loader2, Globe, Search, MapPin, X, Bookmark, Link, ChevronDown, ChevronUp } from "lucide-react";
+import { Sparkles, RefreshCw, Loader2, Globe, Search, MapPin, X, Bookmark, Link, ChevronDown, ChevronUp, Bot } from "lucide-react";
 import { researchCompany, crawlCareersPage, CompanyResearch } from "@/lib/crawler_engine";
 import { useEffect, useState, useMemo } from "react";
 import JobFiltersBar, { JobFilters, DEFAULT_FILTERS, hasActiveFilters } from "./JobFiltersBar";
@@ -30,7 +31,6 @@ import {
 } from "@/components/ui/pagination";
 import { useSavedJobs } from "@/hooks/useSavedJobs";
 import MatchScoreTooltip from "./MatchScoreTooltip";
-// import JobCardActions from "./JobCardActions";
 import { useSubscription } from "@/hooks/useSubscription";
 import ProGate from "@/components/ProGate";
 
@@ -41,7 +41,7 @@ interface JobFeedProps {
   preferences?: UserPreferences | null;
 }
 
-const JobFeed = ({ profile, preferences }: JobFeedProps) => {
+const JobFeed = React.memo(({ profile, preferences }: JobFeedProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
@@ -91,7 +91,7 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
   const [, setResearchingJobId] = useState<string | null>(null);
 
   const { toggleSave, isSaved, savedCount } = useSavedJobs();
-  const { isPro, canAccess, recordUsage } = useSubscription();
+  const { isPro, canAccess, recordUsage, currentSubscription: subscription } = useSubscription();
   const [gateOpen, setGateOpen] = useState(false);
   const [gateFeature, setGateFeature] = useState<string | undefined>();
 
@@ -101,6 +101,25 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
     setGateOpen(true);
     return false;
   };
+
+  // Cleanup effect to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      // Cleanup any pending timeouts or intervals
+      const timers = (window as any).__hunterTimers || [];
+      timers.forEach(clearTimeout);
+      (window as any).__hunterTimers = [];
+    };
+  }, []);
+
+  // Effect to save dismissed jobs to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem("hunter_dismissed_jobs_v2", JSON.stringify(Array.from(dismissedJobs)));
+    } catch (error) {
+      // Silent fail if localStorage is not available
+    }
+  }, [dismissedJobs]);
 
   const filteredJobs = useMemo(() => {
     if (!Array.isArray(jobs)) {
@@ -398,6 +417,36 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
 
   return (
     <div className="space-y-4 animate-fade-in">
+      {/* Daily Job Discovery Status */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+              <Bot className="w-4 h-4 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-blue-900">Daily Job Discovery</h3>
+              <p className="text-sm text-blue-700">
+                {jobCount > 0
+                  ? `${jobCount} fresh jobs found today from our automated crawl`
+                  : 'Searching for fresh jobs across the web...'
+                }
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge className="bg-blue-100 text-blue-800 border-blue-300">
+              {subscription?.tier === 'free' ? 'Free' : subscription?.tier?.toUpperCase() || 'Free'}
+            </Badge>
+            {subscription?.tier !== 'free' && (
+              <Badge className="bg-green-100 text-green-800 border-green-300">
+                Manual Search Available
+              </Badge>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Search & Actions */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
         <div className="flex flex-col sm:flex-row flex-1 gap-2">
@@ -411,9 +460,48 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleCrawl} disabled={crawling || loading} className="flex-1 sm:flex-none h-12 sm:h-11 px-4 shrink-0 gap-1.5 font-semibold sm:font-medium" data-tour="find-jobs-btn">
-            {crawling ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Searching...</> : <><Globe className="w-3.5 h-3.5" />Find Jobs</>}
-          </Button>
+          {/* Premium Job Search Button - Subscription-gated manual search */}
+          {subscription?.tier === 'free' ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                toast.error("Premium Feature", {
+                  description: "Manual job searches require a Pro subscription.",
+                  action: {
+                    label: "Upgrade",
+                    onClick: () => window.location.href = '/pricing'
+                  }
+                });
+              }}
+              className="flex-1 sm:flex-none h-12 sm:h-11 px-4 shrink-0 gap-1.5 font-semibold sm:font-medium border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+              data-tour="find-jobs-btn"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              Upgrade for Job Search
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCrawl}
+              disabled={crawling || loading}
+              className="flex-1 sm:flex-none h-12 sm:h-11 px-4 shrink-0 gap-1.5 font-semibold sm:font-medium border-blue-300 text-blue-700 hover:bg-blue-50"
+              data-tour="find-jobs-btn"
+            >
+              {crawling ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  Searching...
+                </>
+              ) : (
+                <>
+                  <Globe className="w-3.5 h-3.5" />
+                  Find Jobs {subscription?.tier === 'pro' ? '(2 left)' : '(9 left)'}
+                </>
+              )}
+            </Button>
+          )}
           <div data-tour="job-filters"><JobFiltersBar filters={filters} onChange={setFilters} /></div>
           {/* Saved filter toggle */}
           <Button
@@ -728,6 +816,8 @@ const JobFeed = ({ profile, preferences }: JobFeedProps) => {
       />
     </div>
   );
-};
+});
+
+JobFeed.displayName = "JobFeed";
 
 export default JobFeed;

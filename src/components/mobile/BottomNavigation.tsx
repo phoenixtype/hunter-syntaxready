@@ -45,6 +45,11 @@ export const BottomNavigation = () => {
     return null;
   }
 
+  // Additional safety check to prevent conflicts with dashboard navigation
+  if (location.pathname === "/" || location.pathname === "/dashboard") {
+    return null;
+  }
+
   const isActive = (path: string) => {
     if (path === "/dashboard") {
       return location.pathname === "/" || location.pathname === "/dashboard";

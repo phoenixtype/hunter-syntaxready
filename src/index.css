@@ -69,24 +69,24 @@
   .dark {
     /* MD3 dark — Google dark surface (#131314 / #1e1e1e) */
     --background: 240 4% 8%;          /* #131314 */
-    --foreground: 0 0% 89%;           /* #e3e3e3 */
+    --foreground: 0 0% 95%;           /* #f2f2f2 - improved contrast */
 
     --card: 0 0% 12%;                 /* #1e1e1e */
-    --card-foreground: 0 0% 89%;
+    --card-foreground: 0 0% 95%;      /* improved contrast */
 
     --popover: 0 0% 15%;
-    --popover-foreground: 0 0% 89%;
+    --popover-foreground: 0 0% 95%;   /* improved contrast */
 
     /* Primary dark: #a8c7fa — Google Blue light variant */
     --primary: 218 90% 82%;
-    --primary-foreground: 214 100% 14%;
+    --primary-foreground: 214 100% 8%;  /* darker for better contrast */
 
     /* Primary container dark: #004a77 tonal */
     --secondary: 0 0% 17%;
-    --secondary-foreground: 218 90% 82%;
+    --secondary-foreground: 218 90% 85%; /* lighter for better contrast */
 
     --muted: 0 0% 16%;
-    --muted-foreground: 240 5% 68%;   /* #adadb8 */
+    --muted-foreground: 240 5% 75%;   /* #c0c0c8 - improved contrast */
 
     --accent: 0 0% 19%;
     --accent-foreground: 218 90% 82%;
@@ -201,7 +201,21 @@
   /* Mobile-specific: ensure content doesn't hide behind bottom nav */
   @media (max-width: 639px) {
     .mobile-bottom-padding {
-      padding-bottom: 90px;
+      padding-bottom: max(calc(env(safe-area-inset-bottom) + 90px), 102px);
+    }
+
+    .mobile-safe-bottom {
+      padding-bottom: calc(env(safe-area-inset-bottom) + 70px);
+    }
+  }
+
+  /* Touch targets for accessibility compliance */
+  @media (pointer: coarse) {
+    button:not(.btn-sm),
+    [role="button"]:not(.btn-sm),
+    a:not(.btn-sm) {
+      min-height: 44px;
+      min-width: 44px;
     }
   }
 }

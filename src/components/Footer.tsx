@@ -53,7 +53,7 @@ const Footer = forwardRef<HTMLElement>((_, ref) => {
 
           {/* Copyright */}
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} Hunter AI
+            © {new Date().getFullYear()} Hunter
           </p>
         </div>
       </div>

@@ -11,14 +11,45 @@ interface State {
   hasError: boolean;
   error: Error | null;
   errorInfo: ErrorInfo | null;
+  asyncError: Error | null;
 }
 
 class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
-    hasError: false,
-    error: null,
-    errorInfo: null
-  };
+  private unhandledRejectionHandler: (event: PromiseRejectionEvent) => void;
+
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: null,
+      errorInfo: null,
+      asyncError: null
+    };
+
+    // Handle unhandled promise rejections
+    this.unhandledRejectionHandler = (event: PromiseRejectionEvent) => {
+      const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
+      this.setState({
+        hasError: true,
+        asyncError: error,
+        error: error
+      });
+
+      if (this.props.onError) {
+        this.props.onError(error, { componentStack: 'Async Error' } as ErrorInfo);
+      }
+
+      event.preventDefault(); // Prevent console logging
+    };
+  }
+
+  public componentDidMount() {
+    window.addEventListener('unhandledrejection', this.unhandledRejectionHandler);
+  }
+
+  public componentWillUnmount() {
+    window.removeEventListener('unhandledrejection', this.unhandledRejectionHandler);
+  }
 
   public static getDerivedStateFromError(error: Error): Partial<State> {
     return { hasError: true, error };
@@ -47,7 +78,8 @@ class ErrorBoundary extends Component<Props, State> {
     this.setState({
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
+      asyncError: null
     });
   };
 

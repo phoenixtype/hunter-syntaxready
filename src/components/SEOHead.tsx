@@ -7,7 +7,7 @@ interface SEOHeadProps {
   noIndex?: boolean;
 }
 
-const SITE_NAME = "hunter.ai";
+const SITE_NAME = "hunter";
 const BASE_URL = "https://usehunter.app";
 
 const SEOHead = ({
@@ -41,6 +41,37 @@ const SEOHead = ({
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={`${BASE_URL}/og-image.png`} />
+      <meta name="twitter:site" content="@hunterjobs" />
+
+      {/* Additional SEO meta tags */}
+      <meta name="author" content="Hunter Team" />
+      <meta name="theme-color" content="#1a73e8" />
+      <meta name="apple-mobile-web-app-capable" content="yes" />
+      <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+      <meta name="apple-mobile-web-app-title" content={SITE_NAME} />
+
+      {/* Security headers via meta tags */}
+      <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
+      <meta httpEquiv="X-Frame-Options" content="DENY" />
+      <meta httpEquiv="X-XSS-Protection" content="1; mode=block" />
+
+      {/* Structured data for search engines */}
+      <script type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebApplication",
+          "name": SITE_NAME,
+          "description": description,
+          "url": BASE_URL,
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web Browser",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          }
+        })}
+      </script>
     </Helmet>
   );
 };

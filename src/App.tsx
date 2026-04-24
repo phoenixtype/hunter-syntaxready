@@ -30,10 +30,13 @@ import FloatingThemeToggle from "./components/FloatingThemeToggle";
 import CookieConsent from "./components/CookieConsent";
 import CommandPalette from "./components/CommandPalette";
 import Footer from "./components/Footer";
+import GDPRBanner from "./components/GDPRBanner";
+import SecurityHeaders from "./components/SecurityHeaders";
 import { runStartupValidation } from "./lib/env_validator";
 import { checkDatabaseHealth, logHealthStatus } from "./lib/database_health";
 import { logMobileBrowserInfo } from "./lib/mobile-safety";
 import PageLoader from "./components/PageLoader";
+import { usePerformanceMonitoring } from "./hooks/usePerformanceMonitoring";
 import { HunterAIMobile } from "./mobile-app-init";
 import { BottomNavigation } from "./components/mobile/BottomNavigation";
 
@@ -140,6 +143,15 @@ const AppGatekeeper = ({ children }: { children: React.ReactNode }) => {
     // Wait for both auth and role to finish loading before making navigation decisions
     if (authLoading || roleLoading) return;
 
+    // Add redirect cooldown to prevent loops
+    const lastRedirect = sessionStorage.getItem('hunter_last_redirect');
+    const redirectCooldown = 1000; // 1 second cooldown
+    const now = Date.now();
+
+    if (lastRedirect && now - parseInt(lastRedirect) < redirectCooldown) {
+      return; // Skip redirect if within cooldown period
+    }
+
     // ── Public -> Private ──
     // If logged in and on a public-only page (login/signup), move to dashboard
     if (user && (pathname === "/login" || pathname === "/signup" || pathname === "/forgot-password")) {
@@ -147,7 +159,8 @@ const AppGatekeeper = ({ children }: { children: React.ReactNode }) => {
       const destination = isRecruiter ? "/recruiter" : "/dashboard";
 
       // Prevent navigation loops - only navigate if we're not already going there
-      if (pathname !== (destination as string)) {
+      if (pathname !== destination) {
+        sessionStorage.setItem('hunter_last_redirect', now.toString());
         navigate(destination, { replace: true });
       }
     }
@@ -155,7 +168,7 @@ const AppGatekeeper = ({ children }: { children: React.ReactNode }) => {
     // ── Private -> Public ──
     // If logged out and on a protected page, move to login (handled by ProtectedRoute guards,
     // but Gatekeeper can provide an extra layer of sanity if needed).
-  }, [user, role, authLoading, roleLoading, pathname]);
+  }, [user, role, authLoading, roleLoading, pathname, navigate]);
 
   return <>{children}</>;
 };
@@ -187,7 +200,11 @@ const AdminPage = ({ children }: { children: React.ReactNode }) => (
 
 try { (globalThis as { __HUNTER_STEP__?: (n: string) => void }).__HUNTER_STEP__?.('App:pre-component-def'); } catch { /* ignore */ }
 
-const App = () => (
+const App = () => {
+  // Initialize performance monitoring
+  usePerformanceMonitoring();
+
+  return (
   <ErrorBoundary>
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
@@ -198,10 +215,12 @@ const App = () => (
               <GeoProvider>
                 <AppGatekeeper>
                   <AppInitializer />
+                  <SecurityHeaders />
                   <ScrollToTop />
                   <FloatingThemeToggle />
                   <CommandPalette />
                   <CookieConsent />
+                  <GDPRBanner />
                   <div className="flex flex-col min-h-screen min-h-[100dvh]">
                     <div className="flex-1">
                       <Suspense fallback={<PageLoader />}>
@@ -266,6 +285,7 @@ const App = () => (
       </QueryClientProvider>
     </HelmetProvider>
   </ErrorBoundary>
-);
+  );
+};
 
 export default App;

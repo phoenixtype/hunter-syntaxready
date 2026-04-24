@@ -70,7 +70,7 @@ const MobileNav = ({ isAuthenticated = false, onSignOut }: MobileNavProps) => {
               <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-md-1">
                 <span className="text-primary-foreground font-bold text-sm leading-none">H</span>
               </div>
-              <span className="font-medium text-foreground">hunter.ai</span>
+              <span className="font-medium text-foreground">hunter</span>
             </div>
             <ThemeToggle />
           </div>

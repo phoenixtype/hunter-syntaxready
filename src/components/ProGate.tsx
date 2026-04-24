@@ -59,7 +59,7 @@ function UpgradeCard({
     try {
       const { data } = await refetch();
       if (data?.tier !== "free") {
-        toast.success("Pro subscription activated! Welcome to hunter.ai Pro.");
+        toast.success("Pro subscription activated! Welcome to Hunter Pro.");
         onClose?.();
       } else {
         toast.info("Still on Free tier.", {
@@ -96,7 +96,7 @@ function UpgradeCard({
         </div>
         <div className="space-y-1">
           <h2 className="text-lg font-semibold tracking-tight">
-            {featureLabel ? `${featureLabel} requires hunter.ai Pro` : "Upgrade to hunter.ai Pro"}
+            {featureLabel ? `${featureLabel} requires Hunter Pro` : "Upgrade to Hunter Pro"}
           </h2>
           <p className="text-sm text-muted-foreground max-w-[280px] mx-auto leading-relaxed">
             Unlock the full AI-powered job search engine — apply faster, stand out more.
@@ -162,7 +162,7 @@ function ProGateDialog({ open, onOpenChange, featureLabel }: DialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm rounded-2xl p-7 gap-0 border-border shadow-md-3">
-        <DialogTitle className="sr-only">Upgrade to hunter.ai Pro</DialogTitle>
+        <DialogTitle className="sr-only">Upgrade to Hunter Pro</DialogTitle>
         <UpgradeCard featureLabel={featureLabel} onClose={() => onOpenChange(false)} />
       </DialogContent>
     </Dialog>

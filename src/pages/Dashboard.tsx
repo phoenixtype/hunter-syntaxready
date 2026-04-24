@@ -40,6 +40,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import PaymentErrorBoundary from "@/components/PaymentErrorBoundary";
 
 type DashboardView = "jobs" | "applications" | "insights" | "settings";
 
@@ -141,32 +142,54 @@ const Dashboard = () => {
   const [moreOpen, setMoreOpen] = useState(false);
 
   useEffect(() => {
-    // Handle checkout redirection success
+    // Handle checkout redirection success with proper race condition handling
     const params = new URLSearchParams(location.search);
     if (params.get('checkout') === 'success') {
       toast.success("Payment successful! Activating your Pro account...");
-      
-      // Poll a few times as the webhook might take a second
-      let attempts = 0;
-      const interval = setInterval(async () => {
-        attempts++;
-        await queryClient.refetchQueries({
-          queryKey: ['enhanced-subscription', user?.id]
-        });
 
-        // Get the latest data from the query cache instead of the stale closure variable
-        const refreshedSubscription = queryClient.getQueryData(['enhanced-subscription', user?.id]) as { tier?: string } | undefined;
-        
-        if (refreshedSubscription?.tier === 'pro' || attempts > 15) {
-          clearInterval(interval);
+      // Use a ref to track if component is still mounted
+      let mounted = true;
+      let attempts = 0;
+      const maxAttempts = 15;
+      const pollInterval = 2000;
+
+      const checkSubscriptionStatus = async () => {
+        if (!mounted || attempts >= maxAttempts) return;
+
+        attempts++;
+
+        try {
+          await queryClient.refetchQueries({
+            queryKey: ['enhanced-subscription', user?.id]
+          });
+
+          // Get the latest data from the query cache
+          const refreshedSubscription = queryClient.getQueryData(['enhanced-subscription', user?.id]) as { tier?: string } | undefined;
+
           if (refreshedSubscription?.tier === 'pro') {
-            toast.success("hunter.ai Pro is now active! 🚀");
-            navigate(location.pathname, { replace: true });
+            if (mounted) {
+              toast.success("Hunter Pro is now active! 🚀");
+              navigate(location.pathname, { replace: true });
+            }
+            return;
+          }
+
+          if (attempts < maxAttempts && mounted) {
+            setTimeout(checkSubscriptionStatus, pollInterval);
+          }
+        } catch (error) {
+          console.error('Subscription check failed:', error);
+          if (attempts < maxAttempts && mounted) {
+            setTimeout(checkSubscriptionStatus, pollInterval);
           }
         }
-      }, 2000);
+      };
 
-      return () => clearInterval(interval);
+      checkSubscriptionStatus();
+
+      return () => {
+        mounted = false;
+      };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.search, navigate, queryClient, user?.id]); // location.pathname excluded — it would re-trigger the poll on every nav
@@ -233,15 +256,17 @@ const Dashboard = () => {
                   Upgrade to Pro
                 </Button>
                 {showPaystack && (
-                  <PaystackCheckout
-                    planName="pro"
-                    interval="monthly"
-                    onSuccess={() => {
-                      setShowPaystack(false); // Assuming setShowPaystack is used to control visibility
-                      window.location.href = '/dashboard?checkout=success';
-                    }}
-                    onClose={() => setShowPaystack(false)}
-                  />
+                  <PaymentErrorBoundary>
+                    <PaystackCheckout
+                      planName="pro"
+                      interval="monthly"
+                      onSuccess={() => {
+                        setShowPaystack(false);
+                        window.location.href = '/dashboard?checkout=success';
+                      }}
+                      onClose={() => setShowPaystack(false)}
+                    />
+                  </PaymentErrorBoundary>
                 )}
               </>
             )}
@@ -252,8 +277,8 @@ const Dashboard = () => {
           </div>
         </header>
 
-        {/* Mobile Tab Bar — only on xs screens where sidebar is hidden */}
-        <nav role="navigation" aria-label="Main navigation" className="sm:hidden fixed bottom-0 left-0 right-0 z-50 flex border-t border-border bg-background/95 backdrop-blur-md" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
+        {/* Mobile Tab Bar — only on xs screens where sidebar is hidden, prevent conflict with global BottomNavigation */}
+        <nav role="navigation" aria-label="Dashboard navigation" className="sm:hidden fixed bottom-0 left-0 right-0 z-[51] flex border-t border-border bg-background/95 backdrop-blur-md" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
           {NAV_ITEMS.map((item) => (
             <button
               key={item.id}

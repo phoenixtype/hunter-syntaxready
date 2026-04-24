@@ -40,11 +40,11 @@ const ReferralPanel = () => {
   const handleShare = async () => {
     if (!stats) return;
     const url = getReferralUrl(stats.code);
-    const text = "Check out Hunter AI — the autonomous job search agent that finds, tailors, and applies to jobs for you!";
+    const text = "Check out Hunter — the autonomous job search agent that finds, tailors, and applies to jobs for you!";
 
     if (navigator.share) {
       try {
-        await navigator.share({ title: "Hunter AI", text, url });
+        await navigator.share({ title: "Hunter", text, url });
       } catch {
         // User cancelled share
       }

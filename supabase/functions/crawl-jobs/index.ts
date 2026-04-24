@@ -198,7 +198,7 @@ async function jsearchFetch(apiKey: string, query: string, remoteOnly: boolean):
   try {
     const params = new URLSearchParams({
       query,
-      num_pages: '2',
+      num_pages: '1', // Reduced from 2 to save credits
       date_posted: 'month',
     });
     if (remoteOnly) params.set('remote_jobs_only', 'true');
@@ -646,6 +646,431 @@ async function handleSalaryResearch(firecrawlKey: string, role: string, location
   return allContent.substring(0, 6000);
 }
 
+// ─── JSearch API Optimization ─────────────────────────────────────────────────
+
+interface UserProfile {
+  targetRoles: string[];
+  locations: string[];
+  remotePolicy: string;
+  keywords: string[];
+  experienceLevel: string;
+}
+
+// In-memory cache for API results (per edge function instance)
+const jsearchCache = new Map<string, { data: JSearchJob[]; timestamp: number }>();
+const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
+// Quota configuration based on search type and user tier
+const QUOTA_CONFIG = {
+  automated: {
+    free: 1,      // 1 automated search per day
+    pro: 1,       // 1 automated search per day
+    enterprise: 2 // 2 automated searches per day
+  },
+  manual: {
+    free: 0,      // No manual searches for free users
+    pro: 3,       // 3 manual searches per day
+    enterprise: 10 // 10 manual searches per day
+  }
+};
+
+// Track usage per user per day
+const userQuotaUsage = new Map<string, {
+  automated: number;
+  manual: number;
+  date: string;
+  userId: string
+}>();
+
+function getUserQuotaUsage(userId: string, date: string) {
+  const key = `${userId}:${date}`;
+  const existing = userQuotaUsage.get(key);
+
+  if (!existing || existing.date !== date) {
+    const newUsage = { automated: 0, manual: 0, date, userId };
+    userQuotaUsage.set(key, newUsage);
+    return newUsage;
+  }
+
+  return existing;
+}
+
+function canUserPerformSearch(
+  userId: string,
+  searchType: 'automated' | 'manual',
+  userTier: 'free' | 'pro' | 'enterprise'
+): { allowed: boolean; remaining: number; reason?: string } {
+  const today = new Date().toISOString().split('T')[0];
+  const usage = getUserQuotaUsage(userId, today);
+
+  const limit = QUOTA_CONFIG[searchType][userTier];
+  const used = usage[searchType];
+  const remaining = Math.max(0, limit - used);
+
+  if (used >= limit) {
+    const reason = searchType === 'manual' && userTier === 'free'
+      ? 'Manual job searches require a Pro subscription'
+      : `Daily ${searchType} search limit reached (${used}/${limit})`;
+
+    return { allowed: false, remaining: 0, reason };
+  }
+
+  return { allowed: true, remaining };
+}
+
+function recordUserSearchUsage(
+  userId: string,
+  searchType: 'automated' | 'manual'
+): void {
+  const today = new Date().toISOString().split('T')[0];
+  const usage = getUserQuotaUsage(userId, today);
+  usage[searchType]++;
+
+  const key = `${userId}:${today}`;
+  userQuotaUsage.set(key, usage);
+
+  console.log(`[QUOTA] User ${userId} used ${searchType} search. Usage: automated=${usage.automated}, manual=${usage.manual}`);
+}
+
+function generateCacheKey(query: string, remoteOnly: boolean): string {
+  return `jsearch:${query.toLowerCase().replace(/\s+/g, '-')}:remote-${remoteOnly}`;
+}
+
+function getCachedResults(cacheKey: string): JSearchJob[] | null {
+  const cached = jsearchCache.get(cacheKey);
+  if (!cached || (Date.now() - cached.timestamp > CACHE_TTL)) {
+    if (cached) jsearchCache.delete(cacheKey);
+    return null;
+  }
+  console.log(`[JSEARCH_CACHE] Cache hit for ${cacheKey}`);
+  return cached.data;
+}
+
+function setCachedResults(cacheKey: string, data: JSearchJob[]): void {
+  jsearchCache.set(cacheKey, { data, timestamp: Date.now() });
+}
+
+function calculateRelevanceScore(job: JSearchJob, userProfile: UserProfile): number {
+  let score = 0.5;
+
+  // Role matching
+  const jobTitle = (job.job_title || '').toLowerCase();
+  const roleMatch = userProfile.targetRoles.some(role =>
+    jobTitle.includes(role.toLowerCase()) ||
+    role.toLowerCase().split(' ').some(word => word.length > 2 && jobTitle.includes(word))
+  );
+  if (roleMatch) score += 0.3;
+
+  // Location/remote matching
+  if (userProfile.remotePolicy === 'remote' && job.job_is_remote) {
+    score += 0.2;
+  } else if (userProfile.locations.length > 0) {
+    const jobLocation = `${job.job_city || ''} ${job.job_state || ''} ${job.job_country || ''}`.toLowerCase();
+    const locationMatch = userProfile.locations.some(loc =>
+      jobLocation.includes(loc.toLowerCase())
+    );
+    if (locationMatch) score += 0.2;
+  }
+
+  // Keywords matching
+  const jobDescription = (job.job_description || '').toLowerCase();
+  const keywordMatches = userProfile.keywords.filter(keyword =>
+    jobDescription.includes(keyword.toLowerCase()) || jobTitle.includes(keyword.toLowerCase())
+  ).length;
+  score += (keywordMatches / Math.max(userProfile.keywords.length, 1)) * 0.2;
+
+  return Math.min(score, 1.0);
+}
+
+/**
+ * Execute broad daily search for automated job discovery
+ * Uses comprehensive queries to capture maximum job variety
+ */
+async function executeBroadDailySearch(
+  jsearchApiKey: string
+): Promise<{ jobs: JSearchJob[]; queriesUsed: number; cacheHits: number }> {
+  const broadQueries = [
+    'software engineer',      // Broad software roles
+    'developer remote',       // Remote development roles
+    'frontend backend',       // Frontend/backend development
+    'data scientist',         // Data science roles
+    'product manager',        // Product management
+    'devops cloud',          // DevOps and cloud roles
+    'mobile app developer',   // Mobile development
+    'junior entry level'      // Entry-level opportunities
+  ];
+
+  const allJobs: JSearchJob[] = [];
+  const seenJobIds = new Set<string>();
+  let queriesUsed = 0;
+  let cacheHits = 0;
+
+  console.log(`[BROAD_SEARCH] Running ${broadQueries.length} comprehensive queries for daily discovery`);
+
+  // Execute all broad queries for maximum coverage
+  for (const query of broadQueries) {
+    const cacheKey = generateCacheKey(query, false);
+
+    // Check cache first
+    const cachedJobs = getCachedResults(cacheKey);
+    if (cachedJobs) {
+      cacheHits++;
+      console.log(`[BROAD_SEARCH] Cache hit for: "${query}" (${cachedJobs.length} jobs)`);
+
+      for (const job of cachedJobs) {
+        if (!job.job_id || seenJobIds.has(job.job_id)) continue;
+        seenJobIds.add(job.job_id);
+        allJobs.push(job);
+      }
+      continue;
+    }
+
+    try {
+      // Rate limiting delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      console.log(`[BROAD_SEARCH] API call ${queriesUsed + 1}/${broadQueries.length} for: "${query}"`);
+      const jobs = await jsearchFetch(jsearchApiKey, query, false);
+
+      queriesUsed++;
+
+      // Cache results for future use
+      setCachedResults(cacheKey, jobs);
+
+      // Add all jobs from broad search (minimal filtering for maximum coverage)
+      for (const job of jobs) {
+        if (!job.job_id || seenJobIds.has(job.job_id)) continue;
+        seenJobIds.add(job.job_id);
+        allJobs.push(job);
+      }
+
+      console.log(`[BROAD_SEARCH] Query "${query}" returned ${jobs.length} jobs`);
+
+    } catch (error) {
+      console.error(`[BROAD_SEARCH] Query failed for "${query}":`, error);
+    }
+  }
+
+  return { jobs: allJobs, queriesUsed, cacheHits };
+}
+
+/**
+ * Execute targeted premium search for manual user requests
+ * Uses precise queries based on user profile and preferences
+ */
+async function executeTargetedPremiumSearch(
+  userProfile: UserProfile,
+  jsearchApiKey: string,
+  userTier: 'pro' | 'enterprise'
+): Promise<{ jobs: JSearchJob[]; queriesUsed: number; cacheHits: number }> {
+  const isRemote = userProfile.remotePolicy === 'remote';
+  const allJobs: JSearchJob[] = [];
+  const seenJobIds = new Set<string>();
+  let queriesUsed = 0;
+  let cacheHits = 0;
+
+  // Generate highly targeted queries for premium users
+  const maxQueries = userTier === 'enterprise' ? 3 : 2; // Enterprise gets more precise searches
+  const targetedQueries: string[] = [];
+
+  // Primary query: Exact role + location/remote
+  if (userProfile.targetRoles.length > 0) {
+    const primaryRole = userProfile.targetRoles[0];
+    const locationStr = isRemote ? 'remote' :
+                       (userProfile.locations.length > 0 ? userProfile.locations[0] : '');
+    const query = locationStr ? `${primaryRole} ${locationStr}` : primaryRole;
+    targetedQueries.push(query.trim());
+  }
+
+  // Secondary query: Role + top skills (if different and space available)
+  if (targetedQueries.length < maxQueries && userProfile.keywords.length > 0) {
+    const primaryRole = userProfile.targetRoles[0] || 'software engineer';
+    const topSkills = userProfile.keywords.slice(0, 2).join(' ');
+    const query = `${primaryRole} ${topSkills}`;
+
+    // Only add if significantly different from primary query
+    if (!targetedQueries.some(q => q.toLowerCase().includes(query.toLowerCase().slice(0, 20)))) {
+      targetedQueries.push(query.trim());
+    }
+  }
+
+  // Enterprise third query: Alternative role or seniority variant
+  if (targetedQueries.length < maxQueries && userTier === 'enterprise') {
+    if (userProfile.targetRoles[1]) {
+      targetedQueries.push(userProfile.targetRoles[1]);
+    } else {
+      // Add seniority variant
+      const primaryRole = userProfile.targetRoles[0] || 'software engineer';
+      targetedQueries.push(`senior ${primaryRole}`);
+    }
+  }
+
+  console.log(`[PREMIUM_SEARCH] Executing ${targetedQueries.length} targeted queries for ${userTier} user`);
+
+  // Execute targeted queries with aggressive relevance filtering
+  for (const query of targetedQueries) {
+    const cacheKey = generateCacheKey(query, isRemote);
+
+    // Check cache first
+    const cachedJobs = getCachedResults(cacheKey);
+    if (cachedJobs) {
+      cacheHits++;
+      console.log(`[PREMIUM_SEARCH] Cache hit for: "${query}" (${cachedJobs.length} jobs)`);
+
+      // Apply relevance filtering to cached results
+      const relevantJobs = cachedJobs.filter(job =>
+        calculateRelevanceScore(job, userProfile) > 0.5 // Higher threshold for premium
+      );
+
+      for (const job of relevantJobs) {
+        if (!job.job_id || seenJobIds.has(job.job_id)) continue;
+        seenJobIds.add(job.job_id);
+        allJobs.push(job);
+      }
+      continue;
+    }
+
+    try {
+      // Rate limiting delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      console.log(`[PREMIUM_SEARCH] API call ${queriesUsed + 1}/${targetedQueries.length} for: "${query}"`);
+      const jobs = await jsearchFetch(jsearchApiKey, query, isRemote);
+
+      queriesUsed++;
+
+      // Cache results
+      setCachedResults(cacheKey, jobs);
+
+      // Apply strict relevance filtering for premium users
+      const relevantJobs = jobs.filter(job =>
+        calculateRelevanceScore(job, userProfile) > 0.5 // Higher quality threshold
+      );
+
+      for (const job of relevantJobs) {
+        if (!job.job_id || seenJobIds.has(job.job_id)) continue;
+        seenJobIds.add(job.job_id);
+        allJobs.push(job);
+      }
+
+      console.log(`[PREMIUM_SEARCH] Query "${query}" returned ${jobs.length} jobs, ${relevantJobs.length} highly relevant`);
+
+    } catch (error) {
+      console.error(`[PREMIUM_SEARCH] Query failed for "${query}":`, error);
+    }
+  }
+
+  return { jobs: allJobs, queriesUsed, cacheHits };
+}
+
+async function executeOptimizedJSearchQueries(
+  userProfile: UserProfile,
+  jsearchApiKey: string
+): Promise<{ jobs: JSearchJob[]; queriesUsed: number; cacheHits: number; quotaRemaining: number }> {
+  const isRemote = userProfile.remotePolicy === 'remote';
+  const allJobs: JSearchJob[] = [];
+  const seenJobIds = new Set<string>();
+  let queriesUsed = 0;
+  let cacheHits = 0;
+
+  // Check daily quota
+  if (dailyQuotaUsed >= DAILY_QUOTA_LIMIT) {
+    console.warn('[JSEARCH_OPTIMIZED] Daily quota exceeded');
+    return { jobs: [], queriesUsed: 0, cacheHits: 0, quotaRemaining: 0 };
+  }
+
+  // Generate optimized queries (max 2)
+  const queries: string[] = [];
+
+  // Primary query: Main role with location/remote
+  if (userProfile.targetRoles.length > 0) {
+    const primaryRole = userProfile.targetRoles[0];
+    const locationStr = isRemote ? 'remote' :
+                       (userProfile.locations.length > 0 ? userProfile.locations[0] : '');
+    const query = locationStr ? `${primaryRole} ${locationStr}` : primaryRole;
+    queries.push(query.trim());
+  }
+
+  // Secondary query: Role with keywords (if different from primary)
+  if (queries.length < MAX_QUERIES_PER_REQUEST && userProfile.keywords.length > 0) {
+    const primaryRole = userProfile.targetRoles[0] || 'software engineer';
+    const keywordsStr = userProfile.keywords.slice(0, 2).join(' ');
+    const query = `${primaryRole} ${keywordsStr}`;
+
+    // Avoid duplicate queries
+    if (!queries.some(q => q.toLowerCase().includes(query.toLowerCase()))) {
+      queries.push(query.trim());
+    }
+  }
+
+  console.log(`[JSEARCH_OPTIMIZED] Planned queries: ${queries.length}`);
+
+  // Execute queries with caching and monitoring
+  for (const query of queries.slice(0, MAX_QUERIES_PER_REQUEST)) {
+    const cacheKey = generateCacheKey(query, isRemote);
+    const startTime = Date.now();
+
+    // Check cache first
+    const cachedJobs = getCachedResults(cacheKey);
+    if (cachedJobs) {
+      cacheHits++;
+      console.log(`[JSEARCH_OPTIMIZED] Cache hit for: "${query}" (${cachedJobs.length} jobs)`);
+
+      for (const job of cachedJobs) {
+        if (!job.job_id || seenJobIds.has(job.job_id)) continue;
+        seenJobIds.add(job.job_id);
+        allJobs.push(job);
+      }
+      continue;
+    }
+
+    // Check quota before API call
+    if (dailyQuotaUsed >= DAILY_QUOTA_LIMIT) {
+      console.warn('[JSEARCH_OPTIMIZED] Quota limit reached, skipping remaining queries');
+      break;
+    }
+
+    try {
+      // Rate limiting delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      console.log(`[JSEARCH_OPTIMIZED] API call ${queriesUsed + 1}/${MAX_QUERIES_PER_REQUEST} for: "${query}"`);
+      const jobs = await jsearchFetch(jsearchApiKey, query, isRemote);
+
+      const executionTime = Date.now() - startTime;
+      queriesUsed++;
+      dailyQuotaUsed++;
+
+      // Cache results
+      setCachedResults(cacheKey, jobs);
+
+      // Filter and add relevant jobs
+      const relevantJobs = jobs.filter(job =>
+        calculateRelevanceScore(job, userProfile) > 0.4
+      );
+
+      console.log(`[JSEARCH_OPTIMIZED] Query "${query}" returned ${jobs.length} jobs, ${relevantJobs.length} relevant (${executionTime}ms)`);
+
+      for (const job of relevantJobs) {
+        if (!job.job_id || seenJobIds.has(job.job_id)) continue;
+        seenJobIds.add(job.job_id);
+        allJobs.push(job);
+      }
+
+    } catch (error) {
+      const executionTime = Date.now() - startTime;
+      console.error(`[JSEARCH_OPTIMIZED] Query failed for "${query}" after ${executionTime}ms:`, error);
+    }
+  }
+
+  return {
+    jobs: allJobs,
+    queriesUsed,
+    cacheHits,
+    quotaRemaining: DAILY_QUOTA_LIMIT - dailyQuotaUsed
+  };
+}
+
 // ─── Main handler ──────────────────────────────────────────────────────────────
 
 serve(async (req) => {
@@ -709,10 +1134,35 @@ serve(async (req) => {
       }
 
       console.log('[AUTH] User:', user.id);
+
+      // Check quota for authenticated user searches
+      if (!isServiceRole) {
+        const requestedSearchType = body.searchType || 'manual';
+        const requestedUserTier = body.userTier || 'free';
+
+        const quotaCheck = canUserPerformSearch(user.id, requestedSearchType, requestedUserTier);
+
+        if (!quotaCheck.allowed) {
+          console.log(`[QUOTA] Search blocked for user ${user.id}: ${quotaCheck.reason}`);
+          return jsonWithCors({
+            success: false,
+            error: quotaCheck.reason,
+            quotaStatus: {
+              searchType: requestedSearchType,
+              userTier: requestedUserTier,
+              remaining: quotaCheck.remaining
+            }
+          }, { status: 403 });
+        }
+
+        // Record the search attempt
+        recordUserSearchUsage(user.id, requestedSearchType);
+        console.log(`[QUOTA] User ${user.id} quota check passed. Remaining ${requestedSearchType} searches: ${quotaCheck.remaining - 1}`);
+      }
     }
 
     const body = await req.json();
-    const { mode, keywords, url, location, locations, remotePolicy, targetRoles } = body;
+    const { mode, keywords, url, location, locations, remotePolicy, targetRoles, searchType, userTier } = body;
 
     const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
@@ -813,35 +1263,47 @@ serve(async (req) => {
         console.error('[COMPANY_FOCUSED] Tier 1 error:', error);
       }
 
-      // Tier 2: Job Boards (Medium Priority) - only if we have space
-      if (companyJobs.length < limit) {
+      // Tier 2: Job Boards (Medium Priority) - OPTIMIZED to use only 1 query
+      if (companyJobs.length < limit && dailyQuotaUsed < DAILY_QUOTA_LIMIT) {
         try {
-          console.log('[COMPANY_FOCUSED] Tier 2: Searching job boards');
-          const remainingSlots = limit - companyJobs.length;
-          const boardQueries = [`${company} jobs`, `"${company}" software engineer`, `"${company}" developer`];
+          console.log('[COMPANY_FOCUSED] Tier 2: Searching job boards (optimized)');
 
-          for (const query of boardQueries) {
+          // Use only ONE optimized query instead of multiple
+          const optimalQuery = `"${company}" software engineer developer`;
+
+          // Check cache first
+          const cacheKey = generateCacheKey(optimalQuery, false);
+          let boardResults = getCachedResults(cacheKey);
+
+          if (!boardResults) {
+            console.log(`[COMPANY_FOCUSED] API call for job boards: "${optimalQuery}"`);
+            boardResults = await jsearchFetch(jsearchApiKey, optimalQuery, false);
+            dailyQuotaUsed++;
+            setCachedResults(cacheKey, boardResults);
+          } else {
+            console.log('[COMPANY_FOCUSED] Using cached job board results');
+          }
+
+          for (const job of boardResults) {
             if (companyJobs.length >= limit) break;
 
-            const boardResults = await jsearchFetch(jsearchApiKey, query, false);
+            const normalizedJob = mapJSearchJob(job);
+            const jobCompany = String(normalizedJob.company || company);
+            const jobTitle = String(normalizedJob.title || '');
+            const jobPostedAt = String(normalizedJob.posted_at || '1 day ago');
+            const jobHash = generateJobHash(jobCompany, jobTitle);
 
-            for (const job of boardResults) {
-              if (companyJobs.length >= limit) break;
+            // More lenient company matching for job boards
+            const companyMatch = jobCompany.toLowerCase().includes(company.toLowerCase()) ||
+                                company.toLowerCase().includes(jobCompany.toLowerCase()) ||
+                                String(normalizedJob.description || '').toLowerCase().includes(company.toLowerCase());
 
-              const normalizedJob = mapJSearchJob(job);
-              const jobCompany = String(normalizedJob.company || company);
-              const jobTitle = String(normalizedJob.title || '');
-              const jobPostedAt = String(normalizedJob.posted_at || '1 day ago');
-              const jobHash = generateJobHash(jobCompany, jobTitle);
-
-              if (!duplicateHashes.has(jobHash) &&
-                  jobCompany.toLowerCase().includes(company.toLowerCase())) {
-                duplicateHashes.add(jobHash);
-                normalizedJob.source = 'job_board';
-                normalizedJob.priority = 2;
-                normalizedJob.freshness_score = calculateFreshnessFromString(jobPostedAt);
-                companyJobs.push(normalizedJob);
-              }
+            if (!duplicateHashes.has(jobHash) && companyMatch) {
+              duplicateHashes.add(jobHash);
+              normalizedJob.source = 'job_board';
+              normalizedJob.priority = 2;
+              normalizedJob.freshness_score = calculateFreshnessFromString(jobPostedAt);
+              companyJobs.push(normalizedJob);
             }
           }
 
@@ -994,59 +1456,76 @@ serve(async (req) => {
       if (normalized) allJobs.push(normalized);
 
     } else {
-      // ── SEARCH MODE (JSearch) ─────────────────────────────────────────────
+      // ── QUOTA-CONTROLLED SEARCH MODES ──
       if (!jsearchApiKey) {
         console.error('[CRAWL-JOBS] Missing JSEARCH_API_KEY environment variable');
         return jsonWithCors({ success: false, error: 'Job search service is temporarily unavailable. Please try again in a few minutes.' });
       }
 
-      const searchRoles  = Array.isArray(targetRoles) ? targetRoles.filter(Boolean).map(String) : [];
-      const searchKws    = Array.isArray(keywords) ? keywords.filter(Boolean).map(String) : [];
-      const searchLocs: string[] = Array.isArray(locations) && locations.length > 0
-        ? locations.filter(Boolean).map(String).slice(0, 2)
-        : (typeof location === 'string' && location.trim() ? [location.trim()] : []);
-      const isRemote     = remotePolicy === 'remote';
+      const requestedSearchType = searchType || 'manual';
+      const requestedUserTier = userTier || 'free';
 
-      const primaryRole = searchRoles[0] || 'software engineer';
-      const queries: string[] = [];
+      // Build search parameters based on search type
+      if (requestedSearchType === 'automated' || mode === 'automated_daily') {
+        // ── AUTOMATED DAILY BROAD SEARCH ──
+        console.log('[AUTOMATED_SEARCH] Running daily broad job discovery...');
 
-      const effectiveLocs = searchLocs.length > 0 ? searchLocs : [''];
-      for (const loc of effectiveLocs) {
-        const locSuffix = loc ? ` ${loc}` : '';
-        queries.push(`${primaryRole}${locSuffix}`.trim());
-        if (loc === effectiveLocs[0] && searchKws.length > 0) {
-          const keywordsForQuery = searchKws.slice(0, 3).join(' ');
-          queries.push(`${primaryRole} ${keywordsForQuery}${locSuffix}`.trim());
-        }
-      }
+        const broadSearchResults = await executeBroadDailySearch(jsearchApiKey);
 
-      if (searchRoles[1] && queries.length < 4) {
-        const locSuffix = searchLocs[0] ? ` ${searchLocs[0]}` : '';
-        queries.push(`${searchRoles[1]}${locSuffix}`.trim());
-      }
-
-      if (queries.length < 5) {
-        const locSuffix = searchLocs[0] ? ` ${searchLocs[0]}` : '';
-        queries.push(`${primaryRole} contract${locSuffix}`.trim());
-      }
-
-      console.log(`[JSEARCH] Running ${queries.length} queries`);
-
-      const searchResults = await Promise.allSettled(
-        queries.map(q => jsearchFetch(jsearchApiKey, q, isRemote))
-      );
-
-      const seenIds = new Set<string>();
-      for (const result of searchResults) {
-        if (result.status !== 'fulfilled') continue;
-        for (const item of result.value) {
-          if (!item.job_id || seenIds.has(item.job_id)) continue;
-          seenIds.add(item.job_id);
+        for (const item of broadSearchResults.jobs) {
           allJobs.push(mapJSearchJob(item));
         }
-      }
 
-      console.log(`[JSEARCH] Total unique jobs: ${allJobs.length}`);
+        console.log(`[AUTOMATED_SEARCH] Daily discovery complete: ${allJobs.length} jobs found, ${broadSearchResults.queriesUsed} API calls`);
+
+      } else {
+        // ── MANUAL PREMIUM SEARCH (Pro/Enterprise users only) ──
+        if (requestedUserTier === 'free') {
+          return jsonWithCors({
+            success: false,
+            error: 'Manual job searches are available for Pro and Enterprise subscribers only. Upgrade to unlock targeted job searches.',
+            requiresUpgrade: true,
+            feature: 'manual_job_search'
+          }, { status: 403 });
+        }
+
+        console.log('[PREMIUM_SEARCH] Running targeted premium search...');
+
+        // Build user profile for targeted search
+        const searchRoles = Array.isArray(targetRoles) ? targetRoles.filter(Boolean).map(String) : ['software engineer'];
+        const searchKws = Array.isArray(keywords) ? keywords.filter(Boolean).map(String) : [];
+        const searchLocs: string[] = Array.isArray(locations) && locations.length > 0
+          ? locations.filter(Boolean).map(String).slice(0, 2)
+          : (typeof location === 'string' && location.trim() ? [location.trim()] : []);
+
+        const userProfile = {
+          targetRoles: searchRoles,
+          locations: searchLocs,
+          remotePolicy: remotePolicy || 'hybrid',
+          keywords: searchKws,
+          experienceLevel: 'mid' // Could be enhanced from user data
+        };
+
+        console.log(`[PREMIUM_SEARCH] Targeted search for:`, {
+          roles: userProfile.targetRoles.slice(0, 2),
+          locations: userProfile.locations,
+          remote: userProfile.remotePolicy,
+          tier: requestedUserTier
+        });
+
+        // Execute targeted premium search
+        const premiumResults = await executeTargetedPremiumSearch(
+          userProfile,
+          jsearchApiKey,
+          requestedUserTier
+        );
+
+        for (const item of premiumResults.jobs) {
+          allJobs.push(mapJSearchJob(item));
+        }
+
+        console.log(`[PREMIUM_SEARCH] Targeted search complete: ${allJobs.length} jobs, ${premiumResults.queriesUsed} API calls, ${premiumResults.cacheHits} cache hits`);
+      }
     }
 
     if (allJobs.length === 0) {

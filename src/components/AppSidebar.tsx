@@ -111,17 +111,17 @@ const AppSidebar = () => {
         }`}
       >
         {collapsed ? (
-          <Link to="/" aria-label="Home">
+          <Link to="/" aria-label="Hunter Home">
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-md-1">
               <span className="text-primary-foreground font-bold text-sm leading-none">H</span>
             </div>
           </Link>
         ) : (
-          <Link to="/" className="flex items-center gap-2.5">
+          <Link to="/" aria-label="Hunter Home" className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-md-1">
               <span className="text-primary-foreground font-bold text-sm leading-none">H</span>
             </div>
-            <span className="text-base font-bold tracking-tight">hunter.ai</span>
+            <span className="text-base font-bold tracking-tight">hunter</span>
           </Link>
         )}
         {!collapsed && (
@@ -129,6 +129,7 @@ const AppSidebar = () => {
             onClick={toggleCollapsed}
             className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors"
             title="Collapse sidebar"
+            aria-label="Collapse sidebar"
           >
             <PanelLeftClose className="w-4 h-4" />
           </button>
@@ -252,6 +253,7 @@ const AppSidebar = () => {
               <button
                 onClick={toggleCollapsed}
                 className="w-full flex justify-center p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors mb-1"
+                aria-label="Expand sidebar"
               >
                 <PanelLeft className="w-4 h-4" />
               </button>
@@ -265,6 +267,7 @@ const AppSidebar = () => {
               <button
                 onClick={() => navigate("/settings")}
                 aria-current={pathname === "/settings" ? "page" : undefined}
+                aria-label="Settings"
                 className={`w-full flex justify-center p-2 rounded-md text-sm transition-colors ${pathname === "/settings" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted transition-colors duration-150"}`}
               >
                 <Settings className="w-4 h-4 shrink-0" />
@@ -276,6 +279,7 @@ const AppSidebar = () => {
           <button
             onClick={() => navigate("/settings")}
             aria-current={pathname === "/settings" ? "page" : undefined}
+            aria-label="Settings"
             className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${pathname === "/settings" ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground hover:text-foreground hover:bg-muted transition-colors duration-150 font-normal"}`}
           >
             <Settings className="w-4 h-4 shrink-0" />
@@ -287,6 +291,7 @@ const AppSidebar = () => {
             <TooltipTrigger asChild>
               <button
                 onClick={handleSignOut}
+                aria-label="Sign out"
                 className="w-full flex justify-center p-2 rounded-md text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"
               >
                 <LogOut className="w-4 h-4 shrink-0" />
@@ -297,6 +302,7 @@ const AppSidebar = () => {
         ) : (
           <button
             onClick={handleSignOut}
+            aria-label="Sign out"
             className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors font-normal"
           >
             <LogOut className="w-4 h-4 shrink-0" />

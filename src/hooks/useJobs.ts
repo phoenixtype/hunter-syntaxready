@@ -187,18 +187,28 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
         setPage(1);
     }, [searchQuery, locationQuery, profile]);
 
-    // 4. Crawl Mutation
+    // 4. Premium Job Search Mutation (Pro/Enterprise only)
     const { mutate: crawl, isPending: isCrawling } = useMutation({
         mutationFn: async (extraKeywords?: string[]) => {
-            const params: CrawlParams = {};
+            // Check subscription tier
+            const userTier = subscription?.tier || 'free';
+
+            if (userTier === 'free') {
+                throw new Error('Manual job searches are available for Pro and Enterprise subscribers only. Upgrade to unlock targeted job searches.');
+            }
+
+            const params: CrawlParams = {
+                searchType: 'manual',
+                userTier: userTier as 'pro' | 'enterprise'
+            };
 
             if (profile) {
-                const topSkills = profile.skills.slice(0, 5).map(s => s.name);
+                const topSkills = profile.skills.slice(0, 3).map(s => s.name); // Reduced for targeted search
                 const latestRole = profile.experience_atoms?.[0]?.role;
                 params.keywords = [];
                 if (latestRole) params.keywords.push(latestRole);
                 if (topSkills.length > 0) params.keywords.push(...topSkills);
-                
+
                 // Add student/internship keywords if relevant
                 const isStudent = profile.education.some(edu => {
                     const yearMatch = edu.year.match(/\d{4}/);
@@ -206,46 +216,72 @@ export const useJobs = (profile: CandidateProfile | null, preferences?: UserPref
                 }) || profile.summary?.toLowerCase().includes('student') || profile.summary?.toLowerCase().includes('university');
 
                 if (isStudent) {
-                    params.keywords.push("internship", "intern", "graduate");
+                    params.keywords.push("internship", "intern");
                 }
             }
 
             if (extraKeywords && extraKeywords.length > 0) {
-                params.keywords = [...(params.keywords || []), ...extraKeywords];
+                params.keywords = [...(params.keywords || []), ...extraKeywords.slice(0, 2)]; // Limit extra keywords
             }
 
             if (preferences) {
-                params.targetRoles = preferences.target_roles;
-                params.locations = preferences.locations?.slice(0, 3);
+                params.targetRoles = preferences.target_roles?.slice(0, 2); // Focus on top 2 roles
+                params.locations = preferences.locations?.slice(0, 2); // Focus on top 2 locations
                 params.remotePolicy = preferences.remote_policy;
             }
+
+            console.log('[PREMIUM_SEARCH] Triggering targeted job search for', userTier, 'user');
 
             const result = await triggerJobCrawl(params);
             if (!result.success) throw new Error(result.error);
             return result;
         },
         onSuccess: (data) => {
-            toast.success(`Crawl complete! Found ${data.inserted || 0} new jobs`);
-            // Complete nuke of all caches so the refetch hits the DB fresh
+            const userTier = subscription?.tier || 'free';
+            const jobsFound = data.inserted || 0;
+
+            if (jobsFound > 0) {
+                toast.success(`Found ${jobsFound} targeted jobs for you!`, {
+                    description: `Premium search complete. You have ${userTier === 'enterprise' ? 'up to 9' : 'up to 2'} searches remaining today.`
+                });
+            } else {
+                toast.info('Search complete', {
+                    description: 'No new jobs found matching your criteria. Try adjusting your preferences.'
+                });
+            }
+
+            // Clear caches to show fresh results
             cachedJobEngine.clearAllCaches();
-            
-            // Allow auto-crawling again if needed
             sessionStorage.removeItem('hunter_crawled_this_session');
-            
+
             queryClient.invalidateQueries({ queryKey: ['jobs'] });
             queryClient.invalidateQueries({ queryKey: ['jobCount'] });
-            
-            // Explicitly refetch jobs to ensure UI updates immediately
             refreshJobs();
         },
         onError: (error) => {
-            // Show friendlier message for rate limit errors
-            if (error.message.includes('Too many requests') || error.message.includes('rate limit')) {
-                toast.error("Slow down!", {
-                    description: "Please wait a minute before searching again."
+            console.error('[PREMIUM_SEARCH] Error:', error);
+
+            if (error.message.includes('Manual job searches are available for Pro')) {
+                toast.error("Premium Feature", {
+                    description: "Manual job searches require a Pro subscription. Upgrade to unlock targeted searches.",
+                    action: {
+                        label: "Upgrade",
+                        onClick: () => {
+                            // Navigate to upgrade page
+                            window.location.href = '/pricing';
+                        }
+                    }
+                });
+            } else if (error.message.includes('Daily manual search limit reached')) {
+                toast.error("Daily Limit Reached", {
+                    description: "You've used all your manual searches today. They'll reset tomorrow at midnight."
+                });
+            } else if (error.message.includes('rate limit')) {
+                toast.error("Please wait", {
+                    description: "Too many requests. Please try again in a moment."
                 });
             } else {
-                toast.error("Crawl failed", { description: error.message });
+                toast.error("Search failed", { description: error.message });
             }
         }
     });
