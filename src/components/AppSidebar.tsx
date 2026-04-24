@@ -100,28 +100,31 @@ const AppSidebar = () => {
 
   return (
     <aside
-      className={`hidden sm:flex flex-col border-r border-border bg-card h-screen sticky top-0 z-30 shrink-0 transition-all duration-300 ${
-        collapsed ? "w-[56px]" : "w-[220px]"
+      className={`hidden sm:flex flex-col border-r border-border/30 bg-card/95 backdrop-blur-lg h-screen sticky top-0 z-30 shrink-0 transition-all duration-500 ease-out shadow-premium-sm ${
+        collapsed ? "w-14" : "w-56"
       }`}
+      style={{
+        background: 'linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--muted)/0.3) 100%)'
+      }}
     >
       {/* ── Logo / collapse ─────────────────────────── */}
       <div
-        className={`h-12 flex items-center border-b border-border shrink-0 ${
-          collapsed ? "justify-center px-2" : "justify-between px-3"
+        className={`h-14 flex items-center border-b border-border/20 shrink-0 ${
+          collapsed ? "justify-center px-3" : "justify-between px-4"
         }`}
       >
         {collapsed ? (
           <Link to="/" aria-label="Hunter Home">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-md-1">
-              <span className="text-primary-foreground font-bold text-sm leading-none">H</span>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-premium-md hover:shadow-premium-lg transition-all duration-300 hover:scale-105">
+              <span className="text-primary-foreground font-bold text-lg leading-none">H</span>
             </div>
           </Link>
         ) : (
-          <Link to="/" aria-label="Hunter Home" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-md-1">
-              <span className="text-primary-foreground font-bold text-sm leading-none">H</span>
+          <Link to="/" aria-label="Hunter Home" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-premium-md group-hover:shadow-premium-lg transition-all duration-300 group-hover:scale-105">
+              <span className="text-primary-foreground font-bold text-lg leading-none">H</span>
             </div>
-            <span className="text-base font-bold tracking-tight">hunter</span>
+            <span className="text-lg font-bold tracking-tight text-gradient">hunter</span>
           </Link>
         )}
         {!collapsed && (
@@ -138,25 +141,25 @@ const AppSidebar = () => {
 
       {/* ── User info ───────────────────────────────── */}
       {!collapsed ? (
-        <div className="px-3 py-2 border-b border-border shrink-0">
+        <div className="px-4 py-2.5 border-b border-border/20 shrink-0">
           <div className="flex items-center gap-2.5">
-            <Avatar className="h-8 w-8 ring-2 ring-border shrink-0">
+            <Avatar className="h-7 w-7 ring-1 ring-border/30 shrink-0">
               <AvatarImage src={user?.user_metadata?.avatar_url} />
               <AvatarFallback className="bg-primary/15 text-primary font-semibold text-xs">
                 {initials}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold truncate leading-tight">
+              <p className="text-xs font-semibold truncate leading-tight">
                 {profile?.identity?.name || user?.email?.split("@")[0] || "Guest"}
               </p>
-              <p className="text-[11px] text-muted-foreground truncate">{user?.email}</p>
+              <p className="text-[10px] text-muted-foreground truncate">{user?.email}</p>
             </div>
           </div>
         </div>
       ) : (
-        <div className="flex justify-center py-3 border-b border-border shrink-0">
-          <Avatar className="h-8 w-8 ring-2 ring-border">
+        <div className="flex justify-center py-2.5 border-b border-border/20 shrink-0">
+          <Avatar className="h-7 w-7 ring-1 ring-border/30">
             <AvatarImage src={user?.user_metadata?.avatar_url} />
             <AvatarFallback className="bg-primary/15 text-primary font-semibold text-xs">
               {initials}
@@ -166,7 +169,7 @@ const AppSidebar = () => {
       )}
 
       {/* ── Navigation ──────────────────────────────── */}
-      <nav className="flex-1 px-1.5 py-2 space-y-3 overflow-y-auto" aria-label="App navigation">
+      <nav className="flex-1 px-2 py-2 space-y-2.5 overflow-y-auto" aria-label="App navigation">
 
         {/* Dashboard views */}
         <div className="space-y-0.5">
@@ -177,12 +180,12 @@ const AppSidebar = () => {
                 key={item.id}
                 onClick={() => handleNavClick(item.tab)}
                 aria-current={active ? "page" : undefined}
-                className={`w-full flex items-center gap-1.5 rounded-md text-sm transition-colors ${
+                className={`w-full flex items-center gap-2 rounded-lg text-xs font-medium transition-all duration-200 relative overflow-hidden group ${
                   collapsed ? "justify-center p-2" : "px-3 py-2"
                 } ${
                   active
-                    ? "bg-primary/10 text-primary font-semibold"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted transition-colors duration-150 font-normal"
+                    ? "bg-gradient-to-r from-primary/15 to-primary/10 text-primary font-semibold shadow-sm border border-primary/20"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all duration-200 font-medium"
                 }`}
               >
                 <item.icon className="w-4 h-4 shrink-0" />
@@ -202,11 +205,11 @@ const AppSidebar = () => {
         {SIDEBAR_SECTIONS.map((section) => (
           <div key={section.label}>
             {!collapsed ? (
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 px-2.5 mb-1">
+              <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/70 px-3 mb-1 mt-2">
                 {section.label}
               </p>
             ) : (
-              <div className="w-6 mx-auto border-t border-border my-1" />
+              <div className="w-4 mx-auto border-t border-border/40 my-1.5" />
             )}
             <div className="space-y-0.5">
               {section.tools.map((tool) => {
@@ -215,12 +218,12 @@ const AppSidebar = () => {
                   <button
                     key={tool.title}
                     onClick={() => handleToolClick(tool.route)}
-                    className={`w-full flex items-center gap-1.5 rounded-md text-sm transition-colors font-normal ${
+                    className={`w-full flex items-center gap-2 rounded-lg text-xs font-medium transition-all duration-200 relative overflow-hidden group ${
                       collapsed ? "justify-center p-2" : "px-3 py-2"
                     } ${
                       active
-                        ? "bg-primary/10 text-primary font-semibold"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted transition-colors duration-150"
+                        ? "bg-gradient-to-r from-primary/15 to-primary/10 text-primary font-semibold shadow-sm border border-primary/20"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all duration-200 font-medium"
                     }`}
                   >
                     <tool.icon className="w-4 h-4 shrink-0" />
@@ -246,7 +249,7 @@ const AppSidebar = () => {
 
 
       {/* ── Footer actions ──────────────────────────── */}
-      <div className="px-1.5 py-3 border-t border-border space-y-0.5 shrink-0">
+      <div className="px-2 py-2.5 border-t border-border/20 space-y-0.5 shrink-0">
         {collapsed && (
           <Tooltip delayDuration={200}>
             <TooltipTrigger asChild>

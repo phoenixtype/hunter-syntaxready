@@ -219,14 +219,16 @@ const Dashboard = () => {
     <div className="flex flex-col min-h-screen min-w-0">
       <SEOHead title="Dashboard" description="Manage your job search, applications, and AI tools." path="/dashboard" noIndex />
       <SkipLink />
-        <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-sm border-b border-border h-14 flex items-center justify-between px-4 sm:px-6">
+        <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-md border-b border-border/30 h-14 flex items-center justify-between px-4 sm:px-6 shadow-premium-sm">
+          <div className="absolute inset-0 bg-gradient-to-r from-card/50 to-muted/30 pointer-events-none"></div>
+          <div className="relative z-10 flex items-center justify-between w-full">
           <div className="flex items-center gap-4">
             <Link to="/" className="sm:hidden flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center shadow-sm">
                 <span className="text-primary-foreground font-bold text-sm">H</span>
               </div>
             </Link>
-            <h1 className="text-base font-semibold hidden sm:block text-foreground/80">
+            <h1 className="text-sm font-semibold hidden sm:block text-foreground/80 tracking-tight">
               {NAV_ITEMS.find(n => n.id === activeView)?.label ?? (activeView === "settings" ? "Settings" : activeView)}
             </h1>
 
@@ -235,7 +237,7 @@ const Dashboard = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
-              className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground bg-muted/60 hover:bg-muted border border-border rounded-md px-2.5 py-1.5 transition-colors"
+              className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground bg-muted/60 hover:bg-muted border border-border rounded-lg px-2.5 py-1.5 transition-colors"
             >
               <Search className="w-3 h-3" />
               <span>Search…</span>
@@ -275,6 +277,7 @@ const Dashboard = () => {
               <MobileNav isAuthenticated={true} onSignOut={handleSignOut} />
             </div>
           </div>
+          </div>
         </header>
 
         {/* Mobile Tab Bar — only on xs screens where sidebar is hidden, prevent conflict with global BottomNavigation */}
@@ -288,12 +291,12 @@ const Dashboard = () => {
                 setActiveView(item.id);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className={`flex-1 flex flex-col items-center gap-1 py-3 text-[11px] font-medium transition-all relative ${
+              className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-medium transition-all relative ${
                 activeView === item.id ? "text-primary" : "text-muted-foreground active:text-foreground"
               }`}
             >
-              <div className={`p-1.5 rounded-md transition-colors ${activeView === item.id ? "bg-muted" : ""}`}>
-                <item.icon className="w-5 h-5" />
+              <div className={`p-1 rounded-md transition-colors ${activeView === item.id ? "bg-primary/10" : ""}`}>
+                <item.icon className="w-4 h-4" />
               </div>
               <span>{item.label}</span>
               {activeView === item.id && (
@@ -375,7 +378,7 @@ const Dashboard = () => {
         </nav>
 
         {/* Content */}
-        <main id="main-content" className="flex-1 p-4 sm:p-6 max-w-5xl w-full mx-auto pb-28 sm:pb-6">
+        <main id="main-content" className="flex-1 p-3 sm:p-4 max-w-6xl w-full mx-auto pb-24 sm:pb-4">
           {/* Jobs - lazy init */}
           {visitedTabs.has("jobs") && (
             <div className={activeView !== "jobs" ? "hidden" : ""}>
