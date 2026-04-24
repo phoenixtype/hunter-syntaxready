@@ -330,11 +330,11 @@ const Index = () => {
         aria-label="Main navigation"
       >
         <div className="container max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5" aria-label="hunter.ai Home">
+          <Link to="/" className="flex items-center gap-2.5" aria-label="Hunter Home">
             <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center shadow-md-1">
               <span className="text-primary-foreground font-bold text-base leading-none">H</span>
             </div>
-            <span className="text-lg font-semibold tracking-tight">hunter.ai</span>
+            <span className="text-lg font-semibold tracking-tight">hunter</span>
           </Link>
 
           {/* Desktop links */}
