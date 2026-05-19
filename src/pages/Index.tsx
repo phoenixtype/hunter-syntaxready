@@ -27,7 +27,7 @@ import SEOHead from "@/components/SEOHead";
 import { useGeo } from "@/hooks/useGeo";
 import { getPrice } from "@/lib/pricing";
 
-try { (globalThis as { __HUNTER_STEP__?: (n: string) => void }).__HUNTER_STEP__?.('Index:body-start'); } catch { /* ignore */ }
+try { (globalThis as { __APP_STEP__?: (n: string) => void }).__APP_STEP__?.('Index:body-start'); } catch { /* ignore */ }
 
 // ── Animation helpers (mobile-safe static fallback) ──────────────────────────
 
@@ -171,7 +171,7 @@ const FEATURES = [
   {
     icon: Bot,
     title: "Hunt Planner",
-    desc: "Set your preferences once — target titles, locations, salary. hunter.ai surfaces the most relevant jobs and can apply on your behalf.",
+    desc: "Set your preferences once — target titles, locations, salary. Business Operations Platform surfaces the most relevant jobs and can apply on your behalf.",
   },
 ];
 
@@ -179,7 +179,7 @@ const SHOWCASE_SECTIONS = [
   {
     badge: "Discover",
     title: "Jobs matched to you, not keywords",
-    desc: "hunter.ai crawls job boards in real time and ranks every role by how well it fits your skills, experience, and preferences. Your feed gets smarter over time.",
+    desc: "Business Operations Platform crawls job boards in real time and ranks every role by how well it fits your skills, experience, and preferences. Your feed gets smarter over time.",
     points: [
       "Real-time crawling across multiple boards",
       "AI match scoring for every listing",
@@ -285,7 +285,7 @@ const HOW_IT_WORKS = [
   {
     step: "1",
     title: "Upload your resume",
-    desc: "hunter.ai parses it in seconds and builds a structured candidate profile — skills, experience, education, all tagged.",
+    desc: "Business Operations Platform parses it in seconds and builds a structured candidate profile — skills, experience, education, all tagged.",
     icon: FileText,
   },
   {
@@ -303,7 +303,7 @@ const HOW_IT_WORKS = [
   {
     step: "4",
     title: "Track & improve",
-    desc: "Follow every application through your pipeline. hunter.ai learns from your choices and gets smarter over time.",
+    desc: "Follow every application through your pipeline. Business Operations Platform learns from your choices and gets smarter over time.",
     icon: TrendingUp,
   },
 ];
@@ -418,7 +418,7 @@ const Index = () => {
               transition={{ duration: 0.6, delay: 0.25 }}
               className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-10"
             >
-              hunter.ai discovers jobs matched to your skills, tailors your resume in seconds,
+              Business Operations Platform discovers jobs matched to your skills, tailors your resume in seconds,
               and coaches you through interviews — so you can focus on what matters.
             </MotionElement>
 
@@ -559,7 +559,7 @@ const Index = () => {
                 Everything you need to land your next role
               </motion.h2>
               <motion.p variants={fadeUp} custom={2} className="text-base text-muted-foreground max-w-2xl mx-auto">
-                hunter.ai handles the tedious parts of job searching so you can focus on what matters — your career.
+                Business Operations Platform handles the tedious parts of job searching so you can focus on what matters — your career.
               </motion.p>
             </div>
 
@@ -661,7 +661,7 @@ const Index = () => {
                 From upload to offer in 4 steps
               </motion.h2>
               <motion.p variants={fadeUp} custom={2} className="text-base text-muted-foreground max-w-xl mx-auto">
-                Set up once. hunter.ai works for you continuously.
+                Set up once. Business Operations Platform works for you continuously.
               </motion.p>
             </div>
 
@@ -695,7 +695,7 @@ const Index = () => {
           <div className="container max-w-4xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-14">
               <motion.p variants={fadeUp} custom={0} className="text-xs font-semibold text-primary uppercase tracking-widest mb-3">
-                Why hunter.ai
+                Why Business Operations Platform
               </motion.p>
               <motion.h2 variants={fadeUp} custom={1} className="text-2xl sm:text-3xl font-semibold tracking-tight mb-4">
                 How we compare
@@ -713,7 +713,7 @@ const Index = () => {
                           <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
                             <span className="text-primary-foreground font-bold text-[10px]">H</span>
                           </div>
-                          <span className="font-semibold text-primary">hunter.ai</span>
+                          <span className="font-semibold text-primary">Business Operations Platform</span>
                         </div>
                       </th>
                       <th className="text-left py-4 px-5 text-xs font-medium text-muted-foreground uppercase tracking-wider">Others</th>
@@ -875,7 +875,7 @@ const Index = () => {
                   Hire smarter with AI-matched talent
                 </motion.h2>
                 <motion.p variants={fadeUp} custom={2} className="text-muted-foreground leading-relaxed mb-6">
-                  Post roles and let hunter.ai's AI match you with the best-fit candidates automatically.
+                  Post roles and let Business Operations Platform's AI match you with the best-fit candidates automatically.
                   No resume sifting, no cold outreach — just matched, motivated candidates.
                 </motion.p>
                 <div className="space-y-3 mb-8">
@@ -976,7 +976,7 @@ const Index = () => {
                   <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
                     <span className="text-primary-foreground font-bold text-xs">H</span>
                   </div>
-                  <span className="font-semibold text-sm">hunter.ai</span>
+                  <span className="font-semibold text-sm">Business Operations Platform</span>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   AI-powered job search platform. Discover, apply, and prepare — smarter.

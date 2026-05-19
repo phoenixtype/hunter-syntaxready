@@ -22,7 +22,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     const checkSessionTimeout = () => {
       if (Date.now() - lastActivity > SESSION_TIMEOUT) {
         // Session expired, redirect to login
-        localStorage.removeItem('hunter_session');
+        localStorage.removeItem('app_session');
         window.location.href = '/login?reason=session_expired';
       }
     };

@@ -25,7 +25,7 @@ const getErrorCategory = (err: Error): ErrorCategory => {
     if (msg.includes('network') || msg.includes('failed to fetch') || msg.includes('load failed') || msg.includes('networkerror')) {
         return {
             title: "No Internet Connection",
-            message: "Hunter couldn't reach our servers.",
+            message: "The platform couldn't reach our servers.",
             guidance: "Check your Wi-Fi or mobile data, then try again.",
             canRetry: true,
             icon: WifiOff,
@@ -56,7 +56,7 @@ const getErrorCategory = (err: Error): ErrorCategory => {
         return {
             title: "You're Not Signed In",
             message: "This page requires an active account.",
-            guidance: "Please sign in to access Hunter.",
+            guidance: "Please sign in to access the platform.",
             canRetry: false,
             icon: LogIn,
         };
@@ -65,7 +65,7 @@ const getErrorCategory = (err: Error): ErrorCategory => {
     if (msg.includes('database') || msg.includes('table') || msg.includes('relation') || msg.includes('postgres') || msg.includes('supabase')) {
         return {
             title: "Data Unavailable",
-            message: "Hunter couldn't load your data right now.",
+            message: "The platform couldn't load your data right now.",
             guidance: "This is a temporary issue on our end. Try refreshing — your data is safe.",
             canRetry: true,
             icon: Database,
@@ -85,7 +85,7 @@ const getErrorCategory = (err: Error): ErrorCategory => {
     if (msg.includes('chunk') || msg.includes('dynamically imported module') || msg.includes('loading css chunk')) {
         return {
             title: "Update Available",
-            message: "Hunter was updated while you were using it.",
+            message: "The platform was updated while you were using it.",
             guidance: "Refresh the page to load the latest version.",
             canRetry: true,
             icon: RefreshCw,
@@ -96,7 +96,7 @@ const getErrorCategory = (err: Error): ErrorCategory => {
     if (name.includes('referenceerror') || name.includes('typeerror') || name.includes('syntaxerror')) {
         return {
             title: "Unexpected App Error",
-            message: "Something in Hunter ran into a problem.",
+            message: "Something in the platform ran into a problem.",
             guidance: "Refreshing the page usually fixes this. If it keeps happening, please contact support.",
             canRetry: true,
             icon: AlertCircle,
@@ -105,7 +105,7 @@ const getErrorCategory = (err: Error): ErrorCategory => {
 
     return {
         title: "Something Went Wrong",
-        message: "An unexpected error occurred in Hunter.",
+        message: "An unexpected error occurred in the platform.",
         guidance: "Try refreshing the page. If this keeps happening, contact support and we'll investigate.",
         canRetry: true,
         icon: AlertCircle,
@@ -172,7 +172,7 @@ export const ErrorFallback = ({ error, resetError, showHomeButton = true }: Erro
                 <p className="text-center text-xs text-muted-foreground">
                     Need help?{" "}
                     <a
-                        href="mailto:support@usehunter.app"
+                        href="mailto:support@syntaxready.com"
                         className="underline underline-offset-2 hover:text-foreground transition-colors"
                     >
                         Contact support

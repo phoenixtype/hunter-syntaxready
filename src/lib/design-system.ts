@@ -1,5 +1,5 @@
 /**
- * hunter.ai Design System
+ * Business Operations Platform Design System
  * Consistent design tokens for spacing, typography, colors, and touch targets
  */
 

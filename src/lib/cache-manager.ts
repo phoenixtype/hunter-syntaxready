@@ -1,5 +1,5 @@
 /**
- * Hunter AI - High-Performance In-Memory Cache Manager
+ * Business Operations Platform - High-Performance In-Memory Cache Manager
  *
  * Reduces database hits and API calls by caching:
  * - Job listings and search results

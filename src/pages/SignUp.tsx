@@ -83,7 +83,7 @@ const SignUp = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
-      <SEOHead title="Sign Up" description="Create your hunter.ai account and start your autonomous job search today." path="/signup" />
+      <SEOHead title="Sign Up" description="Create your Business Operations Platform account and start your autonomous job search today." path="/signup" />
       <div className="w-full max-w-md animate-fade-in-up">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-all hover:-translate-x-1">
           <ArrowLeft className="w-4 h-4" />
@@ -93,7 +93,7 @@ const SignUp = () => {
         <div className="bg-card border border-border shadow-card rounded-md p-6 sm:p-8 space-y-6">
           <div className="space-y-1.5 text-center">
             <h1 className="text-2xl font-bold tracking-tight">Create an account</h1>
-            <p className="text-muted-foreground text-sm">Start your job search with hunter.ai</p>
+            <p className="text-muted-foreground text-sm">Start your job search with Business Operations Platform</p>
           </div>
 
           <form className="space-y-4" onSubmit={handleSubmit}>

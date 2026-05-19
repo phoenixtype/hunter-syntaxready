@@ -12,7 +12,7 @@ const Privacy = () => {
     <div className="min-h-screen bg-background text-foreground bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
       <SEOHead 
         title="Privacy Policy" 
-        description="How hunter.ai collects, uses, and protects your personal data. GDPR and CCPA compliant." 
+        description="How Business Operations Platform collects, uses, and protects your personal data. GDPR and CCPA compliant." 
         path="/privacy" 
       />
       <div className="container max-w-4xl mx-auto px-6 py-16">
@@ -182,7 +182,7 @@ const Privacy = () => {
 
               <p>
                 To exercise any of these rights, visit your <Link to="/settings" className="text-primary hover:underline">Account Settings</Link> or 
-                contact us at <a href="mailto:privacy@usehunter.app" className="text-primary hover:underline">privacy@usehunter.app</a>.
+                contact us at <a href="mailto:privacy@syntaxready.com" className="text-primary hover:underline">privacy@syntaxready.com</a>.
               </p>
             </div>
           </section>
@@ -202,7 +202,7 @@ const Privacy = () => {
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold">7. Children's Privacy</h2>
             <p className="text-muted-foreground leading-relaxed">
-              hunter.ai is not intended for users under 16 years of age. We do not knowingly collect personal 
+              Business Operations Platform is not intended for users under 16 years of age. We do not knowingly collect personal 
               information from children. If you believe we have collected data from a minor, please contact us 
               immediately and we will delete the information.
             </p>
@@ -234,8 +234,8 @@ const Privacy = () => {
             <div className="text-muted-foreground leading-relaxed">
               <p>For privacy-related inquiries or to exercise your data rights:</p>
               <ul className="mt-4 space-y-2">
-                <li><strong>Email:</strong> <a href="mailto:privacy@usehunter.app" className="text-primary hover:underline">privacy@usehunter.app</a></li>
-                <li><strong>Data Protection Officer:</strong> <a href="mailto:dpo@usehunter.app" className="text-primary hover:underline">dpo@usehunter.app</a></li>
+                <li><strong>Email:</strong> <a href="mailto:privacy@syntaxready.com" className="text-primary hover:underline">privacy@syntaxready.com</a></li>
+                <li><strong>Data Protection Officer:</strong> <a href="mailto:dpo@syntaxready.com" className="text-primary hover:underline">dpo@syntaxready.com</a></li>
                 <li><strong>Response Time:</strong> We respond to all requests within 30 days</li>
               </ul>
             </div>
