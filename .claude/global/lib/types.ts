@@ -40,7 +40,7 @@ export interface PatternTransformation {
 export interface TransformationRule {
   condition: string;
   action: string;
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
 }
 
 export interface FailureMode {
