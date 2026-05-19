@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { LucideIcon } from "lucide-react";
 import { useEffect } from "react";
-import { logger } from "@/utils/logger";
 
 interface ErrorFallbackProps {
     error: Error;
@@ -119,8 +118,8 @@ export const ErrorFallback = ({ error, resetError, showHomeButton = true }: Erro
     const Icon = category.icon;
 
     useEffect(() => {
-        // Send the unhandled error explicitly to Sentry via our unified logger
-        logger.error(error, {
+        // Log the error to console
+        console.error('ErrorFallback caught error:', error, {
             context: 'ErrorFallback',
             category: category.title
         });
