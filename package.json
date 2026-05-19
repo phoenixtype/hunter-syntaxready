@@ -1,11 +1,11 @@
 {
-  "name": "hunter-ai",
+  "name": "business-operations-platform",
   "private": true,
   "version": "1.0.0",
-  "description": "The agentic AI career platform that autonomously manages job discovery, applications, and interview prep.",
-  "author": "Hunter AI <engineering@usehunter.app>",
+  "description": "AI-powered business operations platform that automates customer communication, scheduling, and workflow management for service businesses.",
+  "author": "SyntaxReady <hello@syntaxready.com>",
   "license": "UNLICENSED",
-  "homepage": "https://usehunter.app",
+  "homepage": "https://syntaxready.com",
   "repository": {
     "type": "git",
     "url": "https://github.com/phoenixtype/hunter-syntaxready.git"

@@ -2,289 +2,243 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useEffect, lazy, Suspense } from "react";
 import { HelmetProvider } from "react-helmet-async";
-import ScrollToTop from "@/components/ScrollToTop";
 import { AuthProvider } from "@/hooks/useAuth";
-import { GeoProvider } from "@/hooks/useGeo";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import Index from "./pages/Index";
-import Login from "./pages/Login";
-import SignUp from "./pages/SignUp";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import EmailVerification from "./pages/EmailVerification";
-import NotFound from "./pages/NotFound";
-import { ProtectedRoute } from "./components/auth/ProtectedRoute";
-import { PublicRoute } from "./components/auth/PublicRoute";
-import AppLayout from "./layouts/AppLayout";
-import RecruiterLayout from "./layouts/RecruiterLayout";
-import AdminLayout from "./layouts/AdminLayout";
-import RequireAdmin from "./components/admin/RequireAdmin";
-import RequireRecruiter from "./components/auth/RequireRecruiter";
-import RecruiterPortal from "./pages/RecruiterPortal";
-import RecruiterSetup from "./pages/RecruiterSetup";
-import FloatingThemeToggle from "./components/FloatingThemeToggle";
-import CookieConsent from "./components/CookieConsent";
-import CommandPalette from "./components/CommandPalette";
-import Footer from "./components/Footer";
-import GDPRBanner from "./components/GDPRBanner";
-import SecurityHeaders from "./components/SecurityHeaders";
-import { runStartupValidation } from "./lib/env_validator";
-import { checkDatabaseHealth, logHealthStatus } from "./lib/database_health";
-import { logMobileBrowserInfo } from "./lib/mobile-safety";
-import PageLoader from "./components/PageLoader";
-import { usePerformanceMonitoring } from "./hooks/usePerformanceMonitoring";
-import { HunterAIMobile } from "./mobile-app-init";
-import { BottomNavigation } from "./components/mobile/BottomNavigation";
-
-try { (globalThis as { __HUNTER_STEP__?: (n: string) => void }).__HUNTER_STEP__?.('App:body-start'); } catch { /* ignore */ }
-
-// Admin pages (lazy)
-const AdminOverview = lazy(() => import("./pages/admin/AdminOverview"));
-const RecruiterApplicationsPage = lazy(() => import("./pages/admin/RecruiterApplications"));
-const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
-const AdminLogs = lazy(() => import("./pages/admin/AdminLogs"));
-const AdminReferrals = lazy(() => import("./pages/admin/AdminReferrals"));
-
-// Lazy-load heavy tool pages — reduces initial bundle by ~40%
-// Onboarding + Profile are lazy because they pull `country-state-city`
-// (7.7MB of city data) which blows iOS Safari's parser stack if eagerly
-// bundled into the main chunk.
-const Onboarding = lazy(() => import("./pages/Onboarding"));
-const Profile = lazy(() => import("./pages/Profile"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const ApplicationWizard = lazy(() => import("./pages/ApplicationWizard"));
-const AutoApplierSettings = lazy(() => import("./pages/AutoApplierSettings"));
-const InterviewCoach = lazy(() => import("./pages/InterviewCoach"));
-const PostInterview = lazy(() => import("./pages/PostInterview"));
-const ResumeBuilder = lazy(() => import("./pages/ResumeBuilder"));
-const TailoredResumes = lazy(() => import("./pages/TailoredResumes"));
-const Settings = lazy(() => import("./pages/Settings"));
-const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
-
-// Recruiter pages (lazy)
-const RecruiterDashboard = lazy(() => import("./pages/recruiter/RecruiterDashboard"));
-const PostJob = lazy(() => import("./pages/recruiter/PostJob"));
-const MyJobs = lazy(() => import("./pages/recruiter/MyJobs"));
-const JobApplicants = lazy(() => import("./pages/recruiter/JobApplicants"));
-const EditJob = lazy(() => import("./pages/recruiter/EditJob"));
-const CompanyProfile = lazy(() => import("./pages/recruiter/CompanyProfile"));
-const CandidateTalentSearch = lazy(() => import("./pages/recruiter/CandidateTalentSearch"));
-const RecruiterAnalytics = lazy(() => import("./pages/recruiter/RecruiterAnalytics"));
-const RecruiterPricing = lazy(() => import("./pages/recruiter/RecruiterPricing"));
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes - aggressive caching for performance
-      gcTime: 10 * 60 * 1000,   // 10 minutes - keep data in memory longer
-      refetchOnWindowFocus: false, // Prevent excessive requests on tab focus
-      retry: (failureCount, error: unknown) => {
-        // Don't retry on rate limit errors to prevent cascade failures
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        if (errorMessage.includes('429') ||
-            errorMessage.includes('rate limit') ||
-            errorMessage.includes('Too Many Requests')) {
-          return false;
-        }
-        // Only retry twice for other errors
-        return failureCount < 2;
-      },
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff with max 30s
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      retry: 2,
     },
   },
 });
 
-const AppInitializer = () => {
-  useEffect(() => {
-    const runChecks = async () => {
-      runStartupValidation();
-      logMobileBrowserInfo();
+// Simple Hello World Landing Page
+const HomePage = () => {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+      <div className="max-w-4xl mx-auto text-center space-y-8">
+        <div className="space-y-4">
+          <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Business Operations Platform
+          </h1>
+          <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300">
+            AI-powered automation for service businesses
+          </p>
+        </div>
 
-      // Initialize mobile app features — wrapped in try/catch because
-      // @capacitor/core can throw on certain mobile browsers (Safari/Chrome)
-      // where the native bridge is absent.
-      try {
-        await HunterAIMobile.initialize();
-      } catch (err) {
-        console.warn('Mobile init skipped (not a native app):', err);
-      }
+        <div className="grid md:grid-cols-3 gap-6 mt-12">
+          <Card className="border-gray-200 dark:border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-lg">AI Communication</CardTitle>
+              <CardDescription>
+                24/7 AI assistant for calls, texts, and emails
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-32 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 rounded-lg flex items-center justify-center">
+                <div className="text-3xl">🤖</div>
+              </div>
+            </CardContent>
+          </Card>
 
-      try {
-        const healthStatus = await checkDatabaseHealth();
-        logHealthStatus(healthStatus);
-      } catch {
-        // Silent fail in production
-      }
-    };
-    runChecks();
-  }, []);
-  return null;
+          <Card className="border-gray-200 dark:border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-lg">Smart Scheduling</CardTitle>
+              <CardDescription>
+                Intelligent appointment management and optimization
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-32 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900 dark:to-green-800 rounded-lg flex items-center justify-center">
+                <div className="text-3xl">📅</div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-gray-200 dark:border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-lg">Workflow Automation</CardTitle>
+              <CardDescription>
+                Streamline operations with custom workflows
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-32 bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900 dark:to-purple-800 rounded-lg flex items-center justify-center">
+                <div className="text-3xl">⚡</div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="space-y-4 pt-8">
+          <Button size="lg" className="mr-4">
+            Get Started
+          </Button>
+          <Button variant="outline" size="lg">
+            Learn More
+          </Button>
+        </div>
+
+        <div className="text-sm text-gray-500 dark:text-gray-400 pt-8">
+          Coming Soon: Transform your service business with AI automation
+        </div>
+      </div>
+    </div>
+  );
 };
 
-import { useRole } from "./hooks/useRole";
-import { useAuth } from "./hooks/useAuth";
-import { useLocation, useNavigate } from "react-router-dom";
-
-/**
- * Unified "Gatekeeper" component that handles all top-level redirects.
- * Centralizing this logic prevents "Ping-Pong" redirect loops on mobile.
- */
-const AppGatekeeper = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading: authLoading } = useAuth();
-  const { role, loading: roleLoading } = useRole(user?.id);
-  const { pathname } = useLocation();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // Wait for both auth and role to finish loading before making navigation decisions
-    if (authLoading || roleLoading) return;
-
-    // Add redirect cooldown to prevent loops
-    const lastRedirect = sessionStorage.getItem('hunter_last_redirect');
-    const redirectCooldown = 1000; // 1 second cooldown
-    const now = Date.now();
-
-    if (lastRedirect && now - parseInt(lastRedirect) < redirectCooldown) {
-      return; // Skip redirect if within cooldown period
-    }
-
-    // ── Public -> Private ──
-    // If logged in and on a public-only page (login/signup), move to dashboard
-    if (user && (pathname === "/login" || pathname === "/signup" || pathname === "/forgot-password")) {
-      const isRecruiter = role === "recruiter" || role === "admin";
-      const destination = isRecruiter ? "/recruiter" : "/dashboard";
-
-      // Prevent navigation loops - only navigate if we're not already going there
-      if (pathname !== destination) {
-        sessionStorage.setItem('hunter_last_redirect', now.toString());
-        navigate(destination, { replace: true });
-      }
-    }
-
-    // ── Private -> Public ──
-    // If logged out and on a protected page, move to login (handled by ProtectedRoute guards,
-    // but Gatekeeper can provide an extra layer of sanity if needed).
-  }, [user, role, authLoading, roleLoading, pathname, navigate]);
-
-  return <>{children}</>;
-};
-
-/** Wraps a page in ProtectedRoute + the persistent AppLayout shell */
-const AppPage = ({ children }: { children: React.ReactNode }) => (
-  <ProtectedRoute>
-    <AppLayout>{children}</AppLayout>
-  </ProtectedRoute>
+// Simple Authentication Pages (Placeholder)
+const LoginPage = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+    <Card className="w-full max-w-md">
+      <CardHeader>
+        <CardTitle>Sign In</CardTitle>
+        <CardDescription>Welcome back to Business Operations Platform</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p className="text-gray-600 dark:text-gray-400">Authentication coming soon...</p>
+      </CardContent>
+    </Card>
+  </div>
 );
 
-/** Wraps a page in ProtectedRoute + RequireRecruiter + RecruiterLayout */
-const RecruiterPage = ({ children }: { children: React.ReactNode }) => (
-  <ProtectedRoute>
-    <RequireRecruiter>
-      <RecruiterLayout>{children}</RecruiterLayout>
-    </RequireRecruiter>
-  </ProtectedRoute>
-);
+const DashboardPage = () => (
+  <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+    <div className="max-w-7xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+        <p className="text-gray-600 dark:text-gray-400">Business operations overview</p>
+      </div>
 
-/** Wraps a page in ProtectedRoute + AdminLayout + RequireAdmin guard */
-const AdminPage = ({ children }: { children: React.ReactNode }) => (
-  <ProtectedRoute>
-    <RequireAdmin>
-      <AdminLayout>{children}</AdminLayout>
-    </RequireAdmin>
-  </ProtectedRoute>
-);
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              AI Interactions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">247</div>
+            <p className="text-xs text-green-600">+12% from last month</p>
+          </CardContent>
+        </Card>
 
-try { (globalThis as { __HUNTER_STEP__?: (n: string) => void }).__HUNTER_STEP__?.('App:pre-component-def'); } catch { /* ignore */ }
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Appointments
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">89</div>
+            <p className="text-xs text-green-600">+8% from last month</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Workflows
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">12</div>
+            <p className="text-xs text-blue-600">Active automations</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Revenue
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">$12,450</div>
+            <p className="text-xs text-green-600">+15% from last month</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+          <CardDescription>Latest AI interactions and appointments</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                <span className="text-xs">🤖</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">AI handled customer inquiry</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">John Doe - Plumbing estimate request</p>
+              </div>
+              <div className="text-xs text-gray-500">2 min ago</div>
+            </div>
+
+            <div className="flex items-center space-x-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                <span className="text-xs">📅</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">Appointment scheduled</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">Sarah Smith - Kitchen renovation consultation</p>
+              </div>
+              <div className="text-xs text-gray-500">5 min ago</div>
+            </div>
+
+            <div className="flex items-center space-x-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                <span className="text-xs">⚡</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">Workflow executed</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">Follow-up sequence for Mike Johnson</p>
+              </div>
+              <div className="text-xs text-gray-500">12 min ago</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+);
 
 const App = () => {
-  // Initialize performance monitoring
-  usePerformanceMonitoring();
-
   return (
-  <ErrorBoundary>
-    <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Sonner />
-          <BrowserRouter>
-            <AuthProvider>
-              <GeoProvider>
-                <AppGatekeeper>
-                  <AppInitializer />
-                  <SecurityHeaders />
-                  <ScrollToTop />
-                  <FloatingThemeToggle />
-                  <CommandPalette />
-                  <CookieConsent />
-                  <GDPRBanner />
-                  <div className="flex flex-col min-h-screen min-h-[100dvh]">
-                    <div className="flex-1">
-                      <Suspense fallback={<PageLoader />}>
-                        <Routes>
-                          {/* ── Public ─────────────────────────────── */}
-                          <Route path="/" element={<Index />} />
-                          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-                          <Route path="/signup" element={<PublicRoute><SignUp /></PublicRoute>} />
-                        <Route path="/privacy" element={<Privacy />} />
-                        <Route path="/terms" element={<Terms />} />
-                        <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
-                        <Route path="/verify-email" element={<EmailVerification />} />
-                        <Route path="/reset-password" element={<ResetPassword />} />
-                        <Route path="/recruiter-portal" element={<RecruiterPortal />} />
-                        <Route path="/recruiter-setup" element={<RecruiterSetup />} />
+    <ErrorBoundary>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <Sonner />
+            <BrowserRouter>
+              <AuthProvider>
+                <Routes>
+                  {/* Public Routes */}
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/login" element={<LoginPage />} />
 
-                        {/* ── Onboarding (full-screen, no sidebar) ─ */}
-                        <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+                  {/* Dashboard Route */}
+                  <Route path="/dashboard" element={<DashboardPage />} />
 
-                        {/* ── Authenticated app shell (sidebar always visible) ─ */}
-                        <Route path="/dashboard"             element={<AppPage><Dashboard /></AppPage>} />
-                        <Route path="/profile"               element={<AppPage><Profile /></AppPage>} />
-                        <Route path="/resume-builder"        element={<AppPage><ResumeBuilder /></AppPage>} />
-                        <Route path="/application-wizard"    element={<AppPage><ApplicationWizard /></AppPage>} />
-                        <Route path="/interview-coach"       element={<AppPage><InterviewCoach /></AppPage>} />
-                        <Route path="/post-interview"        element={<AppPage><PostInterview /></AppPage>} />
-                        <Route path="/auto-applier-settings" element={<AppPage><AutoApplierSettings /></AppPage>} />
-                        <Route path="/tailored-resumes"      element={<AppPage><TailoredResumes /></AppPage>} />
-                        <Route path="/settings"              element={<AppPage><Settings /></AppPage>} />
-                        <Route path="/admin/analytics"       element={<AdminPage><AdminAnalytics /></AdminPage>} />
-
-                        {/* ── Platform admin shell ──────────────────────── */}
-                        <Route path="/admin"                            element={<AdminPage><AdminOverview /></AdminPage>} />
-                        <Route path="/admin/recruiter-applications"     element={<AdminPage><RecruiterApplicationsPage /></AdminPage>} />
-                        <Route path="/admin/users"                      element={<AdminPage><AdminUsers /></AdminPage>} />
-                        <Route path="/admin/logs"                       element={<AdminPage><AdminLogs /></AdminPage>} />
-                        <Route path="/admin/referrals"                  element={<AdminPage><AdminReferrals /></AdminPage>} />
-
-                        {/* ── Recruiter app shell ──────────────────────── */}
-                        <Route path="/recruiter"             element={<RecruiterPage><RecruiterDashboard /></RecruiterPage>} />
-                        <Route path="/recruiter/jobs"        element={<RecruiterPage><MyJobs /></RecruiterPage>} />
-                        <Route path="/recruiter/post-job"    element={<RecruiterPage><PostJob /></RecruiterPage>} />
-                        <Route path="/recruiter/jobs/:jobId"      element={<RecruiterPage><JobApplicants /></RecruiterPage>} />
-                        <Route path="/recruiter/jobs/:jobId/edit" element={<RecruiterPage><EditJob /></RecruiterPage>} />
-                        <Route path="/recruiter/company"     element={<RecruiterPage><CompanyProfile /></RecruiterPage>} />
-                        <Route path="/recruiter/candidates"  element={<RecruiterPage><CandidateTalentSearch /></RecruiterPage>} />
-                        <Route path="/recruiter/analytics"   element={<RecruiterPage><RecruiterAnalytics /></RecruiterPage>} />
-                        <Route path="/recruiter/pricing"     element={<ProtectedRoute><RecruiterPricing /></ProtectedRoute>} />
-
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                      </Suspense>
-                    </div>
-                    <Footer />
-                  </div>
-                  <BottomNavigation />
-                </AppGatekeeper>
-              </GeoProvider>
-            </AuthProvider>
-          </BrowserRouter>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </HelmetProvider>
-  </ErrorBoundary>
+                  {/* Catch all route */}
+                  <Route path="*" element={<HomePage />} />
+                </Routes>
+              </AuthProvider>
+            </BrowserRouter>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </HelmetProvider>
+    </ErrorBoundary>
   );
 };
 
