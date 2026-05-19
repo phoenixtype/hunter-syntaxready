@@ -245,39 +245,39 @@ const TESTIMONIALS = [
 const COMPARISON = [
   {
     feature: "Job discovery",
-    hunter: "AI-matched from live boards",
+    Business Operations Platform: "AI-matched from live boards",
     others: "Basic keyword alerts",
-    hunterCheck: true,
+    platformCheck: true,
   },
   {
     feature: "Resume tailoring",
-    hunter: "AI rewrites per job in seconds",
+    Business Operations Platform: "AI rewrites per job in seconds",
     others: "Template fill-in",
-    hunterCheck: true,
+    platformCheck: true,
   },
   {
     feature: "Interview prep",
-    hunter: "AI coach with role-specific Q&A",
+    Business Operations Platform: "AI coach with role-specific Q&A",
     others: "Generic question lists",
-    hunterCheck: true,
+    platformCheck: true,
   },
   {
     feature: "Application tracking",
-    hunter: "Built-in board + timeline",
+    Business Operations Platform: "Built-in board + timeline",
     others: "Spreadsheet or separate tool",
-    hunterCheck: true,
+    platformCheck: true,
   },
   {
     feature: "Hiring team intel",
-    hunter: "Auto-found with LinkedIn links",
+    Business Operations Platform: "Auto-found with LinkedIn links",
     others: "Not available",
-    hunterCheck: true,
+    platformCheck: true,
   },
   {
     feature: "Recruiter matching",
-    hunter: "Recruiters see your profile, reach out",
+    Business Operations Platform: "Recruiters see your profile, reach out",
     others: "Recruiter spam",
-    hunterCheck: true,
+    platformCheck: true,
   },
 ];
 
