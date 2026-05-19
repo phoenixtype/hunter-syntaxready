@@ -1,10 +1,10 @@
 {
-  "name": "Hunter AI",
-  "short_name": "Hunter",
-  "description": "Your Career, Autopilot. Autonomous job discovery and applications.",
-  "start_url": "/dashboard",
+  "name": "Business Operations Platform",
+  "short_name": "BizOps",
+  "description": "AI-powered automation platform for service businesses",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#f8f9fa",
+  "background_color": "#ffffff",
   "theme_color": "#1a73e8",
   "icons": [
     {

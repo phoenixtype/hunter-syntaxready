@@ -6,42 +6,42 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <title>hunter.ai | The Agentic Career Platform</title>
+    <title>Business Operations Platform | AI-Powered Automation for Service Businesses</title>
     <meta
       name="description"
-      content="Hunter AI autonomously manages your job discovery, applications, and interview prep."
+      content="Transform your service business with AI automation that handles customer communication, scheduling, and workflow management."
     />
-    <meta name="author" content="hunter.ai" />
+    <meta name="author" content="SyntaxReady Inc" />
     <meta
       name="keywords"
-      content="job search, AI, career, automation, resume, interview prep, job applications"
+      content="business automation, AI assistant, customer communication, scheduling, workflow management, service businesses"
     />
-    <link rel="canonical" href="https://usehunter.app" />
+    <link rel="canonical" href="https://syntaxready.com" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Google+Sans:wght@400;500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://usehunter.app" />
-    <meta property="og:title" content="hunter.ai - Your Career, Autopilot" />
+    <meta property="og:url" content="https://syntaxready.com" />
+    <meta property="og:title" content="Business Operations Platform - AI Automation" />
     <meta
       property="og:description"
-      content="The agentic AI system that autonomously manages job discovery, applications, and interview prep."
+      content="AI-powered automation platform that handles customer communication, scheduling, and workflow management for service businesses."
     />
     <meta property="og:image" content="/og-image.png" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="https://usehunter.app" />
-    <meta name="twitter:title" content="hunter.ai - Your Career, Autopilot" />
+    <meta name="twitter:url" content="https://syntaxready.com" />
+    <meta name="twitter:title" content="Business Operations Platform - AI Automation" />
     <meta
       name="twitter:description"
-      content="The agentic AI system that autonomously manages job discovery, applications, and interview prep."
+      content="AI-powered automation platform that handles customer communication, scheduling, and workflow management for service businesses."
     />
     <meta name="twitter:image" content="/og-image.png" />
 
@@ -49,7 +49,7 @@
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="hunter.ai" />
+    <meta name="apple-mobile-web-app-title" content="Business Operations" />
     <link rel="apple-touch-icon" href="/favicon-192.png" />
     <meta name="theme-color" content="#1a73e8" />
 
@@ -59,18 +59,17 @@
 
   <body>
     <script>
-      // Global process shim for mobile browser compatibility - Idempotent
+      // Global process shim for mobile browser compatibility
       if (!window.process) window.process = { env: { NODE_ENV: 'production' } };
 
-      // Boot diagnostic system v3 - captures full error info via addEventListener
-      // (more reliable than window.onerror on iOS Safari which strips location).
-      window.__HUNTER_BOOT__ = {
-        version: 'diag-v7',
+      // Boot diagnostic system - captures error info for debugging
+      window.__APP_BOOT__ = {
+        version: 'v1.0.0',
         startedAt: Date.now(),
         steps: ['index.html:script-top'],
       };
-      window.__HUNTER_STEP__ = function(name) {
-        try { window.__HUNTER_BOOT__.steps.push(name); } catch (_) {}
+      window.__APP_STEP__ = function(name) {
+        try { window.__APP_BOOT__.steps.push(name); } catch (_) {}
       };
 
       (function() {
@@ -86,7 +85,7 @@
             // Ignore the harmless ResizeObserver loop warning
             if (info.message && /ResizeObserver/.test(info.message)) { isReporting = false; return; }
 
-            var boot = window.__HUNTER_BOOT__ || { version: '?', steps: [] };
+            var boot = window.__APP_BOOT__ || { version: '?', steps: [] };
             var elapsed = Date.now() - (boot.startedAt || Date.now());
             var stepsHtml = boot.steps.map(function(s, i) { return (i + 1) + '. ' + escapeHtml(s); }).join('\n');
 
@@ -94,7 +93,7 @@
             overlay.id = 'panic-overlay';
             overlay.style.cssText = 'position:fixed;inset:0;background:#fee2e2;color:#991b1b;padding:16px;font-family:monospace;z-index:999999;overflow:auto;font-size:12px;line-height:1.4;';
             overlay.innerHTML =
-              '<h1 style="font-size:18px;margin:0 0 8px;">🚨 Hunter AI Boot Error</h1>' +
+              '<h1 style="font-size:18px;margin:0 0 8px;">🚨 Application Boot Error</h1>' +
               '<p style="font-size:12px;margin:0 0 12px;">Build: <b>' + escapeHtml(boot.version) + '</b> · Elapsed: ' + elapsed + 'ms · UA: ' + escapeHtml(navigator.userAgent).slice(0, 80) + '</p>' +
               '<div style="background:#fff;padding:10px;border-radius:6px;border:1px solid #f87171;margin-bottom:10px;">' +
                 '<p style="margin:0 0 6px;"><b>Source:</b> ' + escapeHtml(info.source || '(unknown)') + '</p>' +
@@ -112,7 +111,7 @@
             (document.body || document.documentElement).appendChild(overlay);
 
             var reportText =
-              'Hunter AI Boot Error\n' +
+              'Business Operations Platform Boot Error\n' +
               'Build: ' + boot.version + '\n' +
               'UA: ' + navigator.userAgent + '\n' +
               'Elapsed: ' + elapsed + 'ms\n' +
@@ -142,8 +141,7 @@
           }
         }
 
-        // addEventListener('error') gives us the full ErrorEvent (filename, lineno,
-        // colno, error.stack) on iOS Safari, unlike window.onerror which strips them.
+        // Error event handling for debugging
         window.addEventListener('error', function(event) {
           var err = event.error;
           renderPanic({
@@ -169,14 +167,14 @@
           });
         });
 
-        // Expose for main.tsx try/catch reporting
-        window.__HUNTER_PANIC__ = renderPanic;
+        // Expose for main.tsx error reporting
+        window.__APP_PANIC__ = renderPanic;
 
-        window.__HUNTER_STEP__('panic-handler:installed');
+        window.__APP_STEP__('error-handler:installed');
       })();
     </script>
     <div id="root"></div>
-    <!-- No-flicker theme: run before React paint -->
+    <!-- Theme initialization -->
     <script>
       (function () {
         try {
