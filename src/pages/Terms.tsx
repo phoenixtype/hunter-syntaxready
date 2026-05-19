@@ -253,7 +253,7 @@ const Terms = () => {
 
               <h3 className="text-xl font-medium text-foreground">8.3 Limitation of Liability</h3>
               <p>
-                TO THE MAXIMUM EXTENT PERMITTED BY LAW, HUNTER AI SHALL NOT BE LIABLE FOR ANY INDIRECT, 
+                TO THE MAXIMUM EXTENT PERMITTED BY LAW, BUSINESS OPERATIONS PLATFORM SHALL NOT BE LIABLE FOR ANY INDIRECT, 
                 INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, REVENUE, 
                 DATA, OR OPPORTUNITIES ARISING FROM YOUR USE OF THE SERVICE.
               </p>

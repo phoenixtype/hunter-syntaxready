@@ -48,7 +48,7 @@ const motion = new Proxy(
   {},
   {
     get: (_, tagName: string) => {
-      return ({ children, ...props }: Record<string, any>) => {
+      return ({ children, ...props }: Record<string, unknown>) => {
         const safeProps = Object.fromEntries(
           Object.entries(props).filter(([key]) => !STATIC_MOTION_PROPS.has(key))
         );
@@ -57,7 +57,7 @@ const motion = new Proxy(
       };
     },
   }
-) as Record<string, (props: Record<string, any>) => JSX.Element>;
+) as Record<string, (props: Record<string, unknown>) => JSX.Element>;
 
 // Animation variants - only used if framer-motion loads successfully
 const fadeUp = {
@@ -117,12 +117,12 @@ function MotionElement({
 }: {
   as?: keyof JSX.IntrinsicElements;
   style?: React.CSSProperties;
-  initial?: any;
-  animate?: any;
-  transition?: any;
+  initial?: Record<string, unknown>;
+  animate?: Record<string, unknown>;
+  transition?: Record<string, unknown>;
   className?: string;
   children?: React.ReactNode;
-  [key: string]: any;
+  [key: string]: unknown;
 }) {
   const MotionComponent = motion[Component as keyof typeof motion] ?? Component;
 
@@ -245,37 +245,37 @@ const TESTIMONIALS = [
 const COMPARISON = [
   {
     feature: "Job discovery",
-    Business Operations Platform: "AI-matched from live boards",
+    BizOps: "AI-matched from live boards",
     others: "Basic keyword alerts",
     platformCheck: true,
   },
   {
     feature: "Resume tailoring",
-    Business Operations Platform: "AI rewrites per job in seconds",
+    BizOps: "AI rewrites per job in seconds",
     others: "Template fill-in",
     platformCheck: true,
   },
   {
     feature: "Interview prep",
-    Business Operations Platform: "AI coach with role-specific Q&A",
+    BizOps: "AI coach with role-specific Q&A",
     others: "Generic question lists",
     platformCheck: true,
   },
   {
     feature: "Application tracking",
-    Business Operations Platform: "Built-in board + timeline",
+    BizOps: "Built-in board + timeline",
     others: "Spreadsheet or separate tool",
     platformCheck: true,
   },
   {
     feature: "Hiring team intel",
-    Business Operations Platform: "Auto-found with LinkedIn links",
+    BizOps: "Auto-found with LinkedIn links",
     others: "Not available",
     platformCheck: true,
   },
   {
     feature: "Recruiter matching",
-    Business Operations Platform: "Recruiters see your profile, reach out",
+    BizOps: "Recruiters see your profile, reach out",
     others: "Recruiter spam",
     platformCheck: true,
   },
@@ -330,11 +330,11 @@ const Index = () => {
         aria-label="Main navigation"
       >
         <div className="container max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5" aria-label="Hunter Home">
+          <Link to="/" className="flex items-center gap-2.5" aria-label="BizOps Home">
             <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center shadow-md-1">
-              <span className="text-primary-foreground font-bold text-base leading-none">H</span>
+              <span className="text-primary-foreground font-bold text-base leading-none">B</span>
             </div>
-            <span className="text-lg font-semibold tracking-tight">hunter</span>
+            <span className="text-lg font-semibold tracking-tight">BizOps</span>
           </Link>
 
           {/* Desktop links */}
@@ -726,7 +726,7 @@ const Index = () => {
                         <td className="py-3.5 px-5">
                           <div className="flex items-center gap-2">
                             <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-                            <span className="text-sm font-medium text-primary">{row.hunter}</span>
+                            <span className="text-sm font-medium text-primary">{row.BizOps}</span>
                           </div>
                         </td>
                         <td className="py-3.5 px-5 text-muted-foreground text-sm">{row.others}</td>
@@ -1008,7 +1008,7 @@ const Index = () => {
             </div>
             <div className="border-t border-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
               <p className="text-xs text-muted-foreground">
-                &copy; {new Date().getFullYear()} Hunter AI Inc. All rights reserved.
+                &copy; {new Date().getFullYear()} SyntaxReady Inc. All rights reserved.
               </p>
               <div className="flex items-center gap-4 text-xs text-muted-foreground">
                 <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>

@@ -35,8 +35,8 @@ type CacheKey = string;
 type TTL = number; // seconds
 
 class InMemoryCache {
-  private cache = new Map<CacheKey, CacheEntry<any>>();
-  private pendingComputes = new Map<CacheKey, Promise<any>>();
+  private cache = new Map<CacheKey, CacheEntry<unknown>>();
+  private pendingComputes = new Map<CacheKey, Promise<unknown>>();
   private stats: CacheStats = {
     hits: 0,
     misses: 0,
@@ -261,7 +261,7 @@ class InMemoryCache {
   /**
    * Estimate memory size of value
    */
-  private calculateSize(value: any): number {
+  private calculateSize(value: unknown): number {
     try {
       return JSON.stringify(value).length * 2; // Rough estimate (UTF-16)
     } catch {

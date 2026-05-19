@@ -35,7 +35,7 @@ const getSafeStorage = () => {
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
-    storage: getSafeStorage() as any,
+    storage: getSafeStorage() as Storage,
     persistSession: true,
     autoRefreshToken: true,
   },

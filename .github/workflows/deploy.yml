@@ -1,4 +1,4 @@
-# Hunter — Full Deploy Pipeline
+# Business Operations Platform — Full Deploy Pipeline
 #
 # Runs on every push to main:
 #   1. Supabase DB migrations

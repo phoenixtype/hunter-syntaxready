@@ -5,7 +5,7 @@ import { RouterProvider } from 'react-router-dom';
 
 import { paths } from '@/config/paths';
 
-const convert = (queryClient: QueryClient) => (m: any) => {
+const convert = (queryClient: QueryClient) => (m: { clientLoader?: (queryClient: QueryClient) => unknown; clientAction?: (queryClient: QueryClient) => unknown; default: React.ComponentType; [key: string]: unknown }) => {
   const { clientLoader, clientAction, default: Component, ...rest } = m;
   return {
     ...rest,

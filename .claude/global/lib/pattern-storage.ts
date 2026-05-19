@@ -102,7 +102,7 @@ export class PatternStorage {
     return true;
   }
 
-  private deserializePattern(parsed: any): OptimizationPattern {
+  private deserializePattern(parsed: Record<string, unknown>): OptimizationPattern {
     return {
       ...parsed,
       created_at: new Date(parsed.created_at),
