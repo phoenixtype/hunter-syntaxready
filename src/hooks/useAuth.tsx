@@ -2,7 +2,7 @@ import { useState, useEffect, createContext, useContext, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
-try { (globalThis as { __HUNTER_STEP__?: (n: string) => void }).__HUNTER_STEP__?.('useAuth:body-start'); } catch { /* ignore */ }
+try { (globalThis as { __APP_STEP__?: (n: string) => void }).__APP_STEP__?.('useAuth:body-start'); } catch { /* ignore */ }
 
 interface SignUpResult {
   error: Error | null;
@@ -93,7 +93,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(null);
       // Clean up any cached user data
       try {
-        localStorage.removeItem('hunter_dashboard_view');
+        localStorage.removeItem('app_dashboard_view');
       } catch { /* localStorage may be unavailable */ }
     }
   };

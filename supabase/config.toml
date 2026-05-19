@@ -1,12 +1,10 @@
 project_id = "ffjsgjsiemtxqbhimvhb"
 
 [auth]
-site_url = "https://usehunter.app"
+site_url = "http://localhost:3000"
 additional_redirect_urls = [
-  "https://usehunter.app/**",
-  "https://hunter-syntaxready-syntax-ready.vercel.app/**",
-  "https://ea66d069-7430-48da-b737-cb07a335a37b.lovableproject.com/**",
-  "https://id-preview--ea66d069-7430-48da-b737-cb07a335a37b.lovable.app/**"
+  "http://localhost:3000/**",
+  "https://syntaxready.com/**"
 ]
 jwt_expiry = 3600
 
@@ -18,84 +16,9 @@ otp_length = 8
 enroll_enabled = true
 verify_enabled = true
 
-# --- Auth email hook (called by Supabase Auth, no user JWT) ---
+# Edge functions configuration
 [functions.send-auth-email]
 verify_jwt = false
 
-# --- Public / system endpoints (no user JWT available) ---
 [functions.stripe-webhook]
 verify_jwt = false
-
-[functions.recruiter-apply]
-verify_jwt = false
-
-[functions.auto-job-discovery]
-verify_jwt = false
-
-[functions.crawl-jobs]
-verify_jwt = false
-
-[functions.process-notifications]
-verify_jwt = false
-
-# --- User-authenticated endpoints (handle JWT internally) ---
-# Gateway JWT check removed; each function calls auth.getUser() itself,
-# which provides better error messages and handles token refresh gracefully.
-[functions.generate-content]
-verify_jwt = false
-
-[functions.interview-coach]
-verify_jwt = false
-
-[functions.parse-resume]
-verify_jwt = false
-
-[functions.generate-resume]
-verify_jwt = false
-
-[functions.salary-insights]
-verify_jwt = false
-
-[functions.create-checkout]
-verify_jwt = false
-
-[functions.create-checkout-session]
-verify_jwt = false
-
-[functions.create-portal]
-verify_jwt = false
-
-[functions.delete-account]
-verify_jwt = false
-
-[functions.send-notification]
-verify_jwt = false
-
-[functions.send-sms]
-verify_jwt = false
-
-[functions.check-usage-warnings]
-verify_jwt = false
-
-[functions.approve-recruiter]
-verify_jwt = false
-
-[functions.recruiter-outreach]
-verify_jwt = false
-
-[functions.search-candidates]
-verify_jwt = false
-
-[functions.match-and-apply]
-verify_jwt = false
-
-[functions.prune-stale-jobs]
-enabled = true
-verify_jwt = true
-import_map = "./functions/prune-stale-jobs/deno.json"
-# Uncomment to specify a custom file path to the entrypoint.
-# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
-entrypoint = "./functions/prune-stale-jobs/index.ts"
-# Specifies static files to be bundled with the function. Supports glob patterns.
-# For example, if you want to serve static HTML pages in your function:
-# static_files = [ "./functions/prune-stale-jobs/*.html" ]
