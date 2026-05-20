@@ -148,13 +148,13 @@ src/
 
 - **🐛 Bug Reports**: [GitHub Issues](https://github.com/syntaxready/business-operations-platform/issues)
 - **💡 Feature Requests**: [GitHub Discussions](https://github.com/syntaxready/business-operations-platform/discussions)
-- **📧 Contact**: hello@syntaxready.com
+- **📧 Contact**: hello@usehunter.app
 
 ## License
 
 This project is proprietary software. All rights reserved.
 
-**© 2024 SyntaxReady Inc. All rights reserved.**
+**© 2024 Hunter. All rights reserved.**
 
 ---
 

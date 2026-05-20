@@ -23,7 +23,7 @@ const Footer = forwardRef<HTMLElement>((_, ref) => {
           {/* Brand */}
           <div className="flex items-center gap-4">
             <p className="text-sm text-muted-foreground">
-              © 2024 SyntaxReady Inc. All rights reserved.
+              © 2024 Hunter. All rights reserved.
             </p>
           </div>
 

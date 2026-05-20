@@ -4,7 +4,7 @@ project_id = "ffjsgjsiemtxqbhimvhb"
 site_url = "http://localhost:3000"
 additional_redirect_urls = [
   "http://localhost:3000/**",
-  "https://syntaxready.com/**"
+  "https://usehunter.app/**"
 ]
 jwt_expiry = 3600
 

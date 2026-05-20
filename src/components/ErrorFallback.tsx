@@ -172,7 +172,7 @@ export const ErrorFallback = ({ error, resetError, showHomeButton = true }: Erro
                 <p className="text-center text-xs text-muted-foreground">
                     Need help?{" "}
                     <a
-                        href="mailto:support@syntaxready.com"
+                        href="mailto:support@usehunter.app"
                         className="underline underline-offset-2 hover:text-foreground transition-colors"
                     >
                         Contact support

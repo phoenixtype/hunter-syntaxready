@@ -182,7 +182,7 @@ const Privacy = () => {
 
               <p>
                 To exercise any of these rights, visit your <Link to="/settings" className="text-primary hover:underline">Account Settings</Link> or 
-                contact us at <a href="mailto:privacy@syntaxready.com" className="text-primary hover:underline">privacy@syntaxready.com</a>.
+                contact us at <a href="mailto:privacy@usehunter.app" className="text-primary hover:underline">privacy@usehunter.app</a>.
               </p>
             </div>
           </section>
@@ -234,8 +234,8 @@ const Privacy = () => {
             <div className="text-muted-foreground leading-relaxed">
               <p>For privacy-related inquiries or to exercise your data rights:</p>
               <ul className="mt-4 space-y-2">
-                <li><strong>Email:</strong> <a href="mailto:privacy@syntaxready.com" className="text-primary hover:underline">privacy@syntaxready.com</a></li>
-                <li><strong>Data Protection Officer:</strong> <a href="mailto:dpo@syntaxready.com" className="text-primary hover:underline">dpo@syntaxready.com</a></li>
+                <li><strong>Email:</strong> <a href="mailto:privacy@usehunter.app" className="text-primary hover:underline">privacy@usehunter.app</a></li>
+                <li><strong>Data Protection Officer:</strong> <a href="mailto:dpo@usehunter.app" className="text-primary hover:underline">dpo@usehunter.app</a></li>
                 <li><strong>Response Time:</strong> We respond to all requests within 30 days</li>
               </ul>
             </div>

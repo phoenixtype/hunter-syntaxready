@@ -1008,7 +1008,7 @@ const Index = () => {
             </div>
             <div className="border-t border-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
               <p className="text-xs text-muted-foreground">
-                &copy; {new Date().getFullYear()} SyntaxReady Inc. All rights reserved.
+                &copy; {new Date().getFullYear()} Hunter. All rights reserved.
               </p>
               <div className="flex items-center gap-4 text-xs text-muted-foreground">
                 <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
